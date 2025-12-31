@@ -62,3 +62,22 @@ class EmployeeFilterSet(django_filters.FilterSet):
         if value:
             return queryset.filter(code_type=Employee.CodeType.OS)
         return queryset.exclude(code_type=Employee.CodeType.OS)
+
+
+class EmployeeDropdownFilterSet(django_filters.FilterSet):
+    """Slim filterset for Employee dropdown endpoint."""
+
+    code = django_filters.CharFilter(lookup_expr="icontains")
+    branch = django_filters.NumberFilter(field_name="branch")
+    block = django_filters.NumberFilter(field_name="block")
+    department = django_filters.NumberFilter(field_name="department")
+    position = django_filters.NumberFilter(field_name="position")
+    status = django_filters.ChoiceFilter(field_name="status", choices=Employee.Status.choices)
+    statuses = django_filters.MultipleChoiceFilter(
+        field_name="status",
+        choices=Employee.Status.choices,
+    )
+
+    class Meta:
+        model = Employee
+        fields = ["code", "branch", "block", "department", "position", "status", "statuses"]

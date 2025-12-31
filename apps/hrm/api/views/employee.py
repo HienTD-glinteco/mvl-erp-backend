@@ -10,11 +10,12 @@ from rest_framework.filters import OrderingFilter
 from rest_framework.response import Response
 
 from apps.audit_logging.api.mixins import AuditLoggingMixin
-from apps.hrm.api.filtersets import EmployeeFilterSet
+from apps.hrm.api.filtersets import EmployeeDropdownFilterSet, EmployeeFilterSet
 from apps.hrm.api.serializers import (
     EmployeeActiveActionSerializer,
     EmployeeAvatarSerializer,
     EmployeeChangeTypeActionSerializer,
+    EmployeeDropdownSerializer,
     EmployeeExportXLSXSerializer,
     EmployeeMaternityLeaveActionSerializer,
     EmployeeReactiveActionSerializer,
@@ -143,6 +144,10 @@ class EmployeeViewSet(
             "name_template": _("Import {model_name} data"),
             "description_template": _("Import {model_name} data asynchronously"),
         },
+        "dropdown": {
+            "name_template": _("View employee in dropdown list"),
+            "description_template": _("List employee for dropdown selection"),
+        },
     }
 
     # Import handler path for AsyncImportProgressMixin
@@ -207,6 +212,54 @@ class EmployeeViewSet(
             ]
 
         return context
+
+    @extend_schema(
+        summary="List employees for dropdown",
+        description=(
+            "Retrieve a non-paginated list of employees suitable for dropdowns. "
+            "This action supports the same filters, search, and ordering parameters as the standard list endpoint."
+        ),
+        tags=["5.1: Employee"],
+        responses={200: EmployeeDropdownSerializer(many=True)},
+        examples=[
+            OpenApiExample(
+                "Dropdown success",
+                description="Matching employees returned for dropdown consumption",
+                value={
+                    "success": True,
+                    "data": [
+                        {
+                            "id": 1,
+                            "code": "MV00000001",
+                            "fullname": "John Doe",
+                            "attendance_code": "0000000000001",
+                            "email": "john.doe@example.com",
+                        }
+                    ],
+                    "error": None,
+                },
+                response_only=True,
+            ),
+            OpenApiExample(
+                "Permission denied",
+                description="User lacks permission to view dropdown data",
+                value={"success": False, "data": None, "error": "permission denied"},
+                response_only=True,
+                status_codes=["403"],
+            ),
+        ],
+    )
+    @action(
+        detail=False,
+        methods=["get"],
+        url_path="dropdown",
+        filterset_class=EmployeeDropdownFilterSet,
+        serializer_class=EmployeeDropdownSerializer,
+    )
+    def dropdown(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        serializer = EmployeeDropdownSerializer(queryset, many=True)
+        return Response(serializer.data)
 
     @extend_schema(
         summary="Active an employee",
