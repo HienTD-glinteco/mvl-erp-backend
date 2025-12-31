@@ -214,8 +214,8 @@ class TimesheetCalculator:
             ]:
                 morning_start, morning_end, afternoon_start, afternoon_end = self._get_schedule_times()
                 for s_start, s_end in filter(None, [(morning_start, morning_end), (afternoon_start, afternoon_end)]):
-                    overlap_start = max(actual_ot_start, s_start)
-                    overlap_end = min(actual_ot_end, s_end)
+                    overlap_start = max(actual_ot_start, s_start or actual_ot_start)
+                    overlap_end = min(actual_ot_end, s_end or actual_ot_end)
                     if overlap_start < overlap_end:
                         ov_dur = (overlap_end - overlap_start).total_seconds() / 3600.0
                         net_ot_hours -= Decimal(ov_dur)
