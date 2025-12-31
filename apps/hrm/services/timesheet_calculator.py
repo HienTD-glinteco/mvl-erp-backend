@@ -78,7 +78,7 @@ class TimesheetCalculator:
 
         # 5. Compute Status & Working Days
         self.compute_status(is_finalizing=is_finalizing)
-        self.compute_working_days()
+        self.compute_working_days(is_finalizing=is_finalizing)
 
     def handle_exemption(self) -> bool:
         """Check if employee is exempt. If so, grant full credit and exit."""
@@ -380,9 +380,14 @@ class TimesheetCalculator:
                 self.entry.status = None
             return
 
-        # 3. Single Punch -> SINGLE_PUNCH
+        # 3. Single Punch Logic
         if (self.entry.start_time and not self.entry.end_time) or (not self.entry.start_time and self.entry.end_time):
-            self.entry.status = TimesheetStatus.SINGLE_PUNCH
+            # Real-time: NOT_ON_TIME (incomplete attendance is a violation)
+            # Finalization: SINGLE_PUNCH (confirmed single check at end of day)
+            if is_finalizing:
+                self.entry.status = TimesheetStatus.SINGLE_PUNCH
+            else:
+                self.entry.status = TimesheetStatus.NOT_ON_TIME
             return
 
         # 4. Two Logs -> Calculate Penalties first
@@ -394,8 +399,18 @@ class TimesheetCalculator:
         else:
             self.entry.status = TimesheetStatus.ON_TIME
 
-    def compute_working_days(self) -> None:
+    def compute_working_days(self, is_finalizing: bool = False) -> None:
         """Compute working_days according to business rules."""
+        # Check for single punch BEFORE setting default
+        is_single_punch = (self.entry.start_time and not self.entry.end_time) or (
+            not self.entry.start_time and self.entry.end_time
+        )
+
+        # Real-time single punch: leave working_days as None
+        if is_single_punch and not is_finalizing:
+            self.entry.working_days = None
+            return
+
         self.entry.working_days = Decimal("0.00")
 
         # 1. Absolute Absence (Full Day)
@@ -464,6 +479,9 @@ class TimesheetCalculator:
 
     def _apply_working_days_cap(self) -> None:
         """Apply daily cap based on work schedule or absolute max of 1.0."""
+        if not self.entry.working_days:
+            return
+
         if self.work_schedule:
             max_days = self._get_schedule_max_days()
             if self.entry.working_days > max_days:
