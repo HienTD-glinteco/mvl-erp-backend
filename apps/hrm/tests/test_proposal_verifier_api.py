@@ -1,3 +1,5 @@
+from datetime import date
+
 import pytest
 from django.urls import reverse
 from rest_framework import status
@@ -768,3 +770,391 @@ class TestProposalAutoAssignVerifier:
             verifier = ProposalVerifier.objects.filter(proposal=proposal, employee=department_leader).first()
             assert verifier is not None, f"Verifier not created for proposal type {proposal_type}"
             assert verifier.status == ProposalVerifierStatus.PENDING
+
+
+class TestProposalVerifierSerializerCombinedFields:
+    """Tests to verify ProposalVerifierSerializer returns all ProposalCombinedSerializer fields.
+
+    Since ProposalVerifierSerializer uses ProposalCombinedSerializer for the proposal field,
+    the response should include all type-specific fields for each proposal type.
+    """
+
+    @pytest.fixture
+    def province(self):
+        """Create a province for testing."""
+        from apps.core.models import Province
+
+        return Province.objects.create(name="Test Province", code="TP_COMBINED_001")
+
+    @pytest.fixture
+    def administrative_unit(self, province):
+        """Create an administrative unit for testing."""
+        from apps.core.models import AdministrativeUnit
+
+        return AdministrativeUnit.objects.create(
+            name="Test Admin Unit",
+            code="TAU_COMBINED_001",
+            level=AdministrativeUnit.UnitLevel.DISTRICT,
+            parent_province=province,
+        )
+
+    @pytest.fixture
+    def branch(self, administrative_unit):
+        """Create a branch for testing."""
+        from apps.hrm.models import Branch
+
+        return Branch.objects.create(
+            name="Test Branch",
+            code="TB_COMBINED_001",
+            administrative_unit=administrative_unit,
+            province=administrative_unit.parent_province,
+        )
+
+    @pytest.fixture
+    def block(self, branch):
+        """Create a block for testing."""
+        from apps.hrm.models import Block
+
+        return Block.objects.create(
+            name="Test Block", code="BLK_COMBINED_001", branch=branch, block_type=Block.BlockType.BUSINESS
+        )
+
+    @pytest.fixture
+    def department(self, branch, block):
+        """Create a department for testing."""
+        from apps.hrm.models import Department
+
+        return Department.objects.create(
+            name="Test Department",
+            code="TD_COMBINED_001",
+            branch=branch,
+            block=block,
+        )
+
+    @pytest.fixture
+    def employee(self, branch, block, department):
+        """Create an employee for testing."""
+        return Employee.objects.create(
+            code_type="MV",
+            fullname="Test Employee Combined",
+            username="testemployee_combined_001",
+            email="test_combined_001@example.com",
+            phone="0900100201",
+            citizen_id="000000100201",
+            start_date="2023-01-01",
+            branch=branch,
+            block=block,
+            department=department,
+        )
+
+    @pytest.fixture
+    def verifier_employee(self, branch, block, department):
+        """Create a verifier employee for testing."""
+        return Employee.objects.create(
+            code_type="MV",
+            fullname="Verifier Employee",
+            username="verifier_combined_001",
+            email="verifier_combined_001@example.com",
+            phone="0900100202",
+            citizen_id="000000100202",
+            start_date="2023-01-01",
+            branch=branch,
+            block=block,
+            department=department,
+        )
+
+    def test_proposal_verifier_returns_base_proposal_fields(self, api_client, superuser, employee, verifier_employee):
+        """Test that ProposalVerifierSerializer returns base proposal fields."""
+        # Create a paid leave proposal
+        proposal = Proposal.objects.create(
+            proposal_type=ProposalType.PAID_LEAVE,
+            paid_leave_reason="Vacation",
+            paid_leave_start_date=date(2025, 1, 1),
+            paid_leave_end_date=date(2025, 1, 2),
+            paid_leave_shift="full_day",
+            created_by=employee,
+        )
+        verifier = ProposalVerifier.objects.create(proposal=proposal, employee=verifier_employee)
+
+        url = reverse("hrm:proposal-verifier-detail", args=[verifier.id])
+        response = api_client.get(url)
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        proposal_data = data["data"]["proposal"]
+
+        # Base ProposalByTypeSerializer fields
+        base_fields = [
+            "id",
+            "code",
+            "proposal_date",
+            "proposal_type",
+            "colored_proposal_status",
+            "short_description",
+            "note",
+            "approval_note",
+            "approved_at",
+            "created_by",
+            "approved_by",
+            "created_at",
+            "updated_at",
+        ]
+        for field in base_fields:
+            assert field in proposal_data, f"Missing base field: {field}"
+
+    def test_proposal_verifier_returns_paid_leave_fields(self, api_client, superuser, employee, verifier_employee):
+        """Test that ProposalVerifierSerializer returns paid_leave fields for paid leave proposals."""
+        proposal = Proposal.objects.create(
+            proposal_type=ProposalType.PAID_LEAVE,
+            paid_leave_reason="Annual vacation",
+            paid_leave_start_date=date(2025, 1, 15),
+            paid_leave_end_date=date(2025, 1, 20),
+            paid_leave_shift="full_day",
+            created_by=employee,
+        )
+        verifier = ProposalVerifier.objects.create(proposal=proposal, employee=verifier_employee)
+
+        url = reverse("hrm:proposal-verifier-detail", args=[verifier.id])
+        response = api_client.get(url)
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        proposal_data = data["data"]["proposal"]
+
+        # Paid leave specific fields
+        paid_leave_fields = [
+            "paid_leave_start_date",
+            "paid_leave_end_date",
+            "paid_leave_shift",
+            "paid_leave_reason",
+        ]
+        for field in paid_leave_fields:
+            assert field in proposal_data, f"Missing paid_leave field: {field}"
+
+        # Verify the values
+        assert proposal_data["paid_leave_start_date"] == "2025-01-15"
+        assert proposal_data["paid_leave_end_date"] == "2025-01-20"
+        assert proposal_data["paid_leave_shift"] == "full_day"
+        assert proposal_data["paid_leave_reason"] == "Annual vacation"
+
+    def test_proposal_verifier_returns_unpaid_leave_fields(self, api_client, superuser, employee, verifier_employee):
+        """Test that ProposalVerifierSerializer returns unpaid_leave fields for unpaid leave proposals."""
+        proposal = Proposal.objects.create(
+            proposal_type=ProposalType.UNPAID_LEAVE,
+            unpaid_leave_reason="Personal matters",
+            unpaid_leave_start_date=date(2025, 2, 1),
+            unpaid_leave_end_date=date(2025, 2, 3),
+            unpaid_leave_shift="morning",
+            created_by=employee,
+        )
+        verifier = ProposalVerifier.objects.create(proposal=proposal, employee=verifier_employee)
+
+        url = reverse("hrm:proposal-verifier-detail", args=[verifier.id])
+        response = api_client.get(url)
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        proposal_data = data["data"]["proposal"]
+
+        # Unpaid leave specific fields
+        unpaid_leave_fields = [
+            "unpaid_leave_start_date",
+            "unpaid_leave_end_date",
+            "unpaid_leave_shift",
+            "unpaid_leave_reason",
+        ]
+        for field in unpaid_leave_fields:
+            assert field in proposal_data, f"Missing unpaid_leave field: {field}"
+
+        # Verify the values
+        assert proposal_data["unpaid_leave_start_date"] == "2025-02-01"
+        assert proposal_data["unpaid_leave_end_date"] == "2025-02-03"
+        assert proposal_data["unpaid_leave_shift"] == "morning"
+        assert proposal_data["unpaid_leave_reason"] == "Personal matters"
+
+    def test_proposal_verifier_returns_late_exemption_fields(self, api_client, superuser, employee, verifier_employee):
+        """Test that ProposalVerifierSerializer returns late_exemption fields."""
+        proposal = Proposal.objects.create(
+            proposal_type=ProposalType.LATE_EXEMPTION,
+            late_exemption_start_date=date(2025, 3, 1),
+            late_exemption_end_date=date(2025, 3, 31),
+            late_exemption_minutes=30,
+            created_by=employee,
+        )
+        verifier = ProposalVerifier.objects.create(proposal=proposal, employee=verifier_employee)
+
+        url = reverse("hrm:proposal-verifier-detail", args=[verifier.id])
+        response = api_client.get(url)
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        proposal_data = data["data"]["proposal"]
+
+        # Late exemption specific fields
+        late_exemption_fields = [
+            "late_exemption_start_date",
+            "late_exemption_end_date",
+            "late_exemption_minutes",
+        ]
+        for field in late_exemption_fields:
+            assert field in proposal_data, f"Missing late_exemption field: {field}"
+
+        # Verify the values
+        assert proposal_data["late_exemption_start_date"] == "2025-03-01"
+        assert proposal_data["late_exemption_end_date"] == "2025-03-31"
+        assert proposal_data["late_exemption_minutes"] == 30
+
+    def test_proposal_verifier_returns_device_change_fields(self, api_client, superuser, employee, verifier_employee):
+        """Test that ProposalVerifierSerializer returns device_change fields."""
+        proposal = Proposal.objects.create(
+            proposal_type=ProposalType.DEVICE_CHANGE,
+            device_change_new_device_id="new-device-123",
+            device_change_new_platform="iOS",
+            device_change_old_device_id="old-device-456",
+            created_by=employee,
+        )
+        verifier = ProposalVerifier.objects.create(proposal=proposal, employee=verifier_employee)
+
+        url = reverse("hrm:proposal-verifier-detail", args=[verifier.id])
+        response = api_client.get(url)
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        proposal_data = data["data"]["proposal"]
+
+        # Device change specific fields
+        device_change_fields = [
+            "device_change_new_device_id",
+            "device_change_new_platform",
+            "device_change_old_device_id",
+        ]
+        for field in device_change_fields:
+            assert field in proposal_data, f"Missing device_change field: {field}"
+
+        # Verify the values
+        assert proposal_data["device_change_new_device_id"] == "new-device-123"
+        assert proposal_data["device_change_new_platform"] == "iOS"
+        assert proposal_data["device_change_old_device_id"] == "old-device-456"
+
+    def test_proposal_verifier_returns_job_transfer_fields(
+        self, api_client, superuser, employee, verifier_employee, branch, block, department
+    ):
+        """Test that ProposalVerifierSerializer returns job_transfer fields."""
+        from apps.hrm.models import Position
+
+        position = Position.objects.create(name="New Position", code="POS_COMBINED_001")
+
+        proposal = Proposal.objects.create(
+            proposal_type=ProposalType.JOB_TRANSFER,
+            job_transfer_new_department=department,
+            job_transfer_new_position=position,
+            job_transfer_effective_date=date(2025, 4, 1),
+            job_transfer_reason="Career development",
+            created_by=employee,
+        )
+        verifier = ProposalVerifier.objects.create(proposal=proposal, employee=verifier_employee)
+
+        url = reverse("hrm:proposal-verifier-detail", args=[verifier.id])
+        response = api_client.get(url)
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        proposal_data = data["data"]["proposal"]
+
+        # Job transfer specific fields
+        job_transfer_fields = [
+            "job_transfer_new_branch",
+            "job_transfer_new_block",
+            "job_transfer_new_department",
+            "job_transfer_new_position",
+            "job_transfer_effective_date",
+            "job_transfer_reason",
+        ]
+        for field in job_transfer_fields:
+            assert field in proposal_data, f"Missing job_transfer field: {field}"
+
+        # Verify nested objects
+        assert proposal_data["job_transfer_new_department"]["id"] == department.id
+        assert proposal_data["job_transfer_new_position"]["id"] == position.id
+        assert proposal_data["job_transfer_effective_date"] == "2025-04-01"
+        assert proposal_data["job_transfer_reason"] == "Career development"
+
+    def test_proposal_verifier_returns_all_combined_fields_structure(
+        self, api_client, superuser, employee, verifier_employee
+    ):
+        """Test that ProposalVerifierSerializer response includes all ProposalCombinedSerializer fields.
+
+        This test verifies that even for a single proposal type, all combined fields are present
+        in the response (though they may be null for fields not relevant to the proposal type).
+        """
+        proposal = Proposal.objects.create(
+            proposal_type=ProposalType.PAID_LEAVE,
+            paid_leave_reason="Test",
+            created_by=employee,
+        )
+        verifier = ProposalVerifier.objects.create(proposal=proposal, employee=verifier_employee)
+
+        url = reverse("hrm:proposal-verifier-detail", args=[verifier.id])
+        response = api_client.get(url)
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        proposal_data = data["data"]["proposal"]
+
+        # All ProposalCombinedSerializer fields should be present
+        all_combined_fields = [
+            # Base fields
+            "id",
+            "code",
+            "proposal_date",
+            "proposal_type",
+            "colored_proposal_status",
+            "short_description",
+            "note",
+            "approval_note",
+            "approved_at",
+            "created_by",
+            "approved_by",
+            "created_at",
+            "updated_at",
+            # Overtime entries
+            "overtime_entries",
+            # Assets
+            "assets",
+            # Late exemption
+            "late_exemption_start_date",
+            "late_exemption_end_date",
+            "late_exemption_minutes",
+            # Post maternity benefits
+            "post_maternity_benefits_start_date",
+            "post_maternity_benefits_end_date",
+            # Maternity leave
+            "maternity_leave_start_date",
+            "maternity_leave_end_date",
+            "maternity_leave_estimated_due_date",
+            "maternity_leave_replacement_employee",
+            # Paid leave
+            "paid_leave_start_date",
+            "paid_leave_end_date",
+            "paid_leave_shift",
+            "paid_leave_reason",
+            # Unpaid leave
+            "unpaid_leave_start_date",
+            "unpaid_leave_end_date",
+            "unpaid_leave_shift",
+            "unpaid_leave_reason",
+            # Job transfer
+            "job_transfer_new_branch",
+            "job_transfer_new_block",
+            "job_transfer_new_department",
+            "job_transfer_new_position",
+            "job_transfer_effective_date",
+            "job_transfer_reason",
+            # Device change
+            "device_change_new_device_id",
+            "device_change_new_platform",
+            "device_change_old_device_id",
+        ]
+
+        for field in all_combined_fields:
+            assert field in proposal_data, f"Missing combined field: {field}"

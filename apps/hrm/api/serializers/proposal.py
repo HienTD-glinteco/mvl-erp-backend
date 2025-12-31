@@ -23,6 +23,10 @@ from .employee import EmployeeSerializer
 
 logger = logging.getLogger(__name__)
 
+# =============================================================================
+# 1. BASE & GENERIC SERIALIZERS
+# =============================================================================
+
 
 class ProposalSerializer(serializers.ModelSerializer):
     """Serializer for Proposal model."""
@@ -60,6 +64,73 @@ class ProposalSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
         ]
+
+
+class ProposalByTypeSerializer(serializers.ModelSerializer):
+    """Base serializer for proposals of a specific type."""
+
+    created_by = EmployeeSerializer(read_only=True)
+    approved_by = EmployeeSerializer(read_only=True)
+    colored_proposal_status = ColoredValueSerializer(read_only=True)
+    short_description = serializers.CharField(read_only=True)
+
+    class Meta:
+        model = Proposal
+        fields = [
+            "id",
+            "code",
+            "proposal_date",
+            "proposal_type",
+            "colored_proposal_status",
+            "short_description",
+            "note",
+            "approval_note",
+            "approved_at",
+            "created_by",
+            "approved_by",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = [
+            "id",
+            "code",
+            "proposal_date",
+            "proposal_type",
+            "colored_proposal_status",
+            "short_description",
+            "approval_note",
+            "approved_at",
+            "created_by",
+            "approved_by",
+            "created_at",
+            "updated_at",
+        ]
+
+    def validate(self, attrs):
+        user = self.context["request"].user
+        if getattr(user, "employee", None):
+            attrs["created_by"] = user.employee
+
+        attrs["proposal_type"] = self.get_proposal_type()
+
+        instance = self.instance or Proposal()
+        for attr, value in attrs.items():
+            setattr(instance, attr, value)
+
+        try:
+            instance.clean()
+        except DjangoValidationError as e:
+            raise serializers.ValidationError(e.message_dict)
+
+        return attrs
+
+    def get_proposal_type(self):
+        return self.context["view"].proposal_type
+
+
+# =============================================================================
+# 2. ACTION SERIALIZERS (Change Status)
+# =============================================================================
 
 
 class ProposalChangeStatusSerializer(serializers.ModelSerializer):
@@ -104,10 +175,9 @@ class ProposalChangeStatusSerializer(serializers.ModelSerializer):
         # Update the proposal status and fields
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
+
         instance.save()
-
         self.post_update(instance)
-
         return instance
 
     def post_update(self, instance: Proposal) -> None:
@@ -196,287 +266,9 @@ class ProposalTimesheetEntryComplaintRejectSerializer(ProposalRejectSerializer):
         return ProposalType.TIMESHEET_ENTRY_COMPLAINT
 
 
-class ProposalVerifierSerializer(serializers.ModelSerializer):
-    """Serializer for ProposalVerifier model."""
-
-    proposal_id = serializers.IntegerField(write_only=True)
-    employee_id = serializers.IntegerField(write_only=True)
-
-    proposal = ProposalSerializer(read_only=True)
-    employee = EmployeeSerializer(read_only=True)
-
-    colored_status = ColoredValueSerializer(read_only=True)
-
-    class Meta:
-        model = ProposalVerifier
-        fields = [
-            "id",
-            "proposal_id",
-            "employee_id",
-            "proposal",
-            "employee",
-            "status",
-            "colored_status",
-            "verified_time",
-            "note",
-            "created_at",
-            "updated_at",
-        ]
-        read_only_fields = [
-            "id",
-            "colored_status",
-            "created_at",
-            "updated_at",
-            "proposal",
-            "employee",
-        ]
-        extra_kwargs = {
-            "status": {"write_only": True},
-        }
-
-
-class ProposalVerifierVerifySerializer(serializers.ModelSerializer):
-    """Serializer for verifying a proposal."""
-
-    note = serializers.CharField(
-        required=False,
-        allow_blank=True,
-        allow_null=True,
-        help_text="Optional note for verification",
-    )
-
-    class Meta:
-        model = ProposalVerifier
-        fields = ["note"]
-
-    def validate(self, attrs):
-        """Validate that the proposal is a timesheet entry complaint."""
-        # self.instance is the ProposalVerifier object being updated
-        if not self.instance:
-            raise serializers.ValidationError("This serializer requires an existing verifier instance")
-
-        user = self.context["request"].user
-        employee = self.instance.employee
-        department = employee.department
-        if user.employee != department.leader:
-            raise serializers.ValidationError("Only the department leader can verify this proposal")
-
-        return attrs
-
-    def update(self, instance, validated_data):
-        """Update the verifier instance with verified status and timestamp."""
-        from django.utils import timezone
-
-        from apps.hrm.constants import ProposalVerifierStatus
-
-        # Update status and timestamp
-        instance.status = ProposalVerifierStatus.VERIFIED
-        instance.verified_time = timezone.now()
-
-        # Update note if provided
-        if validated_data.get("note"):
-            instance.note = validated_data["note"]
-
-        instance.save()
-        return instance
-
-
-class ProposalVerifierRejectSerializer(serializers.ModelSerializer):
-    """Serializer for rejecting a proposal verification."""
-
-    note = serializers.CharField(
-        required=False,
-        allow_blank=True,
-        allow_null=True,
-        help_text="Optional note for rejection",
-    )
-
-    class Meta:
-        model = ProposalVerifier
-        fields = ["note"]
-
-    def validate(self, attrs):
-        """Validate that the user can reject this proposal verification."""
-        # self.instance is the ProposalVerifier object being updated
-        if not self.instance:
-            raise serializers.ValidationError(_("This serializer requires an existing verifier instance"))
-
-        user = self.context["request"].user
-        employee = self.instance.employee
-        department = employee.department
-        if user.employee != department.leader:
-            raise serializers.ValidationError(_("Only the department leader can reject this proposal"))
-
-        return attrs
-
-    def update(self, instance, validated_data):
-        """Update the verifier instance with not_verified status."""
-        from apps.hrm.constants import ProposalVerifierStatus
-
-        # Update status to NOT_VERIFIED
-        instance.status = ProposalVerifierStatus.NOT_VERIFIED
-        instance.verified_time = None
-
-        # Update note if provided
-        if validated_data.get("note"):
-            instance.note = validated_data["note"]
-
-        instance.save()
-        return instance
-
-
-class ProposalByTypeSerializer(serializers.ModelSerializer):
-    """
-    Serializer for proposals of a specific type.
-    Each serializer subclass corresponds to a specific proposal type,
-    and should have only the fields relevant to that type.
-    """
-
-    created_by = EmployeeSerializer(read_only=True)
-    approved_by = EmployeeSerializer(read_only=True)
-    colored_proposal_status = ColoredValueSerializer(read_only=True)
-    short_description = serializers.CharField(read_only=True)
-
-    class Meta:
-        model = Proposal
-        fields = [
-            "id",
-            "code",
-            "proposal_date",
-            "proposal_type",
-            "colored_proposal_status",
-            "short_description",
-            "note",
-            "approval_note",
-            "approved_at",
-            "created_by",
-            "approved_by",
-            "created_at",
-            "updated_at",
-        ]
-        read_only_fields = [
-            "id",
-            "code",
-            "proposal_date",
-            "proposal_type",
-            "colored_proposal_status",
-            "short_description",
-            "approval_note",
-            "approved_at",
-            "created_by",
-            "approved_by",
-            "created_at",
-            "updated_at",
-        ]
-
-    def validate(self, attrs):
-        user = self.context["request"].user
-        if getattr(user, "employee", None):
-            attrs["created_by"] = user.employee
-
-        attrs["proposal_type"] = self.get_proposal_type()
-
-        instance = self.instance or Proposal()
-        for attr, value in attrs.items():
-            setattr(instance, attr, value)
-
-        try:
-            instance.clean()
-        except DjangoValidationError as e:
-            raise serializers.ValidationError(e.message_dict)
-
-        return attrs
-
-    def get_proposal_type(self):
-        """
-        Get the proposal type from the view context.
-        Make sure the view use default get_serializer_context method (or override it).
-        """
-        return self.context["view"].proposal_type
-
-
-class ProposalTimesheetEntryComplaintVerifierSerializer(ProposalVerifierSerializer):
-    """
-    Serializer for ProposalVerifier model used in Timesheet Entry Complaint proposals.
-    Returns only necessary fields.
-    """
-
-    class Meta:
-        model = ProposalVerifier
-        fields = read_only_fields = [
-            "id",
-            "proposal_id",
-            "employee_id",
-            "employee",
-            "status",
-            "colored_status",
-            "verified_time",
-            "note",
-            "created_at",
-            "updated_at",
-        ]
-
-
-class ProposalTimesheetEntryComplaintSerializer(FileConfirmSerializerMixin, ProposalByTypeSerializer):
-    """Serializer for Timesheet Entry Complaint proposals with linked timesheet entry ID.
-
-    This serializer extends ProposalByTypeSerializer to include the linked timesheet entry ID
-    for complaint proposals. A complaint proposal links to exactly one timesheet entry.
-    Uses FileConfirmSerializerMixin to handle complaint image confirmation.
-    """
-
-    file_confirm_fields = ["timesheet_entry_complaint_complaint_image"]
-
-    timesheet_entry_id = serializers.SerializerMethodField(
-        help_text="ID of the linked timesheet entry", required=False
-    )
-    proposal_verifier = ProposalTimesheetEntryComplaintVerifierSerializer(read_only=True, source="verifiers.first")
-    timesheet_entry_complaint_complaint_image = FileSerializer(read_only=True)
-
-    class Meta(ProposalByTypeSerializer.Meta):
-        fields = ProposalByTypeSerializer.Meta.fields + [
-            "timesheet_entry_id",
-            "timesheet_entry_complaint_complaint_date",
-            "timesheet_entry_complaint_complaint_reason",
-            "timesheet_entry_complaint_proposed_check_in_time",
-            "timesheet_entry_complaint_proposed_check_out_time",
-            "timesheet_entry_complaint_approved_check_in_time",
-            "timesheet_entry_complaint_approved_check_out_time",
-            "timesheet_entry_complaint_latitude",
-            "timesheet_entry_complaint_longitude",
-            "timesheet_entry_complaint_address",
-            "timesheet_entry_complaint_complaint_image",
-            "proposal_verifier",
-        ]
-        read_only_fields = ProposalByTypeSerializer.Meta.read_only_fields + [
-            "timesheet_entry_complaint_approved_check_in_time",
-            "timesheet_entry_complaint_approved_check_out_time",
-        ]
-
-    def get_timesheet_entry_id(self, obj: Proposal) -> int | None:
-        """Get the ID of the linked timesheet entry for this complaint proposal.
-
-        Returns:
-            The timesheet entry ID, or None if no entry is linked.
-        """
-        # Use .only() to fetch only the timesheet_entry_id field for optimization
-        junction = ProposalTimeSheetEntry.objects.filter(proposal_id=obj.id).only("timesheet_entry_id").first()
-        if junction:
-            return junction.timesheet_entry_id
-        return None
-
-
-class ProposalLateExemptionSerializer(ProposalByTypeSerializer):
-    """Serializer for Late Exemption proposals."""
-
-    class Meta:
-        model = Proposal
-        fields = ProposalByTypeSerializer.Meta.fields + [
-            "late_exemption_start_date",
-            "late_exemption_end_date",
-            "late_exemption_minutes",
-        ]
-        read_only_fields = ProposalByTypeSerializer.Meta.read_only_fields
+# =============================================================================
+# 3. COMPONENT SERIALIZERS
+# =============================================================================
 
 
 class ProposalOvertimeEntrySerializer(serializers.ModelSerializer):
@@ -484,14 +276,7 @@ class ProposalOvertimeEntrySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ProposalOvertimeEntry
-        fields = [
-            "id",
-            "date",
-            "start_time",
-            "end_time",
-            "description",
-            "duration_hours",
-        ]
+        fields = ["id", "date", "start_time", "end_time", "description", "duration_hours"]
         read_only_fields = ["id", "duration_hours"]
 
     def validate(self, attrs):
@@ -507,8 +292,35 @@ class ProposalOvertimeEntrySerializer(serializers.ModelSerializer):
         return attrs
 
 
+class ProposalAssetSerializer(serializers.ModelSerializer):
+    """Serializer for ProposalAsset model."""
+
+    class Meta:
+        model = ProposalAsset
+        fields = ["id", "name", "unit_type", "quantity", "note"]
+        read_only_fields = ["id"]
+
+
+# =============================================================================
+# 4. SPECIFIC PROPOSAL TYPES
+# =============================================================================
+
+
+class ProposalLateExemptionSerializer(ProposalByTypeSerializer):
+    """Serializer for Late Exemption proposal."""
+
+    class Meta:
+        model = Proposal
+        fields = ProposalByTypeSerializer.Meta.fields + [
+            "late_exemption_start_date",
+            "late_exemption_end_date",
+            "late_exemption_minutes",
+        ]
+        read_only_fields = ProposalByTypeSerializer.Meta.read_only_fields
+
+
 class ProposalOvertimeWorkSerializer(ProposalByTypeSerializer):
-    """Serializer for Overtime Work proposals."""
+    """Serializer for Overtime Work proposal."""
 
     entries = ProposalOvertimeEntrySerializer(many=True, write_only=True)
     overtime_entries = ProposalOvertimeEntrySerializer(many=True, read_only=True)
@@ -524,42 +336,33 @@ class ProposalOvertimeWorkSerializer(ProposalByTypeSerializer):
         ]
 
     def validate_entries(self, value):
-        """Validate that at least one entry is provided."""
         if not value:
             raise serializers.ValidationError(_("At least one overtime entry is required"))
         return value
 
     def create(self, validated_data):
-        """Create a proposal with related overtime entries."""
         entries_data = validated_data.pop("entries", [])
         proposal = super().create(validated_data)
-
         self._create_entries_bulk(proposal, entries_data)
-
         return proposal
 
     def update(self, instance, validated_data):
-        """Update a proposal with related overtime entries."""
         entries_data = validated_data.pop("entries", [])
         proposal = super().update(instance, validated_data)
 
         if entries_data:
-            # Delete existing entries and recreate
             proposal.overtime_entries.all().delete()
             self._create_entries_bulk(proposal, entries_data)
 
         return proposal
 
     def _create_entries_bulk(self, proposal, entries_data):
-        """Bulk create overtime entries for the proposal."""
-        overtime_entries = []
-        for entry_data in entries_data:
-            overtime_entries.append(ProposalOvertimeEntry(proposal=proposal, **entry_data))
+        overtime_entries = [ProposalOvertimeEntry(proposal=proposal, **d) for d in entries_data]
         ProposalOvertimeEntry.objects.bulk_create(overtime_entries)
 
 
 class ProposalPostMaternityBenefitsSerializer(ProposalByTypeSerializer):
-    """Serializer for Post-Maternity Benefits proposals."""
+    """Serializer for Post-Maternity Benefits proposal."""
 
     class Meta:
         model = Proposal
@@ -570,23 +373,8 @@ class ProposalPostMaternityBenefitsSerializer(ProposalByTypeSerializer):
         read_only_fields = ProposalByTypeSerializer.Meta.read_only_fields
 
 
-class ProposalAssetSerializer(serializers.ModelSerializer):
-    """Serializer for ProposalAsset model."""
-
-    class Meta:
-        model = ProposalAsset
-        fields = [
-            "id",
-            "name",
-            "unit_type",
-            "quantity",
-            "note",
-        ]
-        read_only_fields = ["id"]
-
-
 class ProposalAssetAllocationSerializer(ProposalByTypeSerializer):
-    """Serializer for Asset Allocation proposals."""
+    """Serializer for Asset Allocation proposal."""
 
     proposal_assets = ProposalAssetSerializer(many=True, write_only=True)
     assets = ProposalAssetSerializer(many=True, read_only=True)
@@ -602,35 +390,28 @@ class ProposalAssetAllocationSerializer(ProposalByTypeSerializer):
         ]
 
     def create(self, validated_data):
-        """Create a proposal with related assets."""
-        proposal_assets_data = validated_data.pop("proposal_assets", [])
+        assets_data = validated_data.pop("proposal_assets", [])
         proposal = super().create(validated_data)
-
-        self._create_new_assets_bulk(proposal, proposal_assets_data)
-
+        self._create_new_assets_bulk(proposal, assets_data)
         return proposal
 
     def update(self, instance, validated_data):
-        """Update a proposal with related assets."""
-        proposal_assets_data = validated_data.pop("proposal_assets", [])
+        assets_data = validated_data.pop("proposal_assets", [])
         proposal = super().update(instance, validated_data)
 
-        if proposal_assets_data:
-            # Delete existing assets and recreate
+        if assets_data:
             proposal.assets.all().delete()
-            self._create_new_assets_bulk(proposal, proposal_assets_data)
+            self._create_new_assets_bulk(proposal, assets_data)
 
         return proposal
 
     def _create_new_assets_bulk(self, proposal, assets_data):
-        proposal_assets = []
-        for asset_data in assets_data:
-            proposal_assets.append(ProposalAsset(proposal=proposal, **asset_data))
-        ProposalAsset.objects.bulk_create(proposal_assets)
+        assets = [ProposalAsset(proposal=proposal, **d) for d in assets_data]
+        ProposalAsset.objects.bulk_create(assets)
 
 
 class ProposalMaternityLeaveSerializer(ProposalByTypeSerializer):
-    """Serializer for Maternity Leave proposals."""
+    """Serializer for Maternity Leave proposal."""
 
     maternity_leave_replacement_employee = EmployeeSerializer(read_only=True)
     maternity_leave_replacement_employee_id = serializers.IntegerField(required=False, write_only=True)
@@ -721,45 +502,275 @@ class ProposalDeviceChangeSerializer(ProposalByTypeSerializer):
         read_only_fields = ProposalByTypeSerializer.Meta.read_only_fields
 
 
+class ProposalTimesheetEntryComplaintVerifierSerializer(serializers.ModelSerializer):
+    """Serializer for ProposalVerifier model specifically for Timesheet Entry Complaint."""
+
+    employee = EmployeeSerializer(read_only=True)
+    colored_status = ColoredValueSerializer(read_only=True)
+
+    class Meta:
+        model = ProposalVerifier
+        fields = read_only_fields = [
+            "id",
+            "proposal_id",
+            "employee_id",
+            "employee",
+            "status",
+            "colored_status",
+            "verified_time",
+            "note",
+            "created_at",
+            "updated_at",
+        ]
+
+
+class ProposalTimesheetEntryComplaintSerializer(FileConfirmSerializerMixin, ProposalByTypeSerializer):
+    """Serializer for Timesheet Entry Complaint proposal."""
+
+    file_confirm_fields = ["timesheet_entry_complaint_complaint_image"]
+
+    timesheet_entry_id = serializers.SerializerMethodField()
+    proposal_verifier = ProposalTimesheetEntryComplaintVerifierSerializer(read_only=True, source="verifiers.first")
+
+    timesheet_entry_complaint_complaint_image = FileSerializer(read_only=True)
+
+    class Meta(ProposalByTypeSerializer.Meta):
+        fields = ProposalByTypeSerializer.Meta.fields + [
+            "timesheet_entry_id",
+            "timesheet_entry_complaint_complaint_date",
+            "timesheet_entry_complaint_complaint_reason",
+            "timesheet_entry_complaint_proposed_check_in_time",
+            "timesheet_entry_complaint_proposed_check_out_time",
+            "timesheet_entry_complaint_approved_check_in_time",
+            "timesheet_entry_complaint_approved_check_out_time",
+            "timesheet_entry_complaint_latitude",
+            "timesheet_entry_complaint_longitude",
+            "timesheet_entry_complaint_address",
+            "timesheet_entry_complaint_complaint_image",
+            "proposal_verifier",
+        ]
+        read_only_fields = ProposalByTypeSerializer.Meta.read_only_fields + [
+            "timesheet_entry_complaint_approved_check_in_time",
+            "timesheet_entry_complaint_approved_check_out_time",
+        ]
+
+    def get_timesheet_entry_id(self, obj: Proposal) -> int | None:
+        junction = ProposalTimeSheetEntry.objects.filter(proposal_id=obj.id).only("timesheet_entry_id").first()
+        if junction:
+            return junction.timesheet_entry_id
+        return None
+
+
 # =============================================================================
-# Export XLSX Serializers
+# 5. COMBINED SERIALIZER
+# =============================================================================
+
+
+class ProposalCombinedSerializer(
+    ProposalLateExemptionSerializer,
+    ProposalOvertimeWorkSerializer,
+    ProposalPostMaternityBenefitsSerializer,
+    ProposalAssetAllocationSerializer,
+    ProposalMaternityLeaveSerializer,
+    ProposalPaidLeaveSerializer,
+    ProposalUnpaidLeaveSerializer,
+    ProposalJobTransferSerializer,
+):
+    """Combined serializer for all proposal types."""
+
+    class Meta:
+        model = Proposal
+        fields = (
+            ProposalByTypeSerializer.Meta.fields
+            + ProposalOvertimeWorkSerializer.Meta.read_only_fields
+            + ProposalAssetAllocationSerializer.Meta.read_only_fields
+            + [
+                "late_exemption_start_date",
+                "late_exemption_end_date",
+                "late_exemption_minutes",
+                "post_maternity_benefits_start_date",
+                "post_maternity_benefits_end_date",
+                "maternity_leave_start_date",
+                "maternity_leave_end_date",
+                "maternity_leave_estimated_due_date",
+                "maternity_leave_replacement_employee",
+                "paid_leave_start_date",
+                "paid_leave_end_date",
+                "paid_leave_shift",
+                "paid_leave_reason",
+                "unpaid_leave_start_date",
+                "unpaid_leave_end_date",
+                "unpaid_leave_shift",
+                "unpaid_leave_reason",
+                "job_transfer_new_branch",
+                "job_transfer_new_block",
+                "job_transfer_new_department",
+                "job_transfer_new_position",
+                "job_transfer_effective_date",
+                "job_transfer_reason",
+                "device_change_new_device_id",
+                "device_change_new_platform",
+                "device_change_old_device_id",
+            ]
+        )
+        read_only_fields = fields
+
+
+# =============================================================================
+# 6. VERIFIER SERIALIZERS
+# =============================================================================
+
+
+class ProposalVerifierSerializer(serializers.ModelSerializer):
+    """Serializer for ProposalVerifier model."""
+
+    proposal_id = serializers.IntegerField(write_only=True)
+    employee_id = serializers.IntegerField(write_only=True)
+
+    proposal = ProposalCombinedSerializer(read_only=True)
+    employee = EmployeeSerializer(read_only=True)
+
+    colored_status = ColoredValueSerializer(read_only=True)
+
+    class Meta:
+        model = ProposalVerifier
+        fields = [
+            "id",
+            "proposal_id",
+            "employee_id",
+            "proposal",
+            "employee",
+            "status",
+            "colored_status",
+            "verified_time",
+            "note",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = [
+            "id",
+            "colored_status",
+            "created_at",
+            "updated_at",
+            "proposal",
+            "employee",
+        ]
+        extra_kwargs = {
+            "status": {"write_only": True},
+        }
+
+
+class ProposalVerifierListSerializer(ProposalVerifierSerializer):
+    """
+    Serializer for listing ProposalVerifiers.
+
+    This use normal ProposalSerializer for not overloading the response.
+    """
+
+    proposal = ProposalSerializer(read_only=True)
+
+
+class ProposalVerifierVerifySerializer(serializers.ModelSerializer):
+    """Serializer for verifying a ProposalVerifier."""
+
+    note = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+
+    class Meta:
+        model = ProposalVerifier
+        fields = ["note"]
+
+    def validate(self, attrs):
+        if not self.instance:
+            raise serializers.ValidationError("This serializer requires an existing verifier instance")
+
+        user = self.context["request"].user
+        employee = self.instance.employee
+
+        if user.employee != employee.department.leader:
+            raise serializers.ValidationError("Only the department leader can verify this proposal")
+
+        return attrs
+
+    def update(self, instance, validated_data):
+        from apps.hrm.constants import ProposalVerifierStatus
+
+        instance.status = ProposalVerifierStatus.VERIFIED
+        instance.verified_time = timezone.now()
+        if validated_data.get("note"):
+            instance.note = validated_data["note"]
+
+        instance.save()
+        return instance
+
+
+class ProposalVerifierRejectSerializer(serializers.ModelSerializer):
+    """Serializer for rejecting a ProposalVerifier."""
+
+    note = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+
+    class Meta:
+        model = ProposalVerifier
+        fields = ["note"]
+
+    def validate(self, attrs):
+        if not self.instance:
+            raise serializers.ValidationError(_("This serializer requires an existing verifier instance"))
+
+        user = self.context["request"].user
+        if user.employee != self.instance.employee.department.leader:
+            raise serializers.ValidationError(_("Only the department leader can reject this proposal"))
+
+        return attrs
+
+    def update(self, instance, validated_data):
+        from apps.hrm.constants import ProposalVerifierStatus
+
+        instance.status = ProposalVerifierStatus.NOT_VERIFIED
+        instance.verified_time = None
+        if validated_data.get("note"):
+            instance.note = validated_data["note"]
+
+        instance.save()
+        return instance
+
+
+class ProposalVerifierNeedVerificationSerializer(ProposalVerifierSerializer):
+    """Serializer for ProposalVerifier model used in need-verification view."""
+
+    proposal = ProposalCombinedSerializer(read_only=True)
+    employee = EmployeeSerializer(read_only=True)
+
+    class Meta:
+        model = ProposalVerifier
+        fields = [
+            "id",
+            "proposal",
+            "employee",
+            "colored_status",
+            "verified_time",
+            "note",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = fields
+
+
+# =============================================================================
+# 7. EXPORT XLSX SERIALIZERS
 # =============================================================================
 
 
 class ProposalExportXLSXSerializer(FieldFilteringSerializerMixin, serializers.ModelSerializer):
-    """Base serializer for Proposal XLSX export.
+    """Base serializer for Proposal XLSX export."""
 
-    This serializer provides the common fields for all proposal types
-    when exporting to XLSX. Type-specific serializers should inherit
-    from this class and add their specific fields.
-    """
-
-    proposal_status = serializers.CharField(
-        source="colored_proposal_status.value",
-        read_only=True,
-        label="Status",
-    )
-    created_by_code = serializers.CharField(
-        source="created_by.code",
-        read_only=True,
-        label="Created By Code",
-    )
-    created_by_name = serializers.CharField(
-        source="created_by.fullname",
-        read_only=True,
-        label="Created By Name",
-    )
+    proposal_status = serializers.CharField(source="colored_proposal_status.value", read_only=True, label="Status")
+    created_by_code = serializers.CharField(source="created_by.code", read_only=True, label="Created By Code")
+    created_by_name = serializers.CharField(source="created_by.fullname", read_only=True, label="Created By Name")
     approved_by_code = serializers.CharField(
-        source="approved_by.code",
-        read_only=True,
-        allow_null=True,
-        label="Approved By Code",
+        source="approved_by.code", read_only=True, allow_null=True, label="Approved By Code"
     )
     approved_by_name = serializers.CharField(
-        source="approved_by.fullname",
-        read_only=True,
-        allow_null=True,
-        label="Approved By Name",
+        source="approved_by.fullname", read_only=True, allow_null=True, label="Approved By Name"
     )
 
     class Meta:
@@ -936,54 +947,6 @@ class ProposalAssetAllocationExportXLSXSerializer(ProposalExportXLSXSerializer):
         read_only_fields = fields
 
 
-class ProposalCombinedSerializer(
-    ProposalLateExemptionSerializer,
-    ProposalOvertimeWorkSerializer,
-    ProposalPostMaternityBenefitsSerializer,
-    ProposalAssetAllocationSerializer,
-    ProposalMaternityLeaveSerializer,
-    ProposalPaidLeaveSerializer,
-    ProposalUnpaidLeaveSerializer,
-    ProposalJobTransferSerializer,
-):
-    class Meta:
-        model = Proposal
-        fields = (
-            ProposalByTypeSerializer.Meta.fields
-            + ProposalOvertimeWorkSerializer.Meta.read_only_fields
-            + ProposalAssetAllocationSerializer.Meta.read_only_fields
-            + [
-                "late_exemption_start_date",
-                "late_exemption_end_date",
-                "late_exemption_minutes",
-                "post_maternity_benefits_start_date",
-                "post_maternity_benefits_end_date",
-                "maternity_leave_start_date",
-                "maternity_leave_end_date",
-                "maternity_leave_estimated_due_date",
-                "maternity_leave_replacement_employee",
-                "paid_leave_start_date",
-                "paid_leave_end_date",
-                "paid_leave_shift",
-                "paid_leave_reason",
-                "unpaid_leave_start_date",
-                "unpaid_leave_end_date",
-                "unpaid_leave_shift",
-                "unpaid_leave_reason",
-                "job_transfer_new_branch",
-                "job_transfer_new_block",
-                "job_transfer_new_department",
-                "job_transfer_new_position",
-                "job_transfer_effective_date",
-                "job_transfer_reason",
-                "device_change_new_device_id",
-                "device_change_new_platform",
-                "device_change_old_device_id",
-            ]
-        )
-        read_only_fields = fields
-
-
 class ProposalDeviceChangeExportXLSXSerializer(ProposalExportXLSXSerializer):
     """Serializer for Device Change proposal XLSX export."""
 
@@ -992,26 +955,5 @@ class ProposalDeviceChangeExportXLSXSerializer(ProposalExportXLSXSerializer):
             "device_change_new_device_id",
             "device_change_new_platform",
             "device_change_old_device_id",
-        ]
-        read_only_fields = fields
-
-
-class ProposalVerifierNeedVerificationSerializer(ProposalVerifierSerializer):
-    """Serializer for ProposalVerifier model used in need-verification view."""
-
-    proposal = ProposalCombinedSerializer(read_only=True)
-    employee = EmployeeSerializer(read_only=True)
-
-    class Meta:
-        model = ProposalVerifier
-        fields = [
-            "id",
-            "proposal",
-            "employee",
-            "colored_status",
-            "verified_time",
-            "note",
-            "created_at",
-            "updated_at",
         ]
         read_only_fields = fields
