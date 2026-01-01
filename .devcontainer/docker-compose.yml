@@ -1,0 +1,10 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ../:/workspace:cached  # cached flag only effect Docker Desktop
+    command: sleep infinity # Keep container running
+    env_file:
+      - ../.env
