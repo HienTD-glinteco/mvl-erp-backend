@@ -37,20 +37,20 @@ repos:
     hooks:
     -   id: check-no-vietnamese
         name: Check for Vietnamese text in code
-        entry: python scripts/check_no_vietnamese.py
+        entry: poetry run python scripts/check_no_vietnamese.py
         language: system
         types: [python]
         exclude: ^(docs/|apps/core/management/commands/import_administrative_data\.py|apps/hrm/import_handlers/|apps/hrm/management/commands/backfill_employee_type\.py|apps/payroll/import_handlers/)
         stages: [pre-commit]
     -   id: check-string-constants
         name: Check for hardcoded strings (warning only)
-        entry: python scripts/check_string_constants.py
+        entry: poetry run python scripts/check_string_constants.py
         language: system
         types: [python]
         stages: [pre-commit]
     -   id: django-makemessages
         name: Django makemessages update
-        entry: python manage.py makemessages -l vi --no-obsolete
+        entry: poetry run python manage.py makemessages -l vi --no-obsolete
             --ignore=venv --ignore=.venv --ignore=htmlcov --ignore=tests
             --ignore=logs --ignore=.git --ignore=.mypy_cache
             --ignore=.pytest_cache --ignore=.ruff_cache
@@ -60,13 +60,13 @@ repos:
         files: '\.(py|html)$'
     -   id: django-compilemessages
         name: Django compilemessages
-        entry: python manage.py compilemessages -l vi
+        entry: poetry run python manage.py compilemessages -l vi
         language: system
         pass_filenames: false
         stages: [pre-commit]
     -   id: django-makemigrations
         name: Django makemigrations check
-        entry: python manage.py makemigrations --check
+        entry: poetry run python manage.py makemigrations --check
         language: system
         pass_filenames: false
         stages: [pre-commit]

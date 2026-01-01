@@ -157,7 +157,11 @@ class TestContractAppendixLogic:
         assert appendix.employee != parent_contract.employee
 
     def test_contract_status_logic_with_appendix(self, employee, contract_type_main, contract_type_appendix):
-        """Test that creating an appendix does not necessarily expire the parent contract."""
+        """Test that creating an appendix does NOT expire the parent contract.
+
+        Bug fix: Publishing an appendix (PLHD) should not affect the parent contract status.
+        Appendices run CONCURRENTLY with the main contract.
+        """
         today = timezone.now().date()
 
         parent_contract = Contract.objects.create(
@@ -170,7 +174,7 @@ class TestContractAppendixLogic:
             status=Contract.ContractStatus.ACTIVE,
         )
 
-        # Create appendix
+        # Create appendix with ACTIVE status
         appendix = Contract.objects.create(
             employee=employee,
             contract_type=contract_type_appendix,
@@ -181,27 +185,93 @@ class TestContractAppendixLogic:
             status=Contract.ContractStatus.ACTIVE,
         )
 
-        # Refresh parent
+        # Refresh parent to get updated status from DB
         parent_contract.refresh_from_db()
 
-        # The default logic in Contract.save() expires *previous* contracts.
-        # We need to check if an appendix counts as a "new contract" that expires the old one.
-        # If Contract.expire_previous_contracts() is called, it filters by employee and status.
-        # It excludes self.pk.
+        # CORRECT BEHAVIOR: Appendix should NOT expire the parent contract
+        # Parent contract should remain ACTIVE
+        assert parent_contract.status == Contract.ContractStatus.ACTIVE
+        assert appendix.status == Contract.ContractStatus.ACTIVE
+        assert appendix.is_appendix is True
 
-        # If the appendix is ACTIVE, it might expire the parent if the parent is also ACTIVE.
-        # This is a critical logic point. Usually appendices run CONCURRENTLY with the main contract.
-        # If the current logic expires the parent, that might be WRONG for appendices.
+    def test_new_main_contract_expires_previous_contracts(self, employee, contract_type_main):
+        """Test that creating a NEW main contract DOES expire previous active contracts."""
+        today = timezone.now().date()
 
-        # Let's see what happens with current logic.
-        # Contract.expire_previous_contracts() -> Contract.objects.filter(employee=..., status=ACTIVE).exclude(pk=self.pk).update(status=EXPIRED)
+        # Create first contract
+        first_contract = Contract.objects.create(
+            employee=employee,
+            contract_type=contract_type_main,
+            sign_date=today,
+            effective_date=today,
+            expiration_date=today + timedelta(days=365),
+            contract_number="HD001",
+            status=Contract.ContractStatus.ACTIVE,
+        )
 
-        # So currently, creating an ACTIVE appendix WILL expire the parent contract.
-        # This is likely NOT desired behavior for an appendix.
+        # Create second main contract (not an appendix)
+        second_contract = Contract.objects.create(
+            employee=employee,
+            contract_type=contract_type_main,
+            sign_date=today,
+            effective_date=today,
+            expiration_date=today + timedelta(days=365),
+            contract_number="HD002",
+            status=Contract.ContractStatus.ACTIVE,
+        )
 
-        # We should assert the CURRENT behavior first, then fix it if needed.
-        # Based on the user request "ensure sufficient unit tests cover logic",
-        # I should probably FIX this logic if it's wrong.
+        # Refresh first contract
+        first_contract.refresh_from_db()
 
-        # Asserting that parent is EXPIRED (current behavior)
-        assert parent_contract.status == Contract.ContractStatus.EXPIRED
+        # First contract should be EXPIRED because a new main contract was created
+        assert first_contract.status == Contract.ContractStatus.EXPIRED
+        assert second_contract.status == Contract.ContractStatus.ACTIVE
+        assert second_contract.is_appendix is False
+
+    def test_multiple_appendices_do_not_expire_parent_or_each_other(
+        self, employee, contract_type_main, contract_type_appendix
+    ):
+        """Test that multiple appendices can coexist without expiring parent or each other."""
+        today = timezone.now().date()
+
+        # Create parent contract
+        parent_contract = Contract.objects.create(
+            employee=employee,
+            contract_type=contract_type_main,
+            sign_date=today,
+            effective_date=today,
+            expiration_date=today + timedelta(days=365),
+            contract_number="HD001",
+            status=Contract.ContractStatus.ACTIVE,
+        )
+
+        # Create first appendix
+        appendix1 = Contract.objects.create(
+            employee=employee,
+            contract_type=contract_type_appendix,
+            sign_date=today,
+            effective_date=today,
+            contract_number="PL001",
+            parent_contract=parent_contract,
+            status=Contract.ContractStatus.ACTIVE,
+        )
+
+        # Create second appendix
+        appendix2 = Contract.objects.create(
+            employee=employee,
+            contract_type=contract_type_appendix,
+            sign_date=today,
+            effective_date=today,
+            contract_number="PL002",
+            parent_contract=parent_contract,
+            status=Contract.ContractStatus.ACTIVE,
+        )
+
+        # Refresh all contracts
+        parent_contract.refresh_from_db()
+        appendix1.refresh_from_db()
+
+        # All should remain ACTIVE - appendices don't expire anything
+        assert parent_contract.status == Contract.ContractStatus.ACTIVE
+        assert appendix1.status == Contract.ContractStatus.ACTIVE
+        assert appendix2.status == Contract.ContractStatus.ACTIVE

@@ -486,6 +486,8 @@ class Contract(ColoredValueMixin, AutoCodeMixin, BaseModel):
 
         super().save(*args, **kwargs)
 
-        # Expire previous contracts only when the contract is active or nearing expiration
-        if self.status in [self.ContractStatus.ACTIVE, self.ContractStatus.ABOUT_TO_EXPIRE]:
+        # Expire previous contracts only when:
+        # - The contract is active or nearing expiration
+        # - This is NOT an appendix (appendices should not expire the parent contract)
+        if self.status in [self.ContractStatus.ACTIVE, self.ContractStatus.ABOUT_TO_EXPIRE] and not self.is_appendix:
             self.expire_previous_contracts()
