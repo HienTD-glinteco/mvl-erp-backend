@@ -1,7 +1,7 @@
 import json
 
+import pytest
 from django.contrib.auth import get_user_model
-from django.test import TransactionTestCase
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
@@ -17,7 +17,7 @@ class APITestMixin:
 
     def get_response_data(self, response):
         """Extract data from wrapped API response"""
-        content = json.loads(response.content.decode())
+        content = response.json()
         if "data" in content:
             data = content["data"]
             # Handle paginated responses - extract results list
@@ -27,202 +27,147 @@ class APITestMixin:
         return content
 
 
-class BranchAPITest(TransactionTestCase, APITestMixin):
+@pytest.mark.django_db
+class TestBranchAPI(APITestMixin):
     """Test cases for Branch API endpoints"""
 
-    def setUp(self):
-        # Clear all existing data for clean tests
-        Branch.objects.all().delete()
-        Block.objects.all().delete()
-        Department.objects.all().delete()
-        Position.objects.all().delete()
-        User.objects.all().delete()
+    @pytest.fixture(autouse=True)
+    def setup_client(self, api_client):
+        self.client = api_client
 
-        # Changed to superuser to bypass RoleBasedPermission for API tests
-        self.user = User.objects.create_superuser(
-            username="testuser", email="test@example.com", password="testpass123"
-        )
-        self.client = APIClient()
-        self.client.force_authenticate(user=self.user)
-
-        # Create Province and AdministrativeUnit for Branch tests
-        self.province = Province.objects.create(
-            code="01",
-            name="Thành phố Hà Nội",
-            english_name="Hanoi",
-            level=Province.ProvinceLevel.CENTRAL_CITY,
-            enabled=True,
-        )
-        self.administrative_unit = AdministrativeUnit.objects.create(
-            code="001",
-            name="Quận Ba Đình",
-            parent_province=self.province,
-            level=AdministrativeUnit.UnitLevel.DISTRICT,
-            enabled=True,
-        )
-
-        self.branch_data = {
+    @pytest.fixture
+    def branch_data(self, province, admin_unit):
+        return {
             "name": "Chi nhánh Hà Nội",
             "code": "HN",
             "address": "123 Lê Duẩn, Hà Nội",
             "phone": "0243456789",
             "email": "hanoi@maivietland.com",
-            "province_id": self.province.id,
-            "administrative_unit_id": self.administrative_unit.id,
+            "province_id": province.id,
+            "administrative_unit_id": admin_unit.id,
         }
 
-    def test_create_branch(self):
+    def test_create_branch(self, branch_data):
         """Test creating a branch via API"""
         url = reverse("hrm:branch-list")
-        response = self.client.post(url, self.branch_data, format="json")
+        response = self.client.post(url, branch_data, format="json")
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(Branch.objects.count(), 1)
+        assert response.status_code == status.HTTP_201_CREATED
+        assert Branch.objects.count() == 1
 
         branch = Branch.objects.first()
-        self.assertEqual(branch.name, self.branch_data["name"])
+        assert branch.name == branch_data["name"]
         # Code is now auto-generated, not from provided data
-        self.assertTrue(branch.code.startswith("CN"))
+        assert branch.code.startswith("CN")
 
-    def test_list_branches(self):
+    def test_list_branches(self, branch_data, province, admin_unit):
         """Test listing branches via API"""
         Branch.objects.create(
-            name=self.branch_data["name"],
-            code=self.branch_data["code"],
-            address=self.branch_data["address"],
-            phone=self.branch_data["phone"],
-            email=self.branch_data["email"],
-            province=self.province,
-            administrative_unit=self.administrative_unit,
+            name=branch_data["name"],
+            code=branch_data["code"],
+            address=branch_data["address"],
+            phone=branch_data["phone"],
+            email=branch_data["email"],
+            province=province,
+            administrative_unit=admin_unit,
         )
 
         url = reverse("hrm:branch-list")
         response = self.client.get(url)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         response_data = self.get_response_data(response)
-        self.assertEqual(len(response_data), 1)
-        self.assertEqual(response_data[0]["name"], self.branch_data["name"])
+        assert len(response_data) == 1
+        assert response_data[0]["name"] == branch_data["name"]
 
-    def test_retrieve_branch(self):
+    def test_retrieve_branch(self, branch_data, province, admin_unit):
         """Test retrieving a branch via API"""
         branch = Branch.objects.create(
-            name=self.branch_data["name"],
-            code=self.branch_data["code"],
-            address=self.branch_data["address"],
-            phone=self.branch_data["phone"],
-            email=self.branch_data["email"],
-            province=self.province,
-            administrative_unit=self.administrative_unit,
+            name=branch_data["name"],
+            code=branch_data["code"],
+            address=branch_data["address"],
+            phone=branch_data["phone"],
+            email=branch_data["email"],
+            province=province,
+            administrative_unit=admin_unit,
         )
 
         url = reverse("hrm:branch-detail", kwargs={"pk": branch.pk})
         response = self.client.get(url)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         response_data = self.get_response_data(response)
-        self.assertEqual(response_data["name"], branch.name)
+        assert response_data["name"] == branch.name
 
-    def test_update_branch(self):
+    def test_update_branch(self, branch_data, province, admin_unit):
         """Test updating a branch via API"""
         branch = Branch.objects.create(
-            name=self.branch_data["name"],
-            code=self.branch_data["code"],
-            address=self.branch_data["address"],
-            phone=self.branch_data["phone"],
-            email=self.branch_data["email"],
-            province=self.province,
-            administrative_unit=self.administrative_unit,
+            name=branch_data["name"],
+            code=branch_data["code"],
+            address=branch_data["address"],
+            phone=branch_data["phone"],
+            email=branch_data["email"],
+            province=province,
+            administrative_unit=admin_unit,
         )
 
         update_data = {"name": "Chi nhánh Hà Nội Updated"}
         url = reverse("hrm:branch-detail", kwargs={"pk": branch.pk})
         response = self.client.patch(url, update_data, format="json")
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         branch.refresh_from_db()
-        self.assertEqual(branch.name, update_data["name"])
+        assert branch.name == update_data["name"]
 
-    def test_delete_branch(self):
+    def test_delete_branch(self, branch_data, province, admin_unit):
         """Test deleting a branch via API"""
         branch = Branch.objects.create(
-            name=self.branch_data["name"],
-            code=self.branch_data["code"],
-            address=self.branch_data["address"],
-            phone=self.branch_data["phone"],
-            email=self.branch_data["email"],
-            province=self.province,
-            administrative_unit=self.administrative_unit,
+            name=branch_data["name"],
+            code=branch_data["code"],
+            address=branch_data["address"],
+            phone=branch_data["phone"],
+            email=branch_data["email"],
+            province=province,
+            administrative_unit=admin_unit,
         )
 
         url = reverse("hrm:branch-detail", kwargs={"pk": branch.pk})
         response = self.client.delete(url)
 
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        self.assertEqual(Branch.objects.count(), 0)
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+        assert Branch.objects.count() == 0
 
 
-class BranchContactInfoAPITest(TransactionTestCase, APITestMixin):
+@pytest.mark.django_db
+class TestBranchContactInfoAPI(APITestMixin):
     """Test cases for BranchContactInfo API endpoints"""
 
-    def setUp(self):
-        BranchContactInfo.objects.all().delete()
-        Branch.objects.all().delete()
-        Block.objects.all().delete()
-        Department.objects.all().delete()
-        Position.objects.all().delete()
-        User.objects.all().delete()
+    @pytest.fixture(autouse=True)
+    def setup_client(self, api_client):
+        self.client = api_client
 
-        self.user = User.objects.create_superuser(
-            username="contact-info-user",
-            email="contact-info@example.com",
-            password="testpass123",
-        )
-        self.client = APIClient()
-        self.client.force_authenticate(user=self.user)
-
-        self.province = Province.objects.create(
-            code="01",
-            name="Ha Noi",
-            english_name="Hanoi",
-            level=Province.ProvinceLevel.CENTRAL_CITY,
-            enabled=True,
-        )
-        self.administrative_unit = AdministrativeUnit.objects.create(
-            code="001",
-            name="Ba Dinh",
-            parent_province=self.province,
-            level=AdministrativeUnit.UnitLevel.DISTRICT,
-            enabled=True,
-        )
-
-        self.branch = Branch.objects.create(
-            name="Hanoi Branch",
-            code="HN",
-            province=self.province,
-            administrative_unit=self.administrative_unit,
-        )
-
-        self.contact_payload = {
-            "branch_id": str(self.branch.id),
+    @pytest.fixture
+    def contact_payload(self, branch):
+        return {
+            "branch_id": str(branch.id),
             "business_line": "Mortgage",
             "name": "Alice Nguyen",
             "phone_number": "0912345678",
             "email": "alice.nguyen@example.com",
         }
 
-    def test_create_branch_contact_info(self):
+    def test_create_branch_contact_info(self, contact_payload):
         url = reverse("hrm:branch-contact-info-list")
-        response = self.client.post(url, self.contact_payload, format="json")
+        response = self.client.post(url, contact_payload, format="json")
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(BranchContactInfo.objects.count(), 1)
+        assert response.status_code == status.HTTP_201_CREATED
+        assert BranchContactInfo.objects.count() == 1
         contact = BranchContactInfo.objects.first()
-        self.assertEqual(contact.name, self.contact_payload["name"])
+        assert contact.name == contact_payload["name"]
 
-    def test_list_branch_contact_info(self):
+    def test_list_branch_contact_info(self, branch):
         BranchContactInfo.objects.create(
-            branch=self.branch,
+            branch=branch,
             business_line="Mortgage",
             name="Alice Nguyen",
             phone_number="0912345678",
@@ -232,14 +177,14 @@ class BranchContactInfoAPITest(TransactionTestCase, APITestMixin):
         url = reverse("hrm:branch-contact-info-list")
         response = self.client.get(url)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         response_data = self.get_response_data(response)
-        self.assertEqual(len(response_data), 1)
-        self.assertEqual(response_data[0]["business_line"], "Mortgage")
+        assert len(response_data) == 1
+        assert response_data[0]["business_line"] == "Mortgage"
 
-    def test_filter_branch_contact_info_by_invalid_branch_returns_empty(self):
+    def test_filter_branch_contact_info_by_invalid_branch_returns_empty(self, branch):
         BranchContactInfo.objects.create(
-            branch=self.branch,
+            branch=branch,
             business_line="Mortgage",
             name="Alice Nguyen",
             phone_number="0912345678",
@@ -249,13 +194,13 @@ class BranchContactInfoAPITest(TransactionTestCase, APITestMixin):
         url = reverse("hrm:branch-contact-info-list")
         response = self.client.get(url, {"branch": 999999})
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         response_data = self.get_response_data(response)
-        self.assertEqual(len(response_data), 0)
+        assert len(response_data) == 0
 
-    def test_update_branch_contact_info(self):
+    def test_update_branch_contact_info(self, branch):
         contact = BranchContactInfo.objects.create(
-            branch=self.branch,
+            branch=branch,
             business_line="Mortgage",
             name="Alice Nguyen",
             phone_number="0912345678",
@@ -265,223 +210,152 @@ class BranchContactInfoAPITest(TransactionTestCase, APITestMixin):
         url = reverse("hrm:branch-contact-info-detail", kwargs={"pk": contact.pk})
         response = self.client.patch(url, {"phone_number": "0999999999"}, format="json")
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         contact.refresh_from_db()
-        self.assertEqual(contact.phone_number, "0999999999")
+        assert contact.phone_number == "0999999999"
 
 
-class BlockAPITest(TransactionTestCase, APITestMixin):
+@pytest.mark.django_db
+class TestBlockAPI(APITestMixin):
     """Test cases for Block API endpoints"""
 
-    def setUp(self):
-        # Clear all existing data for clean tests
-        Branch.objects.all().delete()
-        Block.objects.all().delete()
-        Department.objects.all().delete()
-        Position.objects.all().delete()
-        User.objects.all().delete()
+    @pytest.fixture(autouse=True)
+    def setup_client(self, api_client):
+        self.client = api_client
 
-        self.user = User.objects.create_superuser(
-            username="testuser", email="test@example.com", password="testpass123"
-        )
-        self.client = APIClient()
-        self.client.force_authenticate(user=self.user)
-
-        # Create Province and AdministrativeUnit for Branch
-        self.province = Province.objects.create(
-            code="01",
-            name="Thành phố Hà Nội",
-            english_name="Hanoi",
-            level=Province.ProvinceLevel.CENTRAL_CITY,
-            enabled=True,
-        )
-        self.administrative_unit = AdministrativeUnit.objects.create(
-            code="001",
-            name="Quận Ba Đình",
-            parent_province=self.province,
-            level=AdministrativeUnit.UnitLevel.DISTRICT,
-            enabled=True,
-        )
-
-        self.branch = Branch.objects.create(
-            name="Chi nhánh Hà Nội",
-            code="HN",
-            province=self.province,
-            administrative_unit=self.administrative_unit,
-        )
-
-    def test_create_block(self):
+    def test_create_block(self, branch):
         """Test creating a block via API"""
         block_data = {
             "name": "Khối Hỗ trợ",
             "code": "HT",  # This code should be ignored
             "block_type": Block.BlockType.SUPPORT,
-            "branch_id": str(self.branch.id),
+            "branch_id": str(branch.id),
         }
 
         url = reverse("hrm:block-list")
         response = self.client.post(url, block_data, format="json")
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(Block.objects.count(), 1)
+        assert response.status_code == status.HTTP_201_CREATED
+        assert Block.objects.count() == 1
 
         block = Block.objects.first()
-        self.assertEqual(block.name, block_data["name"])
-        self.assertEqual(block.block_type, block_data["block_type"])
+        assert block.name == block_data["name"]
+        assert block.block_type == block_data["block_type"]
         # Verify auto-generated code (should not be "HT")
-        self.assertNotEqual(block.code, "HT")
-        self.assertTrue(block.code.startswith("KH"))
+        assert block.code != "HT"
+        assert block.code.startswith("KH")
 
-    def test_list_blocks_with_filtering(self):
+    def test_list_blocks_with_filtering(self, branch):
         """Test listing blocks with filtering"""
         support_block = Block.objects.create(
             name="Khối Hỗ trợ",
             code="HT",
             block_type=Block.BlockType.SUPPORT,
-            branch=self.branch,
+            branch=branch,
         )
-        business_block = Block.objects.create(
+        Block.objects.create(
             name="Khối Kinh doanh",
             code="KD",
             block_type=Block.BlockType.BUSINESS,
-            branch=self.branch,
+            branch=branch,
         )
 
         # Test filtering by block type
         url = reverse("hrm:block-list")
         response = self.client.get(url, {"block_type": Block.BlockType.SUPPORT})
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         response_data = self.get_response_data(response)
-        self.assertEqual(len(response_data), 1)
-        self.assertEqual(response_data[0]["code"], support_block.code)
+        assert len(response_data) == 1
+        assert response_data[0]["code"] == support_block.code
 
-    def test_filter_blocks_by_invalid_branch_returns_empty(self):
+    def test_filter_blocks_by_invalid_branch_returns_empty(self, branch):
         Block.objects.create(
             name="Khối Hỗ trợ",
             code="HTX",
             block_type=Block.BlockType.SUPPORT,
-            branch=self.branch,
+            branch=branch,
         )
 
         url = reverse("hrm:block-list")
         response = self.client.get(url, {"branch": 999999})
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         response_data = self.get_response_data(response)
-        self.assertEqual(len(response_data), 0)
+        assert len(response_data) == 0
 
 
-class DepartmentAPITest(TransactionTestCase, APITestMixin):
+@pytest.mark.django_db
+class TestDepartmentAPI(APITestMixin):
     """Test cases for Department API endpoints"""
 
-    def setUp(self):
-        # Clear all existing data for clean tests
-        Branch.objects.all().delete()
-        Block.objects.all().delete()
-        Department.objects.all().delete()
-        Position.objects.all().delete()
-        User.objects.all().delete()
+    @pytest.fixture(autouse=True)
+    def setup_client(self, api_client):
+        self.client = api_client
 
-        self.user = User.objects.create_superuser(
-            username="testuser", email="test@example.com", password="testpass123"
-        )
-        self.client = APIClient()
-        self.client.force_authenticate(user=self.user)
-
-        # Create Province and AdministrativeUnit for Branch
-        self.province = Province.objects.create(
-            code="01",
-            name="Thành phố Hà Nội",
-            english_name="Hanoi",
-            level=Province.ProvinceLevel.CENTRAL_CITY,
-            enabled=True,
-        )
-        self.administrative_unit = AdministrativeUnit.objects.create(
-            code="001",
-            name="Quận Ba Đình",
-            parent_province=self.province,
-            level=AdministrativeUnit.UnitLevel.DISTRICT,
-            enabled=True,
-        )
-
-        self.branch = Branch.objects.create(
-            name="Chi nhánh Hà Nội",
-            code="HN",
-            province=self.province,
-            administrative_unit=self.administrative_unit,
-        )
-        self.block = Block.objects.create(
+    def test_create_department(self, branch):
+        """Test creating a department via API"""
+        # Create a Support block as function field is often required/validated against it
+        support_block = Block.objects.create(
             name="Khối Hỗ trợ",
             code="HT",
             block_type=Block.BlockType.SUPPORT,
-            branch=self.branch,
+            branch=branch,
         )
 
-    def test_create_department(self):
-        """Test creating a department via API"""
         dept_data = {
             "name": "Phòng Nhân sự",
-            "branch_id": str(self.branch.id),
-            "block_id": str(self.block.id),
+            "branch_id": str(branch.id),
+            "block_id": str(support_block.id),
             "function": Department.DepartmentFunction.HR_ADMIN,  # Required for support blocks
         }
 
         url = reverse("hrm:department-list")
         response = self.client.post(url, dept_data, format="json")
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(Department.objects.count(), 1)
+        assert response.status_code == status.HTTP_201_CREATED
+        assert Department.objects.count() == 1
 
-    def test_department_tree_endpoint(self):
+    def test_department_tree_endpoint(self, branch, block):
         """Test department tree structure endpoint"""
-        parent_dept = Department.objects.create(name="Phòng Nhân sự", branch=self.branch, block=self.block)
-        child_dept = Department.objects.create(
+        parent_dept = Department.objects.create(name="Phòng Nhân sự", branch=branch, block=block)
+        Department.objects.create(
             name="Ban Tuyển dụng",
-            branch=self.branch,
-            block=self.block,
+            branch=branch,
+            block=block,
             parent_department=parent_dept,
         )
 
         url = reverse("hrm:department-tree")
-        response = self.client.get(url, {"block_id": str(self.block.id)})
+        response = self.client.get(url, {"block_id": str(block.id)})
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         response_data = self.get_response_data(response)
-        self.assertEqual(len(response_data), 1)  # One root department
-        self.assertEqual(len(response_data[0]["children"]), 1)  # One child
+        assert len(response_data) == 1  # One root department
+        assert len(response_data[0]["children"]) == 1  # One child
 
-    def test_filter_departments_by_invalid_block_returns_empty(self):
+    def test_filter_departments_by_invalid_block_returns_empty(self, branch, block):
         Department.objects.create(
             name="Phòng Nhân sự",
-            branch=self.branch,
-            block=self.block,
+            branch=branch,
+            block=block,
         )
 
         url = reverse("hrm:department-list")
         response = self.client.get(url, {"block": 999999})
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         response_data = self.get_response_data(response)
-        self.assertEqual(len(response_data), 0)
+        assert len(response_data) == 0
 
 
-class PositionAPITest(TransactionTestCase, APITestMixin):
+@pytest.mark.django_db
+class TestPositionAPI(APITestMixin):
     """Test cases for Position API endpoints"""
 
-    def setUp(self):
-        # Clear all existing data for clean tests
-        Branch.objects.all().delete()
-        Block.objects.all().delete()
-        Department.objects.all().delete()
-        Position.objects.all().delete()
-        User.objects.all().delete()
-
-        self.user = User.objects.create_superuser(
-            username="testuser", email="test@example.com", password="testpass123"
-        )
-        self.client = APIClient()
-        self.client.force_authenticate(user=self.user)
+    @pytest.fixture(autouse=True)
+    def setup_client(self, api_client):
+        self.client = api_client
 
     def test_create_position(self):
         """Test creating a position via API"""
@@ -493,8 +367,8 @@ class PositionAPITest(TransactionTestCase, APITestMixin):
         url = reverse("hrm:position-list")
         response = self.client.post(url, position_data, format="json")
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(Position.objects.count(), 1)
+        assert response.status_code == status.HTTP_201_CREATED
+        assert Position.objects.count() == 1
 
     def test_position_ordering(self):
         """Test position ordering in API response"""
@@ -505,101 +379,93 @@ class PositionAPITest(TransactionTestCase, APITestMixin):
         url = reverse("hrm:position-list")
         response = self.client.get(url)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         response_data = self.get_response_data(response)
         # Should be ordered by name alphabetically (Giám đốc, Nhân viên, Tổng Giám đốc)
-        self.assertEqual(response_data[0]["code"], "GD")
-        self.assertEqual(response_data[1]["code"], "NV")
-        self.assertEqual(response_data[2]["code"], "TGD")
+        assert response_data[0]["code"] == "GD"
+        assert response_data[1]["code"] == "NV"
+        assert response_data[2]["code"] == "TGD"
 
 
-# OrganizationChartAPITest class removed as OrganizationChart API endpoints no longer exist
-# Employee-based API should be used instead
-class APIFilteringAndSearchTest(TransactionTestCase, APITestMixin):
+@pytest.mark.django_db
+class TestAPIFilteringAndSearch(APITestMixin):
     """Test cases for API filtering and search functionality"""
 
-    def setUp(self):
-        # Clear all existing data for clean tests
-        Branch.objects.all().delete()
-        Block.objects.all().delete()
-        Department.objects.all().delete()
-        Position.objects.all().delete()
-        User.objects.all().delete()
+    @pytest.fixture(autouse=True)
+    def setup_client(self, api_client):
+        self.client = api_client
 
-        self.user = User.objects.create_superuser(
-            username="testuser", email="test@example.com", password="testpass123"
-        )
-        self.client = APIClient()
-        self.client.force_authenticate(user=self.user)
-
-        # Create Province and AdministrativeUnit for Branch
-        self.province = Province.objects.create(
-            code="01",
-            name="Thành phố Hà Nội",
-            english_name="Hanoi",
-            level=Province.ProvinceLevel.CENTRAL_CITY,
-            enabled=True,
-        )
-        self.administrative_unit = AdministrativeUnit.objects.create(
-            code="001",
-            name="Quận Ba Đình",
-            parent_province=self.province,
-            level=AdministrativeUnit.UnitLevel.DISTRICT,
-            enabled=True,
-        )
-
-        # Create test data
-        self.branch1 = Branch.objects.create(
+    def test_branch_search(self, province, admin_unit):
+        """Test branch search functionality"""
+        Branch.objects.create(
             name="Chi nhánh Hà Nội",
             code="HN",
-            province=self.province,
-            administrative_unit=self.administrative_unit,
+            province=province,
+            administrative_unit=admin_unit,
         )
-        self.branch2 = Branch.objects.create(
+        Branch.objects.create(
             name="Chi nhánh TP.HCM",
             code="HCM",
-            province=self.province,
-            administrative_unit=self.administrative_unit,
+            province=province,
+            administrative_unit=admin_unit,
         )
 
-        self.block1 = Block.objects.create(
-            name="Khối Hỗ trợ",
-            code="HT",
-            block_type=Block.BlockType.SUPPORT,
-            branch=self.branch1,
-        )
-        self.block2 = Block.objects.create(
-            name="Khối Kinh doanh",
-            code="KD",
-            block_type=Block.BlockType.BUSINESS,
-            branch=self.branch1,
-        )
-
-    def test_branch_search(self):
-        """Test branch search functionality"""
         url = reverse("hrm:branch-list")
         response = self.client.get(url, {"search": "Hà Nội"})
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         response_data = self.get_response_data(response)
-        self.assertEqual(len(response_data), 1)
-        self.assertEqual(response_data[0]["code"], "HN")
+        assert len(response_data) == 1
+        assert response_data[0]["code"] == "HN"
 
-    def test_block_filtering_by_branch(self):
+    def test_block_filtering_by_branch(self, province, admin_unit):
         """Test block filtering by branch"""
+        branch1 = Branch.objects.create(
+            name="Chi nhánh Hà Nội",
+            code="HN",
+            province=province,
+            administrative_unit=admin_unit,
+        )
+
+        Block.objects.create(
+            name="Khối Hỗ trợ",
+            code="HT",
+            block_type=Block.BlockType.SUPPORT,
+            branch=branch1,
+        )
+        Block.objects.create(
+            name="Khối Kinh doanh",
+            code="KD",
+            block_type=Block.BlockType.BUSINESS,
+            branch=branch1,
+        )
+
         url = reverse("hrm:block-list")
         response = self.client.get(url, {"branch_code": "HN"})
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         response_data = self.get_response_data(response)
-        self.assertEqual(len(response_data), 2)  # Both blocks belong to HN branch
+        assert len(response_data) == 2  # Both blocks belong to HN branch
 
-    def test_block_filtering_by_type(self):
+    def test_block_filtering_by_type(self, branch):
         """Test block filtering by type"""
+        Block.objects.create(
+            name="Khối Hỗ trợ",
+            code="HT",
+            block_type=Block.BlockType.SUPPORT,
+            branch=branch,
+        )
+        Block.objects.create(
+            name="Khối Kinh doanh",
+            code="KD",
+            block_type=Block.BlockType.BUSINESS,
+            branch=branch,
+        )
+
         url = reverse("hrm:block-list")
         response = self.client.get(url, {"block_type": Block.BlockType.SUPPORT})
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         response_data = self.get_response_data(response)
-        self.assertEqual(len(response_data), 1)
-        self.assertEqual(response_data[0]["code"], "HT")
+        assert len(response_data) == 1
+        assert response_data[0]["code"] == "HT"
