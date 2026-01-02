@@ -5,7 +5,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("hrm", "0010_alter_employeecertificate_issuing_organization"),
     ]

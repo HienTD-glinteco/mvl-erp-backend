@@ -1,19 +1,13 @@
 import json
 from decimal import Decimal
 
+import pytest
 from django.contrib.auth import get_user_model
-from django.test import TransactionTestCase
 from django.urls import reverse
 from rest_framework import status
-from rest_framework.test import APIClient
 
-from apps.core.models import AdministrativeUnit, Province
 from apps.hrm.models import (
-    Block,
-    Branch,
-    Department,
     Employee,
-    JobDescription,
     RecruitmentChannel,
     RecruitmentExpense,
     RecruitmentRequest,
@@ -38,76 +32,22 @@ class APITestMixin:
         return content
 
 
-class RecruitmentExpenseAPITest(TransactionTestCase, APITestMixin):
+@pytest.mark.django_db
+class TestRecruitmentExpenseAPI(APITestMixin):
     """Test cases for RecruitmentExpense API endpoints"""
 
-    def setUp(self):
-        """Set up test data"""
-        # Clear all existing data for clean tests
-        RecruitmentExpense.objects.all().delete()
-        RecruitmentRequest.objects.all().delete()
-        RecruitmentSource.objects.all().delete()
-        RecruitmentChannel.objects.all().delete()
-        Employee.objects.all().delete()
-        Department.objects.all().delete()
-        Block.objects.all().delete()
-        Branch.objects.all().delete()
-        JobDescription.objects.all().delete()
-        User.objects.all().delete()
+    @pytest.fixture(autouse=True)
+    def setup_client(self, api_client, superuser, branch, block, department, employee, job_description):
+        """Set up test client and user"""
+        self.client = api_client
+        self.user = superuser
+        self.branch = branch
+        self.block = block
+        self.department = department
+        self.employee = employee
+        self.job_description = job_description
 
-        # Changed to superuser to bypass RoleBasedPermission for API tests
-        self.user = User.objects.create_superuser(
-            username="testuser",
-            email="test@example.com",
-            password="testpass123",
-        )
-        self.client = APIClient()
-        self.client.force_authenticate(user=self.user)
-
-        # Create organizational structure
-        self.province = Province.objects.create(name="Hanoi", code="01")
-        self.admin_unit = AdministrativeUnit.objects.create(
-            name="City",
-            code="TP",
-            parent_province=self.province,
-            level=AdministrativeUnit.UnitLevel.DISTRICT,
-        )
-
-        self.branch = Branch.objects.create(
-            name="Hanoi Branch",
-            province=self.province,
-            administrative_unit=self.admin_unit,
-        )
-
-        self.block = Block.objects.create(
-            name="Business Block",
-            branch=self.branch,
-            block_type=Block.BlockType.BUSINESS,
-        )
-
-        self.department = Department.objects.create(
-            name="IT Department",
-            branch=self.branch,
-            block=self.block,
-            function=Department.DepartmentFunction.BUSINESS,
-        )
-
-        # Create employees
-        self.employee = Employee.objects.create(
-            fullname="Nguyen Van A",
-            username="nguyenvana",
-            email="nguyenvana@example.com",
-            phone="0123456789",
-            attendance_code="EMP001",
-            date_of_birth="1990-01-01",
-            personal_email="nguyenvana.personal@example.com",
-            start_date="2024-01-01",
-            branch=self.branch,
-            block=self.block,
-            department=self.department,
-            citizen_id="000000020030",
-        )
-
+        # Create additional employees
         self.referee = Employee.objects.create(
             fullname="Tran Van B",
             username="tranvanb",
@@ -136,15 +76,6 @@ class RecruitmentExpenseAPITest(TransactionTestCase, APITestMixin):
             block=self.block,
             department=self.department,
             citizen_id="000000020032",
-        )
-
-        # Create job description
-        self.job_description = JobDescription.objects.create(
-            title="Senior Python Developer",
-            responsibility="Develop backend services",
-            requirement="5+ years experience",
-            benefit="Competitive salary",
-            proposed_salary="2000-3000 USD",
         )
 
         # Create recruitment request with OPEN status
@@ -192,24 +123,24 @@ class RecruitmentExpenseAPITest(TransactionTestCase, APITestMixin):
         url = reverse("hrm:recruitment-expense-list")
         response = self.client.post(url, self.expense_data, format="json")
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(RecruitmentExpense.objects.count(), 1)
+        assert response.status_code == status.HTTP_201_CREATED
+        assert RecruitmentExpense.objects.count() == 1
 
         expense = RecruitmentExpense.objects.first()
-        self.assertEqual(str(expense.date), self.expense_data["date"])
-        self.assertEqual(expense.recruitment_source_id, self.expense_data["recruitment_source_id"])
-        self.assertEqual(expense.recruitment_channel_id, self.expense_data["recruitment_channel_id"])
-        self.assertEqual(expense.recruitment_request_id, self.expense_data["recruitment_request_id"])
-        self.assertEqual(expense.num_candidates_participated, self.expense_data["num_candidates_participated"])
-        self.assertEqual(str(expense.total_cost), self.expense_data["total_cost"])
-        self.assertEqual(expense.num_candidates_hired, self.expense_data["num_candidates_hired"])
-        self.assertEqual(expense.activity, self.expense_data["activity"])
-        self.assertEqual(expense.note, self.expense_data["note"])
-        self.assertIsNone(expense.referee)
-        self.assertIsNone(expense.referrer)
+        assert str(expense.date) == self.expense_data["date"]
+        assert expense.recruitment_source_id == self.expense_data["recruitment_source_id"]
+        assert expense.recruitment_channel_id == self.expense_data["recruitment_channel_id"]
+        assert expense.recruitment_request_id == self.expense_data["recruitment_request_id"]
+        assert expense.num_candidates_participated == self.expense_data["num_candidates_participated"]
+        assert str(expense.total_cost) == self.expense_data["total_cost"]
+        assert expense.num_candidates_hired == self.expense_data["num_candidates_hired"]
+        assert expense.activity == self.expense_data["activity"]
+        assert expense.note == self.expense_data["note"]
+        assert expense.referee is None
+        assert expense.referrer is None
 
         # Verify avg_cost is calculated correctly
-        self.assertEqual(expense.avg_cost, Decimal("2500.00"))
+        assert expense.avg_cost == Decimal("2500.00")
 
     def test_create_recruitment_expense_with_referral(self):
         """Test creating a recruitment expense with referral"""
@@ -229,10 +160,10 @@ class RecruitmentExpenseAPITest(TransactionTestCase, APITestMixin):
         }
         response = self.client.post(url, data, format="json")
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        assert response.status_code == status.HTTP_201_CREATED
         expense = RecruitmentExpense.objects.first()
-        self.assertEqual(expense.referee_id, self.referee.id)
-        self.assertEqual(expense.referrer_id, self.referrer.id)
+        assert expense.referee_id == self.referee.id
+        assert expense.referrer_id == self.referrer.id
 
     def test_create_with_referral_source_missing_referee(self):
         """Test that creating expense with referral source requires referee"""
@@ -243,14 +174,12 @@ class RecruitmentExpenseAPITest(TransactionTestCase, APITestMixin):
 
         response = self.client.post(url, data, format="json")
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
         content = json.loads(response.content.decode())
-        print(f"content: {content}")
-        self.assertIn("error", content)
+        assert "error" in content
         error = content["error"]
-        print(f"error: {error}")
-        self.assertIn("Referee is required when recruitment source allows referral.", str(error))
-        self.assertIn("Referrer is required when recruitment source allows referral.", str(error))
+        assert "Referee is required when recruitment source allows referral." in str(error)
+        assert "Referrer is required when recruitment source allows referral." in str(error)
 
     def test_create_with_non_referral_source_and_referee(self):
         """Test that creating expense with non-referral source rejects referee"""
@@ -261,9 +190,9 @@ class RecruitmentExpenseAPITest(TransactionTestCase, APITestMixin):
 
         response = self.client.post(url, data, format="json")
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
         content = json.loads(response.content.decode())
-        self.assertIn("error", content)
+        assert "error" in content
 
     def test_create_with_same_referee_and_referrer(self):
         """Test that referee and referrer cannot be the same person"""
@@ -283,9 +212,9 @@ class RecruitmentExpenseAPITest(TransactionTestCase, APITestMixin):
 
         response = self.client.post(url, data, format="json")
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
         content = json.loads(response.content.decode())
-        self.assertIn("error", content)
+        assert "error" in content
 
     def test_create_with_draft_recruitment_request_fails(self):
         """Test that expense cannot be created for DRAFT recruitment request"""
@@ -306,9 +235,9 @@ class RecruitmentExpenseAPITest(TransactionTestCase, APITestMixin):
 
         response = self.client.post(url, data, format="json")
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
         content = json.loads(response.content.decode())
-        self.assertIn("error", content)
+        assert "error" in content
 
     def test_list_recruitment_expenses(self):
         """Test listing recruitment expenses via API"""
@@ -317,17 +246,17 @@ class RecruitmentExpenseAPITest(TransactionTestCase, APITestMixin):
 
         response = self.client.get(url)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         response_data = self.get_response_data(response)
-        self.assertEqual(len(response_data), 1)
+        assert len(response_data) == 1
 
         # Check nested objects are returned
         expense = response_data[0]
-        self.assertIn("recruitment_source", expense)
-        self.assertIn("recruitment_channel", expense)
-        self.assertIn("recruitment_request", expense)
-        self.assertIn("avg_cost", expense)
-        self.assertEqual(expense["avg_cost"], "2500.00")
+        assert "recruitment_source" in expense
+        assert "recruitment_channel" in expense
+        assert "recruitment_request" in expense
+        assert "avg_cost" in expense
+        assert expense["avg_cost"] == "2500.00"
 
     def test_retrieve_recruitment_expense(self):
         """Test retrieving a recruitment expense via API"""
@@ -338,10 +267,10 @@ class RecruitmentExpenseAPITest(TransactionTestCase, APITestMixin):
         url = reverse("hrm:recruitment-expense-detail", kwargs={"pk": expense_id})
         response = self.client.get(url)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         response_data = self.get_response_data(response)
-        self.assertEqual(response_data["activity"], self.expense_data["activity"])
-        self.assertEqual(response_data["total_cost"], self.expense_data["total_cost"])
+        assert response_data["activity"] == self.expense_data["activity"]
+        assert response_data["total_cost"] == self.expense_data["total_cost"]
 
     def test_update_recruitment_expense(self):
         """Test updating a recruitment expense via API"""
@@ -364,12 +293,12 @@ class RecruitmentExpenseAPITest(TransactionTestCase, APITestMixin):
         url = reverse("hrm:recruitment-expense-detail", kwargs={"pk": expense_id})
         response = self.client.put(url, update_data, format="json")
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         response_data = self.get_response_data(response)
-        self.assertEqual(response_data["num_candidates_participated"], update_data["num_candidates_participated"])
-        self.assertEqual(response_data["total_cost"], update_data["total_cost"])
-        self.assertEqual(response_data["num_candidates_hired"], update_data["num_candidates_hired"])
-        self.assertEqual(response_data["avg_cost"], "2000.00")
+        assert response_data["num_candidates_participated"] == update_data["num_candidates_participated"]
+        assert response_data["total_cost"] == update_data["total_cost"]
+        assert response_data["num_candidates_hired"] == update_data["num_candidates_hired"]
+        assert response_data["avg_cost"] == "2000.00"
 
     def test_partial_update_recruitment_expense(self):
         """Test partially updating a recruitment expense via API"""
@@ -385,14 +314,14 @@ class RecruitmentExpenseAPITest(TransactionTestCase, APITestMixin):
         url = reverse("hrm:recruitment-expense-detail", kwargs={"pk": expense_id})
         response = self.client.patch(url, partial_data, format="json")
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         response_data = self.get_response_data(response)
-        self.assertEqual(response_data["num_candidates_hired"], partial_data["num_candidates_hired"])
-        self.assertEqual(response_data["note"], partial_data["note"])
+        assert response_data["num_candidates_hired"] == partial_data["num_candidates_hired"]
+        assert response_data["note"] == partial_data["note"]
         # Other fields should remain unchanged
-        self.assertEqual(response_data["activity"], self.expense_data["activity"])
+        assert response_data["activity"] == self.expense_data["activity"]
         # avg_cost should be recalculated
-        self.assertEqual(response_data["avg_cost"], "1666.67")
+        assert response_data["avg_cost"] == "1666.67"
 
     def test_delete_recruitment_expense(self):
         """Test deleting a recruitment expense"""
@@ -403,8 +332,8 @@ class RecruitmentExpenseAPITest(TransactionTestCase, APITestMixin):
         url = reverse("hrm:recruitment-expense-detail", kwargs={"pk": expense_id})
         response = self.client.delete(url)
 
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        self.assertEqual(RecruitmentExpense.objects.count(), 0)
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+        assert RecruitmentExpense.objects.count() == 0
 
     def test_avg_cost_calculation_zero_hires(self):
         """Test avg_cost is 0.00 when no candidates hired"""
@@ -414,7 +343,7 @@ class RecruitmentExpenseAPITest(TransactionTestCase, APITestMixin):
         create_response = self.client.post(url, data, format="json")
 
         response_data = self.get_response_data(create_response)
-        self.assertEqual(response_data["avg_cost"], "0.00")
+        assert response_data["avg_cost"] == "0.00"
 
     def test_ordering_by_date(self):
         """Test ordering recruitment expenses by date"""
@@ -434,9 +363,9 @@ class RecruitmentExpenseAPITest(TransactionTestCase, APITestMixin):
         # Order by date ascending
         response = self.client.get(url, {"ordering": "date"})
         response_data = self.get_response_data(response)
-        self.assertEqual(len(response_data), 2)
-        self.assertEqual(response_data[0]["date"], "2025-10-10")
-        self.assertEqual(response_data[1]["date"], "2025-10-20")
+        assert len(response_data) == 2
+        assert response_data[0]["date"] == "2025-10-10"
+        assert response_data[1]["date"] == "2025-10-20"
 
     def test_ordering_by_total_cost(self):
         """Test ordering recruitment expenses by total_cost"""
@@ -456,9 +385,9 @@ class RecruitmentExpenseAPITest(TransactionTestCase, APITestMixin):
         # Order by total_cost descending
         response = self.client.get(url, {"ordering": "-total_cost"})
         response_data = self.get_response_data(response)
-        self.assertEqual(len(response_data), 2)
-        self.assertEqual(response_data[0]["total_cost"], "8000.00")
-        self.assertEqual(response_data[1]["total_cost"], "3000.00")
+        assert len(response_data) == 2
+        assert response_data[0]["total_cost"] == "8000.00"
+        assert response_data[1]["total_cost"] == "3000.00"
 
     def test_required_fields(self):
         """Test that required fields are validated"""
@@ -468,31 +397,31 @@ class RecruitmentExpenseAPITest(TransactionTestCase, APITestMixin):
         data = self.expense_data.copy()
         del data["date"]
         response = self.client.post(url, data, format="json")
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
 
         # Test without recruitment_source_id
         data = self.expense_data.copy()
         del data["recruitment_source_id"]
         response = self.client.post(url, data, format="json")
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
 
         # Test without recruitment_channel_id
         data = self.expense_data.copy()
         del data["recruitment_channel_id"]
         response = self.client.post(url, data, format="json")
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
 
         # Test without recruitment_request_id
         data = self.expense_data.copy()
         del data["recruitment_request_id"]
         response = self.client.post(url, data, format="json")
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
 
         # Test without total_cost
         data = self.expense_data.copy()
         del data["total_cost"]
         response = self.client.post(url, data, format="json")
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
 
     def test_nested_objects_in_response(self):
         """Test that nested objects are included in API response"""
@@ -503,31 +432,31 @@ class RecruitmentExpenseAPITest(TransactionTestCase, APITestMixin):
         url = reverse("hrm:recruitment-expense-detail", kwargs={"pk": expense_id})
         response = self.client.get(url)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         response_data = self.get_response_data(response)
 
         # Check recruitment_source nested object
-        self.assertIn("recruitment_source", response_data)
+        assert "recruitment_source" in response_data
         source = response_data["recruitment_source"]
-        self.assertIn("id", source)
-        self.assertIn("code", source)
-        self.assertIn("name", source)
-        self.assertIn("allow_referral", source)
-        self.assertEqual(source["allow_referral"], False)
+        assert "id" in source
+        assert "code" in source
+        assert "name" in source
+        assert "allow_referral" in source
+        assert source["allow_referral"] is False
 
         # Check recruitment_channel nested object
-        self.assertIn("recruitment_channel", response_data)
+        assert "recruitment_channel" in response_data
         channel = response_data["recruitment_channel"]
-        self.assertIn("id", channel)
-        self.assertIn("code", channel)
-        self.assertIn("name", channel)
+        assert "id" in channel
+        assert "code" in channel
+        assert "name" in channel
 
         # Check recruitment_request nested object
-        self.assertIn("recruitment_request", response_data)
+        assert "recruitment_request" in response_data
         request = response_data["recruitment_request"]
-        self.assertIn("id", request)
-        self.assertIn("code", request)
-        self.assertIn("name", request)
+        assert "id" in request
+        assert "code" in request
+        assert "name" in request
 
     def test_referral_nested_objects(self):
         """Test that referee and referrer nested objects are included"""
@@ -553,20 +482,20 @@ class RecruitmentExpenseAPITest(TransactionTestCase, APITestMixin):
         response_data = self.get_response_data(response)
 
         # Check referee nested object
-        self.assertIn("referee", response_data)
+        assert "referee" in response_data
         referee = response_data["referee"]
-        self.assertIn("id", referee)
-        self.assertIn("code", referee)
-        self.assertIn("fullname", referee)
-        self.assertEqual(referee["id"], self.referee.id)
+        assert "id" in referee
+        assert "code" in referee
+        assert "fullname" in referee
+        assert referee["id"] == self.referee.id
 
         # Check referrer nested object
-        self.assertIn("referrer", response_data)
+        assert "referrer" in response_data
         referrer = response_data["referrer"]
-        self.assertIn("id", referrer)
-        self.assertIn("code", referrer)
-        self.assertIn("fullname", referrer)
-        self.assertEqual(referrer["id"], self.referrer.id)
+        assert "id" in referrer
+        assert "code" in referrer
+        assert "fullname" in referrer
+        assert referrer["id"] == self.referrer.id
 
     def test_search_by_activity(self):
         """Test searching expenses by activity field"""
@@ -585,10 +514,10 @@ class RecruitmentExpenseAPITest(TransactionTestCase, APITestMixin):
 
         # Search for "Job board"
         response = self.client.get(url, {"search": "Job board"})
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         response_data = self.get_response_data(response)
-        self.assertEqual(len(response_data), 1)
-        self.assertIn("Job board", response_data[0]["activity"])
+        assert len(response_data) == 1
+        assert "Job board" in response_data[0]["activity"]
 
     def test_search_by_note(self):
         """Test searching expenses by note field"""
@@ -607,10 +536,10 @@ class RecruitmentExpenseAPITest(TransactionTestCase, APITestMixin):
 
         # Search for "quality"
         response = self.client.get(url, {"search": "quality"})
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         response_data = self.get_response_data(response)
-        self.assertEqual(len(response_data), 1)
-        self.assertIn("quality", response_data[0]["note"])
+        assert len(response_data) == 1
+        assert "quality" in response_data[0]["note"]
 
     def test_search_by_recruitment_source_name(self):
         """Test searching expenses by recruitment source name field"""
@@ -638,10 +567,10 @@ class RecruitmentExpenseAPITest(TransactionTestCase, APITestMixin):
 
         # Search for "LinkedIn"
         response = self.client.get(url, {"search": "LinkedIn"})
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         response_data = self.get_response_data(response)
-        self.assertEqual(len(response_data), 1)
-        self.assertEqual(response_data[0]["recruitment_source"]["name"], "LinkedIn")
+        assert len(response_data) == 1
+        assert response_data[0]["recruitment_source"]["name"] == "LinkedIn"
 
     def test_search_by_recruitment_channel_name(self):
         """Test searching expenses by recruitment channel name field"""
@@ -664,10 +593,10 @@ class RecruitmentExpenseAPITest(TransactionTestCase, APITestMixin):
 
         # Search for "Online Advertising"
         response = self.client.get(url, {"search": "Online Advertising"})
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         response_data = self.get_response_data(response)
-        self.assertEqual(len(response_data), 1)
-        self.assertEqual(response_data[0]["recruitment_channel"]["name"], "Online Advertising")
+        assert len(response_data) == 1
+        assert response_data[0]["recruitment_channel"]["name"] == "Online Advertising"
 
     def test_export_recruitment_expense_direct(self):
         """Test exporting recruitment expenses with direct delivery"""
@@ -685,12 +614,9 @@ class RecruitmentExpenseAPITest(TransactionTestCase, APITestMixin):
         export_url = reverse("hrm:recruitment-expense-export")
         response = self.client.get(export_url, {"delivery": "direct"})
 
-        self.assertEqual(response.status_code, status.HTTP_206_PARTIAL_CONTENT)
-        self.assertEqual(
-            response["Content-Type"],
-            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        )
-        self.assertIn("attachment", response["Content-Disposition"])
+        assert response.status_code == status.HTTP_206_PARTIAL_CONTENT
+        assert response["Content-Type"] == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        assert "attachment" in response["Content-Disposition"]
 
     def test_export_recruitment_expense_fields(self):
         """Test that export includes correct fields"""
@@ -698,15 +624,15 @@ class RecruitmentExpenseAPITest(TransactionTestCase, APITestMixin):
 
         # Create a test expense
         response = self.client.post(url, self.expense_data, format="json")
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        assert response.status_code == status.HTTP_201_CREATED
 
         # Export with direct delivery to check fields
         export_url = reverse("hrm:recruitment-expense-export")
         response = self.client.get(export_url, {"delivery": "direct"})
 
-        self.assertEqual(response.status_code, status.HTTP_206_PARTIAL_CONTENT)
+        assert response.status_code == status.HTTP_206_PARTIAL_CONTENT
         # File should be generated and downloadable
-        self.assertTrue(len(response.content) > 0)
+        assert len(response.content) > 0
 
     def test_export_recruitment_expense_filtered(self):
         """Test exporting filtered recruitment expenses"""
@@ -722,5 +648,5 @@ class RecruitmentExpenseAPITest(TransactionTestCase, APITestMixin):
         export_url = reverse("hrm:recruitment-expense-export")
         response = self.client.get(export_url, {"delivery": "direct", "date": "2025-10-15"})
 
-        self.assertEqual(response.status_code, status.HTTP_206_PARTIAL_CONTENT)
-        self.assertTrue(len(response.content) > 0)
+        assert response.status_code == status.HTTP_206_PARTIAL_CONTENT
+        assert len(response.content) > 0

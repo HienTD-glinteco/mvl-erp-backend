@@ -80,14 +80,18 @@ pre-commit run --all-files
 - Import: `from django.utils.translation import gettext as _`
 
 ### Imports
-- ALL imports must be at the **top of the file**
-- Never import inside functions or methods
+- ALL imports must be at the **top of the file** (avoid `E402` linting errors).
+- Never import inside functions or methods.
+- Use `ruff` with `--fix` to auto-sort and organize imports.
 
 ### Testing
-- Follow **AAA pattern**: Arrange, Act, Assert
-- **Mock external services** (APIs, network connections)
-- **DO NOT mock database** - use real Django ORM objects
-- Use pytest fixtures for reusable test data
+- **Framework**: Use `pytest` exclusively. **DO NOT** use `unittest.TestCase`.
+- **Database**: Use `@pytest.mark.django_db` for tests requiring database access.
+- **Fixtures**: Use `pytest` fixtures for setup and reusable data. **DO NOT** use `setUp()` or `tearDown()` methods.
+- **Assertions**: Use standard `assert` statements instead of `self.assert*`.
+- **Imports**: Ensure all imports are at the **top of the file**. `import pytest` and other imports must precede any code to avoid `E402` errors.
+- **External Services**: Mock external APIs and network connections.
+- **Cleanliness**: Ensure tests are independent and do not leak state.
 
 ## Project Structure
 
@@ -125,3 +129,14 @@ locale/         # Translation files (.po)
 - ❌ Do not create unnecessary documentation files (TASK_PLAN.md, etc.)
 - ❌ Do not commit directly to `master`
 - ❌ Do not hard-code sensitive information
+
+## Pre-commit Enforcement
+
+> [!IMPORTANT]
+> **Before completing any task or handing off work**, agents MUST:
+
+1. Run `pre-commit run --all-files` (or at minimum on changed files).
+2. **Fix ALL issues** reported by hooks (linting, formatting, type checking, Vietnamese text, etc.).
+3. Ensure all tests pass before considering work complete.
+
+This is non-negotiable. All code must pass pre-commit checks before it can be considered ready for review or merge.

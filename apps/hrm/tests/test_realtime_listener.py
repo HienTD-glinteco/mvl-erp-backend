@@ -1,4 +1,4 @@
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 from django.utils import timezone
@@ -15,20 +15,16 @@ class TestRealtimeListenerCommand:
     @pytest.mark.asyncio
     async def test_on_attendance_event_dispatches_task(self, cmd):
         # Mock the process_realtime_attendance_event task
-        with patch("apps.hrm.management.commands.run_realtime_attendance_listener.process_realtime_attendance_event") as mock_task:
+        with patch(
+            "apps.hrm.management.commands.run_realtime_attendance_listener.process_realtime_attendance_event"
+        ) as mock_task:
             # Setup command
             cmd.running = True
 
             # Create event
             now = timezone.now()
             event = ZKAttendanceEvent(
-                device_id=1,
-                device_name="Test Device",
-                user_id="12345",
-                uid=1,
-                timestamp=now,
-                status=0,
-                punch=0
+                device_id=1, device_name="Test Device", user_id="12345", uid=1, timestamp=now, status=0, punch=0
             )
 
             # Call handler
@@ -50,7 +46,9 @@ class TestRealtimeListenerCommand:
 
     @pytest.mark.asyncio
     async def test_on_attendance_event_does_not_dispatch_if_not_running(self, cmd):
-        with patch("apps.hrm.management.commands.run_realtime_attendance_listener.process_realtime_attendance_event") as mock_task:
+        with patch(
+            "apps.hrm.management.commands.run_realtime_attendance_listener.process_realtime_attendance_event"
+        ) as mock_task:
             # Setup command
             cmd.running = False
 
@@ -62,7 +60,7 @@ class TestRealtimeListenerCommand:
                 uid=1,
                 timestamp=timezone.now(),
                 status=0,
-                punch=0
+                punch=0,
             )
 
             # Call handler

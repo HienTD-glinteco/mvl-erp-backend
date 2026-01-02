@@ -2,19 +2,14 @@ import json
 from datetime import date, datetime, time, timedelta
 from decimal import Decimal
 
+import pytest
 from django.contrib.auth import get_user_model
-from django.test import TransactionTestCase
 from django.urls import reverse
 from rest_framework import status
-from rest_framework.test import APIClient
 
-from apps.core.models import AdministrativeUnit, Province
 from apps.hrm.constants import RecruitmentSourceType
 from apps.hrm.models import (
-    Block,
     Branch,
-    Department,
-    Employee,
     HiredCandidateReport,
     InterviewCandidate,
     InterviewSchedule,
@@ -44,63 +39,19 @@ class APITestMixin:
         return content
 
 
-class RecruitmentDashboardAPITest(TransactionTestCase, APITestMixin):
+@pytest.mark.django_db
+class TestRecruitmentDashboardAPI(APITestMixin):
     """Test cases for Recruitment Dashboard API endpoints"""
 
-    def setUp(self):
+    @pytest.fixture(autouse=True)
+    def setup_client(self, api_client, superuser, branch, block, department, employee):
         """Set up test data"""
-        # Changed to superuser to bypass RoleBasedPermission for API tests
-        self.user = User.objects.create_superuser(
-            username="testuser",
-            email="test@example.com",
-            password="testpass123",
-        )
-        self.client = APIClient()
-        self.client.force_authenticate(user=self.user)
-
-        # Create organizational structure
-        self.province = Province.objects.create(name="Hanoi", code="01")
-        self.admin_unit = AdministrativeUnit.objects.create(
-            name="City",
-            code="TP",
-            parent_province=self.province,
-            level=AdministrativeUnit.UnitLevel.DISTRICT,
-        )
-
-        self.branch = Branch.objects.create(
-            name="Hanoi Branch",
-            province=self.province,
-            administrative_unit=self.admin_unit,
-        )
-
-        self.block = Block.objects.create(
-            name="Business Block",
-            branch=self.branch,
-            block_type=Block.BlockType.BUSINESS,
-        )
-
-        self.department = Department.objects.create(
-            name="IT Department",
-            branch=self.branch,
-            block=self.block,
-            function=Department.DepartmentFunction.BUSINESS,
-        )
-
-        # Create employee
-        self.employee = Employee.objects.create(
-            fullname="Nguyen Van A",
-            username="nguyenvana",
-            email="nguyenvana@example.com",
-            phone="0123456789",
-            attendance_code="EMP001",
-            citizen_id="000123456789",
-            date_of_birth="1990-01-01",
-            personal_email="nguyenvana.personal@example.com",
-            start_date="2024-01-01",
-            branch=self.branch,
-            block=self.block,
-            department=self.department,
-        )
+        self.client = api_client
+        self.user = superuser
+        self.branch = branch
+        self.block = block
+        self.department = department
+        self.employee = employee
 
         # Create recruitment sources and channels
         self.source_referral = RecruitmentSource.objects.create(
@@ -228,79 +179,38 @@ class RecruitmentDashboardAPITest(TransactionTestCase, APITestMixin):
         response = self.client.get(url)
 
         # Assert: Verify response structure and values
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         data = self.get_response_data(response)
 
-        self.assertIn("open_positions", data)
-        self.assertIn("applicants_today", data)
-        self.assertIn("hires_today", data)
-        self.assertIn("interviews_today", data)
-        self.assertIn("employees_today", data)
+        assert "open_positions" in data
+        assert "applicants_today" in data
+        assert "hires_today" in data
+        assert "interviews_today" in data
+        assert "employees_today" in data
 
         # We created 2 job descriptions + 1 for candidate + 1 for interview = 4 total
-        self.assertEqual(data["open_positions"], 4)
-        self.assertEqual(data["applicants_today"], 1)
-        self.assertEqual(data["hires_today"], 3)
-        self.assertEqual(data["interviews_today"], 1)
-        # 1 employee from setUp (default status is ONBOARDING)
-        self.assertEqual(data["employees_today"], 1)
+        assert data["open_positions"] == 4
+        assert data["applicants_today"] == 1
+        assert data["hires_today"] == 3
+        assert data["interviews_today"] == 1
+        # 1 employee from fixture (default status is ACTIVE in conftest or wherever, wait, conftest uses ONBOARDING by default for dummy?)
+        # Let's check Employee status.
+        assert data["employees_today"] == 1
 
 
-class RecruitmentDashboardIndividualChartsAPITest(TransactionTestCase, APITestMixin):
+@pytest.mark.django_db
+class TestRecruitmentDashboardIndividualChartsAPI(APITestMixin):
     """Test cases for individual chart endpoints in Recruitment Dashboard"""
 
-    def setUp(self):
+    @pytest.fixture(autouse=True)
+    def setup_client(self, api_client, superuser, branch, block, department, employee):
         """Set up test data"""
-        self.user = User.objects.create_superuser(
-            username="testuser",
-            email="test@example.com",
-            password="testpass123",
-        )
-        self.client = APIClient()
-        self.client.force_authenticate(user=self.user)
-
-        # Create organizational structure
-        self.province = Province.objects.create(name="Hanoi", code="01")
-        self.admin_unit = AdministrativeUnit.objects.create(
-            name="City",
-            code="TP",
-            parent_province=self.province,
-            level=AdministrativeUnit.UnitLevel.DISTRICT,
-        )
-
-        self.branch = Branch.objects.create(
-            name="Hanoi Branch",
-            province=self.province,
-            administrative_unit=self.admin_unit,
-        )
-
-        self.block = Block.objects.create(
-            name="Business Block",
-            branch=self.branch,
-            block_type=Block.BlockType.BUSINESS,
-        )
-
-        self.department = Department.objects.create(
-            name="IT Department",
-            branch=self.branch,
-            block=self.block,
-            function=Department.DepartmentFunction.BUSINESS,
-        )
-
-        self.employee = Employee.objects.create(
-            fullname="Nguyen Van A",
-            username="nguyenvana",
-            email="nguyenvana@example.com",
-            phone="0123456789",
-            attendance_code="EMP001",
-            citizen_id="000123456789",
-            date_of_birth="1990-01-01",
-            personal_email="nguyenvana.personal@example.com",
-            start_date="2024-01-01",
-            branch=self.branch,
-            block=self.block,
-            department=self.department,
-        )
+        self.client = api_client
+        self.user = superuser
+        self.branch = branch
+        self.block = block
+        self.department = department
+        self.employee = employee
 
         # Set up test dates
         self.today = date.today()
@@ -329,37 +239,37 @@ class RecruitmentDashboardIndividualChartsAPITest(TransactionTestCase, APITestMi
         response = self.client.get(url)
 
         # Assert: Verify response
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         data = self.get_response_data(response)
 
         # Check for date fields
-        self.assertIn("report_from_date", data)
-        self.assertIn("report_to_date", data)
-        self.assertIn("data", data)
+        assert "report_from_date" in data
+        assert "report_to_date" in data
+        assert "data" in data
 
         chart_data = data["data"]
-        self.assertIsInstance(chart_data, list)
-        self.assertEqual(len(chart_data), 2)
+        assert isinstance(chart_data, list)
+        assert len(chart_data) == 2
 
         labels = [item["label"] for item in chart_data]
-        self.assertIn("Experienced", labels)
-        self.assertIn("Inexperienced", labels)
+        assert "Experienced" in labels
+        assert "Inexperienced" in labels
 
         experienced = next(item for item in chart_data if "Experienced" in item["label"])
         inexperienced = next(item for item in chart_data if "Inexperienced" in item["label"])
 
-        self.assertEqual(experienced["count"], 12)
-        self.assertEqual(experienced["percentage"], 60.0)
-        self.assertEqual(inexperienced["count"], 8)
-        self.assertEqual(inexperienced["percentage"], 40.0)
+        assert experienced["count"] == 12
+        assert experienced["percentage"] == 60.0
+        assert inexperienced["count"] == 8
+        assert inexperienced["percentage"] == 40.0
 
     def test_branch_breakdown_chart_endpoint(self):
         """Test branch breakdown chart endpoint"""
         # Arrange: Create test data for multiple branches
         branch2 = Branch.objects.create(
             name="HCMC Branch",
-            province=self.province,
-            administrative_unit=self.admin_unit,
+            province=self.branch.province,
+            administrative_unit=self.branch.administrative_unit,
         )
 
         month_key = self.first_day_month.strftime("%m/%Y")
@@ -387,25 +297,25 @@ class RecruitmentDashboardIndividualChartsAPITest(TransactionTestCase, APITestMi
         response = self.client.get(url)
 
         # Assert: Verify response
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         data = self.get_response_data(response)
 
         # Check for date fields
-        self.assertIn("report_from_date", data)
-        self.assertIn("report_to_date", data)
-        self.assertIn("data", data)
+        assert "report_from_date" in data
+        assert "report_to_date" in data
+        assert "data" in data
 
         chart_data = data["data"]
-        self.assertIsInstance(chart_data, list)
-        self.assertEqual(len(chart_data), 2)
+        assert isinstance(chart_data, list)
+        assert len(chart_data) == 2
 
         for item in chart_data:
-            self.assertIn("branch_name", item)
-            self.assertIn("count", item)
-            self.assertIn("percentage", item)
+            assert "branch_name" in item
+            assert "count" in item
+            assert "percentage" in item
 
         total_hires = sum(item["count"] for item in chart_data)
-        self.assertEqual(total_hires, 25)
+        assert total_hires == 25
 
     def test_cost_breakdown_chart_endpoint(self):
         """Test cost breakdown chart endpoint"""
@@ -437,22 +347,22 @@ class RecruitmentDashboardIndividualChartsAPITest(TransactionTestCase, APITestMi
         response = self.client.get(url)
 
         # Assert: Verify response
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         data = self.get_response_data(response)
 
         # Check for date fields
-        self.assertIn("report_from_date", data)
-        self.assertIn("report_to_date", data)
-        self.assertIn("data", data)
+        assert "report_from_date" in data
+        assert "report_to_date" in data
+        assert "data" in data
 
         chart_data = data["data"]
-        self.assertIsInstance(chart_data, list)
-        self.assertGreater(len(chart_data), 0)
+        assert isinstance(chart_data, list)
+        assert len(chart_data) > 0
 
         for item in chart_data:
-            self.assertIn("source_type", item)
-            self.assertIn("total_cost", item)
-            self.assertIn("percentage", item)
+            assert "source_type" in item
+            assert "total_cost" in item
+            assert "percentage" in item
 
     def test_cost_by_branches_chart_endpoint(self):
         """Test cost by branches chart endpoint"""
@@ -474,30 +384,30 @@ class RecruitmentDashboardIndividualChartsAPITest(TransactionTestCase, APITestMi
         response = self.client.get(url)
 
         # Assert: Verify response structure
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         data = self.get_response_data(response)
 
         # Check for date fields
-        self.assertIn("report_from_date", data)
-        self.assertIn("report_to_date", data)
-        self.assertIn("data", data)
+        assert "report_from_date" in data
+        assert "report_to_date" in data
+        assert "data" in data
 
         chart_data = data["data"]
-        self.assertIsInstance(chart_data, dict)
-        self.assertIn("months", chart_data)
-        self.assertIn("data", chart_data)
+        assert isinstance(chart_data, dict)
+        assert "months" in chart_data
+        assert "data" in chart_data
 
         months = chart_data["months"]
         branches_data = chart_data["data"]
 
-        self.assertEqual(len(months), 1)
-        self.assertEqual(months[0], cost_month_key)
-        self.assertEqual(len(branches_data), 1)
+        assert len(months) == 1
+        assert months[0] == cost_month_key
+        assert len(branches_data) == 1
 
         branch_data = branches_data[0]
-        self.assertEqual(branch_data["type"], "branch")
-        self.assertEqual(branch_data["name"], "Hanoi Branch")
-        self.assertIn("statistics", branch_data)
+        assert branch_data["type"] == "branch"
+        assert branch_data["name"] == self.branch.name
+        assert "statistics" in branch_data
 
     def test_source_type_breakdown_chart_endpoint(self):
         """Test source type breakdown chart endpoint"""
@@ -529,22 +439,22 @@ class RecruitmentDashboardIndividualChartsAPITest(TransactionTestCase, APITestMi
         response = self.client.get(url)
 
         # Assert: Verify response
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         data = self.get_response_data(response)
 
         # Check for date fields
-        self.assertIn("report_from_date", data)
-        self.assertIn("report_to_date", data)
-        self.assertIn("data", data)
+        assert "report_from_date" in data
+        assert "report_to_date" in data
+        assert "data" in data
 
         chart_data = data["data"]
-        self.assertIsInstance(chart_data, list)
-        self.assertGreater(len(chart_data), 0)
+        assert isinstance(chart_data, list)
+        assert len(chart_data) > 0
 
         for item in chart_data:
-            self.assertIn("source_type", item)
-            self.assertIn("count", item)
-            self.assertIn("percentage", item)
+            assert "source_type" in item
+            assert "count" in item
+            assert "percentage" in item
 
     def test_monthly_trends_chart_endpoint(self):
         """Test monthly trends chart endpoint"""
@@ -589,31 +499,31 @@ class RecruitmentDashboardIndividualChartsAPITest(TransactionTestCase, APITestMi
         )
 
         # Assert: Verify response structure
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         data = self.get_response_data(response)
 
         # Check for date fields
-        self.assertIn("report_from_date", data)
-        self.assertIn("report_to_date", data)
-        self.assertIn("data", data)
+        assert "report_from_date" in data
+        assert "report_to_date" in data
+        assert "data" in data
 
         chart_data = data["data"]
-        self.assertIsInstance(chart_data, dict)
-        self.assertIn("months", chart_data)
-        self.assertIn("source_type_names", chart_data)
-        self.assertIn("data", chart_data)
+        assert isinstance(chart_data, dict)
+        assert "months" in chart_data
+        assert "source_type_names" in chart_data
+        assert "data" in chart_data
 
-        self.assertIsInstance(chart_data["months"], list)
-        self.assertIsInstance(chart_data["source_type_names"], list)
-        self.assertIsInstance(chart_data["data"], list)
+        assert isinstance(chart_data["months"], list)
+        assert isinstance(chart_data["source_type_names"], list)
+        assert isinstance(chart_data["data"], list)
 
         if len(chart_data["data"]) > 0:
             source_data = chart_data["data"][0]
-            self.assertIn("type", source_data)
-            self.assertIn("name", source_data)
-            self.assertIn("statistics", source_data)
-            self.assertEqual(source_data["type"], "source_type")
-            self.assertIsInstance(source_data["statistics"], list)
+            assert "type" in source_data
+            assert "name" in source_data
+            assert "statistics" in source_data
+            assert source_data["type"] == "source_type"
+            assert isinstance(source_data["statistics"], list)
 
     def test_individual_chart_endpoints_with_custom_date_range(self):
         """Test all individual chart endpoints accept custom date range"""
@@ -660,10 +570,8 @@ class RecruitmentDashboardIndividualChartsAPITest(TransactionTestCase, APITestMi
         for endpoint_name in endpoints:
             url = reverse(endpoint_name)
             response = self.client.get(url, date_params)
-            self.assertEqual(
-                response.status_code,
-                status.HTTP_200_OK,
-                f"Endpoint {endpoint_name} should return 200 with custom date range",
+            assert response.status_code == status.HTTP_200_OK, (
+                f"Endpoint {endpoint_name} should return 200 with custom date range"
             )
 
     def test_individual_chart_endpoints_without_filters(self):
@@ -682,8 +590,6 @@ class RecruitmentDashboardIndividualChartsAPITest(TransactionTestCase, APITestMi
         for endpoint_name in endpoints:
             url = reverse(endpoint_name)
             response = self.client.get(url)
-            self.assertEqual(
-                response.status_code,
-                status.HTTP_200_OK,
-                f"Endpoint {endpoint_name} should return 200 without filters",
+            assert response.status_code == status.HTTP_200_OK, (
+                f"Endpoint {endpoint_name} should return 200 without filters"
             )

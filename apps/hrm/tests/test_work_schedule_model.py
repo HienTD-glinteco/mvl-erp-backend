@@ -1,12 +1,13 @@
 from datetime import time
 
+import pytest
 from django.core.exceptions import ValidationError
-from django.test import TestCase
 
 from apps.hrm.models import WorkSchedule
 
 
-class WorkScheduleModelTest(TestCase):
+@pytest.mark.django_db
+class TestWorkScheduleModel:
     """Test cases for WorkSchedule model"""
 
     def test_create_work_schedule_with_all_fields(self):
@@ -23,21 +24,21 @@ class WorkScheduleModelTest(TestCase):
             note="Standard work schedule",
         )
 
-        self.assertEqual(work_schedule.weekday, WorkSchedule.Weekday.MONDAY)
-        self.assertEqual(work_schedule.morning_start_time, time(8, 0))
-        self.assertEqual(work_schedule.morning_end_time, time(12, 0))
-        self.assertEqual(work_schedule.noon_start_time, time(12, 0))
-        self.assertEqual(work_schedule.noon_end_time, time(13, 30))
-        self.assertEqual(work_schedule.afternoon_start_time, time(13, 30))
-        self.assertEqual(work_schedule.afternoon_end_time, time(17, 30))
-        self.assertEqual(work_schedule.allowed_late_minutes, 5)
-        self.assertEqual(work_schedule.note, "Standard work schedule")
+        assert work_schedule.weekday == WorkSchedule.Weekday.MONDAY
+        assert work_schedule.morning_start_time == time(8, 0)
+        assert work_schedule.morning_end_time == time(12, 0)
+        assert work_schedule.noon_start_time == time(12, 0)
+        assert work_schedule.noon_end_time == time(13, 30)
+        assert work_schedule.afternoon_start_time == time(13, 30)
+        assert work_schedule.afternoon_end_time == time(17, 30)
+        assert work_schedule.allowed_late_minutes == 5
+        assert work_schedule.note == "Standard work schedule"
         # Check string representation exists (locale-dependent)
-        self.assertTrue(len(str(work_schedule)) > 0)
+        assert len(str(work_schedule)) > 0
         # Check properties
-        self.assertEqual(work_schedule.morning_time, "08:00 - 12:00")
-        self.assertEqual(work_schedule.noon_time, "12:00 - 13:30")
-        self.assertEqual(work_schedule.afternoon_time, "13:30 - 17:30")
+        assert work_schedule.morning_time == "08:00 - 12:00"
+        assert work_schedule.noon_time == "12:00 - 13:30"
+        assert work_schedule.afternoon_time == "13:30 - 17:30"
 
     def test_create_weekend_schedule_with_null_times(self):
         """Test creating a weekend schedule with null time fields"""
@@ -53,17 +54,17 @@ class WorkScheduleModelTest(TestCase):
             note="Weekend - no work",
         )
 
-        self.assertEqual(work_schedule.weekday, WorkSchedule.Weekday.SATURDAY)
-        self.assertIsNone(work_schedule.morning_start_time)
-        self.assertIsNone(work_schedule.morning_end_time)
-        self.assertIsNone(work_schedule.noon_start_time)
-        self.assertIsNone(work_schedule.noon_end_time)
-        self.assertIsNone(work_schedule.afternoon_start_time)
-        self.assertIsNone(work_schedule.afternoon_end_time)
+        assert work_schedule.weekday == WorkSchedule.Weekday.SATURDAY
+        assert work_schedule.morning_start_time is None
+        assert work_schedule.morning_end_time is None
+        assert work_schedule.noon_start_time is None
+        assert work_schedule.noon_end_time is None
+        assert work_schedule.afternoon_start_time is None
+        assert work_schedule.afternoon_end_time is None
         # Check properties return None when times are null
-        self.assertIsNone(work_schedule.morning_time)
-        self.assertIsNone(work_schedule.noon_time)
-        self.assertIsNone(work_schedule.afternoon_time)
+        assert work_schedule.morning_time is None
+        assert work_schedule.noon_time is None
+        assert work_schedule.afternoon_time is None
 
     def test_weekday_unique_constraint(self):
         """Test weekday uniqueness constraint"""
@@ -78,7 +79,7 @@ class WorkScheduleModelTest(TestCase):
         )
 
         # Try to create another schedule for the same weekday
-        with self.assertRaises(Exception):  # IntegrityError
+        with pytest.raises(Exception):  # IntegrityError
             WorkSchedule.objects.create(
                 weekday=WorkSchedule.Weekday.MONDAY,
                 morning_start_time=time(9, 0),
@@ -93,10 +94,10 @@ class WorkScheduleModelTest(TestCase):
         """Test validation of invalid weekday"""
         work_schedule = WorkSchedule(weekday=999)
 
-        with self.assertRaises(ValidationError) as context:
+        with pytest.raises(ValidationError) as excinfo:
             work_schedule.full_clean()
 
-        self.assertIn("weekday", context.exception.message_dict)
+        assert "weekday" in excinfo.value.message_dict
 
     def test_clean_weekday_monday_requires_all_times(self):
         """Test that Monday requires all working time fields"""
@@ -107,12 +108,12 @@ class WorkScheduleModelTest(TestCase):
             # Missing noon and afternoon times
         )
 
-        with self.assertRaises(ValidationError) as context:
+        with pytest.raises(ValidationError) as excinfo:
             work_schedule.full_clean()
 
-        self.assertIn("weekday", context.exception.message_dict)
-        error_message = str(context.exception.message_dict["weekday"][0])
-        self.assertIn("all working time fields must be provided", error_message)
+        assert "weekday" in excinfo.value.message_dict
+        error_message = str(excinfo.value.message_dict["weekday"][0])
+        assert "all working time fields must be provided" in error_message
 
     def test_clean_weekday_friday_requires_all_times(self):
         """Test that Friday requires all working time fields"""
@@ -122,10 +123,10 @@ class WorkScheduleModelTest(TestCase):
             # Missing other times
         )
 
-        with self.assertRaises(ValidationError) as context:
+        with pytest.raises(ValidationError) as excinfo:
             work_schedule.full_clean()
 
-        self.assertIn("weekday", context.exception.message_dict)
+        assert "weekday" in excinfo.value.message_dict
 
     def test_clean_weekend_allows_null_times(self):
         """Test that weekend schedules can have null times"""
@@ -135,7 +136,7 @@ class WorkScheduleModelTest(TestCase):
         work_schedule.full_clean()
         work_schedule.save()
 
-        self.assertIsNone(work_schedule.morning_start_time)
+        assert work_schedule.morning_start_time is None
 
     def test_clean_time_sequence_valid(self):
         """Test valid time sequence (non-decreasing)"""
@@ -153,7 +154,7 @@ class WorkScheduleModelTest(TestCase):
         work_schedule.full_clean()
         work_schedule.save()
 
-        self.assertEqual(work_schedule.weekday, WorkSchedule.Weekday.MONDAY)
+        assert work_schedule.weekday == WorkSchedule.Weekday.MONDAY
 
     def test_clean_time_sequence_invalid_morning_to_noon(self):
         """Test invalid time sequence from morning to noon"""
@@ -167,11 +168,11 @@ class WorkScheduleModelTest(TestCase):
             afternoon_end_time=time(17, 30),
         )
 
-        with self.assertRaises(ValidationError) as context:
+        with pytest.raises(ValidationError) as excinfo:
             work_schedule.full_clean()
 
         # Should have error on noon_start_time field
-        self.assertIn("noon_start_time", context.exception.message_dict)
+        assert "noon_start_time" in excinfo.value.message_dict
 
     def test_clean_time_sequence_invalid_noon_to_afternoon(self):
         """Test invalid time sequence from noon to afternoon"""
@@ -185,11 +186,11 @@ class WorkScheduleModelTest(TestCase):
             afternoon_end_time=time(17, 30),
         )
 
-        with self.assertRaises(ValidationError) as context:
+        with pytest.raises(ValidationError) as excinfo:
             work_schedule.full_clean()
 
         # Should have error on afternoon_start_time field
-        self.assertIn("afternoon_start_time", context.exception.message_dict)
+        assert "afternoon_start_time" in excinfo.value.message_dict
 
     def test_clean_time_sequence_invalid_within_session(self):
         """Test invalid time sequence within the same session"""
@@ -203,11 +204,11 @@ class WorkScheduleModelTest(TestCase):
             afternoon_end_time=time(17, 30),
         )
 
-        with self.assertRaises(ValidationError) as context:
+        with pytest.raises(ValidationError) as excinfo:
             work_schedule.full_clean()
 
         # Should have error on morning_end_time field
-        self.assertIn("morning_end_time", context.exception.message_dict)
+        assert "morning_end_time" in excinfo.value.message_dict
 
     def test_ordering(self):
         """Test default ordering by weekday"""
@@ -233,5 +234,5 @@ class WorkScheduleModelTest(TestCase):
         schedules = list(WorkSchedule.objects.all())
 
         # Should be ordered by weekday (2=Monday comes before 6=Friday)
-        self.assertEqual(schedules[0].weekday, WorkSchedule.Weekday.MONDAY)
-        self.assertEqual(schedules[1].weekday, WorkSchedule.Weekday.FRIDAY)
+        assert schedules[0].weekday == WorkSchedule.Weekday.MONDAY
+        assert schedules[1].weekday == WorkSchedule.Weekday.FRIDAY

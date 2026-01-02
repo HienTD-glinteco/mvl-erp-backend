@@ -172,9 +172,7 @@ class TestValidateKPIConfigStructure:
                 {"min": 0, "max": 60, "possible_codes": ["D"]},
                 {"min": 60, "max": 90, "possible_codes": ["C"]},
             ],
-            "unit_control": {
-                "A": {"max_pct_A": 0.2, "max_pct_B": 0.3, "max_pct_C": 0.5, "min_pct_D": 0.1}
-            },
+            "unit_control": {"A": {"max_pct_A": 0.2, "max_pct_B": 0.3, "max_pct_C": 0.5, "min_pct_D": 0.1}},
         }
         errors = validate_kpi_config_structure(config)
         assert len(errors) == 0

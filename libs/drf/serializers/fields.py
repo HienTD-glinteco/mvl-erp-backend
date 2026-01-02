@@ -103,20 +103,17 @@ class FlexibleDecimalField(serializers.DecimalField):
 
 
 class FlexibleBooleanField(serializers.BooleanField):
-    """Boolean field that accepts Vietnamese text values.
-
+    """
     Supports:
     - bool objects
-    - "có", "yes", "true", "1" → True
-    - "không", "no", "false", "0" → False
+    - "yes", "true", "1" -> True
+    - "no", "false", "0" -> False
     """
 
     BOOLEAN_MAPPING = {
-        "có": True,
         "yes": True,
         "true": True,
         "1": True,
-        "không": False,
         "no": False,
         "false": False,
         "0": False,
@@ -149,7 +146,7 @@ class FlexibleChoiceField(serializers.ChoiceField):
 
     Example:
         value_mapping = {
-            "lũy tiến": "progressive",
+            "progressive": "progressive",
             "10%": "flat_10",
         }
         field = FlexibleChoiceField(choices=CHOICES, value_mapping=value_mapping)

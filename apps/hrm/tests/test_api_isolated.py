@@ -1,12 +1,10 @@
 import json
 
+import pytest
 from django.contrib.auth import get_user_model
-from django.test import TransactionTestCase
 from django.urls import reverse
 from rest_framework import status
-from rest_framework.test import APIClient
 
-from apps.core.models import AdministrativeUnit, Province
 from apps.hrm.models import Block, Branch, Department, Position
 
 User = get_user_model()
@@ -27,38 +25,17 @@ class APITestMixin:
         return content
 
 
-class IsolatedBranchAPITest(TransactionTestCase, APITestMixin):
+@pytest.mark.django_db
+class TestIsolatedBranchAPI(APITestMixin):
     """Test cases for Branch API endpoints with proper isolation"""
 
-    def setUp(self):
-        # Clear all existing data
-        Branch.objects.all().delete()
-        Block.objects.all().delete()
-        Department.objects.all().delete()
-        Position.objects.all().delete()
-
-        # Changed to superuser to bypass RoleBasedPermission for API tests
-        self.user = User.objects.create_superuser(
-            username="testuser", email="test@example.com", password="testpass123"
-        )
-        self.client = APIClient()
-        self.client.force_authenticate(user=self.user)
-
-        # Create Province and AdministrativeUnit for Branch tests
-        self.province = Province.objects.create(
-            code="01",
-            name="Thành phố Hà Nội",
-            english_name="Hanoi",
-            level=Province.ProvinceLevel.CENTRAL_CITY,
-            enabled=True,
-        )
-        self.administrative_unit = AdministrativeUnit.objects.create(
-            code="001",
-            name="Quận Ba Đình",
-            parent_province=self.province,
-            level=AdministrativeUnit.UnitLevel.DISTRICT,
-            enabled=True,
-        )
+    @pytest.fixture(autouse=True)
+    def setup_client(self, api_client, superuser, province, admin_unit):
+        """Set up test client and user"""
+        self.client = api_client
+        self.user = superuser
+        self.province = province
+        self.administrative_unit = admin_unit
 
         self.branch_data = {
             "name": "Chi nhánh Hà Nội",
@@ -75,13 +52,13 @@ class IsolatedBranchAPITest(TransactionTestCase, APITestMixin):
         url = reverse("hrm:branch-list")
         response = self.client.post(url, self.branch_data, format="json")
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(Branch.objects.count(), 1)
+        assert response.status_code == status.HTTP_201_CREATED
+        assert Branch.objects.count() == 1
 
         branch = Branch.objects.first()
-        self.assertEqual(branch.name, self.branch_data["name"])
+        assert branch.name == self.branch_data["name"]
         # Code is now auto-generated, not from provided data
-        self.assertTrue(branch.code.startswith("CN"))
+        assert branch.code.startswith("CN")
 
     def test_list_branches(self):
         """Test listing branches via API"""
@@ -98,10 +75,10 @@ class IsolatedBranchAPITest(TransactionTestCase, APITestMixin):
         url = reverse("hrm:branch-list")
         response = self.client.get(url)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         response_data = self.get_response_data(response)
-        self.assertEqual(len(response_data), 1)
-        self.assertEqual(response_data[0]["name"], self.branch_data["name"])
+        assert len(response_data) == 1
+        assert response_data[0]["name"] == self.branch_data["name"]
 
     def test_retrieve_branch(self):
         """Test retrieving a branch via API"""
@@ -118,9 +95,9 @@ class IsolatedBranchAPITest(TransactionTestCase, APITestMixin):
         url = reverse("hrm:branch-detail", kwargs={"pk": branch.pk})
         response = self.client.get(url)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         response_data = self.get_response_data(response)
-        self.assertEqual(response_data["name"], branch.name)
+        assert response_data["name"] == branch.name
 
     def test_branch_search(self):
         """Test branch search functionality"""
@@ -140,26 +117,22 @@ class IsolatedBranchAPITest(TransactionTestCase, APITestMixin):
         url = reverse("hrm:branch-list")
         response = self.client.get(url, {"search": "Hà Nội"})
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         response_data = self.get_response_data(response)
-        self.assertEqual(len(response_data), 1)
-        self.assertEqual(response_data[0]["code"], "HN")
+        assert len(response_data) == 1
+        assert response_data[0]["code"] == "HN"
 
 
 # IsolatedOrganizationChartAPITest class removed - OrganizationChart API no longer exists
-class IsolatedPositionAPITest(TransactionTestCase, APITestMixin):
+@pytest.mark.django_db
+class TestIsolatedPositionAPI(APITestMixin):
     """Test cases for Position API endpoints with proper isolation"""
 
-    def setUp(self):
-        # Clear all existing data
-        Position.objects.all().delete()
-        User.objects.all().delete()
-
-        self.user = User.objects.create_superuser(
-            username="testuser", email="test@example.com", password="testpass123"
-        )
-        self.client = APIClient()
-        self.client.force_authenticate(user=self.user)
+    @pytest.fixture(autouse=True)
+    def setup_client(self, api_client, superuser):
+        """Set up test client and user"""
+        self.client = api_client
+        self.user = superuser
 
     def test_create_position(self):
         """Test creating a position via API"""
@@ -171,8 +144,8 @@ class IsolatedPositionAPITest(TransactionTestCase, APITestMixin):
         url = reverse("hrm:position-list")
         response = self.client.post(url, position_data, format="json")
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(Position.objects.count(), 1)
+        assert response.status_code == status.HTTP_201_CREATED
+        assert Position.objects.count() == 1
 
     def test_position_ordering(self):
         """Test position ordering in API response"""
@@ -183,58 +156,28 @@ class IsolatedPositionAPITest(TransactionTestCase, APITestMixin):
         url = reverse("hrm:position-list")
         response = self.client.get(url)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         response_data = self.get_response_data(response)
         # Should be ordered by name alphabetically (Giám đốc, Nhân viên, Tổng Giám đốc)
-        self.assertEqual(response_data[0]["code"], "GD")
-        self.assertEqual(response_data[1]["code"], "NV")
-        self.assertEqual(response_data[2]["code"], "TGD")
+        assert response_data[0]["code"] == "GD"
+        assert response_data[1]["code"] == "NV"
+        assert response_data[2]["code"] == "TGD"
 
 
-class IsolatedDepartmentAPITest(TransactionTestCase, APITestMixin):
+@pytest.mark.django_db
+class TestIsolatedDepartmentAPI(APITestMixin):
     """Test cases for Department API endpoints with proper isolation"""
 
-    def setUp(self):
-        # Clear all existing data
-        Branch.objects.all().delete()
-        Block.objects.all().delete()
-        Department.objects.all().delete()
-        User.objects.all().delete()
-
-        self.user = User.objects.create_superuser(
-            username="testuser", email="test@example.com", password="testpass123"
-        )
-        self.client = APIClient()
-        self.client.force_authenticate(user=self.user)
-
-        # Create Province and AdministrativeUnit for Branch
-        self.province = Province.objects.create(
-            code="01",
-            name="Thành phố Hà Nội",
-            english_name="Hanoi",
-            level=Province.ProvinceLevel.CENTRAL_CITY,
-            enabled=True,
-        )
-        self.administrative_unit = AdministrativeUnit.objects.create(
-            code="001",
-            name="Quận Ba Đình",
-            parent_province=self.province,
-            level=AdministrativeUnit.UnitLevel.DISTRICT,
-            enabled=True,
-        )
-
-        self.branch = Branch.objects.create(
-            name="Chi nhánh Hà Nội",
-            code="HN",
-            province=self.province,
-            administrative_unit=self.administrative_unit,
-        )
-        self.block = Block.objects.create(
-            name="Khối Hỗ trợ",
-            code="HT",
-            block_type=Block.BlockType.SUPPORT,
-            branch=self.branch,
-        )
+    @pytest.fixture(autouse=True)
+    def setup_client(self, api_client, superuser, branch, block):
+        """Set up test client and user"""
+        self.client = api_client
+        self.user = superuser
+        self.branch = branch
+        self.block = block
+        # Ensure block is SUPPORT type for department creation test
+        self.block.block_type = Block.BlockType.SUPPORT
+        self.block.save()
 
     def test_create_department(self):
         """Test creating a department via API"""
@@ -248,8 +191,8 @@ class IsolatedDepartmentAPITest(TransactionTestCase, APITestMixin):
         url = reverse("hrm:department-list")
         response = self.client.post(url, dept_data, format="json")
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(Department.objects.count(), 1)
+        assert response.status_code == status.HTTP_201_CREATED
+        assert Department.objects.count() == 1
 
     def test_department_tree_endpoint(self):
         """Test department tree structure endpoint"""
@@ -264,49 +207,22 @@ class IsolatedDepartmentAPITest(TransactionTestCase, APITestMixin):
         url = reverse("hrm:department-tree")
         response = self.client.get(url, {"block_id": str(self.block.id)})
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         response_data = self.get_response_data(response)
-        self.assertEqual(len(response_data), 1)  # One root department
-        self.assertEqual(len(response_data[0]["children"]), 1)  # One child
+        assert len(response_data) == 1  # One root department
+        assert len(response_data[0]["children"]) == 1  # One child
 
 
-class IsolatedBlockAPITest(TransactionTestCase, APITestMixin):
+@pytest.mark.django_db
+class TestIsolatedBlockAPI(APITestMixin):
     """Test cases for Block API endpoints with proper isolation"""
 
-    def setUp(self):
-        # Clear all existing data
-        Branch.objects.all().delete()
-        Block.objects.all().delete()
-        User.objects.all().delete()
-
-        self.user = User.objects.create_superuser(
-            username="testuser", email="test@example.com", password="testpass123"
-        )
-        self.client = APIClient()
-        self.client.force_authenticate(user=self.user)
-
-        # Create Province and AdministrativeUnit for Branch
-        self.province = Province.objects.create(
-            code="01",
-            name="Thành phố Hà Nội",
-            english_name="Hanoi",
-            level=Province.ProvinceLevel.CENTRAL_CITY,
-            enabled=True,
-        )
-        self.administrative_unit = AdministrativeUnit.objects.create(
-            code="001",
-            name="Quận Ba Đình",
-            parent_province=self.province,
-            level=AdministrativeUnit.UnitLevel.DISTRICT,
-            enabled=True,
-        )
-
-        self.branch = Branch.objects.create(
-            name="Chi nhánh Hà Nội",
-            code="HN",
-            province=self.province,
-            administrative_unit=self.administrative_unit,
-        )
+    @pytest.fixture(autouse=True)
+    def setup_client(self, api_client, superuser, branch):
+        """Set up test client and user"""
+        self.client = api_client
+        self.user = superuser
+        self.branch = branch
 
     def test_create_block(self):
         """Test creating a block via API"""
@@ -320,12 +236,12 @@ class IsolatedBlockAPITest(TransactionTestCase, APITestMixin):
         url = reverse("hrm:block-list")
         response = self.client.post(url, block_data, format="json")
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(Block.objects.count(), 1)
+        assert response.status_code == status.HTTP_201_CREATED
+        assert Block.objects.count() == 1
 
         block = Block.objects.first()
-        self.assertEqual(block.name, block_data["name"])
-        self.assertEqual(block.block_type, block_data["block_type"])
+        assert block.name == block_data["name"]
+        assert block.block_type == block_data["block_type"]
 
     def test_list_blocks_with_filtering(self):
         """Test listing blocks with filtering"""
@@ -346,10 +262,10 @@ class IsolatedBlockAPITest(TransactionTestCase, APITestMixin):
         url = reverse("hrm:block-list")
         response = self.client.get(url, {"block_type": Block.BlockType.SUPPORT})
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         response_data = self.get_response_data(response)
-        self.assertEqual(len(response_data), 1)
-        self.assertEqual(response_data[0]["code"], support_block.code)
+        assert len(response_data) == 1
+        assert response_data[0]["code"] == support_block.code
 
     def test_block_filtering_by_branch(self):
         """Test block filtering by branch"""
@@ -367,11 +283,11 @@ class IsolatedBlockAPITest(TransactionTestCase, APITestMixin):
         )
 
         url = reverse("hrm:block-list")
-        response = self.client.get(url, {"branch_code": "HN"})
+        response = self.client.get(url, {"branch_code": self.branch.code})
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         response_data = self.get_response_data(response)
-        self.assertEqual(len(response_data), 2)  # Both blocks belong to HN branch
+        assert len(response_data) == 2  # Both blocks belong to this branch
 
     def test_block_filtering_by_type(self):
         """Test block filtering by type"""
@@ -391,7 +307,7 @@ class IsolatedBlockAPITest(TransactionTestCase, APITestMixin):
         url = reverse("hrm:block-list")
         response = self.client.get(url, {"block_type": Block.BlockType.SUPPORT})
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         response_data = self.get_response_data(response)
-        self.assertEqual(len(response_data), 1)
-        self.assertEqual(response_data[0]["code"], "HT")
+        assert len(response_data) == 1
+        assert response_data[0]["code"] == "HT"

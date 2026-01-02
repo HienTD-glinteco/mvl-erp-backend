@@ -20,8 +20,8 @@ def normalize_header(header: str) -> str:
         Lowercase, stripped header string
 
     Example:
-        >>> normalize_header("  Mã Nhân Viên  ")
-        "mã nhân viên"
+        >>> normalize_header("  Employee Code  ")
+        "employee code"
     """
     if not header:
         return ""

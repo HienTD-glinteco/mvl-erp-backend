@@ -10,7 +10,6 @@ from django.utils import timezone
 from django.utils.crypto import get_random_string
 
 from apps.devices import DeviceConnectionError
-from libs.datetimes import make_aware
 from apps.devices.zk import ZKDeviceService
 from apps.hrm.models import (
     AttendanceDevice,
@@ -18,6 +17,7 @@ from apps.hrm.models import (
     Employee,
 )
 from apps.hrm.services.timesheets import trigger_timesheet_updates_from_records
+from libs.datetimes import make_aware
 
 logger = logging.getLogger(__name__)
 
@@ -189,9 +189,7 @@ def process_realtime_attendance_event(event_data: dict[str, Any]) -> dict[str, A
         # Trigger timesheet updates
         trigger_timesheet_updates_from_records([record])
 
-        logger.info(
-            f"Processed realtime event for user {user_id} at {timestamp} (Device: {device.name})"
-        )
+        logger.info(f"Processed realtime event for user {user_id} at {timestamp} (Device: {device.name})")
         return {"success": True, "record_id": record.id}
 
     except Exception as e:

@@ -330,12 +330,7 @@ class TimesheetCalculator:
     # ---------------------------------------------------------------------------
 
     def compute_status(self, is_finalizing: bool = False) -> None:
-        """Compute status: ABSENT, SINGLE_PUNCH, ON_TIME, NOT_ON_TIME.
-
-        Args:
-            is_finalizing: If True, enforce ABSENT for empty logs (End of Day).
-                           If False, leave status as None for empty logs (Real-time Preview).
-        """
+        """Compute status: ABSENT, SINGLE_PUNCH, ON_TIME, NOT_ON_TIME."""
         from apps.hrm.services.timesheet_snapshot_service import TimesheetSnapshotService
 
         # 0. Support for direct calls (tests): ensure snapshot and penalties are run
@@ -343,61 +338,59 @@ class TimesheetCalculator:
         snapshot_service.snapshot_data(self.entry)
 
         # 1. Leave Logic (High Precedence)
-        if self.entry.absent_reason in [
+        if self._handle_leave_status():
+            return
+
+        # 2. No Logs
+        if not self.entry.start_time and not self.entry.end_time:
+            self._handle_no_logs_status(is_finalizing)
+            return
+
+        # 3. Single Punch
+        if self._is_single_punch():
+            self._handle_single_punch_status(is_finalizing)
+            return
+
+        # 4. Two Logs
+        self.calculate_penalties()
+        self.entry.status = TimesheetStatus.NOT_ON_TIME if self.entry.is_punished else TimesheetStatus.ON_TIME
+
+    def _handle_leave_status(self) -> bool:
+        """Return True if status was set due to leave."""
+        leave_reasons = [
             TimesheetReason.PAID_LEAVE,
             TimesheetReason.UNPAID_LEAVE,
             TimesheetReason.MATERNITY_LEAVE,
-        ]:
+        ]
+        if self.entry.absent_reason in leave_reasons:
             self.entry.status = TimesheetStatus.ABSENT
+            return True
+        return False
+
+    def _handle_no_logs_status(self, is_finalizing: bool) -> None:
+        """Handle status when no logs are present."""
+        if (self.entry.official_hours or 0) > 0:
+            self.entry.status = TimesheetStatus.NOT_ON_TIME if self.entry.is_punished else TimesheetStatus.ON_TIME
             return
 
-        # 2. No Logs -> Status depends on Day Type / Schedule
-        if not self.entry.start_time and not self.entry.end_time:
-            # If we have manually provided hours, don't mark as ABSENT
-            if (self.entry.official_hours or 0) > 0:
-                self.entry.status = (
-                    TimesheetStatus.ON_TIME if not self.entry.is_punished else TimesheetStatus.NOT_ON_TIME
-                )
-                return
+        is_working_day = self.work_schedule is not None
+        if self.entry.day_type == TimesheetDayType.HOLIDAY:
+            is_working_day = False
+        elif self.entry.day_type == TimesheetDayType.COMPENSATORY:
+            is_working_day = True
 
-            # Precedence: Holiday is not a working day.
-            # Compensatory is a working day even if no schedule in DB.
-            is_working_day = self.work_schedule is not None
-            from apps.hrm.constants import TimesheetDayType
-
-            if self.entry.day_type == TimesheetDayType.HOLIDAY:
-                is_working_day = False
-            elif self.entry.day_type == TimesheetDayType.COMPENSATORY:
-                is_working_day = True
-
-            if is_working_day:
-                # REAL-TIME vs FINALIZATION Logic
-                if is_finalizing:
-                    self.entry.status = TimesheetStatus.ABSENT
-                else:
-                    self.entry.status = None
-            else:
-                self.entry.status = None
-            return
-
-        # 3. Single Punch Logic
-        if (self.entry.start_time and not self.entry.end_time) or (not self.entry.start_time and self.entry.end_time):
-            # Real-time: NOT_ON_TIME (incomplete attendance is a violation)
-            # Finalization: SINGLE_PUNCH (confirmed single check at end of day)
-            if is_finalizing:
-                self.entry.status = TimesheetStatus.SINGLE_PUNCH
-            else:
-                self.entry.status = TimesheetStatus.NOT_ON_TIME
-            return
-
-        # 4. Two Logs -> Calculate Penalties first
-        self.calculate_penalties()
-
-        # 5. On Time vs Not On Time
-        if self.entry.is_punished:
-            self.entry.status = TimesheetStatus.NOT_ON_TIME
+        if is_working_day and is_finalizing:
+            self.entry.status = TimesheetStatus.ABSENT
         else:
-            self.entry.status = TimesheetStatus.ON_TIME
+            self.entry.status = None
+
+    def _is_single_punch(self) -> bool:
+        """Check if only one punch is present."""
+        return bool(self.entry.start_time) != bool(self.entry.end_time)
+
+    def _handle_single_punch_status(self, is_finalizing: bool) -> None:
+        """Handle status for single punch."""
+        self.entry.status = TimesheetStatus.SINGLE_PUNCH if is_finalizing else TimesheetStatus.NOT_ON_TIME
 
     def compute_working_days(self, is_finalizing: bool = False) -> None:
         """Compute working_days according to business rules."""

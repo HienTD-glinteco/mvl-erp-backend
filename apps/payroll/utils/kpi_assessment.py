@@ -34,7 +34,7 @@ def create_assessment_items_from_criteria(
         criteria: List of KPICriterion to snapshot
 
     Returns:
-        List of created EmployeeKPIItem instances
+        List of created EmployeeKPIItem instances with IDs populated
     """
     items = []
     for criterion in criteria:
@@ -53,7 +53,9 @@ def create_assessment_items_from_criteria(
         items.append(item)
 
     EmployeeKPIItem.objects.bulk_create(items)
-    return items
+
+    # Refetch items to get IDs (bulk_create doesn't return IDs on SQLite)
+    return list(EmployeeKPIItem.objects.filter(assessment=assessment).order_by("order"))
 
 
 def recalculate_assessment_scores(assessment: EmployeeKPIAssessment) -> EmployeeKPIAssessment:

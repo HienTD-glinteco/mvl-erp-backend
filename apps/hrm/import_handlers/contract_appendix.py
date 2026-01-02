@@ -7,8 +7,6 @@ from rest_framework import serializers
 
 from apps.hrm.models import Contract, ContractType, Employee
 from libs.drf.serializers import (
-    FlexibleBooleanField,
-    FlexibleChoiceField,
     FlexibleDateField,
     FlexibleDecimalField,
     normalize_value,
@@ -150,7 +148,7 @@ def import_handler(row_index: int, row: list, import_job_id: str, options: dict)
             }
 
         if not contract_type:
-             return {
+            return {
                 "ok": False,
                 "row_index": row_index,
                 "error": "System configuration error: No default 'Appendix' Contract Type found.",
@@ -158,7 +156,7 @@ def import_handler(row_index: int, row: list, import_job_id: str, options: dict)
             }
 
         if contract_type.category != ContractType.Category.APPENDIX:
-             return {
+            return {
                 "ok": False,
                 "row_index": row_index,
                 "error": "Invalid contract type category. Expected 'appendix', got '%s'" % contract_type.category,
@@ -199,7 +197,7 @@ def import_handler(row_index: int, row: list, import_job_id: str, options: dict)
 
         # Verify parent contract belongs to the same employee
         if parent_contract.employee_id != employee.id:
-             return {
+            return {
                 "ok": False,
                 "row_index": row_index,
                 "error": "Parent contract %s belongs to a different employee" % parent_contract_number,
@@ -281,7 +279,7 @@ def import_handler(row_index: int, row: list, import_job_id: str, options: dict)
             if existing_contract:
                 # Basic update for appendix if exists and number matches
                 if existing_contract.status != Contract.ContractStatus.DRAFT:
-                     return {
+                    return {
                         "ok": False,
                         "row_index": row_index,
                         "error": "Cannot update appendix %s: only DRAFT appendices can be updated"
@@ -291,7 +289,7 @@ def import_handler(row_index: int, row: list, import_job_id: str, options: dict)
 
                 for key, value in contract_data.items():
                     if key not in ["employee", "contract_type", "parent_contract"]:
-                         setattr(existing_contract, key, value)
+                        setattr(existing_contract, key, value)
                 existing_contract.save()
 
                 return {

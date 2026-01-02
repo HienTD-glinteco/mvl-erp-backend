@@ -5,7 +5,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("hrm", "0005_alter_employeedependent_effective_date"),
     ]

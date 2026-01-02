@@ -1,15 +1,9 @@
-import json
-
-from django.contrib.auth import get_user_model
-from django.test import TransactionTestCase
+import pytest
 from django.urls import reverse
 from django.utils.translation import gettext as _
 from rest_framework import status
-from rest_framework.test import APIClient
 
 from apps.core.models import Permission, Role
-
-User = get_user_model()
 
 
 class APITestMixin:
@@ -17,7 +11,7 @@ class APITestMixin:
 
     def get_response_data(self, response):
         """Extract data from wrapped API response"""
-        content = json.loads(response.content.decode())
+        content = response.json()
         if "data" in content:
             data = content["data"]
             # Handle paginated responses - extract results list
@@ -27,83 +21,79 @@ class APITestMixin:
         return content
 
 
-class RoleAPITest(TransactionTestCase, APITestMixin):
+@pytest.mark.django_db
+class TestRoleAPI(APITestMixin):
     """Test cases for Role API endpoints"""
 
-    def setUp(self):
-        # Clear all existing data for clean tests
-        Role.objects.all().delete()
-        User.objects.all().delete()
-        Permission.objects.all().delete()
+    @pytest.fixture(autouse=True)
+    def setup_client(self, api_client):
+        self.client = api_client
 
-        # Create test permissions
-        self.perm1 = Permission.objects.create(code="view_users", description="View users")
-        self.perm2 = Permission.objects.create(code="edit_users", description="Edit users")
-        self.perm3 = Permission.objects.create(code="delete_users", description="Delete users")
-        self.permissions = [self.perm1, self.perm2, self.perm3]
+    @pytest.fixture
+    def permissions(self, db):
+        """Create test permissions."""
+        perm1 = Permission.objects.create(code="view_users", description="View users")
+        perm2 = Permission.objects.create(code="edit_users", description="Edit users")
+        perm3 = Permission.objects.create(code="delete_users", description="Delete users")
+        return [perm1, perm2, perm3]
 
-        # Create system roles manually for tests
-        self.system_role_admin = Role.objects.create(
+    @pytest.fixture
+    def system_roles(self, db):
+        """Create system roles for tests."""
+        system_role_admin = Role.objects.create(
             code="VT001",
             name="Admin hệ thống",
             description="Vai trò có tất cả các quyền của hệ thống",
             is_system_role=True,
         )
-        self.system_role_basic = Role.objects.create(
+        system_role_basic = Role.objects.create(
             code="VT002",
             name="Vai trò cơ bản",
             description="Vai trò mặc định của tài khoản nhân viên khi được tạo mới",
             is_system_role=True,
         )
+        return system_role_admin, system_role_basic
 
-        # Changed to superuser to bypass RoleBasedPermission for API tests
-        self.user = User.objects.create_superuser(
-            username="testuser", email="test@example.com", password="testpass123"
-        )
-        self.client = APIClient()
-        self.client.force_authenticate(user=self.user)
-
-    def test_list_roles(self):
+    def test_list_roles(self, permissions, system_roles):
         """Test listing roles via API"""
-        # Create test roles
         role1 = Role.objects.create(code="VT003", name="Test Role 1", description="Test description 1")
         role2 = Role.objects.create(code="VT004", name="Test Role 2", description="Test description 2")
-        role1.permissions.set(self.permissions[:2])
-        role2.permissions.set(self.permissions)
+        role1.permissions.set(permissions[:2])
+        role2.permissions.set(permissions)
 
         url = reverse("core:role-list")
         response = self.client.get(url)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         response_data = self.get_response_data(response)
-        # Should have at least 2 roles (VT001, VT002 are created by migration)
-        self.assertGreaterEqual(len(response_data), 2)
+        # Should have at least 4 roles (2 system + 2 custom)
+        assert len(response_data) >= 4
 
-    def test_create_role(self):
+    def test_create_role(self, permissions, system_roles):
         """Test creating a role via API"""
         url = reverse("core:role-list")
         role_data = {
             "name": "New Test Role",
             "description": "New test role description",
-            "permission_ids": [p.id for p in self.permissions],
+            "permission_ids": [p.id for p in permissions],
         }
 
         response = self.client.post(url, role_data, format="json")
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        assert response.status_code == status.HTTP_201_CREATED
         response_data = self.get_response_data(response)
 
         # Verify code was auto-generated
-        self.assertTrue(response_data["code"].startswith("VT"))
-        self.assertEqual(response_data["name"], role_data["name"])
-        self.assertEqual(response_data["description"], role_data["description"])
-        self.assertFalse(response_data["is_system_role"])
+        assert response_data["code"].startswith("VT")
+        assert response_data["name"] == role_data["name"]
+        assert response_data["description"] == role_data["description"]
+        assert response_data["is_system_role"] is False
 
         # Verify role was created in database
         role = Role.objects.get(code=response_data["code"])
-        self.assertEqual(role.permissions.count(), len(self.permissions))
+        assert role.permissions.count() == len(permissions)
 
-    def test_create_role_without_permissions(self):
+    def test_create_role_without_permissions(self, permissions, system_roles):
         """Test creating a role without permissions should fail"""
         url = reverse("core:role-list")
         role_data = {
@@ -114,9 +104,9 @@ class RoleAPITest(TransactionTestCase, APITestMixin):
 
         response = self.client.post(url, role_data, format="json")
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
 
-    def test_create_role_duplicate_name(self):
+    def test_create_role_duplicate_name(self, permissions, system_roles):
         """Test creating a role with duplicate name should fail"""
         Role.objects.create(code="VT003", name="Existing Role", description="Test")
 
@@ -124,130 +114,130 @@ class RoleAPITest(TransactionTestCase, APITestMixin):
         role_data = {
             "name": "Existing Role",
             "description": "Duplicate name",
-            "permission_ids": [p.id for p in self.permissions],
+            "permission_ids": [p.id for p in permissions],
         }
 
         response = self.client.post(url, role_data, format="json")
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
 
-    def test_clone_role_creates_new_role(self):
+    def test_clone_role_creates_new_role(self, permissions, system_roles):
         """Test cloning a role duplicates its data and permissions"""
         role = Role.objects.create(code="VT003", name="Clone Source", description="Source role")
-        role.permissions.set(self.permissions[:2])
+        role.permissions.set(permissions[:2])
 
         url = reverse("core:role-clone", kwargs={"pk": role.pk})
         response = self.client.post(url)
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        assert response.status_code == status.HTTP_201_CREATED
         cloned_data = self.get_response_data(response)
-        self.assertEqual(cloned_data["name"], "Clone Source-copy")
-        self.assertNotEqual(cloned_data["id"], role.id)
-        self.assertNotEqual(cloned_data["code"], role.code)
-        self.assertFalse(cloned_data["is_system_role"])
-        self.assertEqual(len(cloned_data["permissions_detail"]), 2)
+        assert cloned_data["name"] == "Clone Source-copy"
+        assert cloned_data["id"] != role.id
+        assert cloned_data["code"] != role.code
+        assert cloned_data["is_system_role"] is False
+        assert len(cloned_data["permissions_detail"]) == 2
 
         cloned_role = Role.objects.get(pk=cloned_data["id"])
-        self.assertFalse(cloned_role.is_system_role)
-        self.assertEqual(cloned_role.permissions.count(), 2)
+        assert cloned_role.is_system_role is False
+        assert cloned_role.permissions.count() == 2
 
-    def test_clone_role_generates_unique_name(self):
+    def test_clone_role_generates_unique_name(self, permissions, system_roles):
         """Test cloning a role when '-copy' already exists appends a numeric suffix"""
         role = Role.objects.create(code="VT003", name="Approval Role", description="Source role")
-        role.permissions.set(self.permissions[:1])
+        role.permissions.set(permissions[:1])
         existing_clone = Role.objects.create(code="VT004", name="Approval Role-copy", description="Existing clone")
-        existing_clone.permissions.set(self.permissions[:1])
+        existing_clone.permissions.set(permissions[:1])
 
         url = reverse("core:role-clone", kwargs={"pk": role.pk})
         response = self.client.post(url)
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        assert response.status_code == status.HTTP_201_CREATED
         cloned_data = self.get_response_data(response)
-        self.assertEqual(cloned_data["name"], "Approval Role-copy-2")
+        assert cloned_data["name"] == "Approval Role-copy-2"
 
-    def test_retrieve_role(self):
+    def test_retrieve_role(self, permissions, system_roles):
         """Test retrieving a role via API"""
         role = Role.objects.create(code="VT003", name="Test Role", description="Test description")
-        role.permissions.set(self.permissions)
+        role.permissions.set(permissions)
 
         url = reverse("core:role-detail", kwargs={"pk": role.pk})
         response = self.client.get(url)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         response_data = self.get_response_data(response)
-        self.assertEqual(response_data["code"], role.code)
-        self.assertEqual(response_data["name"], role.name)
-        self.assertEqual(len(response_data["permissions_detail"]), len(self.permissions))
+        assert response_data["code"] == role.code
+        assert response_data["name"] == role.name
+        assert len(response_data["permissions_detail"]) == len(permissions)
 
-    def test_update_role(self):
+    def test_update_role(self, permissions, system_roles):
         """Test updating a role via API"""
         role = Role.objects.create(code="VT003", name="Test Role", description="Test description")
-        role.permissions.set(self.permissions[:1])
+        role.permissions.set(permissions[:1])
 
         update_data = {
             "name": "Updated Role Name",
             "description": "Updated description",
-            "permission_ids": [p.id for p in self.permissions],
+            "permission_ids": [p.id for p in permissions],
         }
         url = reverse("core:role-detail", kwargs={"pk": role.pk})
         response = self.client.patch(url, update_data, format="json")
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         role.refresh_from_db()
-        self.assertEqual(role.name, update_data["name"])
-        self.assertEqual(role.description, update_data["description"])
-        self.assertEqual(role.permissions.count(), len(self.permissions))
+        assert role.name == update_data["name"]
+        assert role.description == update_data["description"]
+        assert role.permissions.count() == len(permissions)
 
-    def test_update_system_role_other_fields_should_fail(self):
+    def test_update_system_role_other_fields_should_fail(self, permissions, system_roles):
         """Test updating non-permission fields of system role should fail"""
-        # Get VT001 system role
-        role = Role.objects.get(code="VT001")
+        role = system_roles[0]  # VT001
 
         update_data = {"name": "Trying to update system role"}
         url = reverse("core:role-detail", kwargs={"pk": role.pk})
         response = self.client.patch(url, update_data, format="json")
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
 
-    def test_update_system_role_permissions_should_succeed(self):
+    def test_update_system_role_permissions_should_succeed(self, permissions, system_roles):
         """Test updating permissions of system role should succeed"""
-        # Get VT001 system role
-        role = Role.objects.get(code="VT001")
-        initial_permission_count = role.permissions.count()
+        role = system_roles[0]  # VT001
 
         # Update only permissions
-        update_data = {"permission_ids": [p.id for p in self.permissions[:2]]}
+        update_data = {"permission_ids": [p.id for p in permissions[:2]]}
         url = reverse("core:role-detail", kwargs={"pk": role.pk})
         response = self.client.patch(url, update_data, format="json")
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         role.refresh_from_db()
-        self.assertEqual(role.permissions.count(), 2)
+        assert role.permissions.count() == 2
 
-    def test_delete_role(self):
+    def test_delete_role(self, permissions, system_roles):
         """Test deleting a role via API"""
         role = Role.objects.create(code="VT003", name="Test Role", description="Test description")
 
         url = reverse("core:role-detail", kwargs={"pk": role.pk})
         response = self.client.delete(url)
 
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        self.assertFalse(Role.objects.filter(pk=role.pk).exists())
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+        assert not Role.objects.filter(pk=role.pk).exists()
 
-    def test_delete_system_role_should_fail(self):
+    def test_delete_system_role_should_fail(self, permissions, system_roles):
         """Test deleting a system role should fail"""
-        # Get VT001 system role
-        role = Role.objects.get(code="VT001")
+        role = system_roles[0]  # VT001
 
         url = reverse("core:role-detail", kwargs={"pk": role.pk})
         response = self.client.delete(url)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
         # Role should still exist
-        self.assertTrue(Role.objects.filter(pk=role.pk).exists())
+        assert Role.objects.filter(pk=role.pk).exists()
 
-    def test_delete_role_in_use_should_fail(self):
+    def test_delete_role_in_use_should_fail(self, superuser, permissions, system_roles):
         """Test deleting a role that is in use by users should fail"""
+        from django.contrib.auth import get_user_model
+
+        User = get_user_model()
+
         role = Role.objects.create(code="VT003", name="Test Role", description="Test description")
         # Assign role to a user
         user = User.objects.create_superuser(username="roleuser", email="roleuser@example.com", password="testpass123")
@@ -257,11 +247,11 @@ class RoleAPITest(TransactionTestCase, APITestMixin):
         url = reverse("core:role-detail", kwargs={"pk": role.pk})
         response = self.client.delete(url)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
         # Role should still exist
-        self.assertTrue(Role.objects.filter(pk=role.pk).exists())
+        assert Role.objects.filter(pk=role.pk).exists()
 
-    def test_search_role_by_name(self):
+    def test_search_role_by_name(self, permissions, system_roles):
         """Test searching roles by name"""
         Role.objects.create(code="VT003", name="Quản trị viên", description="Test")
         Role.objects.create(code="VT004", name="Nhân viên", description="Test")
@@ -270,13 +260,13 @@ class RoleAPITest(TransactionTestCase, APITestMixin):
         url = reverse("core:role-list")
         response = self.client.get(url, {"search": "Quản trị"})
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         response_data = self.get_response_data(response)
         role_names = [r["name"] for r in response_data]
-        self.assertIn("Quản trị viên", role_names)
-        self.assertNotIn("Nhân viên", role_names)
+        assert "Quản trị viên" in role_names
+        assert "Nhân viên" not in role_names
 
-    def test_filter_role_by_name_icontains(self):
+    def test_filter_role_by_name_icontains(self, permissions, system_roles):
         """Test filtering roles by name (case-insensitive)"""
         Role.objects.create(code="VT003", name="Quản trị viên", description="Test")
         Role.objects.create(code="VT004", name="Nhân viên", description="Test")
@@ -285,27 +275,27 @@ class RoleAPITest(TransactionTestCase, APITestMixin):
         url = reverse("core:role-list")
         response = self.client.get(url, {"name": "quản"})
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         response_data = self.get_response_data(response)
         role_names = [r["name"] for r in response_data]
-        self.assertIn("Quản trị viên", role_names)
+        assert "Quản trị viên" in role_names
 
-    def test_created_by_display(self):
+    def test_created_by_display(self, permissions, system_roles):
         """Test created_by field displays correctly"""
-        system_role = Role.objects.get(code="VT001")
+        system_role = system_roles[0]  # VT001
         user_role = Role.objects.create(code="VT003", name="User Role", description="Test")
 
         url = reverse("core:role-detail", kwargs={"pk": system_role.pk})
         response = self.client.get(url)
         response_data = self.get_response_data(response)
-        self.assertEqual(response_data["created_by"], _("System"))
+        assert response_data["created_by"] == _("System")
 
         url = reverse("core:role-detail", kwargs={"pk": user_role.pk})
         response = self.client.get(url)
         response_data = self.get_response_data(response)
-        self.assertEqual(response_data["created_by"], _("User"))
+        assert response_data["created_by"] == _("User")
 
-    def test_code_auto_increment(self):
+    def test_code_auto_increment(self, permissions, system_roles):
         """Test that role codes are auto-incremented"""
         url = reverse("core:role-list")
 
@@ -313,28 +303,28 @@ class RoleAPITest(TransactionTestCase, APITestMixin):
         role_data1 = {
             "name": "Role 1",
             "description": "First role",
-            "permission_ids": [p.id for p in self.permissions],
+            "permission_ids": [p.id for p in permissions],
         }
         response1 = self.client.post(url, role_data1, format="json")
-        self.assertEqual(response1.status_code, status.HTTP_201_CREATED)
+        assert response1.status_code == status.HTTP_201_CREATED
         code1 = self.get_response_data(response1)["code"]
 
         # Create second role
         role_data2 = {
             "name": "Role 2",
             "description": "Second role",
-            "permission_ids": [p.id for p in self.permissions],
+            "permission_ids": [p.id for p in permissions],
         }
         response2 = self.client.post(url, role_data2, format="json")
-        self.assertEqual(response2.status_code, status.HTTP_201_CREATED)
+        assert response2.status_code == status.HTTP_201_CREATED
         code2 = self.get_response_data(response2)["code"]
 
         # Extract numbers and verify increment
         num1 = int(code1[2:])
         num2 = int(code2[2:])
-        self.assertEqual(num2, num1 + 1)
+        assert num2 == num1 + 1
 
-    def test_pagination_with_page_size(self):
+    def test_pagination_with_page_size(self, permissions, system_roles):
         """Test that page_size query parameter works correctly"""
         # Create multiple roles for pagination testing
         for i in range(15):
@@ -348,33 +338,33 @@ class RoleAPITest(TransactionTestCase, APITestMixin):
 
         # Test with default page size (25)
         response = self.client.get(url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         response_data = self.get_response_data(response)
         # Should return all roles (2 system + 15 test = 17 total, less than default 25)
-        self.assertEqual(len(response_data), 17)
+        assert len(response_data) == 17
 
         # Test with custom page_size=5
         response = self.client.get(url, {"page_size": 5})
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        content = json.loads(response.content.decode())
+        assert response.status_code == status.HTTP_200_OK
+        content = response.json()
         data = content["data"]
-        self.assertEqual(len(data["results"]), 5)
-        self.assertEqual(data["count"], 17)
-        self.assertIsNotNone(data["next"])
-        self.assertIsNone(data["previous"])
+        assert len(data["results"]) == 5
+        assert data["count"] == 17
+        assert data["next"] is not None
+        assert data["previous"] is None
 
         # Test with page_size=10 and page=2
         response = self.client.get(url, {"page_size": 10, "page": 2})
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        content = json.loads(response.content.decode())
+        assert response.status_code == status.HTTP_200_OK
+        content = response.json()
         data = content["data"]
-        self.assertEqual(len(data["results"]), 7)  # 17 total - 10 on page 1 = 7 on page 2
-        self.assertIsNone(data["next"])
-        self.assertIsNotNone(data["previous"])
+        assert len(data["results"]) == 7  # 17 total - 10 on page 1 = 7 on page 2
+        assert data["next"] is None
+        assert data["previous"] is not None
 
         # Test with page_size exceeding max (100)
         response = self.client.get(url, {"page_size": 200})
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         response_data = self.get_response_data(response)
         # Should be capped at 100, but we only have 17 items
-        self.assertEqual(len(response_data), 17)
+        assert len(response_data) == 17

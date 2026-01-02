@@ -1,9 +1,10 @@
-from django.test import TestCase
+import pytest
 
 from apps.hrm.models import AttendanceWifiDevice
 
 
-class AttendanceWifiDeviceAutoCodeTest(TestCase):
+@pytest.mark.django_db
+class TestAttendanceWifiDeviceAutoCode:
     """Test auto-code generation for AttendanceWifiDevice model."""
 
     def test_code_generation_starts_with_prefix(self):
@@ -13,7 +14,7 @@ class AttendanceWifiDeviceAutoCodeTest(TestCase):
             bssid="00:11:22:33:44:55",
         )
 
-        self.assertTrue(wifi.code.startswith("WF"))
+        assert wifi.code.startswith("WF")
 
     def test_sequential_code_generation(self):
         """Test that codes are generated sequentially."""
@@ -31,7 +32,7 @@ class AttendanceWifiDeviceAutoCodeTest(TestCase):
         code2_num = int(wifi2.code.replace("WF", ""))
 
         # Second code should be greater than first
-        self.assertGreater(code2_num, code1_num)
+        assert code2_num > code1_num
 
     def test_code_is_unique(self):
         """Test that each WiFi gets a unique code."""
@@ -44,7 +45,7 @@ class AttendanceWifiDeviceAutoCodeTest(TestCase):
             codes.add(wifi.code)
 
         # All codes should be unique
-        self.assertEqual(len(codes), 10)
+        assert len(codes) == 10
 
     def test_code_not_null(self):
         """Test that code is never null."""
@@ -53,8 +54,8 @@ class AttendanceWifiDeviceAutoCodeTest(TestCase):
             bssid="00:11:22:33:44:55",
         )
 
-        self.assertIsNotNone(wifi.code)
-        self.assertNotEqual(wifi.code, "")
+        assert wifi.code is not None
+        assert wifi.code != ""
 
     def test_code_readonly_after_creation(self):
         """Test that code can be manually changed if needed (not readonly)."""
@@ -73,5 +74,5 @@ class AttendanceWifiDeviceAutoCodeTest(TestCase):
         wifi.refresh_from_db()
 
         # Code can be changed manually (AutoCodeMixin allows this)
-        self.assertEqual(wifi.code, "CUSTOM_CODE")
-        self.assertNotEqual(wifi.code, original_code)
+        assert wifi.code == "CUSTOM_CODE"
+        assert wifi.code != original_code

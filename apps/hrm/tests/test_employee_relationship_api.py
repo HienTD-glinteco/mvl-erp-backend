@@ -1,10 +1,9 @@
 import json
 
+import pytest
 from django.contrib.auth import get_user_model
-from django.test import TransactionTestCase, override_settings
 from django.urls import reverse
 from rest_framework import status
-from rest_framework.test import APIClient
 
 from apps.hrm.api.serializers import EmployeeRelationshipExportXLSXSerializer
 from apps.hrm.models import Employee, EmployeeRelationship
@@ -27,60 +26,19 @@ class APITestMixin:
         return content
 
 
-class EmployeeRelationshipAPITest(TransactionTestCase, APITestMixin):
+@pytest.mark.django_db
+class TestEmployeeRelationshipAPI(APITestMixin):
     """Test cases for Relationship API endpoints"""
 
-    def setUp(self):
-        # Clear all existing data for clean tests
-        EmployeeRelationship.objects.all().delete()
-        Employee.objects.all().delete()
-        User.objects.all().delete()
-
-        # Changed to superuser to bypass RoleBasedPermission for API tests
-        self.user = User.objects.create_superuser(
-            username="testuser", email="test@example.com", password="testpass123"
-        )
-        self.client = APIClient()
-        self.client.force_authenticate(user=self.user)
-
-        # Create organizational structure
-        from apps.core.models import AdministrativeUnit, Province
-        from apps.hrm.models import Block, Branch, Department
-
-        self.province = Province.objects.create(code="01", name="Test Province")
-        self.admin_unit = AdministrativeUnit.objects.create(
-            code="01",
-            name="Test Admin Unit",
-            parent_province=self.province,
-            level=AdministrativeUnit.UnitLevel.DISTRICT,
-        )
-
-        self.branch = Branch.objects.create(
-            code="CN001",
-            name="Main Branch",
-            province=self.province,
-            administrative_unit=self.admin_unit,
-        )
-        self.block = Block.objects.create(
-            code="KH001", name="Main Block", branch=self.branch, block_type=Block.BlockType.BUSINESS
-        )
-        self.department = Department.objects.create(
-            code="PB001", name="Engineering Department", block=self.block, branch=self.branch
-        )
-
-        # Create test employee
-        self.employee = Employee.objects.create(
-            fullname="John Doe",
-            username="johndoe",
-            email="john.doe@example.com",
-            phone="0900202020",
-            code_type="MV",
-            branch=self.branch,
-            block=self.block,
-            department=self.department,
-            start_date="2024-01-01",
-            citizen_id="000000020020",
-        )
+    @pytest.fixture(autouse=True)
+    def setup_client(self, api_client, superuser, branch, block, department, employee):
+        """Set up test client and user"""
+        self.client = api_client
+        self.user = superuser
+        self.branch = branch
+        self.block = block
+        self.department = department
+        self.employee = employee
 
         self.relationship_data = {
             "employee_id": self.employee.id,
@@ -98,26 +56,30 @@ class EmployeeRelationshipAPITest(TransactionTestCase, APITestMixin):
         url = reverse("hrm:employee-relationship-list")
         response = self.client.post(url, self.relationship_data, format="json")
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(EmployeeRelationship.objects.count(), 1)
+        assert response.status_code == status.HTTP_201_CREATED
+        assert EmployeeRelationship.objects.count() == 1
 
         relationship = EmployeeRelationship.objects.first()
-        self.assertEqual(relationship.relative_name, self.relationship_data["relative_name"])
-        self.assertEqual(relationship.relation_type, self.relationship_data["relation_type"])
-        self.assertEqual(relationship.phone, self.relationship_data["phone"])
-        self.assertEqual(relationship.citizen_id, self.relationship_data["citizen_id"])
-        self.assertEqual(relationship.employee, self.employee)
-        self.assertEqual(relationship.employee_code, self.employee.code)
-        self.assertEqual(relationship.employee_name, self.employee.fullname)
-        self.assertTrue(relationship.is_active)
-        self.assertEqual(relationship.created_by, self.user)
+        assert relationship.relative_name == self.relationship_data["relative_name"]
+        assert relationship.relation_type == self.relationship_data["relation_type"]
+        assert relationship.phone == self.relationship_data["phone"]
+        assert relationship.citizen_id == self.relationship_data["citizen_id"]
+        assert relationship.employee == self.employee
+        assert relationship.employee_code == self.employee.code
+        assert relationship.employee_name == self.employee.fullname
+        assert relationship.is_active is True
+        assert relationship.created_by == self.user
 
         # Verify nested employee is returned in response
         result_data = self.get_response_data(response)
-        self.assertIn("employee", result_data)
-        self.assertEqual(result_data["employee"]["id"], self.employee.id)
-        self.assertEqual(result_data["employee"]["code"], self.employee.code)
-        self.assertEqual(result_data["employee"]["fullname"], self.employee.fullname)
+        assert "employee" in result_data
+        assert result_data["employee"]["id"] == self.employee.id
+        assert result_data["employee"]["code"] == self.employee.code
+        # In conftest, employee fullname might be different.
+        # Actually it uses 'Nguyen Van A'.
+        # But wait, conftest employee fixture creates an employee.
+        # I should check what conftest uses.
+        assert result_data["employee"]["fullname"] == self.employee.fullname
 
     def test_create_relationship_minimal_fields(self):
         """Test creating a relationship with only required fields"""
@@ -129,15 +91,15 @@ class EmployeeRelationshipAPITest(TransactionTestCase, APITestMixin):
         }
         response = self.client.post(url, minimal_data, format="json")
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(EmployeeRelationship.objects.count(), 1)
+        assert response.status_code == status.HTTP_201_CREATED
+        assert EmployeeRelationship.objects.count() == 1
 
         relationship = EmployeeRelationship.objects.first()
-        self.assertEqual(relationship.relative_name, minimal_data["relative_name"])
-        self.assertEqual(relationship.relation_type, minimal_data["relation_type"])
-        self.assertEqual(relationship.citizen_id, "")
-        self.assertEqual(relationship.phone, "")
-        self.assertEqual(relationship.address, "")
+        assert relationship.relative_name == minimal_data["relative_name"]
+        assert relationship.relation_type == minimal_data["relation_type"]
+        assert relationship.citizen_id == ""
+        assert relationship.phone == ""
+        assert relationship.address == ""
 
     def test_create_relationship_missing_required_field(self):
         """Test creating a relationship without required fields"""
@@ -148,8 +110,8 @@ class EmployeeRelationshipAPITest(TransactionTestCase, APITestMixin):
         }
         response = self.client.post(url, invalid_data, format="json")
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(EmployeeRelationship.objects.count(), 0)
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert EmployeeRelationship.objects.count() == 0
 
     def test_validate_citizen_id_length_9(self):
         """Test national ID validation with 9 digits"""
@@ -158,7 +120,7 @@ class EmployeeRelationshipAPITest(TransactionTestCase, APITestMixin):
         data["citizen_id"] = "123456789"
         response = self.client.post(url, data, format="json")
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        assert response.status_code == status.HTTP_201_CREATED
 
     def test_validate_citizen_id_length_12(self):
         """Test national ID validation with 12 digits"""
@@ -167,7 +129,7 @@ class EmployeeRelationshipAPITest(TransactionTestCase, APITestMixin):
         data["citizen_id"] = "123456789012"
         response = self.client.post(url, data, format="json")
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        assert response.status_code == status.HTTP_201_CREATED
 
     def test_validate_citizen_id_invalid_length(self):
         """Test national ID validation with invalid length"""
@@ -176,7 +138,7 @@ class EmployeeRelationshipAPITest(TransactionTestCase, APITestMixin):
         data["citizen_id"] = "12345"  # Invalid length
         response = self.client.post(url, data, format="json")
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
 
     def test_validate_citizen_id_non_numeric(self):
         """Test national ID validation with non-numeric characters"""
@@ -185,7 +147,7 @@ class EmployeeRelationshipAPITest(TransactionTestCase, APITestMixin):
         data["citizen_id"] = "12345ABC9"  # Contains letters
         response = self.client.post(url, data, format="json")
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
 
     def test_validate_phone_local_format(self):
         """Test Vietnamese phone validation with local format (0xxxxxxxxx)"""
@@ -194,7 +156,7 @@ class EmployeeRelationshipAPITest(TransactionTestCase, APITestMixin):
         data["phone"] = "0901234567"
         response = self.client.post(url, data, format="json")
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        assert response.status_code == status.HTTP_201_CREATED
 
     def test_validate_phone_international_format(self):
         """Test Vietnamese phone validation with international format (+84xxxxxxxxx)"""
@@ -203,7 +165,7 @@ class EmployeeRelationshipAPITest(TransactionTestCase, APITestMixin):
         data["phone"] = "+84901234567"
         response = self.client.post(url, data, format="json")
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        assert response.status_code == status.HTTP_201_CREATED
 
     def test_validate_phone_invalid_format(self):
         """Test phone validation with invalid format"""
@@ -212,7 +174,7 @@ class EmployeeRelationshipAPITest(TransactionTestCase, APITestMixin):
         data["phone"] = "12345"  # Invalid format
         response = self.client.post(url, data, format="json")
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
 
     def test_validate_phone_invalid_local_length(self):
         """Test phone validation with invalid local length"""
@@ -221,7 +183,7 @@ class EmployeeRelationshipAPITest(TransactionTestCase, APITestMixin):
         data["phone"] = "090123456"  # 9 digits instead of 10
         response = self.client.post(url, data, format="json")
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
 
     def test_list_relationships(self):
         """Test listing relationships via API"""
@@ -236,9 +198,9 @@ class EmployeeRelationshipAPITest(TransactionTestCase, APITestMixin):
 
         # List relationships
         response = self.client.get(url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         response_data = self.get_response_data(response)
-        self.assertEqual(len(response_data), 2)
+        assert len(response_data) == 2
 
     def test_list_relationships_default_ordering(self):
         """Test that relationships are ordered by created_at descending by default"""
@@ -259,8 +221,8 @@ class EmployeeRelationshipAPITest(TransactionTestCase, APITestMixin):
         # List should show most recent first
         list_response = self.client.get(url)
         response_data = self.get_response_data(list_response)
-        self.assertEqual(response_data[0]["id"], second_id)
-        self.assertEqual(response_data[1]["id"], first_id)
+        assert response_data[0]["id"] == second_id
+        assert response_data[1]["id"] == first_id
 
     def test_retrieve_relationship(self):
         """Test retrieving a single relationship via API"""
@@ -273,10 +235,10 @@ class EmployeeRelationshipAPITest(TransactionTestCase, APITestMixin):
         detail_url = reverse("hrm:employee-relationship-detail", kwargs={"pk": relationship_id})
         response = self.client.get(detail_url)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         response_data = self.get_response_data(response)
-        self.assertEqual(response_data["id"], relationship_id)
-        self.assertEqual(response_data["relative_name"], self.relationship_data["relative_name"])
+        assert response_data["id"] == relationship_id
+        assert response_data["relative_name"] == self.relationship_data["relative_name"]
 
     def test_update_relationship(self):
         """Test updating a relationship via API"""
@@ -294,11 +256,11 @@ class EmployeeRelationshipAPITest(TransactionTestCase, APITestMixin):
         detail_url = reverse("hrm:employee-relationship-detail", kwargs={"pk": relationship_id})
         response = self.client.put(detail_url, update_data, format="json")
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         response_data = self.get_response_data(response)
-        self.assertEqual(response_data["relative_name"], update_data["relative_name"])
-        self.assertEqual(response_data["phone"], update_data["phone"])
-        self.assertEqual(response_data["citizen_id"], update_data["citizen_id"])
+        assert response_data["relative_name"] == update_data["relative_name"]
+        assert response_data["phone"] == update_data["phone"]
+        assert response_data["citizen_id"] == update_data["citizen_id"]
 
     def test_partial_update_relationship(self):
         """Test partially updating a relationship via API"""
@@ -316,13 +278,13 @@ class EmployeeRelationshipAPITest(TransactionTestCase, APITestMixin):
         detail_url = reverse("hrm:employee-relationship-detail", kwargs={"pk": relationship_id})
         response = self.client.patch(detail_url, partial_data, format="json")
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         response_data = self.get_response_data(response)
-        self.assertEqual(response_data["relative_name"], partial_data["relative_name"])
-        self.assertEqual(response_data["phone"], partial_data["phone"])
+        assert response_data["relative_name"] == partial_data["relative_name"]
+        assert response_data["phone"] == partial_data["phone"]
         # Other fields should remain unchanged
-        self.assertEqual(response_data["relation_type"], self.relationship_data["relation_type"])
-        self.assertEqual(response_data["address"], self.relationship_data["address"])
+        assert response_data["relation_type"] == self.relationship_data["relation_type"]
+        assert response_data["address"] == self.relationship_data["address"]
 
     def test_soft_delete_relationship(self):
         """Test soft deleting a relationship via API"""
@@ -335,16 +297,16 @@ class EmployeeRelationshipAPITest(TransactionTestCase, APITestMixin):
         detail_url = reverse("hrm:employee-relationship-detail", kwargs={"pk": relationship_id})
         response = self.client.delete(detail_url)
 
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        assert response.status_code == status.HTTP_204_NO_CONTENT
 
         # Verify relationship still exists in DB but is marked inactive
         relationship = EmployeeRelationship.objects.get(id=relationship_id)
-        self.assertFalse(relationship.is_active)
+        assert relationship.is_active is False
 
         # Verify it doesn't appear in default list
         list_response = self.client.get(url)
         response_data = self.get_response_data(list_response)
-        self.assertEqual(len(response_data), 0)
+        assert len(response_data) == 0
 
     def test_filter_by_employee(self):
         """Test filtering relationships by employee"""
@@ -374,10 +336,10 @@ class EmployeeRelationshipAPITest(TransactionTestCase, APITestMixin):
         # Filter by first employee
         response = self.client.get(url, {"employee": self.employee.id})
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         response_data = self.get_response_data(response)
-        self.assertEqual(len(response_data), 1)
-        self.assertEqual(response_data[0]["employee"]["id"], self.employee.id)
+        assert len(response_data) == 1
+        assert response_data[0]["employee"]["id"] == self.employee.id
 
     def test_filter_by_relation_type(self):
         """Test filtering relationships by relation type"""
@@ -394,10 +356,10 @@ class EmployeeRelationshipAPITest(TransactionTestCase, APITestMixin):
         # Filter by WIFE
         response = self.client.get(url, {"relation_type": "WIFE"})
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         response_data = self.get_response_data(response)
-        self.assertEqual(len(response_data), 1)
-        self.assertEqual(response_data[0]["relation_type"], "WIFE")
+        assert len(response_data) == 1
+        assert response_data[0]["relation_type"] == "WIFE"
 
     def test_filter_by_is_active(self):
         """Test filtering relationships by is_active status"""
@@ -419,14 +381,14 @@ class EmployeeRelationshipAPITest(TransactionTestCase, APITestMixin):
         # Filter for inactive relationships
         response = self.client.get(url, {"is_active": "false"})
         response_data = self.get_response_data(response)
-        self.assertEqual(len(response_data), 1)
-        self.assertFalse(response_data[0]["is_active"])
+        assert len(response_data) == 1
+        assert response_data[0]["is_active"] is False
 
         # Filter for active relationships
         response = self.client.get(url, {"is_active": "true"})
         response_data = self.get_response_data(response)
-        self.assertEqual(len(response_data), 1)
-        self.assertTrue(response_data[0]["is_active"])
+        assert len(response_data) == 1
+        assert response_data[0]["is_active"] is True
 
     def test_search_by_employee_code(self):
         """Test searching relationships by employee code"""
@@ -436,9 +398,9 @@ class EmployeeRelationshipAPITest(TransactionTestCase, APITestMixin):
         # Search by employee code
         response = self.client.get(url, {"search": self.employee.code})
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         response_data = self.get_response_data(response)
-        self.assertEqual(len(response_data), 1)
+        assert len(response_data) == 1
 
     def test_search_by_employee_name(self):
         """Test searching relationships by employee name"""
@@ -446,11 +408,11 @@ class EmployeeRelationshipAPITest(TransactionTestCase, APITestMixin):
         self.client.post(url, self.relationship_data, format="json")
 
         # Search by employee name
-        response = self.client.get(url, {"search": "John"})
+        response = self.client.get(url, {"search": self.employee.fullname[:4]})
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         response_data = self.get_response_data(response)
-        self.assertEqual(len(response_data), 1)
+        assert len(response_data) == 1
 
     def test_search_by_relative_name(self):
         """Test searching relationships by relative name"""
@@ -460,9 +422,9 @@ class EmployeeRelationshipAPITest(TransactionTestCase, APITestMixin):
         # Search by relative name
         response = self.client.get(url, {"search": "Jane"})
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         response_data = self.get_response_data(response)
-        self.assertEqual(len(response_data), 1)
+        assert len(response_data) == 1
 
     def test_search_by_relation_type(self):
         """Test searching relationships by relation type"""
@@ -472,9 +434,9 @@ class EmployeeRelationshipAPITest(TransactionTestCase, APITestMixin):
         # Search by relation type
         response = self.client.get(url, {"search": "WIFE"})
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         response_data = self.get_response_data(response)
-        self.assertEqual(len(response_data), 1)
+        assert len(response_data) == 1
 
     def test_ordering_by_created_at_ascending(self):
         """Test ordering relationships by created_at ascending"""
@@ -495,8 +457,8 @@ class EmployeeRelationshipAPITest(TransactionTestCase, APITestMixin):
         response = self.client.get(url, {"ordering": "created_at"})
         response_data = self.get_response_data(response)
 
-        self.assertEqual(response_data[0]["id"], first_id)
-        self.assertEqual(response_data[1]["id"], second_id)
+        assert response_data[0]["id"] == first_id
+        assert response_data[1]["id"] == second_id
 
     def test_ordering_by_relative_name(self):
         """Test ordering relationships by relative name"""
@@ -514,58 +476,20 @@ class EmployeeRelationshipAPITest(TransactionTestCase, APITestMixin):
         # Order by relative_name ascending
         response = self.client.get(url, {"ordering": "relative_name"})
         response_data = self.get_response_data(response)
+        assert response_data[0]["relative_name"] == "Alice"
+        assert response_data[1]["relative_name"] == "Zoe"
 
-        self.assertEqual(response_data[0]["relative_name"], "Alice")
-        self.assertEqual(response_data[1]["relative_name"], "Zoe")
 
-
-class EmployeeRelationshipExportXLSXSerializerTest(TransactionTestCase):
+@pytest.mark.django_db
+class TestEmployeeRelationshipExportXLSXSerializer:
     """Test cases for EmployeeRelationshipExportXLSXSerializer."""
 
-    def setUp(self):
+    @pytest.fixture(autouse=True)
+    def setup_data(self, employee):
         """Set up test data."""
-        EmployeeRelationship.objects.all().delete()
-        Employee.objects.all().delete()
-        User.objects.all().delete()
-
-        # Create organizational structure
-        from apps.core.models import AdministrativeUnit, Province
-        from apps.hrm.models import Block, Branch, Department
-
-        self.province = Province.objects.create(code="01", name="Test Province")
-        self.admin_unit = AdministrativeUnit.objects.create(
-            code="01",
-            name="Test Admin Unit",
-            parent_province=self.province,
-            level=AdministrativeUnit.UnitLevel.DISTRICT,
-        )
-
-        self.branch = Branch.objects.create(
-            code="CN001",
-            name="Main Branch",
-            province=self.province,
-            administrative_unit=self.admin_unit,
-        )
-        self.block = Block.objects.create(
-            code="KH001", name="Main Block", branch=self.branch, block_type=Block.BlockType.BUSINESS
-        )
-        self.department = Department.objects.create(
-            code="PB001", name="Engineering Department", block=self.block, branch=self.branch
-        )
-
-        # Create test employee
-        self.employee = Employee.objects.create(
-            fullname="John Doe",
-            username="johndoe",
-            email="john.doe@example.com",
-            phone="0900202020",
-            code_type="MV",
-            branch=self.branch,
-            block=self.block,
-            department=self.department,
-            start_date="2024-01-01",
-            citizen_id="000000020020",
-        )
+        # The employee fixture already handles creating necessary related objects (branch, block, department, etc.)
+        # No need to delete objects explicitly, pytest-django's @django_db handles transaction isolation.
+        self.employee = employee
 
         # Create test relationship
         self.relationship = EmployeeRelationship.objects.create(
@@ -585,16 +509,16 @@ class EmployeeRelationshipExportXLSXSerializerTest(TransactionTestCase):
         serializer = EmployeeRelationshipExportXLSXSerializer(instance=self.relationship)
         data = serializer.data
 
-        self.assertIn("employee_code", data)
-        self.assertIn("employee_name", data)
-        self.assertIn("relative_name", data)
-        self.assertIn("relation_type", data)
-        self.assertIn("date_of_birth", data)
-        self.assertIn("citizen_id", data)
-        self.assertIn("address", data)
-        self.assertIn("phone", data)
-        self.assertIn("occupation", data)
-        self.assertIn("note", data)
+        assert "employee_code" in data
+        assert "employee_name" in data
+        assert "relative_name" in data
+        assert "relation_type" in data
+        assert "date_of_birth" in data
+        assert "citizen_id" in data
+        assert "address" in data
+        assert "phone" in data
+        assert "occupation" in data
+        assert "note" in data
 
     def test_relation_type_display(self):
         """Test that relation_type returns display value."""
@@ -602,15 +526,15 @@ class EmployeeRelationshipExportXLSXSerializerTest(TransactionTestCase):
         data = serializer.data
 
         # Should return translated display value, not raw enum
-        self.assertEqual(data["relation_type"], "Wife")
+        assert data["relation_type"] == "Wife"
 
     def test_employee_code_and_name(self):
         """Test that employee_code and employee_name are correctly serialized."""
         serializer = EmployeeRelationshipExportXLSXSerializer(instance=self.relationship)
         data = serializer.data
 
-        self.assertEqual(data["employee_code"], self.employee.code)
-        self.assertEqual(data["employee_name"], self.employee.fullname)
+        assert data["employee_code"] == self.employee.code
+        assert data["employee_name"] == self.employee.fullname
 
     def test_many_serialization(self):
         """Test serialization of multiple relationships."""
@@ -624,64 +548,23 @@ class EmployeeRelationshipExportXLSXSerializerTest(TransactionTestCase):
         relationships = EmployeeRelationship.objects.all()
         serializer = EmployeeRelationshipExportXLSXSerializer(instance=relationships, many=True)
         data = serializer.data
+        assert len(data) == 2
 
-        self.assertEqual(len(data), 2)
 
-
-@override_settings(EXPORTER_CELERY_ENABLED=False)
-class EmployeeRelationshipExportAPITest(TransactionTestCase, APITestMixin):
+@pytest.mark.django_db
+class TestEmployeeRelationshipExportAPI(APITestMixin):
     """Test cases for Employee Relationship export API endpoint."""
 
-    def setUp(self):
-        """Set up test data."""
-        EmployeeRelationship.objects.all().delete()
-        Employee.objects.all().delete()
-        User.objects.all().delete()
-
-        self.user = User.objects.create_superuser(
-            username="exporttestuser", email="exporttest@example.com", password="testpass123"
-        )
-        self.client = APIClient()
-        self.client.force_authenticate(user=self.user)
-
-        # Create organizational structure
-        from apps.core.models import AdministrativeUnit, Province
-        from apps.hrm.models import Block, Branch, Department
-
-        self.province = Province.objects.create(code="01", name="Test Province")
-        self.admin_unit = AdministrativeUnit.objects.create(
-            code="01",
-            name="Test Admin Unit",
-            parent_province=self.province,
-            level=AdministrativeUnit.UnitLevel.DISTRICT,
-        )
-
-        self.branch = Branch.objects.create(
-            code="CN001",
-            name="Main Branch",
-            province=self.province,
-            administrative_unit=self.admin_unit,
-        )
-        self.block = Block.objects.create(
-            code="KH001", name="Main Block", branch=self.branch, block_type=Block.BlockType.BUSINESS
-        )
-        self.department = Department.objects.create(
-            code="PB001", name="Engineering Department", block=self.block, branch=self.branch
-        )
-
-        # Create test employee
-        self.employee = Employee.objects.create(
-            fullname="John Doe",
-            username="johndoe",
-            email="john.doe@example.com",
-            phone="0900202020",
-            code_type="MV",
-            branch=self.branch,
-            block=self.block,
-            department=self.department,
-            start_date="2024-01-01",
-            citizen_id="000000020020",
-        )
+    @pytest.fixture(autouse=True)
+    def setup_client(self, api_client, superuser, employee, settings):
+        """Set up test client and user."""
+        settings.EXPORTER_CELERY_ENABLED = False
+        # The employee fixture already handles creating necessary related objects (branch, block, department, etc.)
+        # No need to delete objects explicitly, pytest-django's @django_db handles transaction isolation.
+        self.client = api_client
+        self.client.force_authenticate(user=superuser)
+        self.user = superuser
+        self.employee = employee
 
         # Create test relationship
         self.relationship = EmployeeRelationship.objects.create(
@@ -702,20 +585,17 @@ class EmployeeRelationshipExportAPITest(TransactionTestCase, APITestMixin):
         response = self.client.get(url, {"delivery": "direct"})
 
         # Should not return 404
-        self.assertNotEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        assert response.status_code != status.HTTP_404_NOT_FOUND
 
     def test_export_direct_delivery(self):
         """Test export with direct file delivery."""
         url = reverse("hrm:employee-relationship-export")
         response = self.client.get(url, {"delivery": "direct"})
 
-        self.assertEqual(response.status_code, status.HTTP_206_PARTIAL_CONTENT)
-        self.assertEqual(
-            response["Content-Type"],
-            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        )
-        self.assertIn("attachment", response["Content-Disposition"])
-        self.assertIn(".xlsx", response["Content-Disposition"])
+        assert response.status_code == status.HTTP_206_PARTIAL_CONTENT
+        assert response["Content-Type"] == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        assert "attachment" in response["Content-Disposition"]
+        assert ".xlsx" in response["Content-Disposition"]
 
     def test_export_uses_template(self):
         """Test that export uses the xlsx_template_name."""
@@ -723,58 +603,21 @@ class EmployeeRelationshipExportAPITest(TransactionTestCase, APITestMixin):
         response = self.client.get(url, {"delivery": "direct"})
 
         # Should return a valid XLSX file
-        self.assertEqual(response.status_code, status.HTTP_206_PARTIAL_CONTENT)
+        assert response.status_code == status.HTTP_206_PARTIAL_CONTENT
         # The content should be valid XLSX data
-        self.assertTrue(len(response.content) > 0)
+        assert len(response.content) > 0
 
 
-class EmployeeRelationshipImportHandlerTest(TransactionTestCase):
+@pytest.mark.django_db
+class TestEmployeeRelationshipImportHandler:
     """Test cases for Employee Relationship import handler."""
 
-    def setUp(self):
+    @pytest.fixture(autouse=True)
+    def setup_data(self, employee):
         """Set up test data."""
-        EmployeeRelationship.objects.all().delete()
-        Employee.objects.all().delete()
-        User.objects.all().delete()
-
-        # Create organizational structure
-        from apps.core.models import AdministrativeUnit, Province
-        from apps.hrm.models import Block, Branch, Department
-
-        self.province = Province.objects.create(code="01", name="Test Province")
-        self.admin_unit = AdministrativeUnit.objects.create(
-            code="01",
-            name="Test Admin Unit",
-            parent_province=self.province,
-            level=AdministrativeUnit.UnitLevel.DISTRICT,
-        )
-
-        self.branch = Branch.objects.create(
-            code="CN001",
-            name="Main Branch",
-            province=self.province,
-            administrative_unit=self.admin_unit,
-        )
-        self.block = Block.objects.create(
-            code="KH001", name="Main Block", branch=self.branch, block_type=Block.BlockType.BUSINESS
-        )
-        self.department = Department.objects.create(
-            code="PB001", name="Engineering Department", block=self.block, branch=self.branch
-        )
-
-        # Create test employee
-        self.employee = Employee.objects.create(
-            fullname="John Doe",
-            username="johndoe",
-            email="john.doe@example.com",
-            phone="0900202020",
-            code_type="MV",
-            branch=self.branch,
-            block=self.block,
-            department=self.department,
-            start_date="2024-01-01",
-            citizen_id="000000020020",
-        )
+        # The employee fixture already handles creating necessary related objects (branch, block, department, etc.)
+        # No need to delete objects explicitly, pytest-django's @django_db handles transaction isolation.
+        self.employee = employee
 
     def test_import_handler_create(self):
         """Test import handler creates a new relationship."""
@@ -811,14 +654,14 @@ class EmployeeRelationshipImportHandlerTest(TransactionTestCase):
 
         result = import_handler(row, 1, headers)
 
-        self.assertTrue(result["ok"])
-        self.assertEqual(result["action"], "created")
-        self.assertEqual(EmployeeRelationship.objects.count(), 1)
+        assert result["ok"] is True
+        assert result["action"] == "created"
+        assert EmployeeRelationship.objects.count() == 1
 
         relationship = EmployeeRelationship.objects.first()
-        self.assertEqual(relationship.relative_name, "Jane Doe")
-        self.assertEqual(relationship.relation_type, "WIFE")
-        self.assertEqual(relationship.employee, self.employee)
+        assert relationship.relative_name == "Jane Doe"
+        assert relationship.relation_type == "WIFE"
+        assert relationship.employee == self.employee
 
     def test_import_handler_update(self):
         """Test import handler updates an existing relationship."""
@@ -863,13 +706,13 @@ class EmployeeRelationshipImportHandlerTest(TransactionTestCase):
 
         result = import_handler(row, 1, headers)
 
-        self.assertTrue(result["ok"])
-        self.assertEqual(result["action"], "updated")
-        self.assertEqual(EmployeeRelationship.objects.count(), 1)
+        assert result["ok"] is True
+        assert result["action"] == "updated"
+        assert EmployeeRelationship.objects.count() == 1
 
         relationship = EmployeeRelationship.objects.first()
-        self.assertEqual(relationship.address, "New Address")
-        self.assertEqual(relationship.note, "Updated note")
+        assert relationship.address == "New Address"
+        assert relationship.note == "Updated note"
 
     def test_import_handler_missing_employee_code(self):
         """Test import handler fails with missing employee code."""
@@ -886,8 +729,8 @@ class EmployeeRelationshipImportHandlerTest(TransactionTestCase):
 
         result = import_handler(row, 1, headers)
 
-        self.assertFalse(result["ok"])
-        self.assertIn("Employee code is required", result["error"])
+        assert result["ok"] is False
+        assert "Employee code is required" in result["error"]
 
     def test_import_handler_invalid_employee_code(self):
         """Test import handler fails with invalid employee code."""
@@ -904,8 +747,8 @@ class EmployeeRelationshipImportHandlerTest(TransactionTestCase):
 
         result = import_handler(row, 1, headers)
 
-        self.assertFalse(result["ok"])
-        self.assertIn("not found", result["error"])
+        assert result["ok"] is False
+        assert "not found" in result["error"]
 
     def test_import_handler_missing_relative_name(self):
         """Test import handler fails with missing relative name."""
@@ -922,8 +765,8 @@ class EmployeeRelationshipImportHandlerTest(TransactionTestCase):
 
         result = import_handler(row, 1, headers)
 
-        self.assertFalse(result["ok"])
-        self.assertIn("Relative name is required", result["error"])
+        assert result["ok"] is False
+        assert "Relative name is required" in result["error"]
 
     def test_import_handler_invalid_relation_type(self):
         """Test import handler fails with invalid relation type."""
@@ -940,8 +783,8 @@ class EmployeeRelationshipImportHandlerTest(TransactionTestCase):
 
         result = import_handler(row, 1, headers)
 
-        self.assertFalse(result["ok"])
-        self.assertIn("Invalid relation type", result["error"])
+        assert result["ok"] is False
+        assert "Invalid relation type" in result["error"]
 
     def test_import_handler_invalid_citizen_id(self):
         """Test import handler fails with invalid citizen ID length."""
@@ -960,8 +803,8 @@ class EmployeeRelationshipImportHandlerTest(TransactionTestCase):
 
         result = import_handler(row, 1, headers)
 
-        self.assertFalse(result["ok"])
-        self.assertIn("Invalid citizen ID length", result["error"])
+        assert result["ok"] is False
+        assert "Invalid citizen ID length" in result["error"]
 
     def test_import_handler_vietnamese_relation_types(self):
         """Test import handler correctly maps Vietnamese relation types."""
@@ -985,15 +828,14 @@ class EmployeeRelationshipImportHandlerTest(TransactionTestCase):
         ]
 
         for vn_type, expected_type in relation_type_mapping.items():
+            # Clear relationships for each iteration to ensure clean state
             EmployeeRelationship.objects.all().delete()
 
             row = [1, self.employee.code, "John Doe", f"Relative for {vn_type}", vn_type]
             result = import_handler(row, 1, headers)
 
-            self.assertTrue(result["ok"], f"Failed for relation type: {vn_type}")
+            assert result["ok"] is True, f"Failed for relation type: {vn_type}"
             relationship = EmployeeRelationship.objects.first()
-            self.assertEqual(
-                relationship.relation_type,
-                expected_type,
-                f"Expected {expected_type} for {vn_type}, got {relationship.relation_type}",
+            assert relationship.relation_type == expected_type, (
+                f"Expected {expected_type} for {vn_type}, got {relationship.relation_type}"
             )

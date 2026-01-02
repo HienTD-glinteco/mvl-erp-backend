@@ -3,8 +3,8 @@ from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-from libs.models import BaseModel
 from apps.core.models.device import UserDevice
+from libs.models import BaseModel
 
 
 class Notification(BaseModel):
@@ -100,7 +100,7 @@ class Notification(BaseModel):
         null=True,
         blank=True,
         verbose_name="Target client",
-        help_text="Specific client to send the notification to. If null, send to all active devices."
+        help_text="Specific client to send the notification to. If null, send to all active devices.",
     )
 
     class Meta:

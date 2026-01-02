@@ -405,9 +405,9 @@ class TestContractAppendixAPI:
         response_data = response.json()
 
         if "error" in response_data:
-             error_data = response_data["error"]
+            error_data = response_data["error"]
         else:
-             error_data = response_data
+            error_data = response_data
 
         assert error_data["type"] == "validation_error"
 
@@ -415,7 +415,10 @@ class TestContractAppendixAPI:
         errors = error_data["errors"]
         effective_date_errors = [e for e in errors if e["attr"] == "effective_date"]
         assert len(effective_date_errors) > 0
-        assert "Appendix effective date must be on or after parent contract effective date" in effective_date_errors[0]["detail"]
+        assert (
+            "Appendix effective date must be on or after parent contract effective date"
+            in effective_date_errors[0]["detail"]
+        )
 
     def test_create_contract_appendix_requires_parent_contract(self, api_client, appendix_data):
         """Test that parent_contract is required."""

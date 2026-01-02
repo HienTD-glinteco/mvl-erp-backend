@@ -1,10 +1,11 @@
-from django.test import TestCase
+import pytest
 
 from apps.hrm.models import RecruitmentChannel
 from libs.models import SafeTextField
 
 
-class RecruitmentChannelModelTest(TestCase):
+@pytest.mark.django_db
+class TestRecruitmentChannelModel:
     """Test cases for RecruitmentChannel model"""
 
     def test_belong_to_choices_include_all_options(self):
@@ -16,9 +17,9 @@ class RecruitmentChannelModelTest(TestCase):
         actual_choices = [choice[0] for choice in RecruitmentChannel.BelongTo.choices]
 
         # Assert
-        self.assertEqual(len(actual_choices), 5)
+        assert len(actual_choices) == 5
         for expected in expected_choices:
-            self.assertIn(expected, actual_choices)
+            assert expected in actual_choices
 
     def test_create_channel_with_hunt_belong_to(self):
         """Test creating a recruitment channel with HUNT belong_to option"""
@@ -31,9 +32,9 @@ class RecruitmentChannelModelTest(TestCase):
         )
 
         # Assert
-        self.assertIsNotNone(channel.id)
-        self.assertEqual(channel.belong_to, "hunt")
-        self.assertEqual(channel.name, "LinkedIn Recruiter")
+        assert channel.id is not None
+        assert channel.belong_to == "hunt"
+        assert channel.name == "LinkedIn Recruiter"
 
     def test_create_channel_with_school_belong_to(self):
         """Test creating a recruitment channel with SCHOOL belong_to option"""
@@ -46,9 +47,9 @@ class RecruitmentChannelModelTest(TestCase):
         )
 
         # Assert
-        self.assertIsNotNone(channel.id)
-        self.assertEqual(channel.belong_to, "school")
-        self.assertEqual(channel.name, "University Job Fair")
+        assert channel.id is not None
+        assert channel.belong_to == "school"
+        assert channel.name == "University Job Fair"
 
     def test_create_channel_with_job_website_belong_to(self):
         """Test creating a recruitment channel with JOB_WEBSITE belong_to option"""
@@ -60,8 +61,8 @@ class RecruitmentChannelModelTest(TestCase):
         )
 
         # Assert
-        self.assertIsNotNone(channel.id)
-        self.assertEqual(channel.belong_to, "job_website")
+        assert channel.id is not None
+        assert channel.belong_to == "job_website"
 
     def test_create_channel_with_marketing_belong_to(self):
         """Test creating a recruitment channel with MARKETING belong_to option"""
@@ -73,8 +74,8 @@ class RecruitmentChannelModelTest(TestCase):
         )
 
         # Assert
-        self.assertIsNotNone(channel.id)
-        self.assertEqual(channel.belong_to, "marketing")
+        assert channel.id is not None
+        assert channel.belong_to == "marketing"
 
     def test_belong_to_field_is_optional(self):
         """Test that belong_to field can be left blank"""
@@ -86,8 +87,8 @@ class RecruitmentChannelModelTest(TestCase):
         )
 
         # Assert
-        self.assertIsNotNone(channel.id)
-        self.assertEqual(channel.belong_to, "")
+        assert channel.id is not None
+        assert channel.belong_to == ""
 
     def test_create_channel_with_other_belong_to(self):
         """Test creating a recruitment channel with OTHER belong_to option"""
@@ -100,28 +101,28 @@ class RecruitmentChannelModelTest(TestCase):
         )
 
         # Assert
-        self.assertIsNotNone(channel.id)
-        self.assertEqual(channel.belong_to, "other")
-        self.assertEqual(channel.name, "Employee Referral")
+        assert channel.id is not None
+        assert channel.belong_to == "other"
+        assert channel.name == "Employee Referral"
 
     def test_belong_to_enum_values(self):
         """Test that BelongTo enum has correct values"""
         # Assert
-        self.assertEqual(RecruitmentChannel.BelongTo.JOB_WEBSITE, "job_website")
-        self.assertEqual(RecruitmentChannel.BelongTo.MARKETING, "marketing")
-        self.assertEqual(RecruitmentChannel.BelongTo.HUNT, "hunt")
-        self.assertEqual(RecruitmentChannel.BelongTo.SCHOOL, "school")
-        self.assertEqual(RecruitmentChannel.BelongTo.OTHER, "other")
+        assert RecruitmentChannel.BelongTo.JOB_WEBSITE == "job_website"
+        assert RecruitmentChannel.BelongTo.MARKETING == "marketing"
+        assert RecruitmentChannel.BelongTo.HUNT == "hunt"
+        assert RecruitmentChannel.BelongTo.SCHOOL == "school"
+        assert RecruitmentChannel.BelongTo.OTHER == "other"
 
     def test_name_field_max_length_is_250(self):
         """Test that name field enforces the 250 character limit"""
         name_field = RecruitmentChannel._meta.get_field("name")
 
-        self.assertEqual(name_field.max_length, 250)
+        assert name_field.max_length == 250
 
     def test_description_field_is_safe_text_with_max_length(self):
         """Test that description uses SafeTextField with 500 character limit"""
         description_field = RecruitmentChannel._meta.get_field("description")
 
-        self.assertIsInstance(description_field, SafeTextField)
-        self.assertEqual(description_field.max_length, 500)
+        assert isinstance(description_field, SafeTextField)
+        assert description_field.max_length == 500

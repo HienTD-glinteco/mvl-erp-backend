@@ -2,18 +2,13 @@ import json
 from datetime import date, timedelta
 from decimal import Decimal
 
+import pytest
 from django.contrib.auth import get_user_model
-from django.test import TransactionTestCase
 from django.urls import reverse
 from rest_framework import status
-from rest_framework.test import APIClient
 
-from apps.core.models import AdministrativeUnit, Province
 from apps.hrm.constants import RecruitmentSourceType
 from apps.hrm.models import (
-    Block,
-    Branch,
-    Department,
     Employee,
     HiredCandidateReport,
     JobDescription,
@@ -46,78 +41,19 @@ class APITestMixin:
         return content
 
 
-class RecruitmentReportsAPITest(TransactionTestCase, APITestMixin):
+@pytest.mark.django_db
+class TestRecruitmentReportsAPI(APITestMixin):
     """Test cases for Recruitment Reports API endpoints"""
 
-    def setUp(self):
-        """Set up test data"""
-        # Clear all existing data for clean tests
-        HiredCandidateReport.objects.all().delete()
-        RecruitmentCostReport.objects.all().delete()
-        RecruitmentChannelReport.objects.all().delete()
-        RecruitmentSourceReport.objects.all().delete()
-        StaffGrowthReport.objects.all().delete()
-        RecruitmentExpense.objects.all().delete()
-        Employee.objects.all().delete()
-        Department.objects.all().delete()
-        Block.objects.all().delete()
-        Branch.objects.all().delete()
-        RecruitmentSource.objects.all().delete()
-        RecruitmentChannel.objects.all().delete()
-        User.objects.all().delete()
-
-        # Changed to superuser to bypass RoleBasedPermission for API tests
-        self.user = User.objects.create_superuser(
-            username="testuser",
-            email="test@example.com",
-            password="testpass123",
-        )
-        self.client = APIClient()
-        self.client.force_authenticate(user=self.user)
-
-        # Create organizational structure
-        self.province = Province.objects.create(name="Hanoi", code="01")
-        self.admin_unit = AdministrativeUnit.objects.create(
-            name="City",
-            code="TP",
-            parent_province=self.province,
-            level=AdministrativeUnit.UnitLevel.DISTRICT,
-        )
-
-        self.branch = Branch.objects.create(
-            name="Hanoi Branch",
-            province=self.province,
-            administrative_unit=self.admin_unit,
-        )
-
-        self.block = Block.objects.create(
-            name="Business Block",
-            branch=self.branch,
-            block_type=Block.BlockType.BUSINESS,
-        )
-
-        self.department = Department.objects.create(
-            name="IT Department",
-            branch=self.branch,
-            block=self.block,
-            function=Department.DepartmentFunction.BUSINESS,
-        )
-
-        # Create employee for referral source
-        self.employee = Employee.objects.create(
-            fullname="Nguyen Van A",
-            username="nguyenvana",
-            email="nguyenvana@example.com",
-            phone="0123456789",
-            attendance_code="EMP001",
-            date_of_birth="1990-01-01",
-            personal_email="nguyenvana.personal@example.com",
-            start_date="2024-01-01",
-            branch=self.branch,
-            block=self.block,
-            department=self.department,
-            citizen_id="000000020033",
-        )
+    @pytest.fixture(autouse=True)
+    def setup_client(self, api_client, superuser, branch, block, department, employee):
+        """Set up test client and user"""
+        self.client = api_client
+        self.user = superuser
+        self.branch = branch
+        self.block = block
+        self.department = department
+        self.employee = employee
 
         # Create another employee for referral tests
         self.employee2 = Employee.objects.create(
@@ -197,19 +133,19 @@ class RecruitmentReportsAPITest(TransactionTestCase, APITestMixin):
         response = self.client.get(url, {"period_type": "month"})
 
         # Assert: Verify response
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         data = self.get_response_data(response)
-        self.assertIsInstance(data, list)
-        self.assertGreater(len(data), 0)
+        assert isinstance(data, list)
+        assert len(data) > 0
 
         # Verify aggregated values
         report = data[0]
-        self.assertEqual(report["period_type"], "month")
-        self.assertEqual(report["num_introductions"], 8)  # 5 + 3
-        self.assertEqual(report["num_returns"], 3)  # 2 + 1
-        self.assertEqual(report["num_recruitment_source"], 15)  # 10 + 5
-        self.assertEqual(report["num_transfers"], 5)  # 3 + 2
-        self.assertEqual(report["num_resignations"], 1)  # 1 + 0
+        assert report["period_type"] == "month"
+        assert report["num_introductions"] == 8  # 5 + 3
+        assert report["num_returns"] == 3  # 2 + 1
+        assert report["num_recruitment_source"] == 15  # 10 + 5
+        assert report["num_transfers"] == 5  # 3 + 2
+        assert report["num_resignations"] == 1  # 1 + 0
 
     def test_recruitment_source_report_nested_structure(self):
         """Test recruitment source report returns nested organizational structure"""
@@ -237,23 +173,23 @@ class RecruitmentReportsAPITest(TransactionTestCase, APITestMixin):
         response = self.client.get(url)
 
         # Assert: Verify response structure
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         data = self.get_response_data(response)
-        self.assertIn("sources", data)
-        self.assertIn("data", data)
-        self.assertIsInstance(data["sources"], list)
-        self.assertIsInstance(data["data"], list)
+        assert "sources" in data
+        assert "data" in data
+        assert isinstance(data["sources"], list)
+        assert isinstance(data["data"], list)
 
         # Verify sources are listed
-        self.assertIn("Employee Referral", data["sources"])
-        self.assertIn("Direct Application", data["sources"])
+        assert "Employee Referral" in data["sources"]
+        assert "Direct Application" in data["sources"]
 
         # Verify nested structure
-        self.assertGreater(len(data["data"]), 0)
+        assert len(data["data"]) > 0
         branch_data = data["data"][0]
-        self.assertEqual(branch_data["type"], "branch")
-        self.assertIn("children", branch_data)
-        self.assertIn("statistics", branch_data)
+        assert branch_data["type"] == "branch"
+        assert "children" in branch_data
+        assert "statistics" in branch_data
 
     def test_recruitment_channel_report_nested_structure(self):
         """Test recruitment channel report returns nested organizational structure"""
@@ -281,16 +217,16 @@ class RecruitmentReportsAPITest(TransactionTestCase, APITestMixin):
         response = self.client.get(url)
 
         # Assert: Verify response structure
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         data = self.get_response_data(response)
-        self.assertIn("channels", data)
-        self.assertIn("data", data)
-        self.assertIsInstance(data["channels"], list)
-        self.assertIsInstance(data["data"], list)
+        assert "channels" in data
+        assert "data" in data
+        assert isinstance(data["channels"], list)
+        assert isinstance(data["data"], list)
 
         # Verify channels are listed
-        self.assertIn("Facebook Ads", data["channels"])
-        self.assertIn("VietnamWorks", data["channels"])
+        assert "Facebook Ads" in data["channels"]
+        assert "VietnamWorks" in data["channels"]
 
     def test_recruitment_cost_report_aggregation(self):
         """Test recruitment cost report with monthly aggregation"""
@@ -326,24 +262,24 @@ class RecruitmentReportsAPITest(TransactionTestCase, APITestMixin):
         response = self.client.get(url)
 
         # Assert: Verify response
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         data = self.get_response_data(response)
-        self.assertIn("months", data)
-        self.assertIn("data", data)
+        assert "months" in data
+        assert "data" in data
 
         # Verify months include Total column
-        self.assertIn("Total", data["months"])
+        assert "Total" in data["months"]
 
         # Verify data structure
-        self.assertIsInstance(data["data"], list)
+        assert isinstance(data["data"], list)
         for source_data in data["data"]:
-            self.assertIn("source_type", source_data)
-            self.assertIn("months", source_data)
-            self.assertIsInstance(source_data["months"], list)
+            assert "source_type" in source_data
+            assert "months" in source_data
+            assert isinstance(source_data["months"], list)
             for month_data in source_data["months"]:
-                self.assertIn("total", month_data)
-                self.assertIn("count", month_data)
-                self.assertIn("avg", month_data)
+                assert "total" in month_data
+                assert "count" in month_data
+                assert "avg" in month_data
 
     def test_hired_candidate_report_month_aggregation(self):
         """Test hired candidate report with monthly aggregation"""
@@ -382,29 +318,29 @@ class RecruitmentReportsAPITest(TransactionTestCase, APITestMixin):
         response = self.client.get(url, {"period_type": "month"})
 
         # Assert: Verify response
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         data = self.get_response_data(response)
-        self.assertIn("period_type", data)
-        self.assertEqual(data["period_type"], "month")
-        self.assertIn("labels", data)
-        self.assertIn("data", data)
+        assert "period_type" in data
+        assert data["period_type"] == "month"
+        assert "labels" in data
+        assert "data" in data
 
         # Verify labels include Total
-        self.assertIn("Total", data["labels"])
+        assert "Total" in data["labels"]
 
         # Verify data structure includes source types
-        self.assertIsInstance(data["data"], list)
+        assert isinstance(data["data"], list)
         source_types = [item["name"] for item in data["data"]]
-        self.assertIn("Referral Source", source_types)
-        self.assertIn("Marketing Channel", source_types)
+        assert "Referral Source" in source_types
+        assert "Marketing Channel" in source_types
 
         # Verify referral source has children (employee breakdown)
         referral_data = next(
             item for item in data["data"] if item["type"] == "source_type" and "Referral" in item["name"]
         )
-        self.assertIn("children", referral_data)
+        assert "children" in referral_data
         if referral_data["children"]:
-            self.assertGreater(len(referral_data["children"]), 0)
+            assert len(referral_data["children"]) > 0
 
     def test_hired_candidate_report_week_aggregation(self):
         """Test hired candidate report with weekly aggregation"""
@@ -444,16 +380,16 @@ class RecruitmentReportsAPITest(TransactionTestCase, APITestMixin):
         response = self.client.get(url, {"period_type": "week"})
 
         # Assert: Verify response
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         data = self.get_response_data(response)
-        self.assertIn("period_type", data)
-        self.assertEqual(data["period_type"], "week")
-        self.assertIn("labels", data)
-        self.assertIn("data", data)
+        assert "period_type" in data
+        assert data["period_type"] == "week"
+        assert "labels" in data
+        assert "data" in data
 
         # Verify week label format (should contain "Tuần")
         week_labels = [label for label in data["labels"] if "Tuần" in label or label == "Total"]
-        self.assertGreater(len(week_labels), 0)
+        assert len(week_labels) > 0
 
     def test_referral_cost_report_single_month(self):
         """Test referral cost report for a single month"""
@@ -503,21 +439,21 @@ class RecruitmentReportsAPITest(TransactionTestCase, APITestMixin):
         response = self.client.get(url, {"month": month_param})
 
         # Assert: Verify response
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         data = self.get_response_data(response)
-        self.assertIn("data", data)
-        self.assertIn("summary_total", data)
+        assert "data" in data
+        assert "summary_total" in data
 
         # Verify summary total
         expected_total = Decimal("800000.00")
-        self.assertEqual(Decimal(str(data["summary_total"])), expected_total)
+        assert Decimal(str(data["summary_total"])) == expected_total
 
         # Verify department grouping
-        self.assertIsInstance(data["data"], list)
-        self.assertGreater(len(data["data"]), 0)
+        assert isinstance(data["data"], list)
+        assert len(data["data"]) > 0
         dept_data = data["data"][0]
-        self.assertIn("name", dept_data)
-        self.assertIn("items", dept_data)
+        assert "name" in dept_data
+        assert "items" in dept_data
 
     def test_staff_growth_report_with_filters(self):
         """Test staff growth report with branch, block, and department filters"""
@@ -543,9 +479,9 @@ class RecruitmentReportsAPITest(TransactionTestCase, APITestMixin):
         )
 
         # Assert: Verify response
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         data = self.get_response_data(response)
-        self.assertGreater(len(data), 0)
+        assert len(data) > 0
 
     def test_recruitment_cost_report_date_range_filter(self):
         """Test recruitment cost report with custom date range"""
@@ -575,9 +511,9 @@ class RecruitmentReportsAPITest(TransactionTestCase, APITestMixin):
         )
 
         # Assert: Verify response
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         data = self.get_response_data(response)
-        self.assertIn("data", data)
+        assert "data" in data
 
     def test_hired_candidate_report_invalid_period_type(self):
         """Test hired candidate report with invalid period type returns error"""
@@ -586,7 +522,7 @@ class RecruitmentReportsAPITest(TransactionTestCase, APITestMixin):
         response = self.client.get(url, {"period_type": "invalid"})
 
         # Assert: Verify error response
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
 
     def test_referral_cost_report_invalid_month_format(self):
         """Test referral cost report with invalid month format returns error"""
@@ -595,4 +531,4 @@ class RecruitmentReportsAPITest(TransactionTestCase, APITestMixin):
         response = self.client.get(url, {"month": "2025-10"})  # Wrong format
 
         # Assert: Verify error response
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        assert response.status_code == status.HTTP_400_BAD_REQUEST

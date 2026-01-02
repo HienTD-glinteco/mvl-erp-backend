@@ -35,6 +35,9 @@ pre-commit run --all-files
 4. **Use `poetry run`** to run Python commands
 5. **Set ENVIRONMENT=test** when running pytest
 6. **All imports at top** of files - never inside functions
+7. **Use `pytest`** and standard `assert` - no `unittest.TestCase` or `self.assert*`
+8. **Use fixtures** and `@pytest.mark.django_db` - no `setUp/tearDown`
+9. **Run `pre-commit run --all-files`** before completion - fix ALL issues
 
 ## Project Info
 

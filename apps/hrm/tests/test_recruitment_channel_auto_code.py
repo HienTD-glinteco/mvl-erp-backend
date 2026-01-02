@@ -1,37 +1,22 @@
-"""Tests for RecruitmentChannel API auto-code generation."""
-
-import json
-
-from django.contrib.auth import get_user_model
-from django.test import TransactionTestCase
+import pytest
 from django.urls import reverse
 from rest_framework import status
-from rest_framework.test import APIClient
 
 from apps.hrm.models import RecruitmentChannel
 
-User = get_user_model()
 
-
-class RecruitmentChannelAutoCodeGenerationAPITest(TransactionTestCase):
+@pytest.mark.django_db
+class TestRecruitmentChannelAutoCodeGenerationAPI:
     """Test cases for RecruitmentChannel API auto-code generation."""
 
-    def setUp(self):
-        """Set up test data."""
-        # Clear all existing data for clean tests
-        RecruitmentChannel.objects.all().delete()
-        User.objects.all().delete()
-
-        # Changed to superuser to bypass RoleBasedPermission for API tests
-        self.user = User.objects.create_superuser(
-            username="testuser", email="test@example.com", password="testpass123"
-        )
-        self.client = APIClient()
-        self.client.force_authenticate(user=self.user)
+    @pytest.fixture(autouse=True)
+    def setup_client(self, api_client, user):
+        self.client = api_client
+        self.user = user
 
     def get_response_data(self, response):
         """Extract data from wrapped API response."""
-        content = json.loads(response.content.decode())
+        content = response.json()
         if "data" in content:
             return content["data"]
         return content
@@ -50,17 +35,17 @@ class RecruitmentChannelAutoCodeGenerationAPITest(TransactionTestCase):
         response = self.client.post(url, channel_data, format="json")
 
         # Assert
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        assert response.status_code == status.HTTP_201_CREATED
         response_data = self.get_response_data(response)
 
         # Verify code was auto-generated
-        self.assertIn("code", response_data)
-        self.assertTrue(response_data["code"].startswith("CH"))
+        assert "code" in response_data
+        assert response_data["code"].startswith("CH")
 
         # Verify in database
         channel = RecruitmentChannel.objects.first()
-        self.assertIsNotNone(channel)
-        self.assertEqual(channel.code, response_data["code"])
+        assert channel is not None
+        assert channel.code == response_data["code"]
 
     def test_create_channel_with_code_ignores_provided_code(self):
         """Test that provided code is ignored and auto-generated code is used."""
@@ -77,12 +62,12 @@ class RecruitmentChannelAutoCodeGenerationAPITest(TransactionTestCase):
         response = self.client.post(url, channel_data, format="json")
 
         # Assert
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        assert response.status_code == status.HTTP_201_CREATED
         response_data = self.get_response_data(response)
 
         # Verify auto-generated code was used, not manual code
-        self.assertNotEqual(response_data["code"], "MANUAL")
-        self.assertTrue(response_data["code"].startswith("CH"))
+        assert response_data["code"] != "MANUAL"
+        assert response_data["code"].startswith("CH")
 
     def test_auto_generated_code_format_single_digit(self):
         """Test auto-generated code format for first channel (CH001)."""
@@ -97,12 +82,12 @@ class RecruitmentChannelAutoCodeGenerationAPITest(TransactionTestCase):
         response = self.client.post(url, channel_data, format="json")
 
         # Assert
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        assert response.status_code == status.HTTP_201_CREATED
         response_data = self.get_response_data(response)
 
         # Verify code format (should be at least 9 digits)
         channel = RecruitmentChannel.objects.first()
-        self.assertEqual(channel.code, f"CH{channel.id:09d}")
+        assert channel.code == f"CH{channel.id:09d}"
 
     def test_auto_generated_code_multiple_channels(self):
         """Test auto-generated codes for multiple channels."""
@@ -116,18 +101,18 @@ class RecruitmentChannelAutoCodeGenerationAPITest(TransactionTestCase):
                 "belong_to": "marketing" if i % 2 else "job_website",
             }
             response = self.client.post(url, channel_data, format="json")
-            self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+            assert response.status_code == status.HTTP_201_CREATED
 
         # Assert - Verify all channels have unique auto-generated codes
         channels = RecruitmentChannel.objects.all().order_by("id")
-        self.assertEqual(channels.count(), 3)
+        assert channels.count() == 3
 
         codes = [channel.code for channel in channels]
         # All codes should be unique
-        self.assertEqual(len(codes), len(set(codes)))
+        assert len(codes) == len(set(codes))
         # All codes should start with CH
         for code in codes:
-            self.assertTrue(code.startswith("CH"))
+            assert code.startswith("CH")
 
     def test_code_field_is_readonly_in_response(self):
         """Test that code field is included in response but not writable."""
@@ -142,9 +127,9 @@ class RecruitmentChannelAutoCodeGenerationAPITest(TransactionTestCase):
         response = self.client.post(url, channel_data, format="json")
 
         # Assert - Response includes code
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        assert response.status_code == status.HTTP_201_CREATED
         response_data = self.get_response_data(response)
-        self.assertIn("code", response_data)
+        assert "code" in response_data
         original_code = response_data["code"]
 
         # Act - Try to update code
@@ -155,8 +140,8 @@ class RecruitmentChannelAutoCodeGenerationAPITest(TransactionTestCase):
 
         # Assert - Code should not be updated
         channel.refresh_from_db()
-        self.assertNotEqual(channel.code, "NEWCODE")
-        self.assertEqual(channel.code, original_code)
+        assert channel.code != "NEWCODE"
+        assert channel.code == original_code
 
     def test_channel_with_description(self):
         """Test creating a channel with description field."""
@@ -172,13 +157,13 @@ class RecruitmentChannelAutoCodeGenerationAPITest(TransactionTestCase):
         response = self.client.post(url, channel_data, format="json")
 
         # Assert
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        assert response.status_code == status.HTTP_201_CREATED
         response_data = self.get_response_data(response)
-        self.assertEqual(response_data["description"], channel_data["description"])
+        assert response_data["description"] == channel_data["description"]
 
         # Verify in database
         channel = RecruitmentChannel.objects.first()
-        self.assertEqual(channel.description, channel_data["description"])
+        assert channel.description == channel_data["description"]
 
     def test_channel_with_hunt_belong_to(self):
         """Test creating a channel with HUNT belong_to option."""
@@ -194,13 +179,13 @@ class RecruitmentChannelAutoCodeGenerationAPITest(TransactionTestCase):
         response = self.client.post(url, channel_data, format="json")
 
         # Assert
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        assert response.status_code == status.HTTP_201_CREATED
         response_data = self.get_response_data(response)
-        self.assertEqual(response_data["belong_to"], "hunt")
+        assert response_data["belong_to"] == "hunt"
 
         # Verify in database
         channel = RecruitmentChannel.objects.get(belong_to="hunt")
-        self.assertEqual(channel.name, "LinkedIn Recruiter")
+        assert channel.name == "LinkedIn Recruiter"
 
     def test_channel_with_school_belong_to(self):
         """Test creating a channel with SCHOOL belong_to option."""
@@ -216,10 +201,10 @@ class RecruitmentChannelAutoCodeGenerationAPITest(TransactionTestCase):
         response = self.client.post(url, channel_data, format="json")
 
         # Assert
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        assert response.status_code == status.HTTP_201_CREATED
         response_data = self.get_response_data(response)
-        self.assertEqual(response_data["belong_to"], "school")
+        assert response_data["belong_to"] == "school"
 
         # Verify in database
         channel = RecruitmentChannel.objects.get(belong_to="school")
-        self.assertEqual(channel.name, "University Job Fair")
+        assert channel.name == "University Job Fair"

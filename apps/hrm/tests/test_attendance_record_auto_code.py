@@ -2,12 +2,13 @@
 
 from datetime import datetime, timezone
 
-from django.test import TestCase
+import pytest
 
 from apps.hrm.models import AttendanceDevice, AttendanceRecord
 
 
-class AttendanceRecordAutoCodeGenerationTest(TestCase):
+@pytest.mark.django_db
+class TestAttendanceRecordAutoCodeGeneration:
     """Test cases for AttendanceRecord auto-code generation.
 
     Note: AttendanceRecord doesn't have a create API endpoint.
@@ -15,12 +16,9 @@ class AttendanceRecordAutoCodeGenerationTest(TestCase):
     These tests verify the auto-code generation at the model level.
     """
 
-    def setUp(self):
+    @pytest.fixture(autouse=True)
+    def setup_data(self, db):
         """Set up test data."""
-        # Clear all existing data for clean tests
-        AttendanceRecord.objects.all().delete()
-        AttendanceDevice.objects.all().delete()
-
         # Create a device for records
         self.device = AttendanceDevice.objects.create(
             name="Test Device",
@@ -39,8 +37,8 @@ class AttendanceRecordAutoCodeGenerationTest(TestCase):
         )
 
         # Assert
-        self.assertIsNotNone(record.code)
-        self.assertTrue(record.code.startswith("DD"))
+        assert record.code is not None
+        assert record.code.startswith("DD")
 
     def test_sequential_code_generation(self):
         """Test that sequential records get sequential codes."""
@@ -56,18 +54,18 @@ class AttendanceRecordAutoCodeGenerationTest(TestCase):
             codes.append(record.code)
 
         # Assert - Verify codes are sequential
-        self.assertEqual(len(codes), 3)
+        assert len(codes) == 3
         for code in codes:
-            self.assertTrue(code.startswith("DD"))
+            assert code.startswith("DD")
 
         # Verify all codes are unique
-        self.assertEqual(len(set(codes)), 3)
+        assert len(set(codes)) == 3
 
         # Verify codes are in database
         records = AttendanceRecord.objects.all().order_by("id")
-        self.assertEqual(records.count(), 3)
+        assert records.count() == 3
         for record, code in zip(records, codes, strict=True):
-            self.assertEqual(record.code, code)
+            assert record.code == code
 
     def test_code_not_changed_on_update(self):
         """Test that code is not changed when record is updated."""
@@ -87,7 +85,7 @@ class AttendanceRecordAutoCodeGenerationTest(TestCase):
 
         # Assert - Verify code was NOT changed
         record.refresh_from_db()
-        self.assertEqual(record.code, original_code)
+        assert record.code == original_code
 
     def test_code_prefix_is_correct(self):
         """Test that generated code uses correct prefix (DD)."""
@@ -100,12 +98,12 @@ class AttendanceRecordAutoCodeGenerationTest(TestCase):
         )
 
         # Assert
-        self.assertTrue(record.code.startswith("DD"))
+        assert record.code.startswith("DD")
 
         # Verify the code format (DD followed by digits)
         code = record.code
-        self.assertEqual(code[:2], "DD")
-        self.assertTrue(code[2:].isdigit())
+        assert code[:2] == "DD"
+        assert code[2:].isdigit()
 
     def test_code_generation_with_existing_records(self):
         """Test that code generation continues from last code when records exist."""
@@ -128,14 +126,14 @@ class AttendanceRecordAutoCodeGenerationTest(TestCase):
         second_code = record2.code
 
         # Assert - Verify second code is different and sequential
-        self.assertNotEqual(first_code, second_code)
-        self.assertTrue(first_code.startswith("DD"))
-        self.assertTrue(second_code.startswith("DD"))
+        assert first_code != second_code
+        assert first_code.startswith("DD")
+        assert second_code.startswith("DD")
 
         # Extract numbers and verify they're sequential
         first_num = int(first_code[2:])
         second_num = int(second_code[2:])
-        self.assertEqual(second_num, first_num + 1)
+        assert second_num == first_num + 1
 
     def test_code_uniqueness_constraint(self):
         """Test that duplicate codes cannot be created."""
@@ -148,7 +146,7 @@ class AttendanceRecordAutoCodeGenerationTest(TestCase):
         )
 
         # Act & Assert - Try to create another record with same code should fail
-        with self.assertRaises(Exception):
+        with pytest.raises(Exception):
             AttendanceRecord.objects.create(
                 biometric_device=self.device,
                 code=record1.code,  # Use same code

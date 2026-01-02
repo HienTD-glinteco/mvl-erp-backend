@@ -1,14 +1,8 @@
-import json
-
-from django.contrib.auth import get_user_model
-from django.test import TransactionTestCase
+import pytest
 from django.urls import reverse
 from rest_framework import status
-from rest_framework.test import APIClient
 
 from apps.hrm.models import RecruitmentSource
-
-User = get_user_model()
 
 
 class APITestMixin:
@@ -16,7 +10,7 @@ class APITestMixin:
 
     def get_response_data(self, response):
         """Extract data from wrapped API response"""
-        content = json.loads(response.content.decode())
+        content = response.json()
         if "data" in content:
             data = content["data"]
             # Handle paginated responses - extract results list
@@ -26,73 +20,68 @@ class APITestMixin:
         return content
 
 
-class RecruitmentSourceAPITest(TransactionTestCase, APITestMixin):
+@pytest.mark.django_db
+class TestRecruitmentSourceAPI(APITestMixin):
     """Test cases for Recruitment Source API endpoints"""
 
-    def setUp(self):
-        # Clear all existing data for clean tests
-        RecruitmentSource.objects.all().delete()
-        User.objects.all().delete()
+    @pytest.fixture(autouse=True)
+    def setup_client(self, api_client):
+        self.client = api_client
 
-        # Changed to superuser to bypass RoleBasedPermission for API tests
-        self.user = User.objects.create_superuser(
-            username="testuser", email="test@example.com", password="testpass123"
-        )
-        self.client = APIClient()
-        self.client.force_authenticate(user=self.user)
-
-        self.source_data = {
+    @pytest.fixture
+    def source_data(self):
+        return {
             "name": "Employee Referral",
             "description": "Candidates referred by current employees",
         }
 
-    def test_create_recruitment_source(self):
+    def test_create_recruitment_source(self, source_data):
         """Test creating a recruitment source via API"""
         url = reverse("hrm:recruitment-source-list")
-        response = self.client.post(url, self.source_data, format="json")
+        response = self.client.post(url, source_data, format="json")
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(RecruitmentSource.objects.count(), 1)
+        assert response.status_code == status.HTTP_201_CREATED
+        assert RecruitmentSource.objects.count() == 1
 
         source = RecruitmentSource.objects.first()
-        self.assertEqual(source.name, self.source_data["name"])
-        self.assertEqual(source.description, self.source_data["description"])
+        assert source.name == source_data["name"]
+        assert source.description == source_data["description"]
         # Verify code was auto-generated
-        self.assertTrue(source.code.startswith("RS"))
+        assert source.code.startswith("RS")
 
-    def test_list_recruitment_sources(self):
+    def test_list_recruitment_sources(self, source_data):
         """Test listing recruitment sources via API"""
         # Create via API to ensure signal is triggered
         url = reverse("hrm:recruitment-source-list")
-        self.client.post(url, self.source_data, format="json")
+        self.client.post(url, source_data, format="json")
 
         response = self.client.get(url)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         response_data = self.get_response_data(response)
-        self.assertEqual(len(response_data), 1)
-        self.assertEqual(response_data[0]["name"], self.source_data["name"])
-        self.assertEqual(response_data[0]["description"], self.source_data["description"])
+        assert len(response_data) == 1
+        assert response_data[0]["name"] == source_data["name"]
+        assert response_data[0]["description"] == source_data["description"]
 
-    def test_retrieve_recruitment_source(self):
+    def test_retrieve_recruitment_source(self, source_data):
         """Test retrieving a recruitment source via API"""
         # Create via API to ensure signal is triggered
         url = reverse("hrm:recruitment-source-list")
-        create_response = self.client.post(url, self.source_data, format="json")
+        create_response = self.client.post(url, source_data, format="json")
         source_id = self.get_response_data(create_response)["id"]
 
         url = reverse("hrm:recruitment-source-detail", kwargs={"pk": source_id})
         response = self.client.get(url)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         response_data = self.get_response_data(response)
-        self.assertEqual(response_data["name"], self.source_data["name"])
+        assert response_data["name"] == source_data["name"]
 
-    def test_update_recruitment_source(self):
+    def test_update_recruitment_source(self, source_data):
         """Test updating a recruitment source via API"""
         # Create via API to ensure signal is triggered
         url = reverse("hrm:recruitment-source-list")
-        create_response = self.client.post(url, self.source_data, format="json")
+        create_response = self.client.post(url, source_data, format="json")
         source_id = self.get_response_data(create_response)["id"]
 
         update_data = {
@@ -103,16 +92,16 @@ class RecruitmentSourceAPITest(TransactionTestCase, APITestMixin):
         url = reverse("hrm:recruitment-source-detail", kwargs={"pk": source_id})
         response = self.client.put(url, update_data, format="json")
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         source = RecruitmentSource.objects.get(id=source_id)
-        self.assertEqual(source.name, update_data["name"])
-        self.assertEqual(source.description, update_data["description"])
+        assert source.name == update_data["name"]
+        assert source.description == update_data["description"]
 
-    def test_partial_update_recruitment_source(self):
+    def test_partial_update_recruitment_source(self, source_data):
         """Test partially updating a recruitment source via API"""
         # Create via API to ensure signal is triggered
         url = reverse("hrm:recruitment-source-list")
-        create_response = self.client.post(url, self.source_data, format="json")
+        create_response = self.client.post(url, source_data, format="json")
         source_id = self.get_response_data(create_response)["id"]
 
         update_data = {"description": "Partially updated description"}
@@ -120,27 +109,27 @@ class RecruitmentSourceAPITest(TransactionTestCase, APITestMixin):
         url = reverse("hrm:recruitment-source-detail", kwargs={"pk": source_id})
         response = self.client.patch(url, update_data, format="json")
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         source = RecruitmentSource.objects.get(id=source_id)
 
-        self.assertEqual(source.description, update_data["description"])
+        assert source.description == update_data["description"]
         # Name should remain unchanged
-        self.assertEqual(source.name, self.source_data["name"])
+        assert source.name == source_data["name"]
 
-    def test_delete_recruitment_source(self):
+    def test_delete_recruitment_source(self, source_data):
         """Test deleting a recruitment source via API"""
         # Create via API to ensure signal is triggered
         url = reverse("hrm:recruitment-source-list")
-        create_response = self.client.post(url, self.source_data, format="json")
+        create_response = self.client.post(url, source_data, format="json")
         source_id = self.get_response_data(create_response)["id"]
 
         url = reverse("hrm:recruitment-source-detail", kwargs={"pk": source_id})
         response = self.client.delete(url)
 
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        self.assertEqual(RecruitmentSource.objects.count(), 0)
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+        assert RecruitmentSource.objects.count() == 0
 
-    def test_search_recruitment_sources(self):
+    def test_search_recruitment_sources(self, source_data):
         """Test searching recruitment sources by name and code"""
         # Create via API to ensure signal is triggered
         url = reverse("hrm:recruitment-source-list")
@@ -163,34 +152,34 @@ class RecruitmentSourceAPITest(TransactionTestCase, APITestMixin):
         # Search by name
         response = self.client.get(url, {"search": "Employee"})
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         response_data = self.get_response_data(response)
-        self.assertEqual(len(response_data), 1)
-        self.assertEqual(response_data[0]["name"], "Employee Referral")
+        assert len(response_data) == 1
+        assert response_data[0]["name"] == "Employee Referral"
 
         # Search by code
         response = self.client.get(url, {"search": "RS"})
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         response_data = self.get_response_data(response)
         # All sources should have RS prefix
-        self.assertEqual(len(response_data), 3)
+        assert len(response_data) == 3
 
-    def test_unique_code_constraint(self):
+    def test_unique_code_constraint(self, source_data):
         """Test that recruitment source codes are auto-generated and unique"""
         # Create via API to ensure signal is triggered
         url = reverse("hrm:recruitment-source-list")
-        response1 = self.client.post(url, self.source_data, format="json")
-        response2 = self.client.post(url, self.source_data, format="json")
+        response1 = self.client.post(url, source_data, format="json")
+        response2 = self.client.post(url, source_data, format="json")
 
         # Both should succeed with different codes
-        self.assertEqual(response1.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(response2.status_code, status.HTTP_201_CREATED)
+        assert response1.status_code == status.HTTP_201_CREATED
+        assert response2.status_code == status.HTTP_201_CREATED
 
         data1 = self.get_response_data(response1)
         data2 = self.get_response_data(response2)
-        self.assertNotEqual(data1["code"], data2["code"])
+        assert data1["code"] != data2["code"]
 
-    def test_ordering_by_created_at_desc(self):
+    def test_ordering_by_created_at_desc(self, source_data):
         """Test that sources are ordered by created_at descending by default"""
         url = reverse("hrm:recruitment-source-list")
         self.client.post(url, {"name": "First Source"}, format="json")
@@ -199,15 +188,15 @@ class RecruitmentSourceAPITest(TransactionTestCase, APITestMixin):
 
         response = self.client.get(url)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         response_data = self.get_response_data(response)
-        self.assertEqual(len(response_data), 3)
+        assert len(response_data) == 3
         # Most recent first
-        self.assertEqual(response_data[0]["name"], "Third Source")
-        self.assertEqual(response_data[1]["name"], "Second Source")
-        self.assertEqual(response_data[2]["name"], "First Source")
+        assert response_data[0]["name"] == "Third Source"
+        assert response_data[1]["name"] == "Second Source"
+        assert response_data[2]["name"] == "First Source"
 
-    def test_filter_by_name(self):
+    def test_filter_by_name(self, source_data):
         """Test filtering recruitment sources by name"""
         url = reverse("hrm:recruitment-source-list")
         self.client.post(url, {"name": "Employee Referral"}, format="json")
@@ -217,23 +206,23 @@ class RecruitmentSourceAPITest(TransactionTestCase, APITestMixin):
         # Filter by name containing "Referral"
         response = self.client.get(url, {"name": "Referral"})
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         response_data = self.get_response_data(response)
-        self.assertEqual(len(response_data), 1)
-        self.assertEqual(response_data[0]["name"], "Employee Referral")
+        assert len(response_data) == 1
+        assert response_data[0]["name"] == "Employee Referral"
 
-    def test_empty_description_allowed(self):
+    def test_empty_description_allowed(self, source_data):
         """Test that description field can be empty"""
         url = reverse("hrm:recruitment-source-list")
         data = {"name": "Walk-in"}
         response = self.client.post(url, data, format="json")
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        assert response.status_code == status.HTTP_201_CREATED
         source = RecruitmentSource.objects.first()
-        self.assertEqual(source.name, data["name"])
-        self.assertEqual(source.description, "")
+        assert source.name == data["name"]
+        assert source.description == ""
 
-    def test_allow_referral_defaults_to_false(self):
+    def test_allow_referral_defaults_to_false(self, source_data):
         """Test that allow_referral field defaults to False"""
         # Arrange: Create a recruitment source without specifying allow_referral
         url = reverse("hrm:recruitment-source-list")
@@ -243,16 +232,16 @@ class RecruitmentSourceAPITest(TransactionTestCase, APITestMixin):
         response = self.client.post(url, data, format="json")
 
         # Assert: Check that allow_referral is False by default
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        assert response.status_code == status.HTTP_201_CREATED
         source = RecruitmentSource.objects.first()
-        self.assertFalse(source.allow_referral)
+        assert source.allow_referral is False
 
         # Assert: Verify it's in the serialized response
         response_data = self.get_response_data(response)
-        self.assertIn("allow_referral", response_data)
-        self.assertFalse(response_data["allow_referral"])
+        assert "allow_referral" in response_data
+        assert response_data["allow_referral"] is False
 
-    def test_allow_referral_can_be_set_to_true(self):
+    def test_allow_referral_can_be_set_to_true(self, source_data):
         """Test that allow_referral field can be set to True"""
         # Arrange: Prepare data with allow_referral=True
         url = reverse("hrm:recruitment-source-list")
@@ -262,15 +251,15 @@ class RecruitmentSourceAPITest(TransactionTestCase, APITestMixin):
         response = self.client.post(url, data, format="json")
 
         # Assert: Check that allow_referral is True
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        assert response.status_code == status.HTTP_201_CREATED
         source = RecruitmentSource.objects.first()
-        self.assertTrue(source.allow_referral)
+        assert source.allow_referral is True
 
         # Assert: Verify it's in the serialized response
         response_data = self.get_response_data(response)
-        self.assertTrue(response_data["allow_referral"])
+        assert response_data["allow_referral"] is True
 
-    def test_allow_referral_can_be_set_to_false_explicitly(self):
+    def test_allow_referral_can_be_set_to_false_explicitly(self, source_data):
         """Test that allow_referral field can be set to False explicitly"""
         # Arrange: Prepare data with allow_referral=False
         url = reverse("hrm:recruitment-source-list")
@@ -280,15 +269,15 @@ class RecruitmentSourceAPITest(TransactionTestCase, APITestMixin):
         response = self.client.post(url, data, format="json")
 
         # Assert: Check that allow_referral is False
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        assert response.status_code == status.HTTP_201_CREATED
         source = RecruitmentSource.objects.first()
-        self.assertFalse(source.allow_referral)
+        assert source.allow_referral is False
 
         # Assert: Verify it's in the serialized response
         response_data = self.get_response_data(response)
-        self.assertFalse(response_data["allow_referral"])
+        assert response_data["allow_referral"] is False
 
-    def test_allow_referral_api_serialization(self):
+    def test_allow_referral_api_serialization(self, source_data):
         """Test that allow_referral is correctly serialized in API responses"""
         # Arrange: Create sources with different allow_referral values
         url = reverse("hrm:recruitment-source-list")
@@ -305,61 +294,61 @@ class RecruitmentSourceAPITest(TransactionTestCase, APITestMixin):
         response = self.client.get(url)
 
         # Assert: Check that both sources have allow_referral in response
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         response_data = self.get_response_data(response)
-        self.assertEqual(len(response_data), 2)
+        assert len(response_data) == 2
 
         # Assert: Verify the first source has allow_referral=False (most recent first)
-        self.assertIn("allow_referral", response_data[0])
-        self.assertFalse(response_data[0]["allow_referral"])
+        assert "allow_referral" in response_data[0]
+        assert response_data[0]["allow_referral"] is False
 
         # Assert: Verify the second source has allow_referral=True
-        self.assertIn("allow_referral", response_data[1])
-        self.assertTrue(response_data[1]["allow_referral"])
+        assert "allow_referral" in response_data[1]
+        assert response_data[1]["allow_referral"] is True
 
-    def test_source_name_cannot_exceed_250_characters(self):
+    def test_source_name_cannot_exceed_250_characters(self, source_data):
         """Test that creating a source with name longer than 250 characters fails"""
         url = reverse("hrm:recruitment-source-list")
         data = {
-            **self.source_data,
+            **source_data,
             "name": "S" * 251,
         }
 
         response = self.client.post(url, data, format="json")
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        content = json.loads(response.content.decode())
-        self.assertFalse(content["success"])
-        self.assertIn("name", content["error"]["errors"][0]["attr"])
-        self.assertIn("250", content["error"]["errors"][0]["detail"])
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        content = response.json()
+        assert content["success"] is False
+        assert "name" in content["error"]["errors"][0]["attr"]
+        assert "250" in content["error"]["errors"][0]["detail"]
 
-    def test_source_description_accepts_500_characters(self):
+    def test_source_description_accepts_500_characters(self, source_data):
         """Test that a 500 character description is accepted for recruitment sources"""
         url = reverse("hrm:recruitment-source-list")
         long_description = "D" * 500
         data = {
-            **self.source_data,
+            **source_data,
             "description": long_description,
         }
 
         response = self.client.post(url, data, format="json")
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        assert response.status_code == status.HTTP_201_CREATED
         source = RecruitmentSource.objects.first()
-        self.assertEqual(source.description, long_description)
+        assert source.description == long_description
 
-    def test_source_description_cannot_exceed_500_characters(self):
+    def test_source_description_cannot_exceed_500_characters(self, source_data):
         """Test that descriptions longer than 500 characters are rejected"""
         url = reverse("hrm:recruitment-source-list")
         data = {
-            **self.source_data,
+            **source_data,
             "description": "X" * 501,
         }
 
         response = self.client.post(url, data, format="json")
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        content = json.loads(response.content.decode())
-        self.assertFalse(content["success"])
-        self.assertIn("description", content["error"]["errors"][0]["attr"])
-        self.assertIn("500", content["error"]["errors"][0]["detail"])
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        content = response.json()
+        assert content["success"] is False
+        assert "description" in content["error"]["errors"][0]["attr"]
+        assert "500" in content["error"]["errors"][0]["detail"]

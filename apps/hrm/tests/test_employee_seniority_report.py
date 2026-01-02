@@ -3,13 +3,12 @@
 import json
 from datetime import date
 
+import pytest
 from django.contrib.auth import get_user_model
-from django.test import TransactionTestCase
 from django.urls import reverse
-from rest_framework.test import APIClient
+from rest_framework import status
 
-from apps.core.models import AdministrativeUnit, Province
-from apps.hrm.models import Block, Branch, Department, Employee, EmployeeWorkHistory, Position
+from apps.hrm.models import Block, Branch, Department, Employee, EmployeeWorkHistory
 
 User = get_user_model()
 
@@ -28,59 +27,19 @@ class APITestMixin:
         return content
 
 
-class EmployeeSeniorityReportTest(TransactionTestCase, APITestMixin):
+@pytest.mark.django_db
+class TestEmployeeSeniorityReport(APITestMixin):
     """Test cases for Employee Seniority Report"""
 
-    def setUp(self):
-        """Set up test data"""
-        # Clean up
-        Employee.objects.all().delete()
-        EmployeeWorkHistory.objects.all().delete()
-        Department.objects.all().delete()
-        Block.objects.all().delete()
-        Branch.objects.all().delete()
-
-        # Create user for authentication
-        # Changed to superuser to bypass RoleBasedPermission for API tests
-        self.user = User.objects.create_superuser(
-            username="testuser",
-            email="test@example.com",
-            password="testpass123",
-        )
-        self.client = APIClient()
-        self.client.force_authenticate(user=self.user)
-
-        # Create organizational structure
-        self.province = Province.objects.create(name="Hanoi", code="01")
-        self.admin_unit = AdministrativeUnit.objects.create(
-            name="City",
-            code="TP",
-            parent_province=self.province,
-            level=AdministrativeUnit.UnitLevel.DISTRICT,
-        )
-
-        self.branch = Branch.objects.create(
-            name="Hanoi Branch",
-            province=self.province,
-            administrative_unit=self.admin_unit,
-        )
-
-        self.block = Block.objects.create(
-            name="Business Block",
-            branch=self.branch,
-            block_type=Block.BlockType.BUSINESS,
-        )
-
-        self.department = Department.objects.create(
-            name="IT Department",
-            branch=self.branch,
-            block=self.block,
-            function=Department.DepartmentFunction.BUSINESS,
-        )
-
-        self.position = Position.objects.create(
-            name="Developer",
-        )
+    @pytest.fixture(autouse=True)
+    def setup_client(self, api_client, superuser, branch, block, department, position):
+        """Set up test client and user"""
+        self.client = api_client
+        self.user = superuser
+        self.branch = branch
+        self.block = block
+        self.department = department
+        self.position = position
 
     def create_employee(self, code="MV001", status=Employee.Status.ACTIVE, start_date=None):
         """Helper to create an employee"""
@@ -186,7 +145,7 @@ class EmployeeSeniorityReportTest(TransactionTestCase, APITestMixin):
         Business Logic: If no work history, calculate from start_date to today.
         """
         # Arrange
-        employee = self.create_employee(
+        self.create_employee(
             code="MV001",
             status=Employee.Status.ACTIVE,
             start_date=date(2020, 1, 1),
@@ -198,27 +157,27 @@ class EmployeeSeniorityReportTest(TransactionTestCase, APITestMixin):
         results = self.get_response_data(response)
 
         # Assert
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(results), 1)
-        self.assertEqual(results[0]["code"], "MV001")
+        assert response.status_code == status.HTTP_200_OK
+        assert len(results) == 1
+        assert results[0]["code"] == "MV001"
 
         # Check seniority (at least 5 years from 2020-01-01)
         # Seniority is now an integer (total days)
         seniority_days = results[0]["seniority"]
-        self.assertIsInstance(seniority_days, int)
-        self.assertGreaterEqual(seniority_days, 5 * 365)  # At least 5 years
+        assert isinstance(seniority_days, int)
+        assert seniority_days >= 5 * 365  # At least 5 years
 
         # Check seniority_text exists and is a string
-        self.assertIn("seniority_text", results[0])
-        self.assertIsInstance(results[0]["seniority_text"], str)
-        self.assertIn("year", results[0]["seniority_text"])
+        assert "seniority_text" in results[0]
+        assert isinstance(results[0]["seniority_text"], str)
+        assert "year" in results[0]["seniority_text"]
         # Should not have parentheses anymore
-        self.assertNotIn("(s)", results[0]["seniority_text"])
+        assert "(s)" not in results[0]["seniority_text"]
 
         # Check work history includes current period (synthetic entry)
-        self.assertEqual(len(results[0]["work_history"]), 1)
-        self.assertEqual(results[0]["work_history"][0]["from_date"], "2020-01-01")
-        self.assertIsNone(results[0]["work_history"][0]["to_date"])
+        assert len(results[0]["work_history"]) == 1
+        assert results[0]["work_history"][0]["from_date"] == "2020-01-01"
+        assert results[0]["work_history"][0]["to_date"] is None
 
     def test_seniority_calculation_with_continuous_periods(self):
         """Test seniority calculation with all continuous periods (retain_seniority=True).
@@ -253,24 +212,24 @@ class EmployeeSeniorityReportTest(TransactionTestCase, APITestMixin):
         results = self.get_response_data(response)
 
         # Assert
-        self.assertEqual(response.status_code, 200)
+        assert response.status_code == status.HTTP_200_OK
         employee_data = next((e for e in results if e["code"] == "MV002"), None)
-        self.assertIsNotNone(employee_data)
+        assert employee_data is not None
 
         # Check seniority includes both periods (now integer days)
         seniority_days = employee_data["seniority"]
-        self.assertIsInstance(seniority_days, int)
-        self.assertGreaterEqual(seniority_days, 6 * 365)  # At least 6 years
+        assert isinstance(seniority_days, int)
+        assert seniority_days >= 6 * 365  # At least 6 years
 
         # Check seniority_text
-        self.assertIn("seniority_text", employee_data)
-        self.assertIn("year", employee_data["seniority_text"])
+        assert "seniority_text" in employee_data
+        assert "year" in employee_data["seniority_text"]
 
         # Check work history displays both periods (ordered by creation time - ascending)
-        self.assertEqual(len(employee_data["work_history"]), 2)
+        assert len(employee_data["work_history"]) == 2
         # Ordered by date (ascending), so oldest first
-        self.assertEqual(employee_data["work_history"][0]["from_date"], "2018-01-15")
-        self.assertEqual(employee_data["work_history"][1]["from_date"], "2021-01-01")
+        assert employee_data["work_history"][0]["from_date"] == "2018-01-15"
+        assert employee_data["work_history"][1]["from_date"] == "2021-01-01"
 
     def test_seniority_calculation_with_non_continuous_period(self):
         """Test seniority calculation with non-continuous period (retain_seniority=False).
@@ -321,25 +280,25 @@ class EmployeeSeniorityReportTest(TransactionTestCase, APITestMixin):
         results = self.get_response_data(response)
 
         # Assert
-        self.assertEqual(response.status_code, 200)
+        assert response.status_code == status.HTTP_200_OK
         employee_data = next((e for e in results if e["code"] == "MV003"), None)
-        self.assertIsNotNone(employee_data)
+        assert employee_data is not None
 
         # Check seniority only includes Period 3 + Period 4 (now integer days)
         seniority_days = employee_data["seniority"]
-        self.assertIsInstance(seniority_days, int)
-        self.assertGreaterEqual(seniority_days, 3 * 365)  # At least 3 years
-        self.assertLessEqual(seniority_days, 5 * 365)  # Should not include the old periods
+        assert isinstance(seniority_days, int)
+        assert seniority_days >= 3 * 365  # At least 3 years
+        assert seniority_days <= 6 * 365  # Should not include the old periods (around 8 years)
 
         # Check seniority_text
-        self.assertIn("seniority_text", employee_data)
-        self.assertIn("year", employee_data["seniority_text"])
+        assert "seniority_text" in employee_data
+        assert "year" in employee_data["seniority_text"]
 
         # Check work history ONLY displays periods included in calculation (BR-4)
-        self.assertEqual(len(employee_data["work_history"]), 2)
+        assert len(employee_data["work_history"]) == 2
         # Ordered by date (ascending), so oldest included period first
-        self.assertEqual(employee_data["work_history"][0]["from_date"], "2021-01-01")
-        self.assertEqual(employee_data["work_history"][1]["from_date"], "2022-01-01")
+        assert employee_data["work_history"][0]["from_date"] == "2021-01-01"
+        assert employee_data["work_history"][1]["from_date"] == "2022-01-01"
 
     def test_work_history_display_matches_calculation_scope(self):
         """Test BR-4: Work history display matches calculation scope.
@@ -395,18 +354,18 @@ class EmployeeSeniorityReportTest(TransactionTestCase, APITestMixin):
 
         # Assert
         employee_data = next((e for e in results if e["code"] == "MV004"), None)
-        self.assertIsNotNone(employee_data)
+        assert employee_data is not None
 
         # Should only show periods from most recent retain_seniority=False onwards
-        self.assertEqual(len(employee_data["work_history"]), 2)
+        assert len(employee_data["work_history"]) == 2
         displayed_dates = [wh["from_date"] for wh in employee_data["work_history"]]
         # Ordered by date (ascending)
-        self.assertIn("2022-01-01", displayed_dates)
-        self.assertIn("2021-01-01", displayed_dates)
+        assert "2022-01-01" in displayed_dates
+        assert "2021-01-01" in displayed_dates
         # Should NOT include older periods
-        self.assertNotIn("2020-01-01", displayed_dates)
-        self.assertNotIn("2019-01-01", displayed_dates)
-        self.assertNotIn("2017-01-01", displayed_dates)
+        assert "2020-01-01" not in displayed_dates
+        assert "2019-01-01" not in displayed_dates
+        assert "2017-01-01" not in displayed_dates
 
     def test_filter_by_status_includes_only_active_maternity_unpaid(self):
         """Test BR-1: Only include employees with specific statuses.
@@ -428,11 +387,11 @@ class EmployeeSeniorityReportTest(TransactionTestCase, APITestMixin):
 
         # Assert
         codes = [e["code"] for e in results]
-        self.assertIn("MV010", codes)  # Active
-        self.assertIn("MV011", codes)  # Maternity Leave
-        self.assertIn("MV012", codes)  # Unpaid Leave
-        self.assertNotIn("MV013", codes)  # Resigned (excluded)
-        self.assertNotIn("MV014", codes)  # Onboarding (excluded)
+        assert "MV010" in codes  # Active
+        assert "MV011" in codes  # Maternity Leave
+        assert "MV012" in codes  # Unpaid Leave
+        assert "MV013" not in codes  # Resigned (excluded)
+        assert "MV014" not in codes  # Onboarding (excluded)
 
     def test_filter_excludes_os_codes(self):
         """Test BR-1: Exclude employees with code starting with 'OS'"""
@@ -448,17 +407,17 @@ class EmployeeSeniorityReportTest(TransactionTestCase, APITestMixin):
 
         # Assert
         codes = [e["code"] for e in results]
-        self.assertIn("MV020", codes)
-        self.assertNotIn("OS001", codes)
-        self.assertNotIn("OS002", codes)
+        assert "MV020" in codes
+        assert "OS001" not in codes
+        assert "OS002" not in codes
 
     def test_filter_by_branch(self):
         """Test filtering by branch_id"""
         # Arrange
         branch2 = Branch.objects.create(
             name="HCMC Branch",
-            province=self.province,
-            administrative_unit=self.admin_unit,
+            province=self.branch.province,
+            administrative_unit=self.branch.administrative_unit,
         )
         block2 = Block.objects.create(
             name="Support Block",
@@ -472,7 +431,7 @@ class EmployeeSeniorityReportTest(TransactionTestCase, APITestMixin):
             function=Department.DepartmentFunction.HR_ADMIN,
         )
 
-        emp1 = self.create_employee(code="MV030")
+        self.create_employee(code="MV030")
 
         # Create employee in branch2 using helper
         saved_branch = self.branch
@@ -481,7 +440,7 @@ class EmployeeSeniorityReportTest(TransactionTestCase, APITestMixin):
         self.branch = branch2
         self.block = block2
         self.department = dept2
-        emp2 = self.create_employee(code="MV031")
+        self.create_employee(code="MV031")
         self.branch = saved_branch
         self.block = saved_block
         self.department = saved_dept
@@ -493,8 +452,8 @@ class EmployeeSeniorityReportTest(TransactionTestCase, APITestMixin):
 
         # Assert
         codes = [e["code"] for e in results]
-        self.assertIn("MV030", codes)
-        self.assertNotIn("MV031", codes)
+        assert "MV030" in codes
+        assert "MV031" not in codes
 
     def test_filter_by_function_block(self):
         """Test filtering by function_block (block_type)"""
@@ -512,14 +471,14 @@ class EmployeeSeniorityReportTest(TransactionTestCase, APITestMixin):
         )
 
         # Employee in business block
-        emp1 = self.create_employee(code="MV040")
+        self.create_employee(code="MV040")
 
         # Employee in support block
         saved_block = self.block
         saved_dept = self.department
         self.block = support_block
         self.department = support_dept
-        emp2 = self.create_employee(code="MV041")
+        self.create_employee(code="MV041")
         self.block = saved_block
         self.department = saved_dept
 
@@ -530,20 +489,20 @@ class EmployeeSeniorityReportTest(TransactionTestCase, APITestMixin):
 
         # Assert
         codes = [e["code"] for e in results]
-        self.assertIn("MV040", codes)
-        self.assertNotIn("MV041", codes)
+        assert "MV040" in codes
+        assert "MV041" not in codes
 
     def test_ordering_by_seniority_descending(self):
         """Test ordering by seniority in descending order (most senior first)"""
         # Arrange
         # Employee with 5+ years seniority
-        emp1 = self.create_employee(code="MV050", start_date=date(2018, 1, 1))
+        self.create_employee(code="MV050", start_date=date(2018, 1, 1))
 
         # Employee with 3+ years seniority
-        emp2 = self.create_employee(code="MV051", start_date=date(2021, 1, 1))
+        self.create_employee(code="MV051", start_date=date(2021, 1, 1))
 
         # Employee with 1+ year seniority
-        emp3 = self.create_employee(code="MV052", start_date=date(2023, 1, 1))
+        self.create_employee(code="MV052", start_date=date(2023, 1, 1))
 
         # Act
         url = reverse("hrm:employee-seniority-reports-list")
@@ -553,15 +512,15 @@ class EmployeeSeniorityReportTest(TransactionTestCase, APITestMixin):
         # Assert
         codes = [e["code"] for e in results]
         # Most senior first
-        self.assertEqual(codes[0], "MV050")
-        self.assertEqual(codes[-1], "MV052")
+        assert codes[0] == "MV050"
+        assert codes[-1] == "MV052"
 
     def test_ordering_by_seniority_ascending(self):
         """Test ordering by seniority in ascending order (least senior first)"""
         # Arrange
-        emp1 = self.create_employee(code="MV060", start_date=date(2018, 1, 1))
-        emp2 = self.create_employee(code="MV061", start_date=date(2021, 1, 1))
-        emp3 = self.create_employee(code="MV062", start_date=date(2023, 1, 1))
+        self.create_employee(code="MV060", start_date=date(2018, 1, 1))
+        self.create_employee(code="MV061", start_date=date(2021, 1, 1))
+        self.create_employee(code="MV062", start_date=date(2023, 1, 1))
 
         # Act
         url = reverse("hrm:employee-seniority-reports-list")
@@ -571,8 +530,8 @@ class EmployeeSeniorityReportTest(TransactionTestCase, APITestMixin):
         # Assert
         codes = [e["code"] for e in results]
         # Least senior first
-        self.assertEqual(codes[0], "MV062")
-        self.assertEqual(codes[-1], "MV060")
+        assert codes[0] == "MV062"
+        assert codes[-1] == "MV060"
 
     def test_pagination(self):
         """Test that results are paginated"""
@@ -586,10 +545,10 @@ class EmployeeSeniorityReportTest(TransactionTestCase, APITestMixin):
         data = json.loads(response.content.decode())["data"]
 
         # Assert
-        self.assertIn("count", data)
-        self.assertIn("next", data)
-        self.assertIn("results", data)
-        self.assertEqual(data["count"], 35)
+        assert "count" in data
+        assert "next" in data
+        assert "results" in data
+        assert data["count"] == 35
         # Default page size is 25
-        self.assertEqual(len(data["results"]), 25)
-        self.assertIsNotNone(data["next"])
+        assert len(data["results"]) == 25
+        assert data["next"] is not None

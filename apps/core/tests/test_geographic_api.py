@@ -1,14 +1,8 @@
-import json
-
-from django.contrib.auth import get_user_model
-from django.test import TransactionTestCase
+import pytest
 from django.urls import reverse
 from rest_framework import status
-from rest_framework.test import APIClient
 
-from apps.core.models import AdministrativeUnit, Province
-
-User = get_user_model()
+from apps.core.models import AdministrativeUnit, Nationality, Province
 
 
 class APITestMixin:
@@ -16,7 +10,7 @@ class APITestMixin:
 
     def get_response_data(self, response):
         """Extract data from wrapped API response"""
-        content = json.loads(response.content.decode())
+        content = response.json()
         if "data" in content:
             data = content["data"]
             # Handle paginated responses - extract results list
@@ -26,23 +20,18 @@ class APITestMixin:
         return content
 
 
-class ProvinceAPITest(TransactionTestCase, APITestMixin):
+@pytest.mark.django_db
+class TestProvinceAPI(APITestMixin):
     """Test cases for Province API endpoints"""
 
-    def setUp(self):
-        # Clear all existing data for clean tests
-        Province.objects.all().delete()
-        User.objects.all().delete()
+    @pytest.fixture(autouse=True)
+    def setup_client(self, api_client):
+        self.client = api_client
 
-        # Changed to superuser to bypass RoleBasedPermission for API tests
-        self.user = User.objects.create_superuser(
-            username="testuser", email="test@example.com", password="testpass123"
-        )
-        self.client = APIClient()
-        self.client.force_authenticate(user=self.user)
-
-        # Create test provinces
-        self.province1 = Province.objects.create(
+    @pytest.fixture
+    def provinces(self, db):
+        """Create test provinces."""
+        province1 = Province.objects.create(
             code="01",
             name="Thành phố Hà Nội",
             english_name="Hanoi",
@@ -50,7 +39,7 @@ class ProvinceAPITest(TransactionTestCase, APITestMixin):
             decree="Nghị quyết 15/2019/NQ-CP",
             enabled=True,
         )
-        self.province2 = Province.objects.create(
+        province2 = Province.objects.create(
             code="02",
             name="Tỉnh Hà Giang",
             english_name="Ha Giang",
@@ -58,7 +47,7 @@ class ProvinceAPITest(TransactionTestCase, APITestMixin):
             decree="Nghị định 24/2019/NĐ-CP",
             enabled=True,
         )
-        self.province3 = Province.objects.create(
+        province3 = Province.objects.create(
             code="03",
             name="Tỉnh Cao Bằng",
             english_name="Cao Bang",
@@ -66,96 +55,93 @@ class ProvinceAPITest(TransactionTestCase, APITestMixin):
             decree="",
             enabled=False,
         )
+        return province1, province2, province3
 
-    def test_list_provinces(self):
+    def test_list_provinces(self, provinces):
         """Test listing provinces via API"""
         url = reverse("core:province-list")
         response = self.client.get(url)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         response_data = self.get_response_data(response)
-        self.assertEqual(len(response_data), 3)
+        assert len(response_data) == 3
 
-    def test_list_provinces_no_pagination(self):
+    def test_list_provinces_no_pagination(self, provinces):
         """Test that province list has no pagination"""
         url = reverse("core:province-list")
         response = self.client.get(url)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         response_data = self.get_response_data(response)
         # Response should be a list, not a paginated object
-        self.assertIsInstance(response_data, list)
-        self.assertNotIn("count", response_data if isinstance(response_data, dict) else {})
+        assert isinstance(response_data, list)
+        assert "count" not in (response_data if isinstance(response_data, dict) else {})
 
-    def test_filter_provinces_by_enabled(self):
+    def test_filter_provinces_by_enabled(self, provinces):
         """Test filtering provinces by enabled status"""
         url = reverse("core:province-list")
         response = self.client.get(url, {"enabled": "true"})
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         response_data = self.get_response_data(response)
-        self.assertEqual(len(response_data), 2)
+        assert len(response_data) == 2
         for item in response_data:
-            self.assertTrue(item["enabled"])
+            assert item["enabled"] is True
 
-    def test_filter_provinces_by_level(self):
+    def test_filter_provinces_by_level(self, provinces):
         """Test filtering provinces by level"""
         url = reverse("core:province-list")
         response = self.client.get(url, {"level": Province.ProvinceLevel.CENTRAL_CITY})
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         response_data = self.get_response_data(response)
-        self.assertEqual(len(response_data), 1)
-        self.assertEqual(response_data[0]["code"], "01")
+        assert len(response_data) == 1
+        assert response_data[0]["code"] == "01"
 
-    def test_search_provinces(self):
+    def test_search_provinces(self, provinces):
         """Test searching provinces by name"""
         url = reverse("core:province-list")
         response = self.client.get(url, {"search": "Hà Nội"})
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         response_data = self.get_response_data(response)
-        self.assertEqual(len(response_data), 1)
-        self.assertEqual(response_data[0]["name"], "Thành phố Hà Nội")
+        assert len(response_data) == 1
+        assert response_data[0]["name"] == "Thành phố Hà Nội"
 
-    def test_province_retrieve(self):
+    def test_province_retrieve(self, provinces):
         """Test retrieving a single province"""
-        url = reverse("core:province-detail", kwargs={"pk": self.province1.id})
+        province1 = provinces[0]
+        url = reverse("core:province-detail", kwargs={"pk": province1.id})
         response = self.client.get(url)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         response_data = self.get_response_data(response)
-        self.assertEqual(response_data["code"], "01")
-        self.assertEqual(response_data["name"], "Thành phố Hà Nội")
-        self.assertEqual(response_data["english_name"], "Hanoi")
-        self.assertEqual(response_data["level"], Province.ProvinceLevel.CENTRAL_CITY)
-        self.assertIn("level_display", response_data)
+        assert response_data["code"] == "01"
+        assert response_data["name"] == "Thành phố Hà Nội"
+        assert response_data["english_name"] == "Hanoi"
+        assert response_data["level"] == Province.ProvinceLevel.CENTRAL_CITY
+        assert "level_display" in response_data
 
 
-class AdministrativeUnitAPITest(TransactionTestCase, APITestMixin):
+@pytest.mark.django_db
+class TestAdministrativeUnitAPI(APITestMixin):
     """Test cases for AdministrativeUnit API endpoints"""
 
-    def setUp(self):
-        # Clear all existing data for clean tests
-        AdministrativeUnit.objects.all().delete()
-        Province.objects.all().delete()
-        User.objects.all().delete()
+    @pytest.fixture(autouse=True)
+    def setup_client(self, api_client):
+        self.client = api_client
 
-        self.user = User.objects.create_superuser(
-            username="testuser", email="test@example.com", password="testpass123"
-        )
-        self.client = APIClient()
-        self.client.force_authenticate(user=self.user)
-
-        # Create test provinces
-        self.province1 = Province.objects.create(
+    @pytest.fixture
+    def admin_units(self, db):
+        """Create test administrative units."""
+        province1 = Province.objects.create(
             code="01",
             name="Thành phố Hà Nội",
             english_name="Hanoi",
             level=Province.ProvinceLevel.CENTRAL_CITY,
             enabled=True,
         )
-        self.province2 = Province.objects.create(
+        province2 = Province.objects.create(
             code="48",
             name="Thành phố Đà Nẵng",
             english_name="Da Nang",
@@ -163,217 +149,221 @@ class AdministrativeUnitAPITest(TransactionTestCase, APITestMixin):
             enabled=True,
         )
 
-        # Create test administrative units
-        self.unit1 = AdministrativeUnit.objects.create(
+        unit1 = AdministrativeUnit.objects.create(
             code="001",
             name="Quận Ba Đình",
-            parent_province=self.province1,
+            parent_province=province1,
             level=AdministrativeUnit.UnitLevel.DISTRICT,
             enabled=True,
         )
-        self.unit2 = AdministrativeUnit.objects.create(
+        unit2 = AdministrativeUnit.objects.create(
             code="002",
             name="Quận Hoàn Kiếm",
-            parent_province=self.province1,
+            parent_province=province1,
             level=AdministrativeUnit.UnitLevel.DISTRICT,
             enabled=True,
         )
-        self.unit3 = AdministrativeUnit.objects.create(
+        unit3 = AdministrativeUnit.objects.create(
             code="00001",
             name="Phường Phúc Xá",
-            parent_province=self.province1,
+            parent_province=province1,
             level=AdministrativeUnit.UnitLevel.WARD,
             enabled=True,
         )
-        self.unit4 = AdministrativeUnit.objects.create(
+        unit4 = AdministrativeUnit.objects.create(
             code="490",
             name="Quận Hải Châu",
-            parent_province=self.province2,
+            parent_province=province2,
             level=AdministrativeUnit.UnitLevel.DISTRICT,
             enabled=True,
         )
-        self.unit5 = AdministrativeUnit.objects.create(
+        unit5 = AdministrativeUnit.objects.create(
             code="003",
             name="Quận Đống Đa",
-            parent_province=self.province1,
+            parent_province=province1,
             level=AdministrativeUnit.UnitLevel.DISTRICT,
             enabled=False,
         )
+        return {
+            "province1": province1,
+            "province2": province2,
+            "unit1": unit1,
+            "unit2": unit2,
+            "unit3": unit3,
+            "unit4": unit4,
+            "unit5": unit5,
+        }
 
-    def test_list_administrative_units(self):
+    def test_list_administrative_units(self, admin_units):
         """Test listing administrative units via API"""
         url = reverse("core:administrative-unit-list")
         response = self.client.get(url)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         response_data = self.get_response_data(response)
-        # Response should be a list (no pagination)
-        self.assertIsInstance(response_data, list)
-        self.assertEqual(len(response_data), 5)
+        assert isinstance(response_data, list)
+        assert len(response_data) == 5
 
-    def test_list_administrative_units_no_pagination(self):
+    def test_list_administrative_units_no_pagination(self, admin_units):
         """Test that administrative unit list has no pagination"""
         url = reverse("core:administrative-unit-list")
         response = self.client.get(url)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         response_data = self.get_response_data(response)
-        # Response should be a list, not a paginated object
-        self.assertIsInstance(response_data, list)
-        self.assertNotIn("count", response_data if isinstance(response_data, dict) else {})
+        assert isinstance(response_data, list)
+        assert "count" not in (response_data if isinstance(response_data, dict) else {})
 
-    def test_filter_units_by_enabled(self):
+    def test_filter_units_by_enabled(self, admin_units):
         """Test filtering administrative units by enabled status"""
         url = reverse("core:administrative-unit-list")
         response = self.client.get(url, {"enabled": "true"})
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         response_data = self.get_response_data(response)
-        self.assertEqual(len(response_data), 4)
+        assert len(response_data) == 4
         for item in response_data:
-            self.assertTrue(item["enabled"])
+            assert item["enabled"] is True
 
-    def test_filter_units_by_province(self):
+    def test_filter_units_by_province(self, admin_units):
         """Test filtering administrative units by parent province"""
         url = reverse("core:administrative-unit-list")
-        response = self.client.get(url, {"parent_province": self.province1.id})
+        response = self.client.get(url, {"parent_province": admin_units["province1"].id})
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         response_data = self.get_response_data(response)
-        self.assertEqual(len(response_data), 4)
+        assert len(response_data) == 4
         for item in response_data:
-            self.assertEqual(item["province_code"], "01")
+            assert item["province_code"] == "01"
 
-    def test_filter_units_by_level(self):
+    def test_filter_units_by_level(self, admin_units):
         """Test filtering administrative units by level"""
         url = reverse("core:administrative-unit-list")
         response = self.client.get(url, {"level": AdministrativeUnit.UnitLevel.DISTRICT})
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         response_data = self.get_response_data(response)
-        self.assertEqual(len(response_data), 4)
+        assert len(response_data) == 4
 
-    def test_search_administrative_units(self):
+    def test_search_administrative_units(self, admin_units):
         """Test searching administrative units by name"""
         url = reverse("core:administrative-unit-list")
         response = self.client.get(url, {"search": "Ba Đình"})
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         response_data = self.get_response_data(response)
-        self.assertEqual(len(response_data), 1)
-        self.assertEqual(response_data[0]["name"], "Quận Ba Đình")
+        assert len(response_data) == 1
+        assert response_data[0]["name"] == "Quận Ba Đình"
 
-    def test_unit_retrieve(self):
+    def test_unit_retrieve(self, admin_units):
         """Test retrieving a single administrative unit"""
-        url = reverse("core:administrative-unit-detail", kwargs={"pk": self.unit1.id})
+        url = reverse("core:administrative-unit-detail", kwargs={"pk": admin_units["unit1"].id})
         response = self.client.get(url)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         response_data = self.get_response_data(response)
-        self.assertEqual(response_data["code"], "001")
-        self.assertEqual(response_data["name"], "Quận Ba Đình")
-        self.assertEqual(response_data["province_code"], "01")
-        self.assertEqual(response_data["province_name"], "Thành phố Hà Nội")
-        self.assertIn("level_display", response_data)
+        assert response_data["code"] == "001"
+        assert response_data["name"] == "Quận Ba Đình"
+        assert response_data["province_code"] == "01"
+        assert response_data["province_name"] == "Thành phố Hà Nội"
+        assert "level_display" in response_data
 
-    def test_combined_filters(self):
+    def test_combined_filters(self, admin_units):
         """Test combining multiple filters"""
         url = reverse("core:administrative-unit-list")
         response = self.client.get(
             url,
-            {"parent_province": self.province1.id, "level": AdministrativeUnit.UnitLevel.DISTRICT, "enabled": "true"},
+            {
+                "parent_province": admin_units["province1"].id,
+                "level": AdministrativeUnit.UnitLevel.DISTRICT,
+                "enabled": "true",
+            },
         )
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         response_data = self.get_response_data(response)
-        self.assertEqual(len(response_data), 2)
+        assert len(response_data) == 2
         for item in response_data:
-            self.assertEqual(item["province_code"], "01")
-            self.assertEqual(item["level"], AdministrativeUnit.UnitLevel.DISTRICT)
-            self.assertTrue(item["enabled"])
+            assert item["province_code"] == "01"
+            assert item["level"] == AdministrativeUnit.UnitLevel.DISTRICT
+            assert item["enabled"] is True
 
 
-class NationalityAPITest(TransactionTestCase, APITestMixin):
+@pytest.mark.django_db
+class TestNationalityAPI(APITestMixin):
     """Test cases for Nationality API endpoints"""
 
-    def setUp(self):
-        # Import here to avoid circular import
-        from apps.core.models import Nationality
+    @pytest.fixture(autouse=True)
+    def setup_client(self, api_client):
+        self.client = api_client
 
-        # Clear all existing data for clean tests
-        Nationality.objects.all().delete()
-        User.objects.all().delete()
+    @pytest.fixture
+    def nationalities(self, db):
+        """Create test nationalities."""
+        nationality1 = Nationality.objects.create(name="Vietnamese")
+        nationality2 = Nationality.objects.create(name="American")
+        nationality3 = Nationality.objects.create(name="Japanese")
+        return nationality1, nationality2, nationality3
 
-        self.user = User.objects.create_superuser(
-            username="testuser", email="test@example.com", password="testpass123"
-        )
-        self.client = APIClient()
-        self.client.force_authenticate(user=self.user)
-
-        # Create test nationalities
-        self.nationality1 = Nationality.objects.create(name="Vietnamese")
-        self.nationality2 = Nationality.objects.create(name="American")
-        self.nationality3 = Nationality.objects.create(name="Japanese")
-
-    def test_list_nationalities(self):
+    def test_list_nationalities(self, nationalities):
         """Test listing nationalities via API"""
         url = reverse("core:nationality-list")
         response = self.client.get(url)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         response_data = self.get_response_data(response)
-        self.assertEqual(len(response_data), 3)
+        assert len(response_data) == 3
 
-    def test_list_nationalities_no_pagination(self):
+    def test_list_nationalities_no_pagination(self, nationalities):
         """Test that nationality list has no pagination"""
         url = reverse("core:nationality-list")
         response = self.client.get(url)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         response_data = self.get_response_data(response)
-        # Response should be a list, not a paginated object
-        self.assertIsInstance(response_data, list)
-        self.assertNotIn("count", response_data if isinstance(response_data, dict) else {})
+        assert isinstance(response_data, list)
+        assert "count" not in (response_data if isinstance(response_data, dict) else {})
 
-    def test_search_nationalities(self):
+    def test_search_nationalities(self, nationalities):
         """Test searching nationalities by name"""
         url = reverse("core:nationality-list")
         response = self.client.get(url, {"search": "Vietnamese"})
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         response_data = self.get_response_data(response)
-        self.assertEqual(len(response_data), 1)
-        self.assertEqual(response_data[0]["name"], "Vietnamese")
+        assert len(response_data) == 1
+        assert response_data[0]["name"] == "Vietnamese"
 
-    def test_filter_nationalities_by_name(self):
+    def test_filter_nationalities_by_name(self, nationalities):
         """Test filtering nationalities by name (case-insensitive)"""
         url = reverse("core:nationality-list")
         response = self.client.get(url, {"name": "american"})
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         response_data = self.get_response_data(response)
-        self.assertEqual(len(response_data), 1)
-        self.assertEqual(response_data[0]["name"], "American")
+        assert len(response_data) == 1
+        assert response_data[0]["name"] == "American"
 
-    def test_nationality_retrieve(self):
+    def test_nationality_retrieve(self, nationalities):
         """Test retrieving a single nationality"""
-        url = reverse("core:nationality-detail", kwargs={"pk": self.nationality1.id})
+        nationality1 = nationalities[0]
+        url = reverse("core:nationality-detail", kwargs={"pk": nationality1.id})
         response = self.client.get(url)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         response_data = self.get_response_data(response)
-        self.assertEqual(response_data["name"], "Vietnamese")
-        self.assertIn("id", response_data)
-        self.assertIn("created_at", response_data)
-        self.assertIn("updated_at", response_data)
+        assert response_data["name"] == "Vietnamese"
+        assert "id" in response_data
+        assert "created_at" in response_data
+        assert "updated_at" in response_data
 
-    def test_nationality_ordering(self):
+    def test_nationality_ordering(self, nationalities):
         """Test that nationalities are ordered by name by default"""
         url = reverse("core:nationality-list")
         response = self.client.get(url)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         response_data = self.get_response_data(response)
         # Check ordering (alphabetical by name)
         names = [item["name"] for item in response_data]
-        self.assertEqual(names, ["American", "Japanese", "Vietnamese"])
+        assert names == ["American", "Japanese", "Vietnamese"]

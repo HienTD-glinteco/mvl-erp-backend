@@ -4,11 +4,9 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('payroll', '0015_salaryperiod_payrollslip_and_more'),
-        ('payroll', '0016_merge_20251225_1739'),
+        ("payroll", "0015_salaryperiod_payrollslip_and_more"),
+        ("payroll", "0016_merge_20251225_1739"),
     ]
 
-    operations = [
-    ]
+    operations = []

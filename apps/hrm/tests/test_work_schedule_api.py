@@ -1,15 +1,10 @@
-import json
 from datetime import time
 
-from django.contrib.auth import get_user_model
-from django.test import TransactionTestCase
+import pytest
 from django.urls import reverse
 from rest_framework import status
-from rest_framework.test import APIClient
 
 from apps.hrm.models import WorkSchedule
-
-User = get_user_model()
 
 
 class APITestMixin:
@@ -17,7 +12,7 @@ class APITestMixin:
 
     def get_response_data(self, response):
         """Extract data from wrapped API response"""
-        content = json.loads(response.content.decode())
+        content = response.json()
         if "data" in content:
             data = content["data"]
             # Handle paginated responses - extract results list
@@ -27,20 +22,18 @@ class APITestMixin:
         return content
 
 
-class WorkScheduleAPITest(TransactionTestCase, APITestMixin):
+@pytest.mark.django_db
+class TestWorkScheduleAPI(APITestMixin):
     """Test cases for Work Schedule API endpoints"""
 
-    def setUp(self):
-        # Clear all existing data for clean tests
-        WorkSchedule.objects.all().delete()
-        User.objects.all().delete()
+    @pytest.fixture(autouse=True)
+    def setup_client(self, api_client):
+        self.client = api_client
 
-        self.user = User.objects.create_user(username="testuser", email="test@example.com", password="testpass123")
-        self.client = APIClient()
-        self.client.force_authenticate(user=self.user)
-
-        # Create test work schedules
-        self.monday_schedule = WorkSchedule.objects.create(
+    @pytest.fixture
+    def schedules(self, db):
+        """Create test work schedules."""
+        monday_schedule = WorkSchedule.objects.create(
             weekday=WorkSchedule.Weekday.MONDAY,
             morning_start_time=time(8, 0),
             morning_end_time=time(12, 0),
@@ -52,7 +45,7 @@ class WorkScheduleAPITest(TransactionTestCase, APITestMixin):
             note="Standard work schedule",
         )
 
-        self.saturday_schedule = WorkSchedule.objects.create(
+        saturday_schedule = WorkSchedule.objects.create(
             weekday=WorkSchedule.Weekday.SATURDAY,
             morning_start_time=None,
             morning_end_time=None,
@@ -63,48 +56,49 @@ class WorkScheduleAPITest(TransactionTestCase, APITestMixin):
             allowed_late_minutes=None,
             note="Weekend - no work",
         )
+        return monday_schedule, saturday_schedule
 
-    def test_list_work_schedules(self):
+    def test_list_work_schedules(self, schedules):
         """Test listing work schedules via API"""
         url = reverse("hrm:work-schedule-list")
         response = self.client.get(url)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         response_data = self.get_response_data(response)
-        self.assertEqual(len(response_data), 2)
+        assert len(response_data) == 2
 
         # Find monday schedule in response
         monday_data = next((item for item in response_data if item["weekday"] == WorkSchedule.Weekday.MONDAY), None)
-        self.assertIsNotNone(monday_data)
-        self.assertEqual(monday_data["morning_time"], "08:00 - 12:00")
-        self.assertEqual(monday_data["noon_time"], "12:00 - 13:30")
-        self.assertEqual(monday_data["afternoon_time"], "13:30 - 17:30")
-        self.assertEqual(monday_data["allowed_late_minutes"], 5)
-        self.assertEqual(monday_data["note"], "Standard work schedule")
+        assert monday_data is not None
+        assert monday_data["morning_time"] == "08:00 - 12:00"
+        assert monday_data["noon_time"] == "12:00 - 13:30"
+        assert monday_data["afternoon_time"] == "13:30 - 17:30"
+        assert monday_data["allowed_late_minutes"] == 5
+        assert monday_data["note"] == "Standard work schedule"
 
         # Find saturday schedule in response
         saturday_data = next(
             (item for item in response_data if item["weekday"] == WorkSchedule.Weekday.SATURDAY), None
         )
-        self.assertIsNotNone(saturday_data)
-        self.assertIsNone(saturday_data["morning_time"])
-        self.assertIsNone(saturday_data["noon_time"])
-        self.assertIsNone(saturday_data["afternoon_time"])
-        self.assertEqual(saturday_data["note"], "Weekend - no work")
+        assert saturday_data is not None
+        assert saturday_data["morning_time"] is None
+        assert saturday_data["noon_time"] is None
+        assert saturday_data["afternoon_time"] is None
+        assert saturday_data["note"] == "Weekend - no work"
 
-    def test_list_work_schedules_ordering(self):
+    def test_list_work_schedules_ordering(self, schedules):
         """Test work schedules are ordered by weekday"""
         url = reverse("hrm:work-schedule-list")
         response = self.client.get(url)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         response_data = self.get_response_data(response)
 
         # Check ordering (by weekday integer: 2=Monday, 7=Saturday)
-        self.assertEqual(response_data[0]["weekday"], WorkSchedule.Weekday.MONDAY)
-        self.assertEqual(response_data[1]["weekday"], WorkSchedule.Weekday.SATURDAY)
+        assert response_data[0]["weekday"] == WorkSchedule.Weekday.MONDAY
+        assert response_data[1]["weekday"] == WorkSchedule.Weekday.SATURDAY
 
-    def test_create_not_allowed(self):
+    def test_create_not_allowed(self, schedules):
         """Test that create operation is not allowed (list-only viewset)"""
         url = reverse("hrm:work-schedule-list")
         data = {
@@ -116,4 +110,4 @@ class WorkScheduleAPITest(TransactionTestCase, APITestMixin):
         }
         response = self.client.post(url, data, format="json")
 
-        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+        assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED

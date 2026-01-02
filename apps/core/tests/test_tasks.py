@@ -1,11 +1,13 @@
 from unittest.mock import MagicMock, patch
 
-from django.test import TestCase, override_settings
+import pytest
+from django.test import override_settings
 
 from apps.core.tasks.sms import send_otp_sms_task
 
 
-class SMSTaskTestCase(TestCase):
+@pytest.mark.django_db
+class TestSMSTask:
     """Test cases for SMS tasks."""
 
     @override_settings(SMS_API_URL="http://sms-api.test/send", SMS_SENDER_ID="TestSender")
@@ -22,7 +24,7 @@ class SMSTaskTestCase(TestCase):
         result = send_otp_sms_task.apply(args=["+1234567890", "123456"]).get()
 
         # Assertions
-        self.assertTrue(result)
+        assert result
         mock_post.assert_called_once()
 
     @override_settings(SMS_API_URL="https://sms-api.test/send", SMS_SENDER_ID="TestSender")
@@ -39,7 +41,7 @@ class SMSTaskTestCase(TestCase):
         result = send_otp_sms_task.apply(args=["+1234567890", "123456"]).get()
 
         # Assertions
-        self.assertTrue(result)
+        assert result
         mock_post.assert_called_once()
 
     @override_settings(SMS_API_URL="http://sms-api.test/send", SMS_SENDER_ID="TestSender")
@@ -54,12 +56,12 @@ class SMSTaskTestCase(TestCase):
 
         # Should raise an exception for non-2xx status
         # Note: Celery will retry the task (max_retries=3), so we expect 4 calls
-        with self.assertRaises(Exception) as context:
+        with pytest.raises(Exception) as excinfo:
             send_otp_sms_task.apply(args=["+1234567890", "123456"]).get()
 
-        self.assertIn("SMS provider error", str(context.exception))
+        assert "SMS provider error" in str(excinfo.value)
         # Task retries 3 times after initial attempt
-        self.assertEqual(mock_post.call_count, 4)
+        assert mock_post.call_count == 4
 
     @override_settings(SMS_API_URL="http://sms-api.test/send", SMS_SENDER_ID="TestSender")
     @patch("apps.core.tasks.sms.requests.post")
@@ -72,8 +74,8 @@ class SMSTaskTestCase(TestCase):
 
         # Should raise an exception for network error
         # Note: Celery will retry the task (max_retries=3), so we expect 4 calls
-        with self.assertRaises(Exception):
+        with pytest.raises(Exception):
             send_otp_sms_task.apply(args=["+1234567890", "123456"]).get()
 
         # Task retries 3 times after initial attempt
-        self.assertEqual(mock_post.call_count, 4)
+        assert mock_post.call_count == 4

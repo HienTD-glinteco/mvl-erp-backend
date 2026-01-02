@@ -168,8 +168,8 @@ def import_handler(row_index: int, row: list, import_job_id: str, options: dict)
         # If not found by number, try finding by E + CT + EffectiveDate
         if not existing_contract:
             if not employee_code or not contract_type_code:
-                 return {
-                    "ok": True, # Skipped technically
+                return {
+                    "ok": True,  # Skipped technically
                     "row_index": row_index,
                     "action": "skipped",
                     "warnings": ["Cannot identify contract: missing contract number or employee/type code"],
@@ -193,7 +193,7 @@ def import_handler(row_index: int, row: list, import_job_id: str, options: dict)
             # Use serializer just to parse date
             date_serializer = ContractUpdateImportSerializer(data=serializer_data_raw, partial=True)
             if not date_serializer.is_valid():
-                 return {
+                return {
                     "ok": False,
                     "row_index": row_index,
                     "error": "Invalid effective date format",
@@ -203,9 +203,7 @@ def import_handler(row_index: int, row: list, import_job_id: str, options: dict)
 
             if employee and contract_type and effective_date:
                 existing_contract = Contract.objects.filter(
-                    employee=employee,
-                    contract_type=contract_type,
-                    effective_date=effective_date
+                    employee=employee, contract_type=contract_type, effective_date=effective_date
                 ).first()
 
         if not existing_contract:
@@ -260,13 +258,13 @@ def import_handler(row_index: int, row: list, import_job_id: str, options: dict)
 
         serializer = ContractUpdateImportSerializer(data=serializer_data, partial=True)
         if not serializer.is_valid():
-             error_messages = []
-             for field, errors in serializer.errors.items():
+            error_messages = []
+            for field, errors in serializer.errors.items():
                 if isinstance(errors, list):
                     error_messages.extend([str(e) for e in errors])
                 else:
                     error_messages.append(str(errors))
-             return {
+            return {
                 "ok": False,
                 "row_index": row_index,
                 "error": "; ".join(error_messages),

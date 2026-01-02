@@ -258,90 +258,26 @@ class ZKRealtimeDeviceListener:
         """
         consecutive_failures = 0
         reconnect_delay = RECONNECT_BASE_DELAY
-        last_device_info_update: float = 0
         first_failure_time = None  # Track when failures started
-
-        zk_conn = None
-
-        # Create a function to run the blocking live capture loop
-        # We capture the main loop here to pass it to the blocking function
-        main_loop = asyncio.get_running_loop()
-
-        def _run_blocking_capture(connection, last_update):
-            return self._live_capture_loop_blocking(device, connection, last_update, main_loop)
 
         while self._running:
             try:
-                logger.info(f"Connecting to device: {device.name} at {device.ip_address}:{device.port}")
-
-                # Connect to device (uses general executor)
-                zk_conn = await self._connect_device(device)
-
-                # Get device info and notify via callback (uses general executor)
-                device_info = await self._get_device_info(zk_conn)
-                await self._safe_call(self._on_device_connected, device.device_id, device_info)
-
-                last_device_info_update = time.time()
-
-                # Reset failure counter and timer on successful connection
+                zk_conn = await self._run_single_connection_cycle(device)
+                # Successful connection cycle
                 consecutive_failures = 0
                 first_failure_time = None
                 reconnect_delay = RECONNECT_BASE_DELAY
-
-                logger.info(f"Successfully connected to device: {device.name}, starting live capture")
-
-                # Run the live capture loop in the dedicated listener executor
-                # This blocks one thread in the listener pool for the duration of the connection
-                await main_loop.run_in_executor(
-                    self._listener_executor, _run_blocking_capture, zk_conn, last_device_info_update
-                )
-
             except (ZKErrorConnection, ZKErrorResponse, ConnectionError, ZKNetworkError) as e:
                 consecutive_failures += 1
-                error_msg = f"Connection error for device {device.name}: {str(e)}"
-
-                # Track first failure time
                 if first_failure_time is None:
                     first_failure_time = time.time()
 
-                # Check if we've been retrying for more than MAX_RETRY_DURATION (1 day)
-                time_since_first_failure = time.time() - first_failure_time
-                if time_since_first_failure >= MAX_RETRY_DURATION:
-                    logger.critical(
-                        f"Device {device.name} has been offline for {time_since_first_failure / 3600:.1f} hours. "
-                        f"Requesting disable of realtime listener for this device."
-                    )
-                    await self._safe_call(self._on_device_disabled, device.device_id)
-                    # Exit the loop for this device
+                if await self._handle_connection_error(device, e, consecutive_failures, first_failure_time):
+                    # Error was terminal (device disabled)
                     break
-
-                logger.warning(
-                    f"{error_msg} (failure {consecutive_failures}/{MAX_CONSECUTIVE_FAILURES}, "
-                    f"retrying for {time_since_first_failure / 3600:.1f} hours)"
-                )
-
-                # If consecutive failures exceed limit, disable device
-                if consecutive_failures >= MAX_CONSECUTIVE_FAILURES:
-                    logger.critical(
-                        f"Device {device.name} has exceeded {MAX_CONSECUTIVE_FAILURES} consecutive failures. "
-                        f"Requesting disable of realtime listener for this device."
-                    )
-                    await self._safe_call(self._on_device_disabled, device.device_id)
-                    # Exit the loop for this device
-                    break
-
-                # Notify disconnection and error via callbacks (safe)
-                await self._safe_call(self._on_device_disconnected, device.device_id)
-                await self._safe_call(self._on_device_error, device.device_id, error_msg, consecutive_failures)
-
             except Exception as e:
                 logger.exception(f"Unexpected error in listener loop for device {device.name}: {str(e)}")
                 await self._safe_call(self._on_device_disconnected, device.device_id)
-
-            finally:
-                # Clean up connection if it exists
-                if zk_conn:
-                    await self._disconnect_device(device, zk_conn)
 
             # Check if device is still registered before retrying
             if device.device_id not in self._registered_device_ids:
@@ -354,9 +290,60 @@ class ZKRealtimeDeviceListener:
             if self._running:
                 logger.info(f"Reconnecting to device {device.name} in {reconnect_delay} seconds")
                 await asyncio.sleep(reconnect_delay)
-
-                # Increase delay for next retry (exponential backoff)
                 reconnect_delay = min(reconnect_delay * RECONNECT_BACKOFF_MULTIPLIER, RECONNECT_MAX_DELAY)
+
+    async def _run_single_connection_cycle(self, device: ZKDeviceInfo) -> ZK | None:
+        """Connect to device and run capture loop. Return connection for finally cleanup."""
+        logger.info(f"Connecting to device: {device.name} at {device.ip_address}:{device.port}")
+        zk_conn = None
+        main_loop = asyncio.get_running_loop()
+
+        try:
+            # Connect to device (uses general executor)
+            zk_conn = await self._connect_device(device)
+
+            # Get device info and notify via callback
+            device_info = await self._get_device_info(zk_conn)
+            await self._safe_call(self._on_device_connected, device.device_id, device_info)
+
+            logger.info(f"Successfully connected to device: {device.name}, starting live capture")
+
+            # Run the live capture loop in the dedicated listener executor
+            def _run_blocking_capture(connection, last_update):
+                return self._live_capture_loop_blocking(device, connection, last_update, main_loop)
+
+            await main_loop.run_in_executor(self._listener_executor, _run_blocking_capture, zk_conn, time.time())
+            return zk_conn
+        finally:
+            if zk_conn:
+                await self._disconnect_device(device, zk_conn)
+
+    async def _handle_connection_error(
+        self, device: ZKDeviceInfo, exc: Exception, failures: int, first_fail_time: float | None
+    ) -> bool:
+        """Handle connection errors and determine if we should stop. Return True to break loop."""
+        error_msg = f"Connection error for device {device.name}: {str(exc)}"
+
+        # Check if we've been retrying for more than MAX_RETRY_DURATION
+        if first_fail_time:
+            time_since_first_failure = time.time() - first_fail_time
+            if time_since_first_failure >= MAX_RETRY_DURATION:
+                logger.critical(f"Device {device.name} offline for too long. Disabling.")
+                await self._safe_call(self._on_device_disabled, device.device_id)
+                return True
+
+        logger.warning(f"{error_msg} (failure {failures}/{MAX_CONSECUTIVE_FAILURES})")
+
+        # If consecutive failures exceed limit, disable device
+        if failures >= MAX_CONSECUTIVE_FAILURES:
+            logger.critical(f"Device {device.name} exceeded max failures. Disabling.")
+            await self._safe_call(self._on_device_disabled, device.device_id)
+            return True
+
+        # Notify via callbacks
+        await self._safe_call(self._on_device_disconnected, device.device_id)
+        await self._safe_call(self._on_device_error, device.device_id, error_msg, failures)
+        return False
 
     async def _connect_device(self, device: ZKDeviceInfo) -> ZK:
         """Connect to an attendance device.

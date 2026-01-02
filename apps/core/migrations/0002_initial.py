@@ -6,64 +6,104 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
-        ('core', '0001_initial'),
-        ('hrm', '0001_initial'),
+        ("core", "0001_initial"),
+        ("hrm", "0001_initial"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='devicechangerequest',
-            name='employee',
-            field=models.ForeignKey(blank=True, help_text='Employee associated with the user (if exists)', null=True, on_delete=django.db.models.deletion.CASCADE, related_name='device_change_requests', to='hrm.employee', verbose_name='Employee'),
+            model_name="devicechangerequest",
+            name="employee",
+            field=models.ForeignKey(
+                blank=True,
+                help_text="Employee associated with the user (if exists)",
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="device_change_requests",
+                to="hrm.employee",
+                verbose_name="Employee",
+            ),
         ),
         migrations.AddField(
-            model_name='devicechangerequest',
-            name='user',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='device_change_requests', to=settings.AUTH_USER_MODEL, verbose_name='User'),
+            model_name="devicechangerequest",
+            name="user",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="device_change_requests",
+                to=settings.AUTH_USER_MODEL,
+                verbose_name="User",
+            ),
         ),
         migrations.AddField(
-            model_name='passwordresetotp',
-            name='user',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='password_reset_requests', to=settings.AUTH_USER_MODEL),
+            model_name="passwordresetotp",
+            name="user",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="password_reset_requests",
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
         migrations.AddConstraint(
-            model_name='province',
-            constraint=models.UniqueConstraint(condition=models.Q(('enabled', True)), fields=('code',), name='unique_enabled_province_code'),
+            model_name="province",
+            constraint=models.UniqueConstraint(
+                condition=models.Q(("enabled", True)), fields=("code",), name="unique_enabled_province_code"
+            ),
         ),
         migrations.AddField(
-            model_name='administrativeunit',
-            name='parent_province',
-            field=models.ForeignKey(help_text='Province that this unit belongs to', on_delete=django.db.models.deletion.CASCADE, related_name='administrative_units', to='core.province', verbose_name='Parent province'),
+            model_name="administrativeunit",
+            name="parent_province",
+            field=models.ForeignKey(
+                help_text="Province that this unit belongs to",
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="administrative_units",
+                to="core.province",
+                verbose_name="Parent province",
+            ),
         ),
         migrations.AddField(
-            model_name='role',
-            name='permissions',
-            field=models.ManyToManyField(blank=True, related_name='roles', to='core.permission', verbose_name='Permissions'),
+            model_name="role",
+            name="permissions",
+            field=models.ManyToManyField(
+                blank=True, related_name="roles", to="core.permission", verbose_name="Permissions"
+            ),
         ),
         migrations.AddField(
-            model_name='user',
-            name='role',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='users', to='core.role', verbose_name='Role'),
+            model_name="user",
+            name="role",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="users",
+                to="core.role",
+                verbose_name="Role",
+            ),
         ),
         migrations.AddField(
-            model_name='userdevice',
-            name='user',
-            field=models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='device', to=settings.AUTH_USER_MODEL, verbose_name='User'),
+            model_name="userdevice",
+            name="user",
+            field=models.OneToOneField(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="device",
+                to=settings.AUTH_USER_MODEL,
+                verbose_name="User",
+            ),
         ),
         migrations.AddIndex(
-            model_name='devicechangerequest',
-            index=models.Index(fields=['user'], name='dcr_user_idx'),
+            model_name="devicechangerequest",
+            index=models.Index(fields=["user"], name="dcr_user_idx"),
         ),
         migrations.AddIndex(
-            model_name='devicechangerequest',
-            index=models.Index(fields=['status'], name='dcr_status_idx'),
+            model_name="devicechangerequest",
+            index=models.Index(fields=["status"], name="dcr_status_idx"),
         ),
         migrations.AddConstraint(
-            model_name='administrativeunit',
-            constraint=models.UniqueConstraint(condition=models.Q(('enabled', True)), fields=('code',), name='unique_enabled_administrative_unit_code'),
+            model_name="administrativeunit",
+            constraint=models.UniqueConstraint(
+                condition=models.Q(("enabled", True)), fields=("code",), name="unique_enabled_administrative_unit_code"
+            ),
         ),
     ]

@@ -177,7 +177,6 @@ class EmployeeMonthlyTimesheet(BaseReportModel):
             "_tc1_overtime_hours": Coalesce(Sum(F("ot_tc1_hours")), Value(DECIMAL_ZERO, output_field=DecimalField())),
             "_tc2_overtime_hours": Coalesce(Sum(F("ot_tc2_hours")), Value(DECIMAL_ZERO, output_field=DecimalField())),
             "_tc3_overtime_hours": Coalesce(Sum(F("ot_tc3_hours")), Value(DECIMAL_ZERO, output_field=DecimalField())),
-
             # Working days - calculate from hours divided by 8
             "_probation_working_days": Coalesce(
                 Sum(F("working_days"), filter=Q(is_full_salary=False)),
@@ -191,12 +190,10 @@ class EmployeeMonthlyTimesheet(BaseReportModel):
                 Sum(F("working_days")),
                 Value(DECIMAL_ZERO, output_field=DecimalField()),
             ),
-
             # Penalties
             "late_coming_minutes": Coalesce(Sum(F("late_minutes")), Value(0)),
             "early_leaving_minutes": Coalesce(Sum(F("early_minutes")), Value(0)),
             "total_penalty_count": Coalesce(Count("id", filter=Q(is_punished=True)), Value(0)),
-
             # Leaves day
             "paid_leave_days": Coalesce(
                 Count("date", filter=Q(absent_reason=TimesheetReason.PAID_LEAVE), distinct=True), Value(0)

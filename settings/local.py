@@ -41,4 +41,3 @@ EMAIL_BACKEND = config(  # noqa
 )
 EMAIL_HOST = config("EMAIL_HOST", default="127.0.0.1")  # noqa
 EMAIL_PORT = config("EMAIL_PORT", default=1025, cast=int)  # noqa
-

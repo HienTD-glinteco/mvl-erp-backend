@@ -1,11 +1,8 @@
-"""Tests for HRM attendance synchronization tasks."""
-
 from datetime import timedelta
 from unittest.mock import Mock, patch
 
 import pytest
 from celery.exceptions import Retry
-from django.test import TestCase
 from django.utils import timezone as django_timezone
 
 from apps.devices import DeviceConnectionError
@@ -14,10 +11,11 @@ from apps.hrm.tasks import sync_all_attendance_devices, sync_attendance_logs_for
 
 
 @pytest.mark.django_db
-class TestSyncAttendanceLogsForDevice(TestCase):
+class TestSyncAttendanceLogsForDevice:
     """Test cases for sync_attendance_logs_for_device task."""
 
-    def setUp(self):
+    @pytest.fixture(autouse=True)
+    def setup_device(self):
         """Set up test data."""
         self.device = AttendanceDevice.objects.create(
             name="Test Device",
@@ -32,7 +30,8 @@ class TestSyncAttendanceLogsForDevice(TestCase):
         mock_service = Mock()
         mock_service_class.return_value = mock_service
 
-        today = django_timezone.now()
+        # Use a fixed time at noon to avoid day crossover in tests
+        today = django_timezone.now().replace(hour=12, minute=0, second=0, microsecond=0)
         mock_logs = [
             {
                 "uid": 1,
@@ -57,21 +56,21 @@ class TestSyncAttendanceLogsForDevice(TestCase):
         result = sync_attendance_logs_for_device(self.device.id)
 
         # Assert
-        self.assertTrue(result["success"])
-        self.assertEqual(result["device_id"], self.device.id)
-        self.assertEqual(result["device_name"], "Test Device")
-        self.assertEqual(result["logs_synced"], 2)
-        self.assertEqual(result["total_today_logs"], 2)
+        assert result["success"] is True
+        assert result["device_id"] == self.device.id
+        assert result["device_name"] == "Test Device"
+        assert result["logs_synced"] == 2
+        assert result["total_today_logs"] == 2
 
         # Verify records were created
-        self.assertEqual(AttendanceRecord.objects.count(), 2)
-        self.assertEqual(AttendanceRecord.objects.filter(attendance_code="100").count(), 1)
-        self.assertEqual(AttendanceRecord.objects.filter(attendance_code="200").count(), 1)
+        assert AttendanceRecord.objects.count() == 2
+        assert AttendanceRecord.objects.filter(attendance_code="100").count() == 1
+        assert AttendanceRecord.objects.filter(attendance_code="200").count() == 1
 
         # Verify device status updated
         self.device.refresh_from_db()
-        self.assertTrue(self.device.is_connected)
-        self.assertIsNotNone(self.device.polling_synced_at)
+        assert self.device.is_connected is True
+        assert self.device.polling_synced_at is not None
 
     @patch("apps.hrm.tasks.attendances.ZKDeviceService")
     def test_sync_skips_duplicates(self, mock_service_class):
@@ -108,9 +107,9 @@ class TestSyncAttendanceLogsForDevice(TestCase):
         result = sync_attendance_logs_for_device(self.device.id)
 
         # Assert
-        self.assertTrue(result["success"])
-        self.assertEqual(result["logs_synced"], 0)  # No new logs synced
-        self.assertEqual(AttendanceRecord.objects.count(), 1)  # Still only 1 record
+        assert result["success"] is True
+        assert result["logs_synced"] == 0  # No new logs synced
+        assert AttendanceRecord.objects.count() == 1  # Still only 1 record
 
     @patch("apps.hrm.tasks.attendances.ZKDeviceService")
     def test_sync_filters_current_day_only(self, mock_service_class):
@@ -119,7 +118,7 @@ class TestSyncAttendanceLogsForDevice(TestCase):
         mock_service = Mock()
         mock_service_class.return_value = mock_service
 
-        today = django_timezone.now()
+        today = django_timezone.now().replace(hour=12, minute=0, second=0, microsecond=0)
         yesterday = today - timedelta(days=1)
 
         mock_logs = [
@@ -146,11 +145,11 @@ class TestSyncAttendanceLogsForDevice(TestCase):
         result = sync_attendance_logs_for_device(self.device.id)
 
         # Assert
-        self.assertTrue(result["success"])
-        self.assertEqual(result["logs_synced"], 1)  # Only today's log
-        self.assertEqual(result["total_today_logs"], 1)
-        self.assertEqual(AttendanceRecord.objects.count(), 1)
-        self.assertEqual(AttendanceRecord.objects.first().attendance_code, "100")
+        assert result["success"] is True
+        assert result["logs_synced"] == 1  # Only today's log
+        assert result["total_today_logs"] == 1
+        assert AttendanceRecord.objects.count() == 1
+        assert AttendanceRecord.objects.first().attendance_code == "100"
 
     @patch("apps.hrm.tasks.attendances.ZKDeviceService")
     def test_sync_uses_last_sync_time(self, mock_service_class):
@@ -173,7 +172,7 @@ class TestSyncAttendanceLogsForDevice(TestCase):
         # Assert
         mock_service.get_attendance_logs.assert_called_once()
         call_args = mock_service.get_attendance_logs.call_args
-        self.assertEqual(call_args[1]["start_datetime"], last_sync)
+        assert call_args[1]["start_datetime"] == last_sync
 
     @patch("apps.hrm.tasks.attendances.ZKDeviceService")
     def test_sync_uses_default_lookback_when_no_last_sync(self, mock_service_class):
@@ -201,7 +200,7 @@ class TestSyncAttendanceLogsForDevice(TestCase):
         # Should be approximately 1 day ago
         expected = django_timezone.now() - timedelta(days=1)
         delta = abs((start_dt - expected).total_seconds())
-        self.assertLess(delta, 5)  # Within 5 seconds
+        assert delta < 5  # Within 5 seconds
 
     @patch("apps.hrm.tasks.attendances.ZKDeviceService")
     def test_sync_connection_error_updates_status(self, mock_service_class):
@@ -226,7 +225,7 @@ class TestSyncAttendanceLogsForDevice(TestCase):
 
         # Assert device status updated
         self.device.refresh_from_db()
-        self.assertFalse(self.device.is_connected)
+        assert self.device.is_connected is False
 
     @patch("apps.hrm.tasks.attendances.ZKDeviceService")
     def test_sync_saves_raw_data(self, mock_service_class):
@@ -254,10 +253,10 @@ class TestSyncAttendanceLogsForDevice(TestCase):
 
         # Assert
         record = AttendanceRecord.objects.first()
-        self.assertIsNotNone(record.raw_data)
-        self.assertEqual(record.raw_data["uid"], 1)
-        self.assertEqual(record.raw_data["user_id"], "100")
-        self.assertEqual(record.raw_data["status"], 1)
+        assert record.raw_data is not None
+        assert record.raw_data["uid"] == 1
+        assert record.raw_data["user_id"] == "100"
+        assert record.raw_data["status"] == 1
 
     def test_sync_device_not_found(self):
         """Test handling of non-existent device."""
@@ -265,9 +264,9 @@ class TestSyncAttendanceLogsForDevice(TestCase):
         result = sync_attendance_logs_for_device(99999)
 
         # Assert
-        self.assertFalse(result["success"])
-        self.assertEqual(result["device_id"], 99999)
-        self.assertIn("does not exist", result["error"])
+        assert result["success"] is False
+        assert result["device_id"] == 99999
+        assert "does not exist" in result["error"]
 
     @patch("apps.hrm.tasks.attendances.ZKDeviceService")
     def test_sync_empty_logs(self, mock_service_class):
@@ -283,21 +282,22 @@ class TestSyncAttendanceLogsForDevice(TestCase):
         result = sync_attendance_logs_for_device(self.device.id)
 
         # Assert
-        self.assertTrue(result["success"])
-        self.assertEqual(result["logs_synced"], 0)
-        self.assertEqual(AttendanceRecord.objects.count(), 0)
+        assert result["success"] is True
+        assert result["logs_synced"] == 0
+        assert AttendanceRecord.objects.count() == 0
 
         # Device status should still be updated
         self.device.refresh_from_db()
-        self.assertTrue(self.device.is_connected)
-        self.assertIsNotNone(self.device.polling_synced_at)
+        assert self.device.is_connected is True
+        assert self.device.polling_synced_at is not None
 
 
 @pytest.mark.django_db
-class TestSyncAllAttendanceDevices(TestCase):
+class TestSyncAllAttendanceDevices:
     """Test cases for sync_all_attendance_devices task."""
 
-    def setUp(self):
+    @pytest.fixture(autouse=True)
+    def setup_devices(self):
         """Set up test data."""
         self.device1 = AttendanceDevice.objects.create(
             name="Device 1",
@@ -320,13 +320,13 @@ class TestSyncAllAttendanceDevices(TestCase):
         result = sync_all_attendance_devices()
 
         # Assert
-        self.assertEqual(result["total_devices"], 2)
-        self.assertEqual(result["tasks_triggered"], 2)
-        self.assertIn(self.device1.id, result["device_ids"])
-        self.assertIn(self.device2.id, result["device_ids"])
+        assert result["total_devices"] == 2
+        assert result["tasks_triggered"] == 2
+        assert self.device1.id in result["device_ids"]
+        assert self.device2.id in result["device_ids"]
 
         # Verify delay was called for each device
-        self.assertEqual(mock_sync_task.delay.call_count, 2)
+        assert mock_sync_task.delay.call_count == 2
 
     @patch("apps.hrm.tasks.attendances.sync_attendance_logs_for_device")
     def test_sync_all_with_no_devices(self, mock_sync_task):
@@ -338,9 +338,9 @@ class TestSyncAllAttendanceDevices(TestCase):
         result = sync_all_attendance_devices()
 
         # Assert
-        self.assertEqual(result["total_devices"], 0)
-        self.assertEqual(result["tasks_triggered"], 0)
-        self.assertEqual(result["device_ids"], [])
+        assert result["total_devices"] == 0
+        assert result["tasks_triggered"] == 0
+        assert result["device_ids"] == []
         mock_sync_task.delay.assert_not_called()
 
     @patch("apps.hrm.tasks.attendances.sync_attendance_logs_for_device")
@@ -356,9 +356,9 @@ class TestSyncAllAttendanceDevices(TestCase):
         result = sync_all_attendance_devices()
 
         # Assert
-        self.assertEqual(result["total_devices"], 2)
-        self.assertEqual(result["tasks_triggered"], 1)  # Only one succeeded
-        self.assertEqual(len(result["device_ids"]), 1)
+        assert result["total_devices"] == 2
+        assert result["tasks_triggered"] == 1  # Only one succeeded
+        assert len(result["device_ids"]) == 1
 
     @patch("apps.hrm.tasks.attendances.sync_attendance_logs_for_device")
     def test_sync_all_with_single_device(self, mock_sync_task):
@@ -371,8 +371,8 @@ class TestSyncAllAttendanceDevices(TestCase):
         result = sync_all_attendance_devices()
 
         # Assert
-        self.assertEqual(result["total_devices"], 1)
-        self.assertEqual(result["tasks_triggered"], 1)
+        assert result["total_devices"] == 1
+        assert result["tasks_triggered"] == 1
         mock_sync_task.delay.assert_called_once_with(self.device1.id)
 
     @patch("apps.hrm.tasks.attendances.sync_attendance_logs_for_device")
@@ -388,8 +388,8 @@ class TestSyncAllAttendanceDevices(TestCase):
         result = sync_all_attendance_devices()
 
         # Assert
-        self.assertEqual(result["total_devices"], 1)  # Only device1 is enabled
-        self.assertEqual(result["tasks_triggered"], 1)
+        assert result["total_devices"] == 1  # Only device1 is enabled
+        assert result["tasks_triggered"] == 1
         mock_sync_task.delay.assert_called_once_with(self.device1.id)
-        self.assertIn(self.device1.id, result["device_ids"])
-        self.assertNotIn(self.device2.id, result["device_ids"])
+        assert self.device1.id in result["device_ids"]
+        assert self.device2.id not in result["device_ids"]

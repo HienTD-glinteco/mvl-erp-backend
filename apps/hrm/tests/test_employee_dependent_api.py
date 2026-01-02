@@ -1,10 +1,9 @@
 import json
 
+import pytest
 from django.contrib.auth import get_user_model
-from django.test import TransactionTestCase
 from django.urls import reverse
 from rest_framework import status
-from rest_framework.test import APIClient
 
 from apps.hrm.models import Employee, EmployeeDependent
 
@@ -26,60 +25,19 @@ class APITestMixin:
         return content
 
 
-class EmployeeDependentAPITest(TransactionTestCase, APITestMixin):
+@pytest.mark.django_db
+class TestEmployeeDependentAPI(APITestMixin):
     """Test cases for EmployeeDependent API endpoints."""
 
-    def setUp(self):
-        # Clear all existing data for clean tests
-        EmployeeDependent.objects.all().delete()
-        Employee.objects.all().delete()
-        User.objects.all().delete()
-
-        # Changed to superuser to bypass RoleBasedPermission for API tests
-        self.user = User.objects.create_superuser(
-            username="testuser", email="test@example.com", password="testpass123"
-        )
-        self.client = APIClient()
-        self.client.force_authenticate(user=self.user)
-
-        # Create organizational structure
-        from apps.core.models import AdministrativeUnit, Province
-        from apps.hrm.models import Block, Branch, Department
-
-        self.province = Province.objects.create(code="01", name="Test Province")
-        self.admin_unit = AdministrativeUnit.objects.create(
-            code="01",
-            name="Test Admin Unit",
-            parent_province=self.province,
-            level=AdministrativeUnit.UnitLevel.DISTRICT,
-        )
-
-        self.branch = Branch.objects.create(
-            code="CN001",
-            name="Main Branch",
-            province=self.province,
-            administrative_unit=self.admin_unit,
-        )
-        self.block = Block.objects.create(
-            code="KH001", name="Main Block", branch=self.branch, block_type=Block.BlockType.BUSINESS
-        )
-        self.department = Department.objects.create(
-            code="PB001", name="Engineering Department", block=self.block, branch=self.branch
-        )
-
-        # Create test employee
-        self.employee = Employee.objects.create(
-            fullname="John Doe",
-            username="johndoe",
-            email="john.doe@example.com",
-            phone="0900201201",
-            code_type="MV",
-            branch=self.branch,
-            block=self.block,
-            department=self.department,
-            start_date="2024-01-01",
-            citizen_id="000000020012",
-        )
+    @pytest.fixture(autouse=True)
+    def setup_client(self, api_client, superuser, branch, block, department, employee):
+        """Set up test data"""
+        self.client = api_client
+        self.user = superuser
+        self.branch = branch
+        self.block = block
+        self.department = department
+        self.employee = employee
 
         self.dependent_data = {
             "employee_id": self.employee.id,
@@ -96,23 +54,23 @@ class EmployeeDependentAPITest(TransactionTestCase, APITestMixin):
         url = reverse("hrm:employee-dependent-list")
         response = self.client.post(url, self.dependent_data, format="json")
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(EmployeeDependent.objects.count(), 1)
+        assert response.status_code == status.HTTP_201_CREATED
+        assert EmployeeDependent.objects.count() == 1
 
         dependent = EmployeeDependent.objects.first()
-        self.assertEqual(dependent.dependent_name, self.dependent_data["dependent_name"])
-        self.assertEqual(dependent.relationship, self.dependent_data["relationship"])
-        self.assertEqual(dependent.citizen_id, self.dependent_data["citizen_id"])
-        self.assertEqual(dependent.employee, self.employee)
-        self.assertTrue(dependent.is_active)
-        self.assertEqual(dependent.created_by, self.user)
+        assert dependent.dependent_name == self.dependent_data["dependent_name"]
+        assert dependent.relationship == self.dependent_data["relationship"]
+        assert dependent.citizen_id == self.dependent_data["citizen_id"]
+        assert dependent.employee == self.employee
+        assert dependent.is_active is True
+        assert dependent.created_by == self.user
 
         # Verify nested employee is returned in response
         result_data = self.get_response_data(response)
-        self.assertIn("employee", result_data)
-        self.assertEqual(result_data["employee"]["id"], self.employee.id)
-        self.assertEqual(result_data["employee"]["code"], self.employee.code)
-        self.assertEqual(result_data["employee"]["fullname"], self.employee.fullname)
+        assert "employee" in result_data
+        assert result_data["employee"]["id"] == self.employee.id
+        assert result_data["employee"]["code"] == self.employee.code
+        assert result_data["employee"]["fullname"] == self.employee.fullname
 
     def test_create_dependent_minimal_fields(self):
         """Test creating a dependent with only required fields."""
@@ -125,14 +83,14 @@ class EmployeeDependentAPITest(TransactionTestCase, APITestMixin):
         }
         response = self.client.post(url, minimal_data, format="json")
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(EmployeeDependent.objects.count(), 1)
+        assert response.status_code == status.HTTP_201_CREATED
+        assert EmployeeDependent.objects.count() == 1
 
         dependent = EmployeeDependent.objects.first()
-        self.assertEqual(dependent.dependent_name, minimal_data["dependent_name"])
-        self.assertEqual(dependent.relationship, minimal_data["relationship"])
-        self.assertEqual(dependent.citizen_id, "")
-        self.assertIsNone(dependent.date_of_birth)
+        assert dependent.dependent_name == minimal_data["dependent_name"]
+        assert dependent.relationship == minimal_data["relationship"]
+        assert dependent.citizen_id == ""
+        assert dependent.date_of_birth is None
 
     def test_create_dependent_missing_required_field(self):
         """Test creating a dependent without required fields."""
@@ -143,8 +101,8 @@ class EmployeeDependentAPITest(TransactionTestCase, APITestMixin):
         }
         response = self.client.post(url, invalid_data, format="json")
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(EmployeeDependent.objects.count(), 0)
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert EmployeeDependent.objects.count() == 0
 
     def test_validate_citizen_id_length_9(self):
         """Test ID number validation with 9 digits."""
@@ -153,7 +111,7 @@ class EmployeeDependentAPITest(TransactionTestCase, APITestMixin):
         data["citizen_id"] = "123456789"
         response = self.client.post(url, data, format="json")
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        assert response.status_code == status.HTTP_201_CREATED
 
     def test_validate_citizen_id_length_12(self):
         """Test ID number validation with 12 digits."""
@@ -162,7 +120,7 @@ class EmployeeDependentAPITest(TransactionTestCase, APITestMixin):
         data["citizen_id"] = "123456789012"
         response = self.client.post(url, data, format="json")
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        assert response.status_code == status.HTTP_201_CREATED
 
     def test_validate_citizen_id_invalid_length(self):
         """Test ID number validation with invalid length."""
@@ -171,7 +129,7 @@ class EmployeeDependentAPITest(TransactionTestCase, APITestMixin):
         data["citizen_id"] = "12345"  # Invalid length
         response = self.client.post(url, data, format="json")
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
 
     def test_validate_citizen_id_non_numeric(self):
         """Test ID number validation with non-numeric characters."""
@@ -180,7 +138,7 @@ class EmployeeDependentAPITest(TransactionTestCase, APITestMixin):
         data["citizen_id"] = "12345678A"  # Contains letter
         response = self.client.post(url, data, format="json")
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
 
     def test_list_dependents(self):
         """Test listing dependents."""
@@ -203,9 +161,9 @@ class EmployeeDependentAPITest(TransactionTestCase, APITestMixin):
         url = reverse("hrm:employee-dependent-list")
         response = self.client.get(url)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         data = self.get_response_data(response)
-        self.assertEqual(len(data), 2)
+        assert len(data) == 2
 
     def test_retrieve_dependent(self):
         """Test retrieving a specific dependent."""
@@ -220,10 +178,10 @@ class EmployeeDependentAPITest(TransactionTestCase, APITestMixin):
         url = reverse("hrm:employee-dependent-detail", kwargs={"pk": dependent.id})
         response = self.client.get(url)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         data = self.get_response_data(response)
-        self.assertEqual(data["dependent_name"], "Jane Doe")
-        self.assertEqual(data["relationship"], "CHILD")
+        assert data["dependent_name"] == "Jane Doe"
+        assert data["relationship"] == "CHILD"
 
     def test_update_dependent(self):
         """Test updating a dependent."""
@@ -245,10 +203,10 @@ class EmployeeDependentAPITest(TransactionTestCase, APITestMixin):
         }
         response = self.client.put(url, update_data, format="json")
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         dependent.refresh_from_db()
-        self.assertEqual(dependent.dependent_name, "Jane Updated")
-        self.assertEqual(dependent.note, "Updated note")
+        assert dependent.dependent_name == "Jane Updated"
+        assert dependent.note == "Updated note"
 
     def test_partial_update_dependent(self):
         """Test partially updating a dependent."""
@@ -264,10 +222,10 @@ class EmployeeDependentAPITest(TransactionTestCase, APITestMixin):
         update_data = {"note": "Partial update"}
         response = self.client.patch(url, update_data, format="json")
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         dependent.refresh_from_db()
-        self.assertEqual(dependent.note, "Partial update")
-        self.assertEqual(dependent.dependent_name, "Jane Doe")  # Unchanged
+        assert dependent.note == "Partial update"
+        assert dependent.dependent_name == "Jane Doe"  # Unchanged
 
     def test_delete_dependent(self):
         """Test soft deleting a dependent."""
@@ -282,9 +240,9 @@ class EmployeeDependentAPITest(TransactionTestCase, APITestMixin):
         url = reverse("hrm:employee-dependent-detail", kwargs={"pk": dependent.id})
         response = self.client.delete(url)
 
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        assert response.status_code == status.HTTP_204_NO_CONTENT
         dependent.refresh_from_db()
-        self.assertFalse(dependent.is_active)  # Soft deleted
+        assert dependent.is_active is False  # Soft deleted
 
     def test_search_dependents_by_name(self):
         """Test searching dependents by name."""
@@ -306,10 +264,10 @@ class EmployeeDependentAPITest(TransactionTestCase, APITestMixin):
         url = reverse("hrm:employee-dependent-list")
         response = self.client.get(url, {"search": "Alice"})
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         data = self.get_response_data(response)
-        self.assertEqual(len(data), 1)
-        self.assertEqual(data[0]["dependent_name"], "Alice Smith")
+        assert len(data) == 1
+        assert data[0]["dependent_name"] == "Alice Smith"
 
     def test_search_dependents_by_employee_code(self):
         """Test searching dependents by employee code."""
@@ -324,9 +282,9 @@ class EmployeeDependentAPITest(TransactionTestCase, APITestMixin):
         url = reverse("hrm:employee-dependent-list")
         response = self.client.get(url, {"search": self.employee.code})
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         data = self.get_response_data(response)
-        self.assertEqual(len(data), 1)
+        assert len(data) == 1
 
     def test_filter_by_relationship(self):
         """Test filtering dependents by relationship type."""
@@ -348,10 +306,10 @@ class EmployeeDependentAPITest(TransactionTestCase, APITestMixin):
         url = reverse("hrm:employee-dependent-list")
         response = self.client.get(url, {"relationship": "CHILD"})
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         data = self.get_response_data(response)
-        self.assertEqual(len(data), 1)
-        self.assertEqual(data[0]["relationship"], "CHILD")
+        assert len(data) == 1
+        assert data[0]["relationship"] == "CHILD"
 
     def test_filter_by_employee(self):
         """Test filtering dependents by employee."""
@@ -387,9 +345,9 @@ class EmployeeDependentAPITest(TransactionTestCase, APITestMixin):
         url = reverse("hrm:employee-dependent-list")
         response = self.client.get(url, {"employee": self.employee.id})
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         data = self.get_response_data(response)
-        self.assertEqual(len(data), 1)
+        assert len(data) == 1
 
     def test_ordering_by_created_at(self):
         """Test ordering dependents by created_at (default newest first)."""
@@ -411,19 +369,19 @@ class EmployeeDependentAPITest(TransactionTestCase, APITestMixin):
         url = reverse("hrm:employee-dependent-list")
         response = self.client.get(url)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         data = self.get_response_data(response)
         # Newest first (default ordering is -created_at)
-        self.assertEqual(data[0]["dependent_name"], "Second")
-        self.assertEqual(data[1]["dependent_name"], "First")
+        assert data[0]["dependent_name"] == "Second"
+        assert data[1]["dependent_name"] == "First"
 
     def test_relationship_display_field(self):
         """Test that relationship_display field is included in response."""
         url = reverse("hrm:employee-dependent-list")
         response = self.client.post(url, self.dependent_data, format="json")
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        assert response.status_code == status.HTTP_201_CREATED
         data = self.get_response_data(response)
-        self.assertIn("relationship_display", data)
-        self.assertEqual(data["relationship"], "CHILD")
-        self.assertEqual(data["relationship_display"], "Child")
+        assert "relationship_display" in data
+        assert data["relationship"] == "CHILD"
+        assert data["relationship_display"] == "Child"

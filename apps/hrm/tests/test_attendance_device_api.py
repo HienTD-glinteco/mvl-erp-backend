@@ -1,15 +1,10 @@
-import json
 from unittest.mock import MagicMock, patch
 
-from django.contrib.auth import get_user_model
-from django.test import TransactionTestCase
+import pytest
 from django.urls import reverse
 from rest_framework import status
-from rest_framework.test import APIClient
 
 from apps.hrm.models import AttendanceDevice
-
-User = get_user_model()
 
 
 class APITestMixin:
@@ -17,7 +12,7 @@ class APITestMixin:
 
     def get_response_data(self, response):
         """Extract data from wrapped API response."""
-        content = json.loads(response.content.decode())
+        content = response.json()
         if "data" in content:
             data = content["data"]
             # Handle paginated responses - extract results list
@@ -27,23 +22,17 @@ class APITestMixin:
         return content
 
 
-class AttendanceDeviceAPITest(TransactionTestCase, APITestMixin):
+@pytest.mark.django_db
+class TestAttendanceDeviceAPI(APITestMixin):
     """Test cases for AttendanceDevice API endpoints."""
 
-    def setUp(self):
-        """Set up test data."""
-        # Clear all existing data for clean tests
-        AttendanceDevice.objects.all().delete()
-        User.objects.all().delete()
+    @pytest.fixture(autouse=True)
+    def setup_client(self, api_client):
+        self.client = api_client
 
-        # Changed to superuser to bypass RoleBasedPermission for API tests
-        self.user = User.objects.create_superuser(
-            username="testuser", email="test@example.com", password="testpass123"
-        )
-        self.client = APIClient()
-        self.client.force_authenticate(user=self.user)
-
-        self.device_data = {
+    @pytest.fixture
+    def device_data(self):
+        return {
             "name": "Main Entrance Device",
             "ip_address": "192.168.1.100",
             "port": 4370,
@@ -52,13 +41,12 @@ class AttendanceDeviceAPITest(TransactionTestCase, APITestMixin):
         }
 
     @patch("apps.hrm.api.serializers.attendance_device.ZKDeviceService")
-    def test_create_attendance_device_success(self, mock_service):
+    def test_create_attendance_device_success(self, mock_service, device_data):
         """Test creating an attendance device with successful connection."""
         # Arrange - Mock successful connection
         mock_service_instance = MagicMock()
         mock_service_instance.test_connection.return_value = (True, "Connection successful")
         mock_service_instance._zk_connection = MagicMock()
-        # Provide a realistic device info return from service.get_device_info()
         mock_service_instance.get_device_info.return_value = {
             "serial_number": "SN123456789",
             "registration_number": "REG001",
@@ -70,40 +58,37 @@ class AttendanceDeviceAPITest(TransactionTestCase, APITestMixin):
 
         # Act
         url = reverse("hrm:attendance-device-list")
-        response = self.client.post(url, self.device_data, format="json")
+        response = self.client.post(url, device_data, format="json")
 
         # Assert
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(AttendanceDevice.objects.count(), 1)
+        assert response.status_code == status.HTTP_201_CREATED
+        assert AttendanceDevice.objects.count() == 1
 
         device = AttendanceDevice.objects.first()
-        self.assertEqual(device.name, self.device_data["name"])
-        self.assertEqual(device.ip_address, self.device_data["ip_address"])
-        self.assertEqual(device.port, 4370)
-        self.assertEqual(device.serial_number, "SN123456789")
-        # registration_number is not populated by current implementation; expect empty string
-        self.assertEqual(device.registration_number, "")
-        self.assertTrue(device.is_connected)
-        self.assertTrue(device.is_enabled)
+        assert device.name == device_data["name"]
+        assert device.ip_address == device_data["ip_address"]
+        assert device.port == 4370
+        assert device.serial_number == "SN123456789"
+        assert device.registration_number == ""
+        assert device.is_connected is True
+        assert device.is_enabled is True
 
         # Verify code is returned in response
         response_data = self.get_response_data(response)
-        self.assertIn("code", response_data)
-        self.assertIsNotNone(response_data["code"])
+        assert "code" in response_data
+        assert response_data["code"] is not None
 
     @patch("apps.hrm.api.serializers.attendance_device.ZKDeviceService")
-    def test_create_attendance_device_connection_failure(self, mock_service):
+    def test_create_attendance_device_connection_failure(self, mock_service, device_data):
         """Test creating an attendance device with connection failure."""
         # Arrange - Mock failed connection
         mock_service_instance = MagicMock()
         mock_service_instance.test_connection.return_value = (False, "Network connection error: Connection timeout")
-        # Make sure get_device_info returns an empty dict to avoid MagicMock inserted into DB
         mock_service_instance.get_device_info.return_value = {
             "serial_number": "",
             "registration_number": "",
             "firmware_version": "",
         }
-        # Simulate an exception on connect to ensure failure path is taken and message is propagated
         mock_service_instance.__enter__ = MagicMock(
             side_effect=Exception("Network connection error: Connection timeout")
         )
@@ -111,29 +96,29 @@ class AttendanceDeviceAPITest(TransactionTestCase, APITestMixin):
 
         # Act
         url = reverse("hrm:attendance-device-list")
-        response = self.client.post(url, self.device_data, format="json")
+        response = self.client.post(url, device_data, format="json")
 
         # Assert
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(AttendanceDevice.objects.count(), 1)
+        assert response.status_code == status.HTTP_201_CREATED
+        assert AttendanceDevice.objects.count() == 1
 
         device = AttendanceDevice.objects.first()
-        self.assertEqual(device.name, self.device_data["name"])
-        self.assertEqual(device.ip_address, self.device_data["ip_address"])
-        self.assertEqual(device.port, 4370)
-        self.assertEqual(device.serial_number, "")
-        self.assertEqual(device.registration_number, "")
-        self.assertFalse(device.is_connected)
-        self.assertTrue(device.is_enabled)
+        assert device.name == device_data["name"]
+        assert device.ip_address == device_data["ip_address"]
+        assert device.port == 4370
+        assert device.serial_number == ""
+        assert device.registration_number == ""
+        assert device.is_connected is False
+        assert device.is_enabled is True
 
     @patch("apps.hrm.api.serializers.attendance_device.ZKDeviceService")
-    def test_list_attendance_devices(self, mock_service):
+    def test_list_attendance_devices(self, mock_service, device_data):
         """Test listing attendance devices."""
         # Arrange - Create devices directly in DB (bypass validation)
-        device1 = AttendanceDevice.objects.create(
+        AttendanceDevice.objects.create(
             name="Device 1", ip_address="192.168.1.100", port=4370, serial_number="SN001", is_connected=True
         )
-        device2 = AttendanceDevice.objects.create(
+        AttendanceDevice.objects.create(
             name="Device 2", ip_address="192.168.1.101", port=4370, serial_number="SN002", is_connected=False
         )
 
@@ -142,11 +127,11 @@ class AttendanceDeviceAPITest(TransactionTestCase, APITestMixin):
         response = self.client.get(url)
 
         # Assert
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         response_data = self.get_response_data(response)
-        self.assertEqual(len(response_data), 2)
+        assert len(response_data) == 2
 
-    def test_filter_attendance_devices_by_invalid_block_returns_empty(self):
+    def test_filter_attendance_devices_by_invalid_block_returns_empty(self, device_data):
         """Filtering by a non-existent block should return an empty list."""
         AttendanceDevice.objects.create(
             name="Unassigned Device",
@@ -158,12 +143,12 @@ class AttendanceDeviceAPITest(TransactionTestCase, APITestMixin):
         url = reverse("hrm:attendance-device-list")
         response = self.client.get(url, {"block": 999999})
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         response_data = self.get_response_data(response)
-        self.assertEqual(len(response_data), 0)
+        assert len(response_data) == 0
 
     @patch("apps.hrm.api.serializers.attendance_device.ZKDeviceService")
-    def test_retrieve_attendance_device(self, mock_service):
+    def test_retrieve_attendance_device(self, mock_service, device_data):
         """Test retrieving a specific attendance device."""
         # Arrange
         device = AttendanceDevice.objects.create(
@@ -180,15 +165,15 @@ class AttendanceDeviceAPITest(TransactionTestCase, APITestMixin):
         response = self.client.get(url)
 
         # Assert
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         response_data = self.get_response_data(response)
-        self.assertEqual(response_data["name"], "Test Device")
-        self.assertEqual(response_data["serial_number"], "SN123")
-        self.assertEqual(response_data["registration_number"], "REG123")
-        self.assertTrue(response_data["is_connected"])
+        assert response_data["name"] == "Test Device"
+        assert response_data["serial_number"] == "SN123"
+        assert response_data["registration_number"] == "REG123"
+        assert response_data["is_connected"] is True
 
     @patch("apps.hrm.api.serializers.attendance_device.ZKDeviceService")
-    def test_update_attendance_device(self, mock_service):
+    def test_update_attendance_device(self, mock_service, device_data):
         """Test updating an attendance device."""
         # Arrange - Create initial device
         device = AttendanceDevice.objects.create(
@@ -221,17 +206,17 @@ class AttendanceDeviceAPITest(TransactionTestCase, APITestMixin):
         response = self.client.put(url, update_data, format="json")
 
         # Assert
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         device.refresh_from_db()
-        self.assertEqual(device.name, "Updated Name")
-        self.assertEqual(device.ip_address, "192.168.1.200")
-        self.assertEqual(device.serial_number, "")
-        self.assertEqual(device.registration_number, "")
-        self.assertFalse(device.is_connected)
-        self.assertFalse(device.is_enabled)
+        assert device.name == "Updated Name"
+        assert device.ip_address == "192.168.1.200"
+        assert device.serial_number == ""
+        assert device.registration_number == ""
+        assert device.is_connected is False
+        assert device.is_enabled is False
 
     @patch("apps.hrm.api.serializers.attendance_device.ZKDeviceService")
-    def test_partial_update_attendance_device(self, mock_service):
+    def test_partial_update_attendance_device(self, mock_service, device_data):
         """Test partially updating an attendance device."""
         # Arrange - Create initial device
         device = AttendanceDevice.objects.create(
@@ -242,7 +227,7 @@ class AttendanceDeviceAPITest(TransactionTestCase, APITestMixin):
             is_enabled=True,
         )
 
-        # Mock successful connection for update (even though we're only changing name)
+        # Mock successful connection for update
         mock_service_instance = MagicMock()
         mock_service_instance.test_connection.return_value = (True, "Connection successful")
         mock_service_instance._zk_connection = MagicMock()
@@ -260,14 +245,14 @@ class AttendanceDeviceAPITest(TransactionTestCase, APITestMixin):
         response = self.client.patch(url, {"name": "Partially Updated", "is_enabled": False}, format="json")
 
         # Assert
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         device.refresh_from_db()
-        self.assertEqual(device.name, "Partially Updated")
-        self.assertEqual(device.ip_address, "192.168.1.100")  # Unchanged
-        self.assertFalse(device.is_enabled)
+        assert device.name == "Partially Updated"
+        assert device.ip_address == "192.168.1.100"  # Unchanged
+        assert device.is_enabled is False
 
     @patch("apps.hrm.api.serializers.attendance_device.ZKDeviceService")
-    def test_delete_attendance_device(self, mock_service):
+    def test_delete_attendance_device(self, mock_service, device_data):
         """Test deleting an attendance device."""
         # Arrange
         device = AttendanceDevice.objects.create(name="Device to Delete", ip_address="192.168.1.100", port=4370)
@@ -278,11 +263,11 @@ class AttendanceDeviceAPITest(TransactionTestCase, APITestMixin):
         response = self.client.delete(url)
 
         # Assert
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        self.assertFalse(AttendanceDevice.objects.filter(id=device_id).exists())
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+        assert not AttendanceDevice.objects.filter(id=device_id).exists()
 
     @patch("apps.hrm.api.serializers.attendance_device.ZKDeviceService")
-    def test_filter_by_is_enabled(self, mock_service):
+    def test_filter_by_is_enabled(self, mock_service, device_data):
         """Test filtering devices by is_enabled status."""
         # Arrange
         AttendanceDevice.objects.create(name="Enabled Device", ip_address="192.168.1.100", port=4370, is_enabled=True)
@@ -295,13 +280,13 @@ class AttendanceDeviceAPITest(TransactionTestCase, APITestMixin):
         response = self.client.get(url, {"is_enabled": "true"})
 
         # Assert
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         response_data = self.get_response_data(response)
-        self.assertEqual(len(response_data), 1)
-        self.assertEqual(response_data[0]["name"], "Enabled Device")
+        assert len(response_data) == 1
+        assert response_data[0]["name"] == "Enabled Device"
 
     @patch("apps.hrm.api.serializers.attendance_device.ZKDeviceService")
-    def test_filter_by_is_connected(self, mock_service):
+    def test_filter_by_is_connected(self, mock_service, device_data):
         """Test filtering devices by is_connected status."""
         # Arrange
         AttendanceDevice.objects.create(
@@ -316,13 +301,13 @@ class AttendanceDeviceAPITest(TransactionTestCase, APITestMixin):
         response = self.client.get(url, {"is_connected": "true"})
 
         # Assert
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         response_data = self.get_response_data(response)
-        self.assertEqual(len(response_data), 1)
-        self.assertEqual(response_data[0]["name"], "Connected Device")
+        assert len(response_data) == 1
+        assert response_data[0]["name"] == "Connected Device"
 
     @patch("apps.hrm.api.serializers.attendance_device.ZKDeviceService")
-    def test_search_devices(self, mock_service):
+    def test_search_devices(self, mock_service, device_data):
         """Test searching devices by name or IP address."""
         # Arrange
         AttendanceDevice.objects.create(name="Main Entrance", ip_address="192.168.1.100", port=4370, is_enabled=True)
@@ -333,13 +318,13 @@ class AttendanceDeviceAPITest(TransactionTestCase, APITestMixin):
         response = self.client.get(url, {"search": "Main"})
 
         # Assert
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         response_data = self.get_response_data(response)
-        self.assertEqual(len(response_data), 1)
-        self.assertEqual(response_data[0]["name"], "Main Entrance")
+        assert len(response_data) == 1
+        assert response_data[0]["name"] == "Main Entrance"
 
     @patch("apps.hrm.api.serializers.attendance_device.ZKDeviceService")
-    def test_ordering_by_name(self, mock_service):
+    def test_ordering_by_name(self, mock_service, device_data):
         """Test ordering devices by name."""
         # Arrange
         AttendanceDevice.objects.create(name="Z Device", ip_address="192.168.1.100", port=4370)
@@ -351,15 +336,15 @@ class AttendanceDeviceAPITest(TransactionTestCase, APITestMixin):
         response = self.client.get(url, {"ordering": "name"})
 
         # Assert
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         response_data = self.get_response_data(response)
-        self.assertEqual(len(response_data), 3)
-        self.assertEqual(response_data[0]["name"], "A Device")
-        self.assertEqual(response_data[1]["name"], "M Device")
-        self.assertEqual(response_data[2]["name"], "Z Device")
+        assert len(response_data) == 3
+        assert response_data[0]["name"] == "A Device"
+        assert response_data[1]["name"] == "M Device"
+        assert response_data[2]["name"] == "Z Device"
 
     @patch("apps.hrm.models.attendance_device.ZKDeviceService")
-    def test_toggle_enabled_enable_device_success(self, mock_service):
+    def test_toggle_enabled_enable_device_success(self, mock_service, device_data):
         """Test toggling device from disabled to enabled with successful connection."""
         # Arrange - Create disabled device
         device = AttendanceDevice.objects.create(
@@ -384,16 +369,15 @@ class AttendanceDeviceAPITest(TransactionTestCase, APITestMixin):
         response = self.client.post(url)
 
         # Assert
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         device.refresh_from_db()
-        self.assertTrue(device.is_enabled)
-        self.assertTrue(device.is_connected)
-        self.assertEqual(device.serial_number, "SN123")
-        # registration_number is not populated by current implementation; expect empty string
-        self.assertEqual(device.registration_number, "")
+        assert device.is_enabled is True
+        assert device.is_connected is True
+        assert device.serial_number == "SN123"
+        assert device.registration_number == ""
 
     @patch("apps.hrm.models.attendance_device.ZKDeviceService")
-    def test_toggle_enabled_enable_device_connection_failure(self, mock_service):
+    def test_toggle_enabled_enable_device_connection_failure(self, mock_service, device_data):
         """Test toggling device from disabled to enabled with connection failure."""
         # Arrange - Create disabled device
         device = AttendanceDevice.objects.create(
@@ -416,13 +400,13 @@ class AttendanceDeviceAPITest(TransactionTestCase, APITestMixin):
         response = self.client.post(url)
 
         # Assert
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
         device.refresh_from_db()
-        self.assertFalse(device.is_enabled)
-        self.assertFalse(device.is_connected)
+        assert device.is_enabled is False
+        assert device.is_connected is False
 
     @patch("apps.hrm.models.attendance_device.ZKDeviceService")
-    def test_toggle_enabled_disable_device(self, mock_service):
+    def test_toggle_enabled_disable_device(self, mock_service, device_data):
         """Test toggling device from enabled to disabled."""
         # Arrange - Create enabled device
         device = AttendanceDevice.objects.create(
@@ -434,13 +418,13 @@ class AttendanceDeviceAPITest(TransactionTestCase, APITestMixin):
         response = self.client.post(url)
 
         # Assert
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         device.refresh_from_db()
-        self.assertFalse(device.is_enabled)
-        self.assertFalse(device.is_connected)
+        assert device.is_enabled is False
+        assert device.is_connected is False
 
     @patch("apps.hrm.models.attendance_device.ZKDeviceService")
-    def test_check_connection_success(self, mock_service):
+    def test_check_connection_success(self, mock_service, device_data):
         """Test checking connection with successful result."""
         # Arrange
         device = AttendanceDevice.objects.create(
@@ -465,17 +449,16 @@ class AttendanceDeviceAPITest(TransactionTestCase, APITestMixin):
         response = self.client.post(url)
 
         # Assert
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         response_data = self.get_response_data(response)
-        self.assertEqual(response_data["message"], "Connection successful. Firmware: 6.60")
+        assert response_data["message"] == "Connection successful. Firmware: 6.60"
         device.refresh_from_db()
-        self.assertTrue(device.is_connected)
-        self.assertEqual(device.serial_number, "SN456")
-        # registration_number is not populated by current implementation; expect empty string
-        self.assertEqual(device.registration_number, "")
+        assert device.is_connected is True
+        assert device.serial_number == "SN456"
+        assert device.registration_number == ""
 
     @patch("apps.hrm.models.attendance_device.ZKDeviceService")
-    def test_check_connection_failure(self, mock_service):
+    def test_check_connection_failure(self, mock_service, device_data):
         """Test checking connection with failed result."""
         # Arrange
         device = AttendanceDevice.objects.create(
@@ -500,14 +483,14 @@ class AttendanceDeviceAPITest(TransactionTestCase, APITestMixin):
         response = self.client.post(url)
 
         # Assert
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         response_data = self.get_response_data(response)
-        self.assertEqual(response_data["message"], "Network connection error: Connection timeout")
+        assert response_data["message"] == "Network connection error: Connection timeout"
         device.refresh_from_db()
-        self.assertFalse(device.is_connected)
+        assert device.is_connected is False
 
     @patch("apps.hrm.api.serializers.attendance_device.ZKDeviceService")
-    def test_create_device_with_note(self, mock_service):
+    def test_create_device_with_note(self, mock_service, device_data):
         """Test creating a device with a note."""
         # Arrange - Mock successful connection
         mock_service_instance = MagicMock()
@@ -522,7 +505,7 @@ class AttendanceDeviceAPITest(TransactionTestCase, APITestMixin):
         mock_service_instance.__exit__ = MagicMock(return_value=False)
         mock_service.return_value = mock_service_instance
 
-        device_data = {
+        device_data_with_note = {
             "name": "Test Device",
             "ip_address": "192.168.1.100",
             "port": 4370,
@@ -533,20 +516,20 @@ class AttendanceDeviceAPITest(TransactionTestCase, APITestMixin):
 
         # Act
         url = reverse("hrm:attendance-device-list")
-        response = self.client.post(url, device_data, format="json")
+        response = self.client.post(url, device_data_with_note, format="json")
 
         # Assert
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        assert response.status_code == status.HTTP_201_CREATED
         device = AttendanceDevice.objects.first()
-        self.assertEqual(device.note, "This is a test device note")
+        assert device.note == "This is a test device note"
 
         # Verify note is returned in response
         response_data = self.get_response_data(response)
-        self.assertIn("note", response_data)
-        self.assertEqual(response_data["note"], "This is a test device note")
+        assert "note" in response_data
+        assert response_data["note"] == "This is a test device note"
 
     @patch("apps.hrm.api.serializers.attendance_device.ZKDeviceService")
-    def test_create_device_without_note_defaults_to_empty(self, mock_service):
+    def test_create_device_without_note_defaults_to_empty(self, mock_service, device_data):
         """Test creating a device without a note defaults to empty string."""
         # Arrange - Mock successful connection
         mock_service_instance = MagicMock()
@@ -563,15 +546,15 @@ class AttendanceDeviceAPITest(TransactionTestCase, APITestMixin):
 
         # Act
         url = reverse("hrm:attendance-device-list")
-        response = self.client.post(url, self.device_data, format="json")
+        response = self.client.post(url, device_data, format="json")
 
         # Assert
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        assert response.status_code == status.HTTP_201_CREATED
         device = AttendanceDevice.objects.first()
-        self.assertEqual(device.note, "")
+        assert device.note == ""
 
     @patch("apps.hrm.api.serializers.attendance_device.ZKDeviceService")
-    def test_update_device_note(self, mock_service):
+    def test_update_device_note(self, mock_service, device_data):
         """Test updating a device's note."""
         # Arrange
         device = AttendanceDevice.objects.create(
@@ -596,15 +579,15 @@ class AttendanceDeviceAPITest(TransactionTestCase, APITestMixin):
         response = self.client.patch(url, {"note": "Updated note", "password": "admin123"}, format="json")
 
         # Assert
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         device.refresh_from_db()
-        self.assertEqual(device.note, "Updated note")
+        assert device.note == "Updated note"
 
     @patch("apps.hrm.api.serializers.attendance_device.ZKDeviceService")
-    def test_password_required_on_create(self, mock_service):
+    def test_password_required_on_create(self, mock_service, device_data):
         """Test that password is required when creating a device."""
         # Arrange
-        device_data = {
+        device_data_no_password = {
             "name": "Test Device",
             "ip_address": "192.168.1.100",
             "port": 4370,
@@ -614,15 +597,15 @@ class AttendanceDeviceAPITest(TransactionTestCase, APITestMixin):
 
         # Act
         url = reverse("hrm:attendance-device-list")
-        response = self.client.post(url, device_data, format="json")
+        response = self.client.post(url, device_data_no_password, format="json")
 
         # Assert
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        response_content = json.loads(response.content.decode())
-        self.assertIn("error", response_content)
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        response_content = response.json()
+        assert "error" in response_content
 
     @patch("apps.hrm.api.serializers.attendance_device.ZKDeviceService")
-    def test_code_field_returned_in_response(self, mock_service):
+    def test_code_field_returned_in_response(self, mock_service, device_data):
         """Test that code field is returned in API responses."""
         # Arrange
         device = AttendanceDevice.objects.create(
@@ -636,7 +619,7 @@ class AttendanceDeviceAPITest(TransactionTestCase, APITestMixin):
         response = self.client.get(url)
 
         # Assert
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         response_data = self.get_response_data(response)
-        self.assertIn("code", response_data)
-        self.assertEqual(response_data["code"], device.code)
+        assert "code" in response_data
+        assert response_data["code"] == device.code

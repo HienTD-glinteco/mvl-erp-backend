@@ -52,47 +52,90 @@ def retry(
     def _decorator(func: Callable[..., Any]) -> Callable[..., Any]:
         @functools.wraps(func)
         def _wrapped(*args: Any, **kwargs: Any) -> Any:
-            attempt = 0
-            cur_delay = float(delay)
-            last_exc: Optional[BaseException] = None
-
-            while attempt < max_attempts:
-                try:
-                    return func(*args, **kwargs)
-                except exceptions as exc:
-                    last_exc = exc
-                    attempt += 1
-                    if logger:
-                        logger.warning(
-                            "Retrying %s (attempt %d/%d) after exception: %s",
-                            getattr(func, "__name__", str(func)),
-                            attempt,
-                            max_attempts,
-                            exc,
-                        )
-
-                    if attempt >= max_attempts:
-                        break
-
-                    sleep_for = cur_delay
-                    if jitter and jitter > 0.0:
-                        max_ms = int(jitter * 1000)
-                        # secrets.randbelow(n) returns int in range(0, n)
-                        # pass max_ms + 1 to include max_ms itself
-                        sleep_for += secrets.randbelow(max_ms + 1) / 1000.0
-
-                    time.sleep(sleep_for)
-
-                    cur_delay = cur_delay * float(backoff)
-                    if max_delay is not None:
-                        cur_delay = min(cur_delay, float(max_delay))
-
-            # Exhausted attempts
-            if last_exc is not None and raise_on_final:
-                raise last_exc
-
-            return None
+            executor = _RetryExecutor(
+                func=func,
+                max_attempts=max_attempts,
+                exceptions=exceptions,
+                delay=delay,
+                backoff=backoff,
+                max_delay=max_delay,
+                jitter=jitter,
+                logger=logger,
+                raise_on_final=raise_on_final,
+            )
+            return executor.run(*args, **kwargs)
 
         return _wrapped
 
     return _decorator
+
+
+class _RetryExecutor:
+    """Helper class to execute retry logic and keep complexity low."""
+
+    def __init__(
+        self,
+        func: Callable[..., Any],
+        max_attempts: int,
+        exceptions: Tuple[Type[BaseException], ...],
+        delay: float,
+        backoff: float,
+        max_delay: Optional[float],
+        jitter: float,
+        logger: Optional[logging.Logger],
+        raise_on_final: bool,
+    ):
+        self.func = func
+        self.max_attempts = max_attempts
+        self.exceptions = exceptions
+        self.delay = delay
+        self.backoff = backoff
+        self.max_delay = max_delay
+        self.jitter = jitter
+        self.logger = logger
+        self.raise_on_final = raise_on_final
+
+    def run(self, *args, **kwargs) -> Any:
+        attempt = 0
+        cur_delay = float(self.delay)
+        last_exc: Optional[BaseException] = None
+
+        while attempt < self.max_attempts:
+            try:
+                return self.func(*args, **kwargs)
+            except self.exceptions as exc:
+                last_exc = exc
+                attempt += 1
+                self._log_attempt(exc, attempt)
+
+                if attempt >= self.max_attempts:
+                    break
+
+                time.sleep(self._get_sleep_time(cur_delay))
+                cur_delay = self._update_delay(cur_delay)
+
+        if last_exc is not None and self.raise_on_final:
+            raise last_exc
+        return None
+
+    def _get_sleep_time(self, current_delay: float) -> float:
+        if self.jitter and self.jitter > 0.0:
+            max_ms = int(self.jitter * 1000)
+            return current_delay + (secrets.randbelow(max_ms + 1) / 1000.0)
+        return current_delay
+
+    def _update_delay(self, current_delay: float) -> float:
+        new_delay = current_delay * float(self.backoff)
+        if self.max_delay is not None:
+            return min(new_delay, float(self.max_delay))
+        return new_delay
+
+    def _log_attempt(self, exc: BaseException, attempt: int):
+        if self.logger:
+            self.logger.warning(
+                "Retrying %s (attempt %d/%d) after exception: %s",
+                getattr(self.func, "__name__", str(self.func)),
+                attempt,
+                self.max_attempts,
+                exc,
+            )

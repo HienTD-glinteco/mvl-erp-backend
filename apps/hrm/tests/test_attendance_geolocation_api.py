@@ -1,10 +1,7 @@
-import json
-
+import pytest
 from django.contrib.auth import get_user_model
-from django.test import TransactionTestCase
 from django.urls import reverse
 from rest_framework import status
-from rest_framework.test import APIClient
 
 from apps.hrm.models import AttendanceGeolocation
 from apps.realestate.models import Project
@@ -17,7 +14,7 @@ class APITestMixin:
 
     def get_response_data(self, response):
         """Extract data from wrapped API response."""
-        content = json.loads(response.content.decode())
+        content = response.json()
         if "data" in content:
             data = content["data"]
             # Handle paginated responses - extract results list
@@ -27,31 +24,28 @@ class APITestMixin:
         return content
 
 
-class AttendanceGeolocationAPITest(TransactionTestCase, APITestMixin):
+@pytest.mark.django_db
+class TestAttendanceGeolocationAPI(APITestMixin):
     """Test cases for AttendanceGeolocation API endpoints."""
 
-    def setUp(self):
-        # Clear all existing data for clean tests
-        AttendanceGeolocation.objects.all().delete()
-        Project.objects.all().delete()
-        User.objects.all().delete()
+    @pytest.fixture(autouse=True)
+    def setup_client(self, api_client, superuser):
+        self.user = superuser
+        self.client = api_client
 
-        # Changed to superuser to bypass RoleBasedPermission for API tests
-        self.user = User.objects.create_superuser(
-            username="testuser", email="test@example.com", password="testpass123"
-        )
-        self.client = APIClient()
-        self.client.force_authenticate(user=self.user)
+    @pytest.fixture
+    def projects(self):
+        project1 = Project.objects.create(name="Main Office Project", code="DA001", status="active")
+        project2 = Project.objects.create(name="Branch Office Project", code="DA002", status="active")
+        return project1, project2
 
-        # Create test projects
-        self.project1 = Project.objects.create(name="Main Office Project", code="DA001", status="active")
-        self.project2 = Project.objects.create(name="Branch Office Project", code="DA002", status="active")
-
-        # Create test geolocations
-        self.geo1 = AttendanceGeolocation.objects.create(
+    @pytest.fixture
+    def geolocations(self, projects):
+        project1, project2 = projects
+        geo1 = AttendanceGeolocation.objects.create(
             name="Headquarters Geofence",
             code="DV001",
-            project=self.project1,
+            project=project1,
             address="123 Main Street, District 1, Ho Chi Minh City",
             latitude="10.7769000",
             longitude="106.7009000",
@@ -61,10 +55,10 @@ class AttendanceGeolocationAPITest(TransactionTestCase, APITestMixin):
             created_by=self.user,
             updated_by=self.user,
         )
-        self.geo2 = AttendanceGeolocation.objects.create(
+        geo2 = AttendanceGeolocation.objects.create(
             name="Branch Geofence",
             code="DV002",
-            project=self.project2,
+            project=project2,
             address="456 Branch Road, District 2, Ho Chi Minh City",
             latitude="10.8000000",
             longitude="106.7200000",
@@ -74,33 +68,36 @@ class AttendanceGeolocationAPITest(TransactionTestCase, APITestMixin):
             created_by=self.user,
             updated_by=self.user,
         )
+        return geo1, geo2
 
-    def test_list_geolocations(self):
+    def test_list_geolocations(self, geolocations):
         """Test listing all project geolocations."""
         url = reverse("hrm:attendance-geolocation-list")
         response = self.client.get(url)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         data = self.get_response_data(response)
-        self.assertEqual(len(data), 2)
+        assert len(data) == 2
 
-    def test_retrieve_geolocation(self):
+    def test_retrieve_geolocation(self, geolocations):
         """Test retrieving a single project geolocation."""
-        url = reverse("hrm:attendance-geolocation-detail", kwargs={"pk": self.geo1.pk})
+        geo1, _ = geolocations
+        url = reverse("hrm:attendance-geolocation-detail", kwargs={"pk": geo1.pk})
         response = self.client.get(url)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         data = self.get_response_data(response)
-        self.assertEqual(data["code"], "DV001")
-        self.assertEqual(data["name"], "Headquarters Geofence")
-        self.assertEqual(data["radius_m"], 100)
+        assert data["code"] == "DV001"
+        assert data["name"] == "Headquarters Geofence"
+        assert data["radius_m"] == 100
 
-    def test_create_geolocation(self):
+    def test_create_geolocation(self, projects):
         """Test creating a new project geolocation with auto-generated code."""
+        project1, _ = projects
         url = reverse("hrm:attendance-geolocation-list")
         payload = {
             "name": "New Site Geofence",
-            "project_id": self.project1.id,
+            "project_id": project1.id,
             "address": "789 New Street, District 3, Ho Chi Minh City",
             "latitude": "10.7500000",
             "longitude": "106.6800000",
@@ -110,11 +107,11 @@ class AttendanceGeolocationAPITest(TransactionTestCase, APITestMixin):
         }
         response = self.client.post(url, payload, format="json")
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        assert response.status_code == status.HTTP_201_CREATED
         data = self.get_response_data(response)
-        self.assertEqual(data["name"], "New Site Geofence")
-        self.assertTrue(data["code"].startswith("DV"))
-        self.assertEqual(data["radius_m"], 200)
+        assert data["name"] == "New Site Geofence"
+        assert data["code"].startswith("DV")
+        assert data["radius_m"] == 200
 
     def test_create_geolocation_missing_required_fields(self):
         """Test creating a geolocation with missing required fields."""
@@ -125,28 +122,31 @@ class AttendanceGeolocationAPITest(TransactionTestCase, APITestMixin):
         }
         response = self.client.post(url, payload, format="json")
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
 
-    def test_create_geolocation_invalid_radius(self):
+    def test_create_geolocation_invalid_radius(self, projects):
         """Test creating a geolocation with invalid radius (< 1)."""
+        project1, _ = projects
         url = reverse("hrm:attendance-geolocation-list")
         payload = {
             "name": "Invalid Radius Geofence",
-            "project_id": self.project1.id,
+            "project_id": project1.id,
             "latitude": "10.7500000",
             "longitude": "106.6800000",
             "radius_m": 0,  # Invalid: must be >= 1
         }
         response = self.client.post(url, payload, format="json")
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
 
-    def test_update_geolocation(self):
+    def test_update_geolocation(self, geolocations, projects):
         """Test updating a project geolocation."""
-        url = reverse("hrm:attendance-geolocation-detail", kwargs={"pk": self.geo1.pk})
+        geo1, _ = geolocations
+        project1, _ = projects
+        url = reverse("hrm:attendance-geolocation-detail", kwargs={"pk": geo1.pk})
         payload = {
             "name": "Updated Headquarters Geofence",
-            "project_id": self.project1.id,
+            "project_id": project1.id,
             "address": "123 Main Street, District 1, Ho Chi Minh City",
             "latitude": "10.7769000",
             "longitude": "106.7009000",
@@ -156,33 +156,36 @@ class AttendanceGeolocationAPITest(TransactionTestCase, APITestMixin):
         }
         response = self.client.put(url, payload, format="json")
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         data = self.get_response_data(response)
-        self.assertEqual(data["name"], "Updated Headquarters Geofence")
-        self.assertEqual(data["radius_m"], 250)
-        self.assertEqual(data["code"], "DV001")  # Code should remain unchanged
+        assert data["name"] == "Updated Headquarters Geofence"
+        assert data["radius_m"] == 250
+        assert data["code"] == "DV001"  # Code should remain unchanged
 
-    def test_partial_update_geolocation(self):
+    def test_partial_update_geolocation(self, geolocations):
         """Test partially updating a project geolocation."""
-        url = reverse("hrm:attendance-geolocation-detail", kwargs={"pk": self.geo1.pk})
+        geo1, _ = geolocations
+        url = reverse("hrm:attendance-geolocation-detail", kwargs={"pk": geo1.pk})
         payload = {
             "radius_m": 300,
             "notes": "Increased geofence radius",
         }
         response = self.client.patch(url, payload, format="json")
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         data = self.get_response_data(response)
-        self.assertEqual(data["radius_m"], 300)
-        self.assertEqual(data["notes"], "Increased geofence radius")
+        assert data["radius_m"] == 300
+        assert data["notes"] == "Increased geofence radius"
 
-    def test_update_code_is_ignored(self):
+    def test_update_code_is_ignored(self, geolocations, projects):
         """Test that attempting to update code is ignored."""
-        url = reverse("hrm:attendance-geolocation-detail", kwargs={"pk": self.geo1.pk})
-        original_code = self.geo1.code
+        geo1, _ = geolocations
+        project1, _ = projects
+        url = reverse("hrm:attendance-geolocation-detail", kwargs={"pk": geo1.pk})
+        original_code = geo1.code
         payload = {
             "name": "Geofence with Code Update Attempt",
-            "project_id": self.project1.id,
+            "project_id": project1.id,
             "latitude": "10.7769000",
             "longitude": "106.7009000",
             "radius_m": 100,
@@ -190,65 +193,68 @@ class AttendanceGeolocationAPITest(TransactionTestCase, APITestMixin):
         }
         response = self.client.put(url, payload, format="json")
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         data = self.get_response_data(response)
-        self.assertEqual(data["code"], original_code)  # Code should remain unchanged
+        assert data["code"] == original_code  # Code should remain unchanged
 
-    def test_soft_delete_geolocation(self):
+    def test_soft_delete_geolocation(self, geolocations):
         """Test soft-deleting a project geolocation."""
-        url = reverse("hrm:attendance-geolocation-detail", kwargs={"pk": self.geo1.pk})
+        geo1, geo2 = geolocations
+        url = reverse("hrm:attendance-geolocation-detail", kwargs={"pk": geo1.pk})
         response = self.client.delete(url)
 
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        assert response.status_code == status.HTTP_204_NO_CONTENT
 
-        # Verify it's soft-deleted (deleted flag set to True)
-        self.geo1.refresh_from_db()
-        self.assertTrue(self.geo1.deleted)
-        self.assertIsNotNone(self.geo1.deleted_at)
+        # Verify it's soft-deleted
+        geo1.refresh_from_db()
+        assert geo1.deleted is True
+        assert geo1.deleted_at is not None
 
         # Verify it doesn't appear in list
         list_url = reverse("hrm:attendance-geolocation-list")
         list_response = self.client.get(list_url)
         data = self.get_response_data(list_response)
-        self.assertEqual(len(data), 1)  # Only geo2 should be visible
+        assert len(data) == 1  # Only geo2 should be visible
 
-    def test_search_geolocations_by_code(self):
+    def test_search_geolocations_by_code(self, geolocations):
         """Test searching geolocations by code (case-insensitive)."""
         url = reverse("hrm:attendance-geolocation-list")
         response = self.client.get(url, {"search": "dv001"})
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         data = self.get_response_data(response)
-        self.assertEqual(len(data), 1)
-        self.assertEqual(data[0]["code"], "DV001")
+        assert len(data) == 1
+        assert data[0]["code"] == "DV001"
 
-    def test_search_geolocations_by_name(self):
+    def test_search_geolocations_by_name(self, geolocations):
         """Test searching geolocations by name (case-insensitive)."""
         url = reverse("hrm:attendance-geolocation-list")
         response = self.client.get(url, {"search": "headquarters"})
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         data = self.get_response_data(response)
-        self.assertEqual(len(data), 1)
-        self.assertEqual(data[0]["name"], "Headquarters Geofence")
+        assert len(data) == 1
+        assert data[0]["name"] == "Headquarters Geofence"
 
-    def test_filter_geolocations_by_project(self):
+    def test_filter_geolocations_by_project(self, geolocations, projects):
         """Test filtering geolocations by project."""
+        project1, _ = projects
         url = reverse("hrm:attendance-geolocation-list")
-        response = self.client.get(url, {"project": self.project1.id})
+        response = self.client.get(url, {"project": project1.id})
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         data = self.get_response_data(response)
-        self.assertEqual(len(data), 1)
-        self.assertEqual(data[0]["project"]["id"], self.project1.id)
+        assert len(data) == 1
+        assert data[0]["project"]["id"] == project1.id
 
-    def test_filter_geolocations_by_status(self):
+    def test_filter_geolocations_by_status(self, geolocations, projects):
         """Test filtering geolocations by status."""
+        project1, _ = projects
         # Create an inactive geolocation
         AttendanceGeolocation.objects.create(
             name="Inactive Geofence",
             code="DV003",
-            project=self.project1,
+            project=project1,
             latitude="10.7000000",
             longitude="106.6000000",
             radius_m=100,
@@ -260,27 +266,27 @@ class AttendanceGeolocationAPITest(TransactionTestCase, APITestMixin):
         url = reverse("hrm:attendance-geolocation-list")
         response = self.client.get(url, {"status": "inactive"})
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         data = self.get_response_data(response)
-        self.assertEqual(len(data), 1)
-        self.assertEqual(data[0]["status"], "inactive")
+        assert len(data) == 1
+        assert data[0]["status"] == "inactive"
 
-    def test_ordering_geolocations_by_name(self):
+    def test_ordering_geolocations_by_name(self, geolocations):
         """Test ordering geolocations by name."""
         url = reverse("hrm:attendance-geolocation-list")
         response = self.client.get(url, {"ordering": "name"})
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         data = self.get_response_data(response)
-        self.assertEqual(data[0]["name"], "Branch Geofence")
-        self.assertEqual(data[1]["name"], "Headquarters Geofence")
+        assert data[0]["name"] == "Branch Geofence"
+        assert data[1]["name"] == "Headquarters Geofence"
 
-    def test_ordering_geolocations_by_created_at_desc(self):
+    def test_ordering_geolocations_by_created_at_desc(self, geolocations):
         """Test ordering geolocations by created_at descending (default)."""
         url = reverse("hrm:attendance-geolocation-list")
         response = self.client.get(url)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         data = self.get_response_data(response)
         # Most recently created should be first
-        self.assertEqual(data[0]["code"], "DV002")
+        assert data[0]["code"] == "DV002"

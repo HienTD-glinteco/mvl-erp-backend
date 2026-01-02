@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-01 19:05+0700\n"
+"POT-Creation-Date: 2026-01-02 09:15+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -543,7 +543,7 @@ msgstr "Báo cáo chấm công GPS theo phòng ban"
 #: apps/hrm/api/views/employee_relationship.py:238
 #: apps/hrm/api/views/employee_role.py:108
 #: apps/hrm/api/views/employee_work_history.py:124
-#: apps/hrm/api/views/holiday.py:222
+#: apps/hrm/api/views/holiday.py:220
 #: apps/hrm/api/views/interview_candidate.py:157
 #: apps/hrm/api/views/job_description.py:233
 #: apps/hrm/api/views/organization.py:235
@@ -1031,19 +1031,19 @@ msgstr ""
 "Không thể xóa bản ghi thay đổi loại nhân viên nếu ngày hiệu lực thuộc tháng "
 "trước hoặc các tháng trước đó."
 
-#: apps/hrm/api/views/holiday.py:137 apps/hrm/api/views/holiday.py:223
+#: apps/hrm/api/views/holiday.py:137 apps/hrm/api/views/holiday.py:221
 msgid "Holiday Management"
 msgstr "Quản lý Ngày Nghỉ Lễ"
 
-#: apps/hrm/api/views/holiday.py:179
+#: apps/hrm/api/views/holiday.py:178
 msgid "Cannot delete holidays that are in the past or present"
 msgstr "Không thể xóa ngày lễ trong quá khứ hoặc hiện tại"
 
-#: apps/hrm/api/views/holiday.py:261
+#: apps/hrm/api/views/holiday.py:259
 msgid "Holiday not found"
 msgstr "Không tìm thấy ngày nghỉ lễ"
 
-#: apps/hrm/api/views/holiday.py:280
+#: apps/hrm/api/views/holiday.py:277
 msgid "Cannot delete compensatory workdays that are in the past or present"
 msgstr "Không thể xóa ngày làm bù trong quá khứ hoặc hiện tại"
 

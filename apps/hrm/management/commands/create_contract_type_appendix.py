@@ -12,7 +12,7 @@ class Command(BaseCommand):
             obj, created = ContractType.objects.get_or_create(
                 category=ContractType.Category.APPENDIX,
                 defaults={
-                    "name": "Loại Phụ lục hợp đồng",
+                    "name": "Appendix type",
                     "symbol": "PLHD",
                 },
             )

@@ -175,9 +175,7 @@ class HolidayViewSet(ExportXLSXMixin, AuditLoggingMixin, BaseModelViewSet):
     def perform_destroy(self, instance):
         """Soft delete holiday with validation."""
         if instance.start_date <= timezone.localdate():
-            raise ValidationError(
-                {"detail": _("Cannot delete holidays that are in the past or present")}
-            )
+            raise ValidationError({"detail": _("Cannot delete holidays that are in the past or present")})
         super().perform_destroy(instance)
 
 
@@ -276,7 +274,5 @@ class CompensatoryWorkdayViewSet(AuditLoggingMixin, BaseModelViewSet):
     def perform_destroy(self, instance):
         """Soft delete compensatory workday with validation."""
         if instance.date <= timezone.localdate():
-            raise ValidationError(
-                {"detail": _("Cannot delete compensatory workdays that are in the past or present")}
-            )
+            raise ValidationError({"detail": _("Cannot delete compensatory workdays that are in the past or present")})
         super().perform_destroy(instance)

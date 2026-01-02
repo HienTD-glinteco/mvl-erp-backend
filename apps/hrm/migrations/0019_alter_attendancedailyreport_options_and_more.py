@@ -4,7 +4,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("hrm", "0018_employeeworkhistory_new_employee_type_and_more"),
     ]

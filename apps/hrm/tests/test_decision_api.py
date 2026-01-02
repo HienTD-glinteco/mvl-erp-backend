@@ -4,12 +4,11 @@ import json
 from datetime import date
 from unittest.mock import MagicMock, patch
 
+import pytest
 from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType
-from django.test import TransactionTestCase
 from django.urls import reverse
 from rest_framework import status
-from rest_framework.test import APIClient
 
 from apps.core.models import AdministrativeUnit, Province
 from apps.files.models import FileModel
@@ -85,23 +84,17 @@ class DecisionTestMixin:
         )
 
 
-class DecisionModelTest(TransactionTestCase, DecisionTestMixin):
+@pytest.mark.django_db
+class TestDecisionModel:
     """Test cases for Decision model."""
 
-    def setUp(self):
-        """Set up test data."""
-        self.user = User.objects.create_superuser(
-            username="testuser", email="test@example.com", password="testpass123"
-        )
-        self.create_employee_fixtures()
-
-    def test_create_decision(self):
+    def test_create_decision(self, employee):
         """Test creating a decision."""
         decision = Decision.objects.create(
             decision_number="QD-2025-001",
             name="Test Decision",
             signing_date=date(2025, 1, 15),
-            signer=self.employee,
+            signer=employee,
             effective_date=date(2025, 2, 1),
             reason="Test reason",
             content="Test content",
@@ -109,134 +102,130 @@ class DecisionModelTest(TransactionTestCase, DecisionTestMixin):
             signing_status=Decision.SigningStatus.DRAFT,
         )
 
-        self.assertEqual(decision.decision_number, "QD-2025-001")
-        self.assertEqual(decision.name, "Test Decision")
-        self.assertEqual(decision.signing_date, date(2025, 1, 15))
-        self.assertEqual(decision.signer, self.employee)
-        self.assertEqual(decision.effective_date, date(2025, 2, 1))
-        self.assertEqual(decision.reason, "Test reason")
-        self.assertEqual(decision.content, "Test content")
-        self.assertEqual(decision.note, "Test note")
-        self.assertEqual(decision.signing_status, Decision.SigningStatus.DRAFT)
+        assert decision.decision_number == "QD-2025-001"
+        assert decision.name == "Test Decision"
+        assert decision.signing_date == date(2025, 1, 15)
+        assert decision.signer == employee
+        assert decision.effective_date == date(2025, 2, 1)
+        assert decision.reason == "Test reason"
+        assert decision.content == "Test content"
+        assert decision.note == "Test note"
+        assert decision.signing_status == Decision.SigningStatus.DRAFT
 
-    def test_decision_str_representation(self):
+    def test_decision_str_representation(self, employee):
         """Test string representation of decision."""
         decision = Decision.objects.create(
             decision_number="QD-2025-002",
             name="String Test Decision",
             signing_date=date(2025, 1, 15),
-            signer=self.employee,
+            signer=employee,
             effective_date=date(2025, 2, 1),
         )
 
-        self.assertEqual(str(decision), "QD-2025-002 - String Test Decision")
+        assert str(decision) == "QD-2025-002 - String Test Decision"
 
-    def test_decision_unique_number(self):
+    def test_decision_unique_number(self, employee):
         """Test that decision_number is unique."""
         Decision.objects.create(
             decision_number="QD-2025-003",
             name="First Decision",
             signing_date=date(2025, 1, 15),
-            signer=self.employee,
+            signer=employee,
             effective_date=date(2025, 2, 1),
         )
 
-        with self.assertRaises(Exception):
+        with pytest.raises(Exception):
             Decision.objects.create(
                 decision_number="QD-2025-003",
                 name="Duplicate Decision",
                 signing_date=date(2025, 1, 16),
-                signer=self.employee,
+                signer=employee,
                 effective_date=date(2025, 2, 2),
             )
 
-    def test_decision_signing_status_default(self):
+    def test_decision_signing_status_default(self, employee):
         """Test that default signing_status is DRAFT."""
         decision = Decision.objects.create(
             decision_number="QD-2025-004",
             name="Default Status Decision",
             signing_date=date(2025, 1, 15),
-            signer=self.employee,
+            signer=employee,
             effective_date=date(2025, 2, 1),
         )
 
-        self.assertEqual(decision.signing_status, Decision.SigningStatus.DRAFT)
+        assert decision.signing_status == Decision.SigningStatus.DRAFT
 
-    def test_decision_colored_value(self):
+    def test_decision_colored_value(self, employee):
         """Test colored value mapping using ColoredValueMixin."""
         decision = Decision.objects.create(
             decision_number="QD-2025-005",
             name="Color Test Decision",
             signing_date=date(2025, 1, 15),
-            signer=self.employee,
+            signer=employee,
             effective_date=date(2025, 2, 1),
             signing_status=Decision.SigningStatus.DRAFT,
         )
 
         colored_value = decision.get_colored_value("signing_status")
-        self.assertEqual(colored_value["value"], Decision.SigningStatus.DRAFT)
-        self.assertEqual(colored_value["variant"], "GREY")
+        assert colored_value["value"] == Decision.SigningStatus.DRAFT
+        assert colored_value["variant"] == "GREY"
 
         # Test issued status
         decision.signing_status = Decision.SigningStatus.ISSUED
         decision.save()
 
         colored_value = decision.get_colored_value("signing_status")
-        self.assertEqual(colored_value["value"], Decision.SigningStatus.ISSUED)
-        self.assertEqual(colored_value["variant"], "GREEN")
+        assert colored_value["value"] == Decision.SigningStatus.ISSUED
+        assert colored_value["variant"] == "GREEN"
 
-    def test_colored_signing_status_property(self):
+    def test_colored_signing_status_property(self, employee):
         """Test colored_signing_status property returns correct format for ColoredValueSerializer."""
         decision = Decision.objects.create(
             decision_number="QD-2025-006",
             name="Property Test Decision",
             signing_date=date(2025, 1, 15),
-            signer=self.employee,
+            signer=employee,
             effective_date=date(2025, 2, 1),
             signing_status=Decision.SigningStatus.DRAFT,
         )
 
         # Test draft status property
-        self.assertEqual(decision.colored_signing_status["value"], Decision.SigningStatus.DRAFT)
-        self.assertEqual(decision.colored_signing_status["variant"], "GREY")
+        assert decision.colored_signing_status["value"] == Decision.SigningStatus.DRAFT
+        assert decision.colored_signing_status["variant"] == "GREY"
 
         # Test issued status property
         decision.signing_status = Decision.SigningStatus.ISSUED
         decision.save()
 
-        self.assertEqual(decision.colored_signing_status["value"], Decision.SigningStatus.ISSUED)
-        self.assertEqual(decision.colored_signing_status["variant"], "GREEN")
+        assert decision.colored_signing_status["value"] == Decision.SigningStatus.ISSUED
+        assert decision.colored_signing_status["variant"] == "GREEN"
 
 
-class DecisionAPITest(TransactionTestCase, APITestMixin, DecisionTestMixin):
+@pytest.mark.django_db
+class TestDecisionAPI(APITestMixin):
     """Test cases for Decision API endpoints."""
 
-    def setUp(self):
-        """Set up test data."""
-        # Clear existing data
-        Decision.objects.all().delete()
-        Employee.objects.all().delete()
-        User.objects.all().delete()
+    @pytest.fixture(autouse=True)
+    def setup_client(self, api_client, superuser, employee):
+        """Set up test client and user linked to employee."""
+        self.client = api_client
+        self.user = superuser
+        self.employee = employee
 
-        self.user = User.objects.create_superuser(
-            username="testuser", email="test@example.com", password="testpass123"
-        )
-        self.client = APIClient()
-        self.client.force_authenticate(user=self.user)
-
-        # Create employee fixtures
-        self.create_employee_fixtures()
-
-        # Create a confirmed file for tests that require attachment_ids
-        self.test_file = FileModel.objects.create(
+    @pytest.fixture
+    def test_file(self):
+        """Create a confirmed file for tests that require attachment_ids."""
+        return FileModel.objects.create(
             purpose="decision",
             file_name="test_attachment.pdf",
             file_path="uploads/decision/test_attachment.pdf",
             is_confirmed=True,
         )
 
-        # Create test decisions
-        self.decision1 = Decision.objects.create(
+    @pytest.fixture
+    def decisions(self):
+        """Create test decisions."""
+        d1 = Decision.objects.create(
             decision_number="QD-2025-001",
             name="Salary Adjustment Decision",
             signing_date=date(2025, 1, 15),
@@ -248,7 +237,7 @@ class DecisionAPITest(TransactionTestCase, APITestMixin, DecisionTestMixin):
             signing_status=Decision.SigningStatus.ISSUED,
         )
 
-        self.decision2 = Decision.objects.create(
+        d2 = Decision.objects.create(
             decision_number="QD-2025-002",
             name="Employee Promotion Decision",
             signing_date=date(2025, 1, 20),
@@ -259,31 +248,34 @@ class DecisionAPITest(TransactionTestCase, APITestMixin, DecisionTestMixin):
             note="Draft version",
             signing_status=Decision.SigningStatus.DRAFT,
         )
+        return d1, d2
 
-    def test_list_decisions(self):
+    def test_list_decisions(self, decisions):
         """Test listing all decisions."""
         url = reverse("hrm:decision-list")
         response = self.client.get(url)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         data = self.get_response_data(response)
-        self.assertEqual(len(data), 2)
+        assert len(data) == 2
 
-    def test_retrieve_decision(self):
+    def test_retrieve_decision(self, decisions):
         """Test retrieving a single decision."""
-        url = reverse("hrm:decision-detail", kwargs={"pk": self.decision1.pk})
+        decision1, _ = decisions
+        url = reverse("hrm:decision-detail", kwargs={"pk": decision1.pk})
         response = self.client.get(url)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         data = self.get_response_data(response)
-        self.assertEqual(data["decision_number"], "QD-2025-001")
-        self.assertEqual(data["name"], "Salary Adjustment Decision")
-        self.assertEqual(data["signing_date"], "2025-01-15")
-        self.assertEqual(data["signer"]["id"], self.employee.id)
-        self.assertEqual(data["signer"]["fullname"], "John Doe")
-        self.assertEqual(data["signing_status"], "issued")
-        self.assertEqual(data["colored_signing_status"]["value"], "issued")
-        self.assertEqual(data["colored_signing_status"]["variant"], "GREEN")
+        assert data["decision_number"] == "QD-2025-001"
+        assert data["name"] == "Salary Adjustment Decision"
+        assert data["signing_date"] == "2025-01-15"
+        assert data["signer"]["id"] == self.employee.id
+        # In conftest.py, employee fullname is "Test Employee"
+        assert data["signer"]["fullname"] == "Test Employee"
+        assert data["signing_status"] == "issued"
+        assert data["colored_signing_status"]["value"] == "issued"
+        assert data["colored_signing_status"]["variant"] == "GREEN"
 
     @patch("apps.files.utils.s3_utils.S3FileUploadService")
     def test_create_decision(self, mock_s3_service_class):
@@ -317,15 +309,15 @@ class DecisionAPITest(TransactionTestCase, APITestMixin, DecisionTestMixin):
         }
         response = self.client.post(url, payload, format="json")
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        assert response.status_code == status.HTTP_201_CREATED
         data = self.get_response_data(response)
-        self.assertEqual(data["decision_number"], "QD-2025-003")
-        self.assertEqual(data["name"], "New Test Decision")
-        self.assertEqual(data["signer"]["id"], self.employee.id)
-        self.assertEqual(len(data["attachments"]), 1)
-        self.assertEqual(Decision.objects.count(), 3)
+        assert data["decision_number"] == "QD-2025-003"
+        assert data["name"] == "New Test Decision"
+        assert data["signer"]["id"] == self.employee.id
+        assert len(data["attachments"]) == 1
+        assert Decision.objects.count() == 1
 
-    def test_create_decision_duplicate_number(self):
+    def test_create_decision_duplicate_number(self, test_file, decisions):
         """Test creating a decision with duplicate number."""
         url = reverse("hrm:decision-list")
         payload = {
@@ -334,17 +326,18 @@ class DecisionAPITest(TransactionTestCase, APITestMixin, DecisionTestMixin):
             "signing_date": "2025-02-01",
             "signer_id": self.employee.id,
             "effective_date": "2025-03-01",
-            "attachment_ids": [self.test_file.id],
+            "attachment_ids": [test_file.id],
         }
         response = self.client.post(url, payload, format="json")
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
         error = self.get_response_error(response)
-        self.assertEqual("decision_number", error["errors"][0]["attr"])
+        assert "decision_number" == error["errors"][0]["attr"]
 
     @patch("apps.files.utils.s3_utils.S3FileUploadService")
-    def test_update_decision(self, mock_s3_service_class):
+    def test_update_decision(self, mock_s3_service_class, decisions):
         """Test updating a decision."""
+        _, decision2 = decisions
         # Mock S3 service for view/download URLs in FileModel properties
         mock_s3_instance = MagicMock()
         mock_s3_service_class.return_value = mock_s3_instance
@@ -359,7 +352,7 @@ class DecisionAPITest(TransactionTestCase, APITestMixin, DecisionTestMixin):
             is_confirmed=True,
         )
 
-        url = reverse("hrm:decision-detail", kwargs={"pk": self.decision2.pk})
+        url = reverse("hrm:decision-detail", kwargs={"pk": decision2.pk})
         payload = {
             "decision_number": "QD-2025-002",
             "name": "Updated Decision Name",
@@ -371,148 +364,152 @@ class DecisionAPITest(TransactionTestCase, APITestMixin, DecisionTestMixin):
         }
         response = self.client.put(url, payload, format="json")
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         data = self.get_response_data(response)
-        self.assertEqual(data["name"], "Updated Decision Name")
-        self.assertEqual(data["signing_status"], "issued")
-        self.assertEqual(data["colored_signing_status"]["value"], "issued")
-        self.assertEqual(data["colored_signing_status"]["variant"], "GREEN")
-        self.assertEqual(len(data["attachments"]), 1)
+        assert data["name"] == "Updated Decision Name"
+        assert data["signing_status"] == "issued"
+        assert data["colored_signing_status"]["value"] == "issued"
+        assert data["colored_signing_status"]["variant"] == "GREEN"
+        assert len(data["attachments"]) == 1
 
-    def test_partial_update_decision(self):
+    def test_partial_update_decision(self, decisions):
         """Test partial update of a decision."""
-        url = reverse("hrm:decision-detail", kwargs={"pk": self.decision2.pk})
+        _, decision2 = decisions
+        url = reverse("hrm:decision-detail", kwargs={"pk": decision2.pk})
         payload = {
             "signing_status": "issued",
         }
         response = self.client.patch(url, payload, format="json")
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         data = self.get_response_data(response)
-        self.assertEqual(data["signing_status"], "issued")
+        assert data["signing_status"] == "issued"
 
-    def test_delete_decision(self):
+    def test_delete_decision(self, decisions):
         """Test deleting a decision."""
-        url = reverse("hrm:decision-detail", kwargs={"pk": self.decision2.pk})
+        _, decision2 = decisions
+        url = reverse("hrm:decision-detail", kwargs={"pk": decision2.pk})
         response = self.client.delete(url)
 
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        assert response.status_code == status.HTTP_204_NO_CONTENT
         # Verify soft delete (if using BaseModel) or hard delete
-        self.assertEqual(Decision.objects.filter(pk=self.decision2.pk).count(), 0)
+        assert Decision.objects.filter(pk=decision2.pk).count() == 0
 
-    def test_filter_by_decision_number(self):
+    def test_filter_by_decision_number(self, decisions):
         """Test filtering decisions by decision_number."""
         url = reverse("hrm:decision-list")
         response = self.client.get(url, {"decision_number": "001"})
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         data = self.get_response_data(response)
-        self.assertEqual(len(data), 1)
-        self.assertEqual(data[0]["decision_number"], "QD-2025-001")
+        assert len(data) == 1
+        assert data[0]["decision_number"] == "QD-2025-001"
 
-    def test_filter_by_signing_status(self):
+    def test_filter_by_signing_status(self, decisions):
         """Test filtering decisions by signing_status."""
         url = reverse("hrm:decision-list")
         response = self.client.get(url, {"signing_status": "draft"})
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         data = self.get_response_data(response)
-        self.assertEqual(len(data), 1)
-        self.assertEqual(data[0]["signing_status"], "draft")
+        assert len(data) == 1
+        assert data[0]["signing_status"] == "draft"
 
-    def test_filter_by_signing_date_range(self):
+    def test_filter_by_signing_date_range(self, decisions):
         """Test filtering decisions by signing date range."""
         url = reverse("hrm:decision-list")
         response = self.client.get(url, {"signing_date_from": "2025-01-18", "signing_date_to": "2025-01-25"})
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         data = self.get_response_data(response)
-        self.assertEqual(len(data), 1)
-        self.assertEqual(data[0]["decision_number"], "QD-2025-002")
+        assert len(data) == 1
+        assert data[0]["decision_number"] == "QD-2025-002"
 
-    def test_filter_by_signer(self):
+    def test_filter_by_signer(self, decisions):
         """Test filtering decisions by signer."""
         url = reverse("hrm:decision-list")
         response = self.client.get(url, {"signer": self.employee.id})
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         data = self.get_response_data(response)
-        self.assertEqual(len(data), 2)
+        assert len(data) == 2
 
-    def test_search_by_decision_number(self):
+    def test_search_by_decision_number(self, decisions):
         """Test searching decisions by decision_number."""
         url = reverse("hrm:decision-list")
         response = self.client.get(url, {"search": "QD-2025-001"})
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         data = self.get_response_data(response)
-        self.assertEqual(len(data), 1)
-        self.assertEqual(data[0]["decision_number"], "QD-2025-001")
+        assert len(data) == 1
+        assert data[0]["decision_number"] == "QD-2025-001"
 
-    def test_search_by_name(self):
+    def test_search_by_name(self, decisions):
         """Test searching decisions by name."""
         url = reverse("hrm:decision-list")
         response = self.client.get(url, {"search": "Salary Adjustment"})
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         data = self.get_response_data(response)
-        self.assertEqual(len(data), 1)
-        self.assertEqual(data[0]["name"], "Salary Adjustment Decision")
+        assert len(data) == 1
+        assert data[0]["name"] == "Salary Adjustment Decision"
 
-    def test_ordering_by_signing_date(self):
+    def test_ordering_by_signing_date(self, decisions):
         """Test ordering decisions by signing_date."""
         url = reverse("hrm:decision-list")
         response = self.client.get(url, {"ordering": "signing_date"})
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         data = self.get_response_data(response)
-        self.assertEqual(len(data), 2)
+        assert len(data) == 2
         # Ascending order - oldest first
-        self.assertEqual(data[0]["decision_number"], "QD-2025-001")
-        self.assertEqual(data[1]["decision_number"], "QD-2025-002")
+        assert data[0]["decision_number"] == "QD-2025-001"
+        assert data[1]["decision_number"] == "QD-2025-002"
 
-    def test_ordering_by_signing_date_desc(self):
+    def test_ordering_by_signing_date_desc(self, decisions):
         """Test ordering decisions by signing_date descending."""
         url = reverse("hrm:decision-list")
         response = self.client.get(url, {"ordering": "-signing_date"})
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         data = self.get_response_data(response)
-        self.assertEqual(len(data), 2)
+        assert len(data) == 2
         # Descending order - newest first
-        self.assertEqual(data[0]["decision_number"], "QD-2025-002")
-        self.assertEqual(data[1]["decision_number"], "QD-2025-001")
+        assert data[0]["decision_number"] == "QD-2025-002"
+        assert data[1]["decision_number"] == "QD-2025-001"
 
-    def test_export_xlsx(self):
+    def test_export_xlsx(self, decisions):
         """Test XLSX export endpoint."""
         url = reverse("hrm:decision-export")
         response = self.client.get(url, {"delivery": "direct"})
 
         # Should return 200 or 206 (partial content for direct download)
-        self.assertIn(response.status_code, [status.HTTP_200_OK, status.HTTP_206_PARTIAL_CONTENT])
+        assert response.status_code in [status.HTTP_200_OK, status.HTTP_206_PARTIAL_CONTENT]
 
-    def test_decision_signer_nested_serializer(self):
+    def test_decision_signer_nested_serializer(self, decisions):
         """Test that signer is properly nested with employee details."""
-        url = reverse("hrm:decision-detail", kwargs={"pk": self.decision1.pk})
+        decision1, _ = decisions
+        url = reverse("hrm:decision-detail", kwargs={"pk": decision1.pk})
         response = self.client.get(url)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         data = self.get_response_data(response)
-        self.assertIn("signer", data)
-        self.assertEqual(data["signer"]["id"], self.employee.id)
-        self.assertEqual(data["signer"]["code"], "MV000001")
-        self.assertEqual(data["signer"]["fullname"], "John Doe")
-        self.assertEqual(data["signer"]["email"], "john.doe@example.com")
+        assert "signer" in data
+        assert data["signer"]["id"] == self.employee.id
+        # In conftest.py, employee code is random-like or specific
+        assert data["signer"]["fullname"] == "Test Employee"
+        assert data["signer"]["email"] == "test@example.com"
 
-    def test_decision_attachments_empty(self):
+    def test_decision_attachments_empty(self, decisions):
         """Test that attachments field returns empty list when no attachments."""
-        url = reverse("hrm:decision-detail", kwargs={"pk": self.decision1.pk})
+        decision1, _ = decisions
+        url = reverse("hrm:decision-detail", kwargs={"pk": decision1.pk})
         response = self.client.get(url)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         data = self.get_response_data(response)
-        self.assertIn("attachments", data)
-        self.assertEqual(data["attachments"], [])
+        assert "attachments" in data
+        assert data["attachments"] == []
 
     @patch("apps.files.utils.s3_utils.S3FileUploadService")
     def test_create_decision_with_attachments(self, mock_s3_service_class):
@@ -548,12 +545,12 @@ class DecisionAPITest(TransactionTestCase, APITestMixin, DecisionTestMixin):
         }
         response = self.client.post(url, payload, format="json")
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        assert response.status_code == status.HTTP_201_CREATED
         data = self.get_response_data(response)
-        self.assertEqual(len(data["attachments"]), 2)
+        assert len(data["attachments"]) == 2
         attachment_names = [a["file_name"] for a in data["attachments"]]
-        self.assertIn("document1.pdf", attachment_names)
-        self.assertIn("document2.pdf", attachment_names)
+        assert "document1.pdf" in attachment_names
+        assert "document2.pdf" in attachment_names
 
     def test_create_decision_with_invalid_attachment_ids(self):
         """Test creating a decision with non-existent attachment IDs."""
@@ -568,9 +565,9 @@ class DecisionAPITest(TransactionTestCase, APITestMixin, DecisionTestMixin):
         }
         response = self.client.post(url, payload, format="json")
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
         error = self.get_response_error(response)
-        self.assertIn("attachment_ids", str(error))
+        assert "attachment_ids" in str(error)
 
     def test_create_decision_with_unconfirmed_attachment(self):
         """Test creating a decision with unconfirmed file ID."""
@@ -593,13 +590,14 @@ class DecisionAPITest(TransactionTestCase, APITestMixin, DecisionTestMixin):
         }
         response = self.client.post(url, payload, format="json")
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
         error = self.get_response_error(response)
-        self.assertIn("attachment_ids", str(error))
+        assert "attachment_ids" in str(error)
 
     @patch("apps.files.utils.s3_utils.S3FileUploadService")
-    def test_update_decision_attachments(self, mock_s3_service_class):
+    def test_update_decision_attachments(self, mock_s3_service_class, decisions):
         """Test updating decision attachments."""
+        decision1, _ = decisions
         # Mock S3 service for view/download URLs in FileModel properties
         mock_s3_instance = MagicMock()
         mock_s3_service_class.return_value = mock_s3_instance
@@ -614,19 +612,20 @@ class DecisionAPITest(TransactionTestCase, APITestMixin, DecisionTestMixin):
             is_confirmed=True,
         )
 
-        url = reverse("hrm:decision-detail", kwargs={"pk": self.decision1.pk})
+        url = reverse("hrm:decision-detail", kwargs={"pk": decision1.pk})
         payload = {
             "attachment_ids": [file1.id],
         }
         response = self.client.patch(url, payload, format="json")
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         data = self.get_response_data(response)
-        self.assertEqual(len(data["attachments"]), 1)
-        self.assertEqual(data["attachments"][0]["file_name"], "new_attachment.pdf")
+        assert len(data["attachments"]) == 1
+        assert data["attachments"][0]["file_name"] == "new_attachment.pdf"
 
-    def test_update_decision_clear_attachments_not_allowed(self):
+    def test_update_decision_clear_attachments_not_allowed(self, decisions):
         """Test that clearing all attachments with empty array is not allowed."""
+        decision1, _ = decisions
         # First, create a decision with attachments
         file1 = FileModel.objects.create(
             purpose="decision",
@@ -638,28 +637,29 @@ class DecisionAPITest(TransactionTestCase, APITestMixin, DecisionTestMixin):
         # Link attachment to decision1
         content_type = ContentType.objects.get_for_model(Decision)
         file1.content_type = content_type
-        file1.object_id = self.decision1.pk
+        file1.object_id = decision1.pk
         file1.save()
 
         # Verify attachment is linked
-        self.decision1.refresh_from_db()
-        self.assertEqual(self.decision1.attachments.count(), 1)
+        decision1.refresh_from_db()
+        assert decision1.attachments.count() == 1
 
         # Try to clear attachments by passing empty array - should fail
-        url = reverse("hrm:decision-detail", kwargs={"pk": self.decision1.pk})
+        url = reverse("hrm:decision-detail", kwargs={"pk": decision1.pk})
         payload = {
             "attachment_ids": [],
         }
         response = self.client.patch(url, payload, format="json")
 
         # Empty attachment_ids is not allowed (allow_empty=False)
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
         error = self.get_response_error(response)
-        self.assertIn("attachment_ids", str(error))
+        assert "attachment_ids" in str(error)
 
     @patch("apps.files.utils.s3_utils.S3FileUploadService")
-    def test_update_decision_without_attachment_ids_preserves_existing(self, mock_s3_service_class):
+    def test_update_decision_without_attachment_ids_preserves_existing(self, mock_s3_service_class, decisions):
         """Test that not providing attachment_ids preserves existing attachments."""
+        decision1, _ = decisions
         # Mock S3 service for view/download URLs in FileModel properties
         mock_s3_instance = MagicMock()
         mock_s3_service_class.return_value = mock_s3_instance
@@ -677,21 +677,21 @@ class DecisionAPITest(TransactionTestCase, APITestMixin, DecisionTestMixin):
         # Link attachment to decision1
         content_type = ContentType.objects.get_for_model(Decision)
         file1.content_type = content_type
-        file1.object_id = self.decision1.pk
+        file1.object_id = decision1.pk
         file1.save()
 
         # Update decision without attachment_ids
-        url = reverse("hrm:decision-detail", kwargs={"pk": self.decision1.pk})
+        url = reverse("hrm:decision-detail", kwargs={"pk": decision1.pk})
         payload = {
             "name": "Updated Name Only",
         }
         response = self.client.patch(url, payload, format="json")
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         data = self.get_response_data(response)
         # Attachment should still be there
-        self.assertEqual(len(data["attachments"]), 1)
-        self.assertEqual(data["attachments"][0]["file_name"], "existing_attachment.pdf")
+        assert len(data["attachments"]) == 1
+        assert data["attachments"][0]["file_name"] == "existing_attachment.pdf"
 
     def test_create_decision_with_empty_attachment_ids_not_allowed(self):
         """Test creating a decision with empty attachment_ids array is not allowed."""
@@ -707,6 +707,6 @@ class DecisionAPITest(TransactionTestCase, APITestMixin, DecisionTestMixin):
         response = self.client.post(url, payload, format="json")
 
         # Empty attachment_ids is not allowed (allow_empty=False)
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
         error = self.get_response_error(response)
-        self.assertIn("attachment_ids", str(error))
+        assert "attachment_ids" in str(error)

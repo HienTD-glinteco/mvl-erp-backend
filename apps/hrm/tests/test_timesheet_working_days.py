@@ -1,10 +1,9 @@
 import uuid
-from datetime import date
+from datetime import date, time
 from decimal import Decimal
 
 import pytest
 
-from datetime import time
 from apps.core.models import AdministrativeUnit, Province
 from apps.hrm.models.employee import Employee
 from apps.hrm.models.monthly_timesheet import EmployeeMonthlyTimesheet

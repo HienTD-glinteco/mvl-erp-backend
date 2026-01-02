@@ -1,14 +1,8 @@
-import json
-
-from django.contrib.auth import get_user_model
-from django.test import TransactionTestCase
+import pytest
 from django.urls import reverse
 from rest_framework import status
-from rest_framework.test import APIClient
 
-from apps.hrm.models import Bank, BankAccount, Employee
-
-User = get_user_model()
+from apps.hrm.models import Bank, BankAccount
 
 
 class APITestMixin:
@@ -16,7 +10,7 @@ class APITestMixin:
 
     def get_response_data(self, response):
         """Extract data from wrapped API response."""
-        content = json.loads(response.content.decode())
+        content = response.json()
         if "data" in content:
             data = content["data"]
             # Handle paginated responses - extract results list
@@ -26,84 +20,82 @@ class APITestMixin:
         return content
 
 
-class BankAPITest(TransactionTestCase, APITestMixin):
+@pytest.mark.django_db
+class TestBankAPI(APITestMixin):
     """Test cases for Bank API endpoints (read-only)."""
 
-    def setUp(self):
-        # Clear all existing data for clean tests
-        Bank.objects.all().delete()
-        User.objects.all().delete()
+    @pytest.fixture(autouse=True)
+    def setup_client(self, api_client, user):
+        self.client = api_client
+        self.user = user
 
-        # Changed to superuser to bypass RoleBasedPermission for API tests
-        self.user = User.objects.create_superuser(
-            username="testuser", email="test@example.com", password="testpass123"
-        )
-        self.client = APIClient()
-        self.client.force_authenticate(user=self.user)
+    @pytest.fixture
+    def banks(self, db):
+        """Create test banks."""
+        bank1 = Bank.objects.create(name="Vietcombank", code="VCB")
+        bank2 = Bank.objects.create(name="BIDV", code="BIDV")
+        return bank1, bank2
 
-        # Create test banks
-        self.bank1 = Bank.objects.create(name="Vietcombank", code="VCB")
-        self.bank2 = Bank.objects.create(name="BIDV", code="BIDV")
-
-    def test_list_banks(self):
+    def test_list_banks(self, banks):
         """Test listing all banks."""
         url = reverse("hrm:bank-list")
         response = self.client.get(url)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         data = self.get_response_data(response)
-        self.assertEqual(len(data), 2)
+        assert len(data) == 2
 
-    def test_retrieve_bank(self):
+    def test_retrieve_bank(self, banks):
         """Test retrieving a single bank."""
-        url = reverse("hrm:bank-detail", kwargs={"pk": self.bank1.pk})
+        bank1, _ = banks
+        url = reverse("hrm:bank-detail", kwargs={"pk": bank1.pk})
         response = self.client.get(url)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         data = self.get_response_data(response)
-        self.assertEqual(data["code"], "VCB")
-        self.assertEqual(data["name"], "Vietcombank")
+        assert data["code"] == "VCB"
+        assert data["name"] == "Vietcombank"
 
-    def test_filter_banks_by_name(self):
+    def test_filter_banks_by_name(self, banks):
         """Test filtering banks by name."""
         url = reverse("hrm:bank-list")
         response = self.client.get(url, {"name": "Vietcom"})
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         data = self.get_response_data(response)
-        self.assertEqual(len(data), 1)
-        self.assertEqual(data[0]["code"], "VCB")
+        assert len(data) == 1
+        assert data[0]["code"] == "VCB"
 
-    def test_filter_banks_by_code(self):
+    def test_filter_banks_by_code(self, banks):
         """Test filtering banks by code."""
         url = reverse("hrm:bank-list")
         response = self.client.get(url, {"code": "BIDV"})
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         data = self.get_response_data(response)
-        self.assertEqual(len(data), 1)
-        self.assertEqual(data[0]["name"], "BIDV")
+        assert len(data) == 1
+        assert data[0]["name"] == "BIDV"
 
-    def test_search_banks(self):
+    def test_search_banks(self, banks):
         """Test searching banks."""
         url = reverse("hrm:bank-list")
         response = self.client.get(url, {"search": "VCB"})
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         data = self.get_response_data(response)
-        self.assertEqual(len(data), 1)
+        assert len(data) == 1
 
-    def test_search_banks_by_name(self):
+    def test_search_banks_by_name(self, banks):
         """Test searching banks by partial name."""
         url = reverse("hrm:bank-list")
         response = self.client.get(url, {"search": "Vietcom"})
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         data = self.get_response_data(response)
-        self.assertEqual(len(data), 1)
-        self.assertEqual(data[0]["code"], "VCB")
+        assert len(data) == 1
+        assert data[0]["code"] == "VCB"
 
-    def test_search_banks_phrase(self):
+    def test_search_banks_phrase(self, db):
         """Test phrase search filter treats multi-word queries as single phrase."""
         # Create a bank with a multi-word name
         Bank.objects.create(name="Vietnam Bank for Agriculture", code="VBARD")
@@ -112,31 +104,31 @@ class BankAPITest(TransactionTestCase, APITestMixin):
         # PhraseSearchFilter should search for the entire phrase
         response = self.client.get(url, {"search": "Bank for"})
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         data = self.get_response_data(response)
         # Should find the bank with "Bank for" in its name
-        self.assertEqual(len(data), 1)
-        self.assertEqual(data[0]["code"], "VBARD")
+        assert len(data) == 1
+        assert data[0]["code"] == "VBARD"
 
-    def test_ordering_banks_by_name(self):
+    def test_ordering_banks_by_name(self, banks):
         """Test ordering banks by name."""
         url = reverse("hrm:bank-list")
         response = self.client.get(url, {"ordering": "name"})
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         data = self.get_response_data(response)
-        self.assertEqual(data[0]["code"], "BIDV")
-        self.assertEqual(data[1]["code"], "VCB")
+        assert data[0]["code"] == "BIDV"
+        assert data[1]["code"] == "VCB"
 
-    def test_ordering_banks_by_code_descending(self):
+    def test_ordering_banks_by_code_descending(self, banks):
         """Test ordering banks by code in descending order."""
         url = reverse("hrm:bank-list")
         response = self.client.get(url, {"ordering": "-code"})
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         data = self.get_response_data(response)
-        self.assertEqual(data[0]["code"], "VCB")
-        self.assertEqual(data[1]["code"], "BIDV")
+        assert data[0]["code"] == "VCB"
+        assert data[1]["code"] == "BIDV"
 
     def test_create_bank_not_allowed(self):
         """Test that creating a bank via API is not allowed (read-only)."""
@@ -144,122 +136,74 @@ class BankAPITest(TransactionTestCase, APITestMixin):
         data = {"name": "Test Bank", "code": "TEST"}
         response = self.client.post(url, data, format="json")
 
-        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+        assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
 
-    def test_update_bank_not_allowed(self):
+    def test_update_bank_not_allowed(self, banks):
         """Test that updating a bank via API is not allowed (read-only)."""
-        url = reverse("hrm:bank-detail", kwargs={"pk": self.bank1.pk})
+        bank1, _ = banks
+        url = reverse("hrm:bank-detail", kwargs={"pk": bank1.pk})
         data = {"name": "Updated Bank"}
         response = self.client.patch(url, data, format="json")
 
-        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+        assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
 
-    def test_delete_bank_not_allowed(self):
+    def test_delete_bank_not_allowed(self, banks):
         """Test that deleting a bank via API is not allowed (read-only)."""
-        url = reverse("hrm:bank-detail", kwargs={"pk": self.bank1.pk})
+        bank1, _ = banks
+        url = reverse("hrm:bank-detail", kwargs={"pk": bank1.pk})
         response = self.client.delete(url)
 
-        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+        assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
 
 
-class BankAccountAPITest(TransactionTestCase, APITestMixin):
+@pytest.mark.django_db
+class TestBankAccountAPI(APITestMixin):
     """Test cases for BankAccount API endpoints."""
 
-    def setUp(self):
-        # Clear all existing data for clean tests
-        BankAccount.objects.all().delete()
-        Employee.objects.all().delete()
-        Bank.objects.all().delete()
-        User.objects.all().delete()
+    @pytest.fixture(autouse=True)
+    def setup_client(self, api_client, user):
+        self.client = api_client
+        self.user = user
 
-        self.user = User.objects.create_superuser(
-            username="testuser", email="test@example.com", password="testpass123"
-        )
-        self.client = APIClient()
-        self.client.force_authenticate(user=self.user)
-
-        # Create organizational structure
-        from apps.core.models import AdministrativeUnit, Province
-        from apps.hrm.models import Block, Branch, Department
-
-        self.province = Province.objects.create(code="01", name="Test Province")
-        self.admin_unit = AdministrativeUnit.objects.create(
-            code="01",
-            name="Test Admin Unit",
-            parent_province=self.province,
-            level=AdministrativeUnit.UnitLevel.DISTRICT,
-        )
-
-        self.branch = Branch.objects.create(
-            code="CN001",
-            name="Main Branch",
-            province=self.province,
-            administrative_unit=self.admin_unit,
-        )
-        self.block = Block.objects.create(
-            code="KH001", name="Main Block", branch=self.branch, block_type=Block.BlockType.BUSINESS
-        )
-        self.department = Department.objects.create(
-            code="PB001", name="Engineering Department", block=self.block, branch=self.branch
-        )
-
-        # Create test employee
-        self.employee = Employee.objects.create(
-            fullname="John Doe",
-            username="johndoe",
-            email="john.doe@example.com",
-            phone="0123456789",
-            attendance_code="12345",
-            code_type="MV",
-            branch=self.branch,
-            block=self.block,
-            department=self.department,
-            start_date="2024-01-01",
-        )
-
-        # Create test bank
-        self.bank = Bank.objects.create(name="Vietcombank", code="VCB")
-
-        self.account_data = {
-            "employee_id": self.employee.id,
-            "bank_id": self.bank.id,
+    def test_create_bank_account(self, employee, bank):
+        """Test creating a bank account via API."""
+        url = reverse("hrm:bank-account-list")
+        data = {
+            "employee_id": employee.id,
+            "bank_id": bank.id,
             "account_number": "1234567890",
             "account_name": "NGUYEN VAN A",
             "is_primary": True,
         }
+        response = self.client.post(url, data, format="json")
 
-    def test_create_bank_account(self):
-        """Test creating a bank account via API."""
-        url = reverse("hrm:bank-account-list")
-        response = self.client.post(url, self.account_data, format="json")
-
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(BankAccount.objects.count(), 1)
+        assert response.status_code == status.HTTP_201_CREATED
+        assert BankAccount.objects.count() == 1
 
         account = BankAccount.objects.first()
-        self.assertEqual(account.account_number, self.account_data["account_number"])
-        self.assertEqual(account.account_name, self.account_data["account_name"])
-        self.assertEqual(account.employee, self.employee)
-        self.assertEqual(account.bank, self.bank)
-        self.assertTrue(account.is_primary)
+        assert account.account_number == data["account_number"]
+        assert account.account_name == data["account_name"]
+        assert account.employee == employee
+        assert account.bank == bank
+        assert account.is_primary is True
 
-    def test_create_bank_account_minimal_fields(self):
+    def test_create_bank_account_minimal_fields(self, employee, bank):
         """Test creating a bank account with minimal fields."""
         url = reverse("hrm:bank-account-list")
         minimal_data = {
-            "employee_id": self.employee.id,
-            "bank_id": self.bank.id,
+            "employee_id": employee.id,
+            "bank_id": bank.id,
             "account_number": "9876543210",
             "account_name": "TRAN THI B",
             "is_primary": False,
         }
         response = self.client.post(url, minimal_data, format="json")
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(BankAccount.objects.count(), 1)
+        assert response.status_code == status.HTTP_201_CREATED
+        assert BankAccount.objects.count() == 1
 
         account = BankAccount.objects.first()
-        self.assertFalse(account.is_primary)
+        assert account.is_primary is False
 
     def test_create_bank_account_missing_required_field(self):
         """Test creating a bank account without required fields."""
@@ -270,151 +214,95 @@ class BankAccountAPITest(TransactionTestCase, APITestMixin):
         }
         response = self.client.post(url, invalid_data, format="json")
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(BankAccount.objects.count(), 0)
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert BankAccount.objects.count() == 0
 
-    def test_list_bank_accounts(self):
+    def test_list_bank_accounts(self, bank_account):
         """Test listing all bank accounts."""
-        BankAccount.objects.create(
-            employee=self.employee,
-            bank=self.bank,
-            account_number="1234567890",
-            account_name="NGUYEN VAN A",
-            is_primary=True,
-        )
-
         url = reverse("hrm:bank-account-list")
         response = self.client.get(url)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         data = self.get_response_data(response)
-        self.assertEqual(len(data), 1)
+        assert len(data) == 1
 
-    def test_retrieve_bank_account(self):
+    def test_retrieve_bank_account(self, bank_account, employee, bank):
         """Test retrieving a single bank account."""
-        account = BankAccount.objects.create(
-            employee=self.employee,
-            bank=self.bank,
-            account_number="1234567890",
-            account_name="NGUYEN VAN A",
-            is_primary=True,
-        )
-
-        url = reverse("hrm:bank-account-detail", kwargs={"pk": account.pk})
+        url = reverse("hrm:bank-account-detail", kwargs={"pk": bank_account.pk})
         response = self.client.get(url)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         data = self.get_response_data(response)
-        self.assertEqual(data["account_number"], "1234567890")
-        self.assertEqual(data["employee"]["id"], self.employee.id)
-        self.assertEqual(data["bank"]["id"], self.bank.id)
+        assert data["account_number"] == bank_account.account_number
+        assert data["employee"]["id"] == employee.id
+        assert data["bank"]["id"] == bank.id
 
-    def test_update_bank_account(self):
+    def test_update_bank_account(self, bank_account, employee, bank):
         """Test updating a bank account."""
-        account = BankAccount.objects.create(
-            employee=self.employee,
-            bank=self.bank,
-            account_number="1234567890",
-            account_name="NGUYEN VAN A",
-            is_primary=False,
-        )
-
-        url = reverse("hrm:bank-account-detail", kwargs={"pk": account.pk})
+        url = reverse("hrm:bank-account-detail", kwargs={"pk": bank_account.pk})
         update_data = {
-            "employee_id": self.employee.id,
-            "bank_id": self.bank.id,
+            "employee_id": employee.id,
+            "bank_id": bank.id,
             "account_number": "9999999999",
             "account_name": "UPDATED NAME",
             "is_primary": False,
         }
         response = self.client.put(url, update_data, format="json")
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        account.refresh_from_db()
-        self.assertEqual(account.account_number, "9999999999")
-        self.assertEqual(account.account_name, "UPDATED NAME")
+        assert response.status_code == status.HTTP_200_OK
+        bank_account.refresh_from_db()
+        assert bank_account.account_number == "9999999999"
+        assert bank_account.account_name == "UPDATED NAME"
 
-    def test_partial_update_bank_account(self):
+    def test_partial_update_bank_account(self, bank_account):
         """Test partially updating a bank account."""
-        account = BankAccount.objects.create(
-            employee=self.employee,
-            bank=self.bank,
-            account_number="1234567890",
-            account_name="NGUYEN VAN A",
-            is_primary=False,
-        )
-
-        url = reverse("hrm:bank-account-detail", kwargs={"pk": account.pk})
+        url = reverse("hrm:bank-account-detail", kwargs={"pk": bank_account.pk})
         partial_data = {"account_name": "PARTIAL UPDATE"}
         response = self.client.patch(url, partial_data, format="json")
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        account.refresh_from_db()
-        self.assertEqual(account.account_name, "PARTIAL UPDATE")
-        self.assertEqual(account.account_number, "1234567890")
+        assert response.status_code == status.HTTP_200_OK
+        bank_account.refresh_from_db()
+        assert bank_account.account_name == "PARTIAL UPDATE"
+        assert bank_account.account_number == "123456789"
 
-    def test_delete_bank_account(self):
+    def test_delete_bank_account(self, bank_account):
         """Test deleting a bank account."""
-        account = BankAccount.objects.create(
-            employee=self.employee,
-            bank=self.bank,
-            account_number="1234567890",
-            account_name="NGUYEN VAN A",
-            is_primary=False,
-        )
-
-        url = reverse("hrm:bank-account-detail", kwargs={"pk": account.pk})
+        url = reverse("hrm:bank-account-detail", kwargs={"pk": bank_account.pk})
         response = self.client.delete(url)
 
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        self.assertEqual(BankAccount.objects.count(), 0)
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+        assert BankAccount.objects.count() == 0
 
-    def test_filter_bank_accounts_by_employee(self):
+    def test_filter_bank_accounts_by_employee(self, bank_account, employee):
         """Test filtering bank accounts by employee."""
-        BankAccount.objects.create(
-            employee=self.employee,
-            bank=self.bank,
-            account_number="1234567890",
-            account_name="NGUYEN VAN A",
-            is_primary=True,
-        )
-
         url = reverse("hrm:bank-account-list")
-        response = self.client.get(url, {"employee": self.employee.id})
+        response = self.client.get(url, {"employee": employee.id})
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         data = self.get_response_data(response)
-        self.assertEqual(len(data), 1)
+        assert len(data) == 1
 
-    def test_filter_bank_accounts_by_bank(self):
+    def test_filter_bank_accounts_by_bank(self, bank_account, bank):
         """Test filtering bank accounts by bank."""
-        BankAccount.objects.create(
-            employee=self.employee,
-            bank=self.bank,
-            account_number="1234567890",
-            account_name="NGUYEN VAN A",
-            is_primary=True,
-        )
-
         url = reverse("hrm:bank-account-list")
-        response = self.client.get(url, {"bank": self.bank.id})
+        response = self.client.get(url, {"bank": bank.id})
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         data = self.get_response_data(response)
-        self.assertEqual(len(data), 1)
+        assert len(data) == 1
 
-    def test_filter_bank_accounts_by_is_primary(self):
+    def test_filter_bank_accounts_by_is_primary(self, employee, bank):
         """Test filtering bank accounts by is_primary."""
         BankAccount.objects.create(
-            employee=self.employee,
-            bank=self.bank,
+            employee=employee,
+            bank=bank,
             account_number="1234567890",
             account_name="NGUYEN VAN A",
             is_primary=True,
         )
         BankAccount.objects.create(
-            employee=self.employee,
-            bank=self.bank,
+            employee=employee,
+            bank=bank,
             account_number="9876543210",
             account_name="NGUYEN VAN B",
             is_primary=False,
@@ -423,17 +311,17 @@ class BankAccountAPITest(TransactionTestCase, APITestMixin):
         url = reverse("hrm:bank-account-list")
         response = self.client.get(url, {"is_primary": "true"})
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         data = self.get_response_data(response)
-        self.assertEqual(len(data), 1)
-        self.assertTrue(data[0]["is_primary"])
+        assert len(data) == 1
+        assert data[0]["is_primary"] is True
 
-    def test_only_one_primary_account_per_employee(self):
+    def test_only_one_primary_account_per_employee(self, employee, bank):
         """Test that only one primary account is allowed per employee."""
         # Create first primary account
         BankAccount.objects.create(
-            employee=self.employee,
-            bank=self.bank,
+            employee=employee,
+            bank=bank,
             account_number="1234567890",
             account_name="NGUYEN VAN A",
             is_primary=True,
@@ -442,121 +330,66 @@ class BankAccountAPITest(TransactionTestCase, APITestMixin):
         # Try to create another primary account
         url = reverse("hrm:bank-account-list")
         duplicate_data = {
-            "employee_id": self.employee.id,
-            "bank_id": self.bank.id,
+            "employee_id": employee.id,
+            "bank_id": bank.id,
             "account_number": "9999999999",
             "account_name": "NGUYEN VAN B",
             "is_primary": True,
         }
         response = self.client.post(url, duplicate_data, format="json")
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        # Should still have only 1 account
-        self.assertEqual(BankAccount.objects.filter(employee=self.employee, is_primary=True).count(), 1)
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        # Should still have only 1 primary account
+        assert BankAccount.objects.filter(employee=employee, is_primary=True).count() == 1
 
-    def test_search_bank_accounts(self):
+    def test_search_bank_accounts(self, bank_account):
         """Test searching bank accounts."""
-        BankAccount.objects.create(
-            employee=self.employee,
-            bank=self.bank,
-            account_number="1234567890",
-            account_name="NGUYEN VAN A",
-            is_primary=True,
-        )
-
         url = reverse("hrm:bank-account-list")
-        response = self.client.get(url, {"search": "NGUYEN VAN"})
+        response = self.client.get(url, {"search": "Test Employee"})
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         data = self.get_response_data(response)
-        self.assertEqual(len(data), 1)
+        assert len(data) == 1
 
 
-class BankAccountModelTest(TransactionTestCase):
+@pytest.mark.django_db
+class TestBankAccountModel:
     """Test cases for BankAccount model validation."""
 
-    def setUp(self):
-        # Clear all existing data for clean tests
-        BankAccount.objects.all().delete()
-        Employee.objects.all().delete()
-        Bank.objects.all().delete()
-
-        # Create organizational structure
-        from apps.core.models import AdministrativeUnit, Province
-        from apps.hrm.models import Block, Branch, Department
-
-        self.province = Province.objects.create(code="01", name="Test Province")
-        self.admin_unit = AdministrativeUnit.objects.create(
-            code="01",
-            name="Test Admin Unit",
-            parent_province=self.province,
-            level=AdministrativeUnit.UnitLevel.DISTRICT,
-        )
-
-        self.branch = Branch.objects.create(
-            code="CN001",
-            name="Main Branch",
-            province=self.province,
-            administrative_unit=self.admin_unit,
-        )
-        self.block = Block.objects.create(
-            code="KH001", name="Main Block", branch=self.branch, block_type=Block.BlockType.BUSINESS
-        )
-        self.department = Department.objects.create(
-            code="PB001", name="Engineering Department", block=self.block, branch=self.branch
-        )
-
-        # Create test employee
-        self.employee = Employee.objects.create(
-            fullname="John Doe",
-            username="johndoe",
-            email="john.doe@example.com",
-            phone="0123456789",
-            attendance_code="12345",
-            code_type="MV",
-            branch=self.branch,
-            block=self.block,
-            department=self.department,
-            start_date="2024-01-01",
-        )
-
-        # Create test bank
-        self.bank = Bank.objects.create(name="Vietcombank", code="VCB")
-
-    def test_bank_account_str_representation(self):
+    def test_bank_account_str_representation(self, employee, bank):
         """Test string representation of BankAccount."""
         account = BankAccount.objects.create(
-            employee=self.employee,
-            bank=self.bank,
+            employee=employee,
+            bank=bank,
             account_number="1234567890",
             account_name="NGUYEN VAN A",
             is_primary=True,
         )
-        expected = f"{self.employee.fullname} - {self.bank.name} - 1234567890"
-        self.assertEqual(str(account), expected)
+        expected = f"{employee.fullname} - {bank.name} - 1234567890"
+        assert str(account) == expected
 
     def test_bank_str_representation(self):
         """Test string representation of Bank."""
         bank = Bank.objects.create(name="Test Bank", code="TEST")
-        self.assertEqual(str(bank), "TEST - Test Bank")
+        assert str(bank) == "TEST - Test Bank"
 
-    def test_primary_account_ordering(self):
+    def test_primary_account_ordering(self, employee, bank):
         """Test that primary accounts are ordered first."""
         BankAccount.objects.create(
-            employee=self.employee,
-            bank=self.bank,
+            employee=employee,
+            bank=bank,
             account_number="2222222222",
             account_name="SECONDARY",
             is_primary=False,
         )
         BankAccount.objects.create(
-            employee=self.employee,
-            bank=self.bank,
+            employee=employee,
+            bank=bank,
             account_number="1111111111",
             account_name="PRIMARY",
             is_primary=True,
         )
 
         accounts = BankAccount.objects.all()
-        self.assertTrue(accounts[0].is_primary)
-        self.assertFalse(accounts[1].is_primary)
+        assert accounts[0].is_primary is True
+        assert accounts[1].is_primary is False

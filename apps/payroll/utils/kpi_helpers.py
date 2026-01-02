@@ -238,8 +238,7 @@ def validate_kpi_config_structure(config_json: dict[str, Any]) -> list[str]:  # 
                     codes = threshold.get("possible_codes", [])
                     if default not in codes:
                         errors.append(
-                            f"grade_thresholds[{i}]: 'default_code' ({default}) "
-                            f"must be in 'possible_codes' {codes}"
+                            f"grade_thresholds[{i}]: 'default_code' ({default}) must be in 'possible_codes' {codes}"
                         )
 
     if "unit_control" not in config_json:
@@ -260,8 +259,6 @@ def validate_kpi_config_structure(config_json: dict[str, Any]) -> list[str]:  # 
                 if "min_pct_D" in control and control["min_pct_D"] is not None:
                     val = control["min_pct_D"]
                     if not isinstance(val, (int, float)) or val < 0 or val > 1:
-                        errors.append(
-                            f"unit_control[{unit_type}][min_pct_D]: must be a number between 0 and 1"
-                        )
+                        errors.append(f"unit_control[{unit_type}][min_pct_D]: must be a number between 0 and 1")
 
     return errors
