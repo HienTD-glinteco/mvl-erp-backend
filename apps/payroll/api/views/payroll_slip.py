@@ -17,7 +17,7 @@ from apps.payroll.api.serializers import (
     PayrollSlipStatusUpdateSerializer,
 )
 from apps.payroll.models import PayrollSlip
-from libs import BaseReadOnlyModelViewSet
+from libs import BaseReadOnlyModelViewSet, ExportDocumentMixin
 from libs.drf.filtersets.search import PhraseSearchFilter
 from libs.export_xlsx import ExportXLSXMixin
 
@@ -107,8 +107,11 @@ from libs.export_xlsx import ExportXLSXMixin
     export=extend_schema(
         tags=["10.7: Payroll Slips"],
     ),
+    export_detail_document=extend_schema(
+        tags=["10.7: Payroll Slips"],
+    ),
 )
-class PayrollSlipViewSet(ExportXLSXMixin, AuditLoggingMixin, BaseReadOnlyModelViewSet):
+class PayrollSlipViewSet(ExportDocumentMixin, ExportXLSXMixin, AuditLoggingMixin, BaseReadOnlyModelViewSet):
     """ViewSet for managing payroll slips.
 
     Provides CRUD operations and custom actions for payroll slip management:
@@ -116,6 +119,8 @@ class PayrollSlipViewSet(ExportXLSXMixin, AuditLoggingMixin, BaseReadOnlyModelVi
     - Recalculate individual slip
     - Hold/release slip
     - Change status (ready, deliver)
+    - Export to PDF/DOCX
+    - Send email notification
     """
 
     queryset = PayrollSlip.objects.select_related(
@@ -140,6 +145,22 @@ class PayrollSlipViewSet(ExportXLSXMixin, AuditLoggingMixin, BaseReadOnlyModelVi
     module = "Payroll"
     submodule = "Payroll Slips"
     permission_prefix = "payroll_slip"
+
+    # Document export configuration
+    document_template_name = "documents/payroll_slip.html"
+
+    def get_export_context(self, instance):
+        """Prepare context for payroll slip document export."""
+        return {
+            "employee": instance.employee,
+            "payroll_slip": instance,
+            "salary_period": instance.salary_period,
+        }
+
+    def get_export_filename(self, instance):
+        """Generate filename for payroll slip document export."""
+        period_str = instance.salary_period.month.strftime("%Y%m") if instance.salary_period else "unknown"
+        return f"payroll_slip_{instance.employee_code}_{period_str}"
 
     def get_serializer_class(self):
         """Return appropriate serializer based on action."""
@@ -367,3 +388,61 @@ class PayrollSlipViewSet(ExportXLSXMixin, AuditLoggingMixin, BaseReadOnlyModelVi
             }
         )
         return Response(response_serializer.data)
+
+    @extend_schema(
+        summary="Send payroll email",
+        description="Send payroll notification email to employee asynchronously",
+        tags=["10.7: Payroll Slips"],
+        responses={
+            202: OpenApiExample(
+                "Success - Email sending started",
+                value={
+                    "success": True,
+                    "data": {
+                        "task_id": "abc123",
+                        "status": "Task created",
+                        "message": "Payroll email sending started",
+                    },
+                    "error": None,
+                },
+                response_only=True,
+            )
+        },
+        examples=[
+            OpenApiExample(
+                "Success - Email task created",
+                value={
+                    "task_id": "abc123",
+                    "status": "Task created",
+                    "message": "Payroll email sending started",
+                },
+                response_only=True,
+                status_codes=["202"],
+            ),
+        ],
+    )
+    @action(detail=True, methods=["post"])
+    def send_email(self, request, pk=None):
+        """Send payroll notification email to employee."""
+        slip = self.get_object()
+
+        # Check if employee has email
+        if not slip.employee or not slip.employee.email:
+            return Response(
+                {"error": _("Employee has no email address")},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Launch async task
+        from apps.payroll.tasks import send_payroll_email_task
+
+        task = send_payroll_email_task.delay(slip.id)
+
+        return Response(
+            {
+                "task_id": task.id,
+                "status": "Task created",
+                "message": "Payroll email sending started",
+            },
+            status=status.HTTP_202_ACCEPTED,
+        )
