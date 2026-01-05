@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-05 17:33+0700\n"
+"POT-Creation-Date: 2026-01-06 02:18+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -309,6 +309,7 @@ msgid "Period finalized successfully"
 msgstr "Hoàn tất kỳ đánh giá thành công"
 
 #: apps/payroll/api/views/kpi_config.py:20
+#: apps/payroll/api/views/my_penalty_tickets.py:121
 #: apps/payroll/api/views/penalty_tickets.py:201
 #: apps/payroll/api/views/recovery_voucher.py:339
 #: apps/payroll/api/views/salary_config.py:20
@@ -328,6 +329,34 @@ msgstr "Cấu hình KPI"
 #: apps/payroll/api/views/kpi_config.py:27
 msgid "View KPI configuration"
 msgstr "Xem cấu hình KPI"
+
+#: apps/payroll/api/views/my_penalty_tickets.py:122
+msgid "My Penalty Tickets"
+msgstr "Các phiếu phạt của tôi"
+
+#: apps/payroll/api/views/my_penalty_tickets.py:127
+msgid "List my penalty tickets"
+msgstr "Danh sách các phiếu phạt của tôi"
+
+#: apps/payroll/api/views/my_penalty_tickets.py:128
+msgid "View list of my penalty tickets"
+msgstr "Xem danh sách các phiếu phạt của tôi"
+
+#: apps/payroll/api/views/my_penalty_tickets.py:131
+msgid "View my penalty ticket"
+msgstr "Phiếu phạt của tôi"
+
+#: apps/payroll/api/views/my_penalty_tickets.py:132
+msgid "View detail of my penalty ticket"
+msgstr "Xem chi tiết phiếu phạt của tôi"
+
+#: apps/payroll/api/views/my_penalty_tickets.py:140
+msgid "You need to login to perform this action"
+msgstr "Bạn cần đăng nhập để thực hiện hành động này"
+
+#: apps/payroll/api/views/my_penalty_tickets.py:144
+msgid "You do not have an associated employee record"
+msgstr "Bạn không có hồ sơ nhân viên liên kết"
 
 #: apps/payroll/api/views/payroll_slip.py:323
 msgid "Can only mark HOLD slips as READY"

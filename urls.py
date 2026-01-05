@@ -29,7 +29,7 @@ urlpatterns += [
     # Mobile API routes (web routes remain unchanged)
     path("api/mobile/", include(("apps.core.urls", "core"), namespace="mobile-core")),
     path("api/mobile/hrm/", include(("apps.hrm.mobile_urls", "hrm"), namespace="mobile-hrm")),
-    path("api/mobile/payroll/", include(("apps.payroll.urls", "payroll"), namespace="mobile-payroll")),
+    path("api/mobile/payroll/", include(("apps.payroll.mobile_urls", "payroll"), namespace="mobile-payroll")),
     path("api/mobile/realestate/", include(("apps.realestate.urls", "realestate"), namespace="mobile-realestate")),
     # path("api/mobile/audit-logs/", include(("apps.audit_logging.urls", "audit_logging"), namespace="mobile-audit-logs")),
     path(
