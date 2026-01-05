@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-05 16:43+0700\n"
+"POT-Creation-Date: 2026-01-05 17:33+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -228,29 +228,29 @@ msgstr "Trường này là bắt buộc"
 msgid "Amount must be greater than 0"
 msgstr "Số tiền phải lớn hơn 0"
 
-#: apps/payroll/api/views/employee_kpi_assessment.py:391
+#: apps/payroll/api/views/employee_kpi_assessment.py:411
 msgid "View Current Assessment"
 msgstr "Xem đánh giá hiện tại"
 
-#: apps/payroll/api/views/employee_kpi_assessment.py:392
+#: apps/payroll/api/views/employee_kpi_assessment.py:412
 msgid ""
 "Permission to view current unfinalized assessment for department employees"
 msgstr ""
 "Quyền xem đánh giá chưa hoàn tất hiện tại cho nhân viên trong phòng ban"
 
-#: apps/payroll/api/views/employee_kpi_assessment.py:395
+#: apps/payroll/api/views/employee_kpi_assessment.py:415
 msgid "Update Self Assessment Item Score"
 msgstr "Cập nhật điểm tự đánh giá"
 
-#: apps/payroll/api/views/employee_kpi_assessment.py:396
+#: apps/payroll/api/views/employee_kpi_assessment.py:416
 msgid "Permission to update self-assessment item scores"
 msgstr "Quyền cập nhật điểm tự đánh giá"
 
-#: apps/payroll/api/views/employee_kpi_assessment.py:764
+#: apps/payroll/api/views/employee_kpi_assessment.py:784
 msgid "View Current Assessments"
 msgstr "Xem các đánh giá hiện tại"
 
-#: apps/payroll/api/views/employee_kpi_assessment.py:765
+#: apps/payroll/api/views/employee_kpi_assessment.py:785
 msgid ""
 "Permission to view current unfinalized assessments for department employees"
 msgstr ""
@@ -329,17 +329,23 @@ msgstr "Cấu hình KPI"
 msgid "View KPI configuration"
 msgstr "Xem cấu hình KPI"
 
-#: apps/payroll/api/views/payroll_slip.py:302
+#: apps/payroll/api/views/payroll_slip.py:323
 msgid "Can only mark HOLD slips as READY"
 msgstr "Chỉ có thể đánh dấu phiếu HOLD là READY"
 
-#: apps/payroll/api/views/payroll_slip.py:307
+#: apps/payroll/api/views/payroll_slip.py:328
 msgid "Cannot mark as READY - employee has unpaid penalty tickets"
 msgstr "Không thể đánh dấu là READY - nhân viên còn phiếu phạt chưa thanh toán"
 
-#: apps/payroll/api/views/payroll_slip.py:355
+#: apps/payroll/api/views/payroll_slip.py:376
 msgid "Can only deliver READY slips"
 msgstr "Chỉ có thể giao phiếu READY"
+
+#: apps/payroll/api/views/payroll_slip.py:432
+#, fuzzy
+#| msgid "Employee is required"
+msgid "Employee has no email address"
+msgstr "Trường này là bắt buộc"
 
 #: apps/payroll/api/views/penalty_tickets.py:202
 msgid "Penalty Management"

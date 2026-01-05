@@ -199,21 +199,19 @@ def _create_or_update_relationship(
 
 
 def import_handler(
-    row: list,
     row_index: int,
-    headers: list,
-    cache: dict | None = None,
-    **kwargs: Any,
+    row: list,
+    import_job_id: str,
+    options: dict,
 ) -> dict:
     """
     Import handler for EmployeeRelationship model.
 
     Args:
-        row: List of cell values for this row
         row_index: 1-based index of the row being processed
-        headers: List of column headers from the first row
-        cache: Shared cache dictionary for lookups (optional)
-        **kwargs: Additional context (user, etc.)
+        row: List of cell values from the row
+        import_job_id: Import job UUID
+        options: Import options dictionary containing 'headers'
 
     Returns:
         Result dictionary with:
@@ -224,9 +222,14 @@ def import_handler(
         - result: Created/updated object details
     """
     try:
-        # Initialize cache if not provided
-        if cache is None:
-            cache = {}
+        headers = options.get("headers", [])
+        if not headers:
+            return {
+                "ok": False,
+                "row_index": row_index,
+                "error": "Headers not provided in options",
+                "action": "skipped",
+            }
 
         # STEP 1: Normalize Headers and Map to Values
         row_data = _extract_row_data(row, headers)
