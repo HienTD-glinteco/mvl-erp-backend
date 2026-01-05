@@ -83,7 +83,6 @@ Or with system/venv Python:
 python3 manage.py create_contract_type_appendix
 ```
 
-
 ### Install pre-commit
 
 ```bash
@@ -223,8 +222,9 @@ See the [Pre-Flight Checklist](.github/copilot-instructions.md#️-pre-flight-ch
     poetry run python manage.py migrate --noinput
     poetry run python manage.py collectstatic --noinput
     poetry run python manage.py compilemessages -l vi
-    poetry run python manage.py collect_permissions
     poetry run python manage.py upload_import_templates
+    poetry run python manage.py collect_permissions
+    poetry run python manage.py sync_roles_from_excel --file_path /Users/lex/Projects/Glinteco/MaiVietLand/core_permission.xlsx  --verbose
 ```
 
 - Run this command to create adminstrator units
