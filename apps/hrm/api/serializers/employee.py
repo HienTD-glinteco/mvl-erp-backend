@@ -4,7 +4,8 @@ from django.utils import timezone
 from django.utils.translation import gettext as _
 from rest_framework import serializers
 
-from apps.core.api.serializers import SimpleUserSerializer
+from apps.core.api.serializers import NationalitySerializer, SimpleUserSerializer
+from apps.core.models.nationality import Nationality
 from apps.files.api.serializers import FileSerializer
 from apps.files.api.serializers.mixins import FileConfirmSerializerMixin
 from apps.files.models import FileModel
@@ -109,6 +110,7 @@ class EmployeeSerializer(FileConfirmSerializerMixin, FieldFilteringSerializerMix
     avatar = FileSerializer(read_only=True)
     citizen_id_file = FileSerializer(read_only=True)
     default_bank_account = EmployeeBankAccountNestedSerializer(read_only=True)
+    nationality = NationalitySerializer(read_only=True)
 
     # Write-only fields for POST/PUT/PATCH operations
     department_id = serializers.PrimaryKeyRelatedField(
@@ -134,6 +136,13 @@ class EmployeeSerializer(FileConfirmSerializerMixin, FieldFilteringSerializerMix
     citizen_id_file_id = serializers.PrimaryKeyRelatedField(
         queryset=FileModel.objects.all(),
         source="citizen_id_file",
+        write_only=True,
+        required=False,
+        allow_null=True,
+    )
+    nationality_id = serializers.PrimaryKeyRelatedField(
+        queryset=Nationality.objects.all(),
+        source="nationality",
         write_only=True,
         required=False,
         allow_null=True,
@@ -187,6 +196,7 @@ class EmployeeSerializer(FileConfirmSerializerMixin, FieldFilteringSerializerMix
             "personal_email",
             "tax_code",
             "place_of_birth",
+            "nationality_id",
             "residential_address",
             "permanent_address",
             "emergency_contact_name",
