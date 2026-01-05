@@ -23,10 +23,18 @@ class PermissionAdmin(admin.ModelAdmin):
     readonly_fields = ["code", "module", "submodule"]
 
 
+@admin.register(UserDevice)
+class UserDeviceAdmin(admin.ModelAdmin):
+    """Admin configuration for Position model"""
+
+    list_filter = ["client", "platform", "state"]
+    list_display = ["user", "client", "platform", "state"]
+    search_fields = ["device_id", "push_token", "user__username"]
+
+
 admin.site.register(User)
 admin.site.register(Role)
 admin.site.register(PasswordResetOTP)
-admin.site.register(UserDevice)
 admin.site.register(Province)
 admin.site.register(AdministrativeUnit)
 admin.site.register(Nationality)
