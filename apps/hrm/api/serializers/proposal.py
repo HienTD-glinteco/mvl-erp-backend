@@ -655,9 +655,6 @@ class ProposalVerifierSerializer(serializers.ModelSerializer):
             "proposal",
             "employee",
         ]
-        extra_kwargs = {
-            "status": {"write_only": True},
-        }
 
 
 class ProposalVerifierListSerializer(ProposalVerifierSerializer):
