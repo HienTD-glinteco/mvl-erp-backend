@@ -6,7 +6,7 @@ This module tests the new timesheet functionality:
 - overtime calculation in calculate_hours_from_schedule
 """
 
-from datetime import date, datetime, time
+from datetime import date, datetime, time, timedelta
 from decimal import Decimal
 
 import pytest
@@ -87,6 +87,42 @@ class TestTimesheetManualCorrectionField:
         )
         assert entry.is_manually_corrected is True
 
+    def test_manual_correction_recalculates_working_days(self, test_employee):
+        """Test that updating start_time/end_time with is_manually_corrected recalculates working_days."""
+        # Create work schedule for Monday
+        WorkSchedule.objects.create(
+            weekday=WorkSchedule.Weekday.MONDAY,
+            morning_start_time=time(8, 0),
+            morning_end_time=time(12, 0),
+            noon_start_time=time(12, 0),
+            noon_end_time=time(13, 0),
+            afternoon_start_time=time(13, 0),
+            afternoon_end_time=time(17, 0),
+            allowed_late_minutes=15,
+        )
+
+        # Create entry with no check-in/check-out
+        entry = TimeSheetEntry.objects.create(
+            employee=test_employee,
+            date=date(2025, 12, 1),  # Monday
+        )
+        # Initial working_days should be 0 (no hours)
+        assert entry.working_days == Decimal("0.00")
+
+        # Manually correct with full day times
+        entry.is_manually_corrected = True
+        entry.start_time = make_aware(datetime(2025, 12, 1, 8, 0, 0))
+        entry.end_time = make_aware(datetime(2025, 12, 1, 17, 0, 0))
+        entry.save()
+
+        entry.refresh_from_db()
+
+        # Should now have full working day
+        assert entry.morning_hours == Decimal("4.00")
+        assert entry.afternoon_hours == Decimal("4.00")
+        assert entry.official_hours == Decimal("8.00")
+        assert entry.working_days == Decimal("1.00")
+
 
 @pytest.mark.django_db
 class TestCalculateStatus:
@@ -108,12 +144,20 @@ class TestCalculateStatus:
         )
 
     def test_status_none_when_no_start_time_preview(self, test_employee):
-        """Test that status is None when there is no start_time (Preview mode)."""
+        """Test that status is None when there is no start_time (Preview mode - future date)."""
+        # Use a future date so is_finalizing=False
+        future_date = timezone.localdate() + timedelta(days=7)
+        # Ensure it's a Monday for the work schedule
+        days_until_monday = (7 - future_date.weekday()) % 7
+        if days_until_monday == 0:
+            days_until_monday = 7
+        future_monday = future_date + timedelta(days=days_until_monday)
+
         entry = TimeSheetEntry.objects.create(
             employee=test_employee,
-            date=date(2025, 12, 1),  # Monday
+            date=future_monday,
         )
-        # TimeSheetEntry.clean() calls compute_status(is_finalizing=False) by default
+        # TimeSheetEntry.clean() calls compute_status(is_finalizing=False) for future dates
         assert entry.status is None
 
     def test_status_absent_when_no_start_time_finalized(self, test_employee):

@@ -3,6 +3,7 @@ from decimal import Decimal
 from typing import Optional
 
 from django.db import models
+from django.utils import timezone
 from django.utils.functional import Promise
 from django.utils.translation import gettext_lazy as _
 
@@ -16,6 +17,7 @@ from apps.hrm.constants import (
     TimesheetStatus,
 )
 from apps.hrm.models.work_schedule import WorkSchedule
+from apps.hrm.utils.work_schedule_cache import get_work_schedule_by_weekday
 from libs.constants import ColorVariant
 from libs.decimals import quantize_decimal
 from libs.models import AutoCodeMixin, BaseModel, ColoredValueMixin, SafeTextField
@@ -215,6 +217,36 @@ class TimeSheetEntry(ColoredValueMixin, AutoCodeMixin, BaseModel):
         calc.calculate_hours(work_schedule)
         calc.calculate_overtime()
 
+    def _is_work_day_finalizing(self) -> bool:
+        """Determine if the work day should be finalized for calculation.
+
+        Returns True if:
+        - Entry is manually corrected (user explicitly updated times)
+        - Entry date is in the past
+        - Entry date is today and current time is past the schedule end time
+        """
+        if not self.date:
+            return False
+
+        today = timezone.localdate()
+
+        # Past days are always finalized
+        if self.date < today:
+            return True
+
+        # For today, check if current time is past schedule end time
+        if self.date == today:
+            weekday = self.date.isoweekday() + 1  # 1=Mon -> 2=Mon in WorkSchedule
+            work_schedule = get_work_schedule_by_weekday(weekday)
+            if work_schedule:
+                schedule_end = work_schedule.afternoon_end_time or work_schedule.morning_end_time
+                if schedule_end:
+                    now = timezone.localtime().time()
+                    return now >= schedule_end
+
+        # Future days are not finalized
+        return False
+
     def clean(self) -> None:
         # Import local to avoid circular import (model <-> calculator)
         from apps.hrm.services.timesheet_calculator import TimesheetCalculator
@@ -264,17 +296,23 @@ class TimeSheetEntry(ColoredValueMixin, AutoCodeMixin, BaseModel):
         except Exception:
             self.working_days = Decimal("0.00")
 
+        # Determine if the work day should be finalized
+        is_finalizing = self._is_work_day_finalizing()
+
         # Run all calculations via calculator
         calculator = TimesheetCalculator(self)
 
-        # Calculate penalties (late/early)
-        calculator.calculate_penalties()
+        # Only calculate hours, overtime, and penalties when finalizing
+        if is_finalizing:
+            calculator.calculate_hours()
+            calculator.calculate_overtime()
+            calculator.calculate_penalties()
 
         # Calculate status
-        calculator.compute_status(is_finalizing=False)
+        calculator.compute_status(is_finalizing=is_finalizing)
 
         # Compute working_days according to business rules
-        calculator.compute_working_days(is_finalizing=False)
+        calculator.compute_working_days(is_finalizing=is_finalizing)
 
         super().clean()
 

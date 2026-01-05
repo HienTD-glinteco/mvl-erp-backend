@@ -137,6 +137,7 @@ class TestTimeSheetEntryNewFields:
             date=date(2025, 3, 3),  # Monday
             morning_hours=Decimal("4.00"),
             afternoon_hours=Decimal("4.00"),
+            is_manually_corrected=True,  # Required to trigger calculation
         )
 
         # Set start and end times for the entry (use naive datetime to match work schedule)
@@ -146,6 +147,7 @@ class TestTimeSheetEntryNewFields:
 
         # Method should exist and not raise an error
         entry.calculate_hours_from_schedule()
+        entry.save()
 
         # Verify hours were calculated correctly based on work schedule
         entry.refresh_from_db()
@@ -158,29 +160,25 @@ class TestTimeSheetEntryNewFields:
 class TestEmployeeMonthlyTimesheetNewFields:
     """Test EmployeeMonthlyTimesheet model new fields and calculations."""
 
-    @pytest.fixture(autouse=True)
-    def cleanup_monthly_timesheets(self, db):
-        """Clean up any existing monthly timesheets before each test."""
-        yield
-        # Clean up after each test
-        EmployeeMonthlyTimesheet.objects.all().delete()
-
     def test_official_hours_aggregation(self, test_employee):
         """Test that official_hours is aggregated correctly from TimeSheetEntry."""
         year, month = 2025, 8  # Use unique month
 
         # Create entries with different official hours
+        # Use is_manually_corrected=True to ensure calculations are performed
         TimeSheetEntry.objects.create(
             employee=test_employee,
             date=date(year, month, 1),
             morning_hours=Decimal("4.00"),
             afternoon_hours=Decimal("4.00"),
+            is_manually_corrected=True,
         )
         TimeSheetEntry.objects.create(
             employee=test_employee,
             date=date(year, month, 2),
             morning_hours=Decimal("3.00"),
             afternoon_hours=Decimal("5.00"),
+            is_manually_corrected=True,
         )
 
         monthly = EmployeeMonthlyTimesheet.refresh_for_employee_month(test_employee.id, year, month)
@@ -193,12 +191,14 @@ class TestEmployeeMonthlyTimesheetNewFields:
         year, month = 2025, 9  # Use unique month
 
         # Create entries with overtime hours
+        # Use is_manually_corrected=True to ensure calculations are performed
         TimeSheetEntry.objects.create(
             employee=test_employee,
             date=date(year, month, 1),
             morning_hours=Decimal("4.00"),
             afternoon_hours=Decimal("4.00"),
             overtime_hours=Decimal("2.00"),
+            is_manually_corrected=True,
         )
         TimeSheetEntry.objects.create(
             employee=test_employee,
@@ -206,6 +206,7 @@ class TestEmployeeMonthlyTimesheetNewFields:
             morning_hours=Decimal("4.00"),
             afternoon_hours=Decimal("4.00"),
             overtime_hours=Decimal("1.50"),
+            is_manually_corrected=True,
         )
 
         monthly = EmployeeMonthlyTimesheet.refresh_for_employee_month(test_employee.id, year, month)
@@ -216,12 +217,14 @@ class TestEmployeeMonthlyTimesheetNewFields:
         """Test that total_worked_hours is the sum of official_hours and overtime_hours."""
         year, month = 2025, 11  # Use unique month
 
+        # Use is_manually_corrected=True to ensure calculations are performed
         TimeSheetEntry.objects.create(
             employee=test_employee,
             date=date(year, month, 1),
             morning_hours=Decimal("4.00"),
             afternoon_hours=Decimal("4.00"),
             overtime_hours=Decimal("2.00"),
+            is_manually_corrected=True,
         )
 
         monthly = EmployeeMonthlyTimesheet.refresh_for_employee_month(test_employee.id, year, month)

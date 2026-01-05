@@ -106,15 +106,17 @@ class TimesheetCalculator:
             self._work_schedule = work_schedule
             self._fetched_schedule = True
 
-        # Reset hours
-        self.entry.morning_hours = Decimal("0.00")
-        self.entry.afternoon_hours = Decimal("0.00")
-
+        # Only calculate if we have both start and end times
+        # This preserves manually set hours when start_time/end_time are not available
         if not self.entry.start_time or not self.entry.end_time:
             return
 
         if not self.work_schedule:
             return
+
+        # Reset hours before calculating (only reached when we have valid times)
+        self.entry.morning_hours = Decimal("0.00")
+        self.entry.afternoon_hours = Decimal("0.00")
 
         start = self.entry.start_time
         end = self.entry.end_time
@@ -168,16 +170,18 @@ class TimesheetCalculator:
 
     def calculate_overtime(self) -> None:
         """Calculate overtime hours based on SNAPSHOTTED approved range (TC1/TC2/TC3)."""
-        # Reset OT fields
+        # Only calculate if we have both start and end times
+        # This preserves manually set OT hours when start_time/end_time are not available
+        if not self.entry.start_time or not self.entry.end_time:
+            return
+
+        # Reset OT fields before calculating (only reached when we have valid times)
         self.entry.ot_tc1_hours = Decimal("0.00")
         self.entry.ot_tc2_hours = Decimal("0.00")
         self.entry.ot_tc3_hours = Decimal("0.00")
         self.entry.overtime_hours = Decimal("0.00")
         self.entry.ot_start_time = None
         self.entry.ot_end_time = None
-
-        if not self.entry.start_time or not self.entry.end_time:
-            return
 
         # Use Snapshotted Approved Range
         approved_start = self.entry.approved_ot_start_time

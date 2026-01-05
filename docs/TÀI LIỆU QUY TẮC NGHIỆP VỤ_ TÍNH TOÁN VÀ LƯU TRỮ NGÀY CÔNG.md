@@ -1,7 +1,7 @@
 # TÀI LIỆU QUY TẮC NGHIỆP VỤ: TÍNH TOÁN VÀ LƯU TRỮ NGÀY CÔNG (WORKING DAY)
 
 # TÀI LIỆU QUY TẮC NGHIỆP VỤ: TÍNH TOÁN VÀ LƯU TRỮ NGÀY CÔNG (WORKING DAY)
-**Phiên bản:** 2.9 (Cập nhật Monthly Snapshot & Data Flow)
+**Phiên bản:** 3.0 (Cập nhật logic is_finalizing & sửa lỗi mapping)
 **Mục đích:** Chuẩn hóa logic xử lý dữ liệu chấm công thô thành dữ liệu tính lương (Snapshot Data).
 
 * * *
@@ -25,15 +25,15 @@ Trước khi tính toán, hệ thống phải xác định ngày hôm đó nhân
 *   **Ca Sáng:** 08:00 - 12:00.
 *   **Ca Chiều:** 13:30 - 17:30.
 ### Kịch bản 1: Ngày làm việc tiêu chuẩn (Thứ 2 - Thứ 6)
-*   **UC tham chiếu:** UC 6.6.1.1
-*   **Cấu hình:** 2 Ca (Sáng + Chiều).
-*   **Định mức (****`working_days`** **Max):** `1.0`.
-*   **Loại ngày (****`day_type`****):** `official`.
+*   **UC tham chiếu:** UC 6.6.1.1
+*   **Cấu hình:** 2 Ca (Sáng + Chiều).
+*   **Định mức (`working_days` Max):** `1.0`.
+*   **Loại ngày (`day_type`):** `null` (Để trống - ngày thường không có day_type đặc biệt).
 ### Kịch bản 2: Ngày làm việc ngắn (Thường là Thứ 7)
-*   **UC tham chiếu:** UC 6.6.1.1
-*   **Cấu hình:** 1 Ca (Sáng hoặc Chiều).
-*   **Định mức (****`working_days`** **Max):** `0.5`.
-*   **Loại ngày (****`day_type`****):** `official` (nhưng có định mức công thấp hơn).
+*   **UC tham chiếu:** UC 6.6.1.1
+*   **Cấu hình:** 1 Ca (Sáng hoặc Chiều).
+*   **Định mức (`working_days` Max):** `0.5`.
+*   **Loại ngày (`day_type`):** `null` (Để trống - ngày thường không có day_type đặc biệt).
 * * *
 ## 3\. Chi Tiết Logic Tính Toán Giá Trị Công (Complex Calculation)
 ### 3.1. Tính Thời Gian Làm Việc Thực Tế (Official Hours)
@@ -44,23 +44,22 @@ Trước khi tính toán, hệ thống phải xác định ngày hôm đó nhân
 *   `Ca_Sáng_Start` (08:00), `Ca_Sáng_End` (12:00).
 *   `Ca_Chiều_Start` (13:30), `Ca_Chiều_End` (17:30).
 **Thuật toán từng bước:**
-1. **Bước 1: Chuẩn hóa dữ liệu vào/ra**
-    *   Sử dụng `start_time` và `end_time` (đã qua xử lý ưu tiên) làm mốc.
-    *   Nếu `start_time` < `Ca_Sáng_Start`, coi như = `Ca_Sáng_Start`.
-    *   Nếu `end_time` > `Ca_Chiều_End`, coi như = `Ca_Chiều_End`.
-2. **Bước 2: Tính giờ làm Ca Sáng**
-    *   Nếu không có check-in/out trong khung sáng -> `H_Sáng` = 0.
+1. **Bước 1: Xác định khung thời gian thực tế**
+    *   Sử dụng `start_time` và `end_time` (đã qua xử lý ưu tiên) làm mốc.
+    *   **Lưu ý:** Hệ thống KHÔNG clamp (cắt) thời gian, mà sử dụng **intersection logic** để tính giờ làm thực tế trong từng ca.
+2. **Bước 2: Tính giờ làm Ca Sáng (Intersection)**
+    *   Nếu không có check-in/out trong khung sáng -> `H_Sáng` = 0.
     *   Ngược lại:
-        *   `Start_S` = Max(`start_time`, 08:00).
-        *   `End_S` = Min(`end_time`, 12:00).
-        *   Nếu `Start_S` < `End_S`: `H_Sáng` = `End_S` - `Start_S`.
-        *   Ngược lại: `H_Sáng` = 0.
-3. **Bước 3: Tính giờ làm Ca Chiều**
+        *   `Start_S` = Max(`start_time`, 08:00).
+        *   `End_S` = Min(`end_time`, 12:00).
+        *   Nếu `Start_S` < `End_S`: `H_Sáng` = `End_S` - `Start_S`.
+        *   Ngược lại: `H_Sáng` = 0.
+3. **Bước 3: Tính giờ làm Ca Chiều (Intersection)**
     *   Tương tự:
-        *   `Start_C` = Max(`start_time`, 13:30).
-        *   `End_C` = Min(`end_time`, 17:30).
-        *   Nếu `Start_C` < `End_C`: `H_Chiều` = `End_C` - `Start_C`.
-        *   Ngược lại: `H_Chiều` = 0.
+        *   `Start_C` = Max(`start_time`, 13:30).
+        *   `End_C` = Min(`end_time`, 17:30).
+        *   Nếu `Start_C` < `End_C`: `H_Chiều` = `End_C` - `Start_C`.
+        *   Ngược lại: `H_Chiều` = 0.
 4. **Bước 4: Tổng hợp & Làm tròn**
     *   `official_hours` = `H_Sáng` + `H_Chiều`.
     *   `working_days` (Raw) = `official_hours` / 8
@@ -84,6 +83,28 @@ Trước khi tính toán, hệ thống phải xác định ngày hôm đó nhân
 2. **Tính toán:**
     *   **Tính công:** Trừ trực tiếp vào `official_hours` mọi phút đi muộn/về sớm (không áp dụng ân hạn).
     *   **Xác định lỗi (****`is_punished`****):** True nếu `(late_minutes + early_minutes) > Ân hạn`.
+### 3.4. Logic Kích Hoạt Tính Toán (is_finalizing)
+**Mục đích:** Tránh tính toán sai cho các ngày chưa kết thúc (nhân viên vẫn đang làm việc).
+
+**Quy tắc:** Hệ thống CHỈ tính toán `official_hours`, `overtime_hours`, `working_days`, và các field liên quan khi thỏa mãn một trong các điều kiện sau:
+
+1. **Ngày đã qua (Past Date):**
+   - Nếu `entry.date < today` → Luôn tính toán (ngày đã kết thúc).
+
+2. **Ngày hôm nay đã hết giờ làm việc:**
+   - Nếu `entry.date == today` VÀ `current_time >= schedule_end_time` → Kích hoạt tính toán.
+   - `schedule_end_time` lấy từ `WorkSchedule.afternoon_end_time` (thường là 17:30).
+
+**Chế độ Preview (is_finalizing = False):**
+- Áp dụng cho ngày tương lai hoặc ngày hôm nay chưa hết giờ.
+- `working_days` = `null` (chưa xác định).
+- `status` = `null` hoặc `NOT_ON_TIME` (nếu chỉ có single punch).
+- Không tính `calculate_hours()`, `calculate_overtime()`, `calculate_penalties()`.
+
+**Chế độ Finalized (is_finalizing = True):**
+- Áp dụng khi ngày đã kết thúc hoặc entry được sửa thủ công.
+- Tính toán đầy đủ tất cả các field.
+- `status` có thể là `ABSENT` nếu không có chấm công.
 * * *
 ## 4\. Xử Lý Các Loại Đề Xuất & Sự Kiện Đặc Biệt
 ### 4.1. Ngày Làm Bù (Compensation Day)
@@ -139,31 +160,31 @@ Bảng ngày công (`hrm_timesheet`) cần lưu trữ giá trị tĩnh tại th�
 | Định danh |  |  |  |
 | `date` | Date | Ngày ghi nhận | `date` |
 | `employee_id` | Long | ID Nhân viên | `employee` |
-| `contract_id` | Long | Snapshot: ID Hợp đồng/Phụ lục đang hiệu lực. | New Field |
+| `contract_id` | Long | Snapshot: ID Hợp đồng/Phụ lục đang hiệu lực. | `contract` (ForeignKey) |
 | Phân loại Ngày |  |  |  |
-| `day_type` | String | Loại ngày: `official`, `holiday`, `compensatory`. | `day_type` |
+| `day_type` | String | Loại ngày: `null` (ngày thường), `holiday`, `compensatory`. | `day_type` |
 | `count_for_payroll` | Boolean | Có tính lương không? (Dựa trên loại HĐ/Nhân viên). | `count_for_payroll` |
 | `is_manually_corrected` | Boolean | Có phải do Admin sửa thủ công không? | `is_manually_corrected` |
 | Giá trị Công |  |  |  |
 | `working_days` | Decimal | Giá trị công tính lương (Max 1.0 hoặc 0.5). Không bao gồm OT. | `working_days` |
 | `official_hours` | Decimal | Tổng số giờ làm việc chính thức (Sáng + Chiều). | `official_hours` |
-| `compensation_value` | Decimal | Mới: Giá trị công ngày làm bù (thường âm hoặc bằng 0). | New Field |
+| `compensation_value` | Decimal | Mới: Giá trị công ngày làm bù (thường âm hoặc bằng 0). | `compensation_value` |
 | Phân loại Lương (Snapshot) |  |  |  |
-| `wage_rate` | Int | Snapshot: Tỷ lệ hưởng lương (85 hoặc 100). | New Field |
-| `is_full_salary` | Boolean | True nếu hưởng 100% lương (Mapping từ wage\_rate). | `is_full_salary` |
+| `net_percentage` | Int | Snapshot: Tỷ lệ hưởng lương (85 hoặc 100). | `net_percentage` |
+| `is_full_salary` | Boolean | True nếu hưởng 100% lương (Mapping từ net_percentage). | `is_full_salary` |
 | Chi tiết Nghỉ & Lễ |  |  |  |
-| `paid_leave_hours` | Decimal | Số giờ nghỉ phép có lương quy đổi. | New Field |
+| `paid_leave_hours` | Decimal | Số giờ nghỉ phép có lương quy đổi. | `paid_leave_hours` |
 | OT & Vi phạm |  |  |  |
 | `overtime_hours` | Decimal | Tổng số giờ OT (TC1 + TC2 + TC3). | `overtime_hours` |
-| `ot_tc1_hours` | Decimal | Giờ OT hệ số 1.5 (Ngày thường & Làm bù). | New Field |
-| `ot_tc2_hours` | Decimal | Giờ OT hệ số 2.0 (Ngày nghỉ tuần). | New Field |
-| `ot_tc3_hours` | Decimal | Giờ OT hệ số 3.0 (Ngày lễ). | New Field |
-| `late_minutes` | Int | Phút đi muộn thực tế (dùng để trừ công). | New Field |
-| `early_minutes` | Int | Phút về sớm thực tế (dùng để trừ công). | New Field |
-| `is_punished` | Boolean | Mới: Có bị phạt chuyên cần hay không (xét theo ân hạn). | New Field |
+| `ot_tc1_hours` | Decimal | Giờ OT hệ số 1.5 (Ngày thường & Làm bù). | `ot_tc1_hours` |
+| `ot_tc2_hours` | Decimal | Giờ OT hệ số 2.0 (Ngày nghỉ tuần). | `ot_tc2_hours` |
+| `ot_tc3_hours` | Decimal | Giờ OT hệ số 3.0 (Ngày lễ). | `ot_tc3_hours` |
+| `late_minutes` | Int | Phút đi muộn thực tế (dùng để trừ công). | `late_minutes` |
+| `early_minutes` | Int | Phút về sớm thực tế (dùng để trừ công). | `early_minutes` |
+| `is_punished` | Boolean | Mới: Có bị phạt chuyên cần hay không (xét theo ân hạn). | `is_punished` |
 | Trạng thái |  |  |  |
-| `status` | String | Mã trạng thái: `on_time`, `not_on_time`, `single_punch`, `absent`. | `status` |
-| `is_exempt` | Boolean | True nếu thuộc diện Miễn chấm công. | New Field |
+| `status` | String | Mã trạng thái: `on_time`, `not_on_time`, `single_punch`, `absent`. | `status` |
+| `is_exempt` | Boolean | True nếu thuộc diện Miễn chấm công. | `is_exempt` |
 
 * * *
 ### 6.1. Chi tiết Logic Mapping & Tính toán Field
@@ -174,9 +195,9 @@ Dưới đây là công thức cụ thể để populate (điền dữ liệu) c
     *   Lấy ID của bản ghi có `effective_date <= current_date` và `expiration_date >= current_date` (hoặc null).
     *   Ưu tiên Phụ lục mới nhất > Hợp đồng gốc.
 *   **`day_type`**:
-    *   Check danh sách `Holidays` -> Nếu có: `holiday`.
-    *   Check danh sách `CompensatoryDays` -> Nếu có: `compensatory`.
-    *   Còn lại: `official`.
+    *   Check danh sách `Holidays` -> Nếu có: `holiday`.
+    *   Check danh sách `CompensatoryDays` -> Nếu có: `compensatory`.
+    *   Còn lại: `null` (để trống cho ngày thường).
 *   **`count_for_payroll`**:
     *   Lấy từ `Employee.type`.
     *   Nếu là: `Chính thức`, `Thử việc` , `Học việc` , `Thực tập sinh` , `Thử việc loại 1` > `True`.
@@ -194,11 +215,11 @@ Dưới đây là công thức cụ thể để populate (điền dữ liệu) c
     *   Chỉ tính nếu `day_type == compensatory`.
     *   `= working_days (Thực tế) - working_days (Định mức)`.
 #### Nhóm 3: Field Lương & Chế độ
-*   **`wage_rate`**:
-    *   Lấy từ `Contract.wage_rate` (hoặc trường tương đương).
-    *   Thường là `85` hoặc `100`.
+*   **`net_percentage`**:
+    *   Lấy từ `Contract.net_percentage` hoặc `ContractType.net_percentage`.
+    *   Thường là `85` hoặc `100`.
 *   **`is_full_salary`**:
-    *   `True` nếu `wage_rate == 100`. `False` nếu khác.
+    *   `True` nếu `net_percentage == 100`. `False` nếu khác.
 *   **`paid_leave_hours`**:
     *   Tổng giờ của các đề xuất `PaidLeave` (P, P/2) đã duyệt trong ngày.
 #### Nhóm 4: Field OT & Vi phạm
@@ -208,11 +229,12 @@ Dưới đây là công thức cụ thể để populate (điền dữ liệu) c
 *   **`is_punished`**:
     *   `True` nếu `(late_minutes + early_minutes) > Grace_Period`.
 *   **`ot_tc1_hours`**:
-    *   Overlap(Log, Đề xuất OT) nếu ngày là `official` (ngày thường, bao gồm thứ 7) hoặc `compensatory`.
+    *   Overlap(Log, Đề xuất OT) nếu ngày là ngày thường (bao gồm thứ 7) hoặc `compensatory`.
+    *   **Lưu ý:** `day_type = null` hoặc `day_type = compensatory`.
 *   **`ot_tc2_hours`**:
-    *   Overlap(Log, Đề xuất OT) nếu ngày là cuối tuần (Chủ nhật) và không phải ngày làm bù.
+    *   Overlap(Log, Đề xuất OT) nếu ngày là Chủ nhật và `day_type != compensatory`.
 *   **`ot_tc3_hours`**:
-    *   Overlap(Log, Đề xuất OT) nếu ngày là `holiday`.
+    *   Overlap(Log, Đề xuất OT) nếu `day_type == holiday`.
 * * *
 ## 7\. Luồng Dữ Liệu & Trigger (Data Flow)
 ### 7.1. Input & Output

@@ -2,6 +2,7 @@ from datetime import date, time, timedelta
 from decimal import Decimal
 
 import pytest
+from django.utils import timezone
 
 from apps.hrm.constants import (
     ProposalStatus,
@@ -398,11 +399,18 @@ class TestTimesheetCalculatorV2:
         assert entry.compensation_value == Decimal("0.00")
 
     def test_finalization_status_absent(self, employee, work_schedules):
-        d = date(2023, 1, 5)  # Thursday (Normal day)
-        entry = TimeSheetEntry.objects.create(employee=employee, date=d)
+        # Use a future Thursday so is_finalizing=False initially
+        today = timezone.localdate()
+        days_until_thursday = (3 - today.weekday()) % 7 + 7  # Next Thursday
+        future_thursday = today + timedelta(days=days_until_thursday)
 
+        entry = TimeSheetEntry.objects.create(employee=employee, date=future_thursday)
+
+        # Initially status should be None (preview mode for future date)
         calc = TimesheetCalculator(entry)
+        calc.compute_status(is_finalizing=False)
         assert entry.status is None
 
+        # When finalized, status should be ABSENT
         calc.compute_status(is_finalizing=True)
         assert entry.status == TimesheetStatus.ABSENT
