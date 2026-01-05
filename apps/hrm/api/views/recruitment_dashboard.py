@@ -565,7 +565,7 @@ class RecruitmentDashboardViewSet(PermissionRegistrationMixin, viewsets.ViewSet)
 
         return [
             {
-                "source_type": item["source_type"],
+                "source_type": RecruitmentSourceType.get_label(item["source_type"]),
                 "total_cost": float(item["total_cost"]) if item["total_cost"] else 0,
                 "percentage": round(
                     (float(item["total_cost"]) / float(total_cost_all) * 100) if total_cost_all > 0 else 0, 1
