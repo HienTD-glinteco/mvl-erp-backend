@@ -200,14 +200,32 @@ def _process_proposal_change(proposal: Proposal):
     snapshot_service = TimesheetSnapshotService()
     updates = []
 
-    is_leave_proposal = proposal.proposal_type == ProposalType.PAID_LEAVE
-    is_late_exemption_proposal = proposal.proposal_type == ProposalType.LATE_EXEMPTION
-    is_post_maternity_benefits_proposal = proposal.proposal_type == ProposalType.POST_MATERNITY_BENEFITS
+    is_leave_proposal = proposal.proposal_type in [
+        ProposalType.PAID_LEAVE,
+        ProposalType.UNPAID_LEAVE,
+        ProposalType.MATERNITY_LEAVE,
+    ]
+    is_late_exemption_proposal = proposal.proposal_type in [
+        ProposalType.LATE_EXEMPTION,
+        ProposalType.POST_MATERNITY_BENEFITS,
+    ]
     is_overtime_proposal = proposal.proposal_type == ProposalType.OVERTIME_WORK
 
     for entry in entries:
+        # Snapshot overtime data for OT proposals
         if is_overtime_proposal:
             snapshot_service.snapshot_overtime_data(entry)
+
+        # Snapshot leave reason and count_for_payroll for leave proposals
+        if is_leave_proposal:
+            # Clear existing absent_reason to allow re-snapshotting
+            entry.absent_reason = None
+            snapshot_service.snapshot_leave_reason(entry)
+            snapshot_service.set_count_for_payroll(entry)
+
+        # Snapshot allowed late minutes for late exemption/post maternity
+        if is_late_exemption_proposal:
+            snapshot_service.snapshot_allowed_late_minutes(entry)
 
         # Recalculate
         calculator = TimesheetCalculator(entry)
@@ -229,6 +247,11 @@ def _process_proposal_change(proposal: Proposal):
                 "ot_tc1_hours",
                 "ot_tc2_hours",
                 "ot_tc3_hours",
+                "allowed_late_minutes",
+                "allowed_late_minutes_reason",
+                "approved_ot_start_time",
+                "approved_ot_end_time",
+                "approved_ot_minutes",
             ],
         )
 
