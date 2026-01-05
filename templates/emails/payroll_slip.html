@@ -1,221 +1,325 @@
-{% extends "emails/base_email.html" %}
-{% load i18n %}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phiếu Lương - {{ payroll_slip.employee_code }}</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 1.5cm;
+        }
 
-{% block title %}{% trans "Payroll Slip" %}{% endblock %}
+        body {
+            font-family: "Times New Roman", Times, serif;
+            font-size: 11pt;
+            line-height: 1.3;
+            color: #222;
+            margin: 0;
+            padding: 20px;
+        }
 
-{% block header_title %}{% trans "Payroll Slip Notification" %}{% endblock %}
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
 
-{% block extra_styles %}
-    .info-table { width: 100%; border-collapse: collapse; margin: 20px 0; background: white; }
-    .info-table th, .info-table td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
-    .info-table th { background-color: #2c3e50; color: white; font-weight: bold; width: 40%; }
-    .info-table tr:hover { background-color: #f5f5f5; }
-    .section-title { color: #2c3e50; margin-top: 25px; margin-bottom: 15px; font-size: 18px; font-weight: bold; border-bottom: 2px solid #2c3e50; padding-bottom: 5px; }
-    .highlight { background-color: #3498db; color: white; padding: 15px; border-radius: 5px; text-align: center; font-size: 20px; font-weight: bold; margin: 20px 0; }
-    .warning { background-color: #f39c12; color: white; padding: 10px; border-radius: 5px; margin: 10px 0; }
-{% endblock %}
+        .company-name {
+            font-size: 13pt;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
 
-{% block content %}
-    <p>{% trans "Hello" %} <strong>{{ employee.fullname }}</strong>,</p>
+        .document-title {
+            font-size: 14pt;
+            font-weight: bold;
+            margin: 15px 0 10px 0;
+            text-transform: uppercase;
+        }
 
-    <p>{% trans "Your payroll slip for" %} <strong>{{ salary_period.month|date:"F Y" }}</strong> {% trans "is ready." %}</p>
+        .employee-info {
+            margin: 15px 0;
+        }
 
-    {% if payroll_slip.status == 'HOLD' %}
-    <div class="warning">
-        <strong>{% trans "Note:" %}</strong> {% trans "This payroll slip is on hold:" %} {{ payroll_slip.status_note }}
-    </div>
-    {% endif %}
+        .info-row {
+            margin: 5px 0;
+        }
 
-    <h3 class="section-title">{% trans "Employee Information" %}</h3>
-    <table class="info-table">
-        <tr>
-            <th>{% trans "Employee Code" %}</th>
-            <td>{{ payroll_slip.employee_code }}</td>
-        </tr>
-        <tr>
-            <th>{% trans "Full Name" %}</th>
-            <td>{{ payroll_slip.employee_name }}</td>
-        </tr>
-        <tr>
-            <th>{% trans "Department" %}</th>
-            <td>{{ payroll_slip.department_name }}</td>
-        </tr>
-        <tr>
-            <th>{% trans "Position" %}</th>
-            <td>{{ payroll_slip.position_name }}</td>
-        </tr>
-    </table>
+        .info-label {
+            font-weight: bold;
+            display: inline-block;
+            width: 150px;
+        }
 
-    <h3 class="section-title">{% trans "Salary Components" %}</h3>
-    <table class="info-table">
-        <tr>
-            <th>{% trans "Base Salary" %}</th>
-            <td>{{ payroll_slip.base_salary|floatformat:0 }} VND</td>
-        </tr>
-        <tr>
-            <th>{% trans "KPI Salary" %}</th>
-            <td>{{ payroll_slip.kpi_salary|floatformat:0 }} VND</td>
-        </tr>
-        <tr>
-            <th>{% trans "KPI Bonus" %}</th>
-            <td>{{ payroll_slip.kpi_bonus|floatformat:0 }} VND ({% trans "Grade" %}: {{ payroll_slip.kpi_grade }})</td>
-        </tr>
-        <tr>
-            <th>{% trans "Business Progressive Salary" %}</th>
-            <td>{{ payroll_slip.business_progressive_salary|floatformat:0 }} VND ({% trans "Grade" %}: {{ payroll_slip.business_grade }})</td>
-        </tr>
-        <tr>
-            <th>{% trans "Lunch Allowance" %}</th>
-            <td>{{ payroll_slip.lunch_allowance|floatformat:0 }} VND</td>
-        </tr>
-        <tr>
-            <th>{% trans "Phone Allowance" %}</th>
-            <td>{{ payroll_slip.phone_allowance|floatformat:0 }} VND</td>
-        </tr>
-        <tr>
-            <th>{% trans "Other Allowance" %}</th>
-            <td>{{ payroll_slip.other_allowance|floatformat:0 }} VND</td>
-        </tr>
-        <tr>
-            <th>{% trans "Total Position Income" %}</th>
-            <td><strong>{{ payroll_slip.total_position_income|floatformat:0 }} VND</strong></td>
-        </tr>
-        <tr>
-            <th>{% trans "Actual Working Days Income" %}</th>
-            <td><strong>{{ payroll_slip.actual_working_days_income|floatformat:0 }} VND</strong></td>
-        </tr>
-    </table>
+        .salary-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 10pt;
+        }
 
-    <h3 class="section-title">{% trans "Overtime Pay" %}</h3>
-    <table class="info-table">
-        <tr>
-            <th>{% trans "Total Overtime Hours" %}</th>
-            <td>{{ payroll_slip.total_overtime_hours }} {% trans "hours" %}</td>
-        </tr>
-        <tr>
-            <th>{% trans "Saturday & Weekday" %}</th>
-            <td>{{ payroll_slip.saturday_inweek_overtime_hours }} {% trans "hours" %}</td>
-        </tr>
-        <tr>
-            <th>{% trans "Sunday" %}</th>
-            <td>{{ payroll_slip.sunday_overtime_hours }} {% trans "hours" %}</td>
-        </tr>
-        <tr>
-            <th>{% trans "Holiday" %}</th>
-            <td>{{ payroll_slip.holiday_overtime_hours }} {% trans "hours" %}</td>
-        </tr>
-        <tr>
-            <th>{% trans "Hourly Rate" %}</th>
-            <td>{{ payroll_slip.hourly_rate|floatformat:0 }} VND</td>
-        </tr>
-        <tr>
-            <th>{% trans "Taxable Overtime Salary" %}</th>
-            <td>{{ payroll_slip.taxable_overtime_salary|floatformat:0 }} VND</td>
-        </tr>
-        <tr>
-            <th>{% trans "Overtime Progress Allowance" %}</th>
-            <td>{{ payroll_slip.overtime_progress_allowance|floatformat:0 }} VND</td>
-        </tr>
-        <tr>
-            <th>{% trans "Non-Taxable Overtime Salary" %}</th>
-            <td>{{ payroll_slip.non_taxable_overtime_salary|floatformat:0 }} VND</td>
-        </tr>
-        <tr>
-            <th>{% trans "Total Overtime Pay" %}</th>
-            <td><strong>{{ payroll_slip.overtime_pay|floatformat:0 }} VND</strong></td>
-        </tr>
-    </table>
+        .salary-table th,
+        .salary-table td {
+            border: 0.5pt solid #222;
+            padding: 8px 6px;
+            text-align: left;
+        }
 
-    <h3 class="section-title">{% trans "Travel Expenses" %}</h3>
-    <table class="info-table">
-        <tr>
-            <th>{% trans "Taxable Travel Expense" %}</th>
-            <td>{{ payroll_slip.taxable_travel_expense|floatformat:0 }} VND</td>
-        </tr>
-        <tr>
-            <th>{% trans "Non-Taxable Travel Expense" %}</th>
-            <td>{{ payroll_slip.non_taxable_travel_expense|floatformat:0 }} VND</td>
-        </tr>
-        <tr>
-            <th>{% trans "Total Travel Expense" %}</th>
-            <td><strong>{{ payroll_slip.total_travel_expense|floatformat:0 }} VND</strong></td>
-        </tr>
-    </table>
+        .salary-table th {
+            /*background-color: #f0f0f0;*/
+            font-weight: bold;
+            /*text-align: center;*/
+        }
 
-    <h3 class="section-title">{% trans "Working Days" %}</h3>
-    <table class="info-table">
-        <tr>
-            <th>{% trans "Standard Working Days" %}</th>
-            <td>{{ payroll_slip.standard_working_days }} {% trans "days" %}</td>
-        </tr>
-        <tr>
-            <th>{% trans "Total Working Days" %}</th>
-            <td>{{ payroll_slip.total_working_days }} {% trans "days" %}</td>
-        </tr>
-        <tr>
-            <th>{% trans "Official Working Days" %}</th>
-            <td>{{ payroll_slip.official_working_days }} {% trans "days" %}</td>
-        </tr>
-        <tr>
-            <th>{% trans "Probation Working Days" %}</th>
-            <td>{{ payroll_slip.probation_working_days }} {% trans "days" %}</td>
-        </tr>
-    </table>
+        .salary-table .section-header {
+            font-weight: bold;
+            background-color: #e8e8e8;
+        }
 
-    <h3 class="section-title">{% trans "Deductions" %}</h3>
-    <table class="info-table">
-        <tr>
-            <th>{% trans "Social Insurance" %}</th>
-            <td>{{ payroll_slip.employee_social_insurance|floatformat:0 }} VND</td>
-        </tr>
-        <tr>
-            <th>{% trans "Health Insurance" %}</th>
-            <td>{{ payroll_slip.employee_health_insurance|floatformat:0 }} VND</td>
-        </tr>
-        <tr>
-            <th>{% trans "Unemployment Insurance" %}</th>
-            <td>{{ payroll_slip.employee_unemployment_insurance|floatformat:0 }} VND</td>
-        </tr>
-        <tr>
-            <th>{% trans "Union Fee" %}</th>
-            <td>{{ payroll_slip.employee_union_fee|floatformat:0 }} VND</td>
-        </tr>
-        <tr>
-            <th>{% trans "Personal Income Tax" %}</th>
-            <td>{{ payroll_slip.personal_income_tax|floatformat:0 }} VND</td>
-        </tr>
-        {% if payroll_slip.recovery_amount > 0 %}
-        <tr>
-            <th>{% trans "Recovery Amount" %}</th>
-            <td>{{ payroll_slip.recovery_amount|floatformat:0 }} VND</td>
-        </tr>
-        {% endif %}
-    </table>
+        .salary-table .sub-item {
+            padding-left: 20px;
+            font-style: italic;
+            font-weight: normal;
+        }
 
-    {% if payroll_slip.back_pay_amount > 0 %}
-    <h3 class="section-title">{% trans "Additional Payment" %}</h3>
-    <table class="info-table">
-        <tr>
-            <th>{% trans "Back Pay Amount" %}</th>
-            <td>{{ payroll_slip.back_pay_amount|floatformat:0 }} VND</td>
-        </tr>
-    </table>
-    {% endif %}
+        .salary-table .formula {
+            font-size: 9pt;
+            font-style: italic;
+            color: #555;
+        }
 
-    <div class="highlight">
-        <div>{% trans "Gross Income" %}: {{ payroll_slip.gross_income|floatformat:0 }} VND</div>
-        <div style="margin-top: 10px; font-size: 24px;">{% trans "Net Salary" %}: {{ payroll_slip.net_salary|floatformat:0 }} VND</div>
+        .salary-table .amount {
+            text-align: right;
+            font-family: "Calibri", Arial, sans-serif;
+        }
+
+        .salary-table .total-row {
+            font-weight: bold;
+            background-color: #f5f5f5;
+        }
+
+        .note-section {
+            margin: 15px 0;
+            font-size: 10pt;
+            line-height: 1.5;
+        }
+
+        .note-section .bullet {
+            margin-left: 20px;
+        }
+
+        .highlight {
+            background-color: yellow;
+            color: red;
+            font-weight: bold;
+        }
+
+        .signature-section {
+            margin-top: 30px;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="company-name">CÔNG TY TNHH ĐẦU TƯ MAI VIỆT LAND</div>
+        <div class="document-title">PHIẾU LƯƠNG THÁNG {{ payroll_slip.salary_period.month|date:"m/Y" }}</div>
     </div>
 
-    {% if payroll_slip.has_unpaid_penalty %}
-    <div class="warning">
-        <strong>{% trans "Warning:" %}</strong> {% trans "You have" %} {{ payroll_slip.unpaid_penalty_count }} {% trans "unpaid penalty ticket(s). Please check with HR department." %}
+    <div class="employee-info">
+        <div class="info-row">
+            <span class="info-label">Họ và tên:</span>
+            <span>{{ payroll_slip.employee_name }}</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Mã nhân viên:</span>
+            <span>{{ payroll_slip.employee_code }}</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Phòng ban:</span>
+            <span>{{ payroll_slip.department_name|default:"N/A" }}</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Vị trí/Chức danh:</span>
+            <span>{{ payroll_slip.position_name|default:"N/A" }}</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Kỳ lương:</span>
+            <span>Tháng {{ payroll_slip.salary_period.month|date:"m/Y" }}</span>
+        </div>
     </div>
-    {% endif %}
 
-    <p>{% trans "Please log in to the system to view full details and download your payroll slip." %}</p>
+    <table class="salary-table">
+        <tbody>
+            <!-- I. NGÀY CÔNG -->
+            <tr>
+                <td rowspan="4"><strong>I. NGÀY CÔNG</strong></td>
+                <th>Ngày công tiêu chuẩn</th>
+                <th>(I.1)</t>
+                <th>{{ payroll_slip.standard_working_days }}</th>
+            </tr>
+            <tr>
+                <th>Ngày công thử việc</th>
+                <th>(I.2)</th>
+                <th>{{ payroll_slip.probation_working_days }}</th>
+            </tr>
+            <tr>
+                <th>Ngày công chính thức</th>
+                <th>(I.3)</th>
+                <th>{{ payroll_slip.official_working_days }}</th>
+            </tr>
+            <tr>
+                <td>Ngày nghỉ hưởng lương (Lễ tết, chế độ...)</th>
+                <td>(I.3.a)</th>
+                <td></td>
+            </tr>
 
-    <p>{% trans "If you have any questions, please contact the HR department." %}</p>
+            <!-- Lương theo hợp đồng -->
+            <tr>
+                <th rowspan="9">II. Lương theo hợp đồng</th>
+                <th>Tổng thu nhập</th>
+                <td><strong>(II.2)</strong> = (II.2.a)+ (II.2.b)+ (II.2.c)+ (II.2.d)+ (II.2.e)+ (II.2.g)+(II.2.f)+(II.2i)</td>
+                <td>{{ payroll_slip.total_position_income|floatformat:0 }}</td>
+            </tr>
+            <tr>
+                <td>Lương vị trí</td>
+                <td>(II.2.a)</td>
+                <td>{{ payroll_slip.base_salary }}</td>
+            </tr>
+            <tr>
+                <td>Phụ cấp ăn trưa</td>
+                <td>(II.2.b)</td>
+                <td>{{ payroll_slip.lunch_allowance }}</td>
+            </tr>
+            <tr>
+                <td>Phụ cấp điện thoại</td>
+                <td>(II.2.c)</td>
+                <td>{{ payroll_slip.phone_allowance }}</td>
+            </tr>
+            <tr>
+                <td>Phụ cấp công tác</td>
+                <td>(II.2.d)</td>
+                <td>{{ payroll_slip.other_allowance }}</td>
+            </tr>
+            <tr>
+                <td>Lương KPI</td>
+                <td>(II.2.e)</td>
+                <td>{{ payroll_slip.kpi_salary }}</td>
+            </tr>
+            <tr>
+                <td>Mức KPI</td>
+                <td>(II.2.g)</td>
+                <td>{{ payroll_slip.kpi_grade }}</td>
+            </tr>
+            <tr>
+                <td>Lương đạt KPI</td>
+                <td>(II.2.f)</td>
+                <td>{{ payroll_slip.kpi_bonus }}</td>
+            </tr>
+            <tr>
+                <td>Thưởng doanh số</td>
+                <td>(II.2.i)</td>
+                <td>{{ payroll_slip.business_progressive_salary }}</td>
+            </tr>
 
-    <p>{% trans "Best regards," %}<br>{% trans "MaiVietLand Team" %}</p>
-{% endblock %}
+            <!-- Thu nhập theo ngày công thực tế -->
+            <tr>
+                <th rowspan="3">III. Thu nhập theo ngày công thực tế</th>
+                <th>Tổng thu nhập</th>
+                <td><strong>(III.1)</strong> = (III.1.a)+ (III.1.b)</td>
+                <th>{{ payroll_slip.actual_working_days_income|floatformat:0 }}</th>
+            </tr>
+            <tr>
+                <td>Lương ngày công thực tế</td>
+                <td>(III.1.a)= [(I.2)* (II.1)+ (I.3)* (II.2)]/ (I.1)</td>
+                <th>{{ payroll_slip.actual_working_days_income|floatformat:0 }}</th>
+            </tr>
+            <tr>
+                <th>Lương làm thêm giờ</th>
+                <td>(III.1.b)</td>
+                <th>{{ payroll_slip.overtime_progress_allowance|floatformat:0 }}</th>
+            </tr>
+
+            <!-- Các khoản giảm trừ Thuế TNCN -->
+            <tr>
+                <td rowspan="8">IV. Các khoản giảm trừ Thuế TNCN</td>
+                <th>Phụ cấp không tính thuế TNCN</th>
+                <th>(IV.1)</th>
+                <th></th>
+            </tr>
+            <tr>
+                <th>Giảm trừ đóng BH (10.5%)</th>
+                <td><strong>(IV.1)</strong> = (IV.2.a)+ (IV.2.b)+ (IV.2.c)</td>
+                <th></th>
+            </tr>
+            <tr>
+                <td>BHXH (8%)</td>
+                <td>(IV.2.a)</td>
+                <th>{{ payroll_slip.employee_social_insurance|floatformat:0 }}</th>
+            </tr>
+            <tr>
+                <td>BHYT (1.5%)</td>
+                <td>(IV.2.b)</td>
+                <th>{{ payroll_slip.employee_health_insurance|floatformat:0 }}</th>
+            </tr>
+            <tr>
+                <td>BHTN (1%)</td>
+                <td>(IV.2.c)</td>
+                <th>{{ payroll_slip.employee_unemployment_insurance|floatformat:0 }}</th>
+            </tr>
+            <tr>
+                <th>Giảm trừ cá nhân</th>
+                <th>(IV.3)</th>
+                <th>{{ payroll_slip.personal_deduction|floatformat:0 }}</th>
+            </tr>
+            <tr>
+                <th>Số người phụ thuộc</th>
+                <th>(IV.3)</th>
+                <th>{{ payroll_slip.dependent_count|floatformat:0 }}</th>
+            </tr>
+            <tr>
+                <th>Kinh phí công đoàn</th>
+                <td><strong>(IV.5)</strong> = 1% * (II.2.a)</td>
+                <th>{{ payroll_slip.employee_union_fee|floatformat:0 }}</th>
+            </tr>
+
+            <tr>
+                <th colspan=2>V. Thuế TNCN</th>
+                <th>(V)</th>
+                <th>{{ payroll_slip.personal_income_tax|floatformat:0 }}</th>
+            </tr>
+
+            <tr>
+                <th colspan=2>VI. Truy thu</th>
+                <th>(VI)</th>
+                <th>{{ payroll_slip.back_pay_amount|floatformat:0 }}</th>
+            </tr>
+
+            <tr>
+                <th colspan=2>VII. Các khoản bổ sung</th>
+                <th>(VII)</th>
+                <th></th>
+            </tr>
+
+            <tr>
+                <th colspan=2>VIII. Tổng lương</th>
+                <th>(VII) = (III.1) - (IV.2) - (IV.3) - (V) - (VI)</th>
+                <th>{{ payroll_slip.net_salary|floatformat:0 }}</th>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="note-section">
+        <div class="bullet"><strong>Lưu ý:</strong> Mọi thắc mắc về ngày công, vi phạm, lương, Anh/Chị vui lòng gửi vào mail:
+            <a href="mailto:nhansumaiviet@gmail.com">nhansumaiviet@gmail.com</a> / <a href="mailto:Nhansu@maivietland.vn">Nhansu@maivietland.vn</a>
+        </div>
+        <div class="bullet" style="margin-top: 5px;">
+            <span class="highlight"><em>(P.HCNS sẽ không trả lời thắc mắc qua điện thoại, zalo, viber, sms...)</em></span>
+        </div>
+    </div>
+
+    <div class="signature-section">
+        <p><strong>Trân trọng!</strong></p>
+    </div>
+</body>
+</html>
