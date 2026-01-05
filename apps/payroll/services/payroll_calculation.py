@@ -120,6 +120,8 @@ class PayrollCalculationService:
         """
         self.slip.employee_code = self.employee.code
         self.slip.employee_name = self.employee.fullname
+        self.slip.employee_email = self.employee.email or ""
+        self.slip.tax_code = self.employee.tax_code or ""
         self.slip.department_name = self.employee.department.name if self.employee.department else ""
         self.slip.position_name = self.employee.position.name if self.employee.position else ""
 

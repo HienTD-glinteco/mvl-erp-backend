@@ -14,6 +14,8 @@ class PayrollSlipFilterSet(django_filters.FilterSet):
     - employee (exact match by employee ID)
     - employee_code (exact match, icontains for partial match)
     - employee_name (icontains for partial match)
+    - employee_email (exact match, icontains for partial match)
+    - tax_code (exact match, icontains for partial match)
     - department_name (exact match, icontains for partial match)
     - position_name (exact match, icontains for partial match)
     - has_unpaid_penalty (boolean)
@@ -33,6 +35,10 @@ class PayrollSlipFilterSet(django_filters.FilterSet):
     employee_code = django_filters.CharFilter(field_name="employee_code", lookup_expr="exact")
     employee_code__icontains = django_filters.CharFilter(field_name="employee_code", lookup_expr="icontains")
     employee_name = django_filters.CharFilter(field_name="employee_name", lookup_expr="icontains")
+    employee_email = django_filters.CharFilter(field_name="employee_email", lookup_expr="exact")
+    employee_email__icontains = django_filters.CharFilter(field_name="employee_email", lookup_expr="icontains")
+    tax_code = django_filters.CharFilter(field_name="tax_code", lookup_expr="exact")
+    tax_code__icontains = django_filters.CharFilter(field_name="tax_code", lookup_expr="icontains")
     department_name = django_filters.CharFilter(field_name="department_name", lookup_expr="exact")
     department_name__icontains = django_filters.CharFilter(field_name="department_name", lookup_expr="icontains")
     position_name = django_filters.CharFilter(field_name="position_name", lookup_expr="exact")
@@ -59,6 +65,10 @@ class PayrollSlipFilterSet(django_filters.FilterSet):
             "employee_code",
             "employee_code__icontains",
             "employee_name",
+            "employee_email",
+            "employee_email__icontains",
+            "tax_code",
+            "tax_code__icontains",
             "department_name",
             "department_name__icontains",
             "position_name",
