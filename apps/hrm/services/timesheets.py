@@ -62,7 +62,7 @@ def create_entries_for_employee_month(
 def create_entries_for_month_all(year: int | None = None, month: int | None = None) -> List[TimeSheetEntry]:
     year, month = _normalize_year_month(year, month)
     created = []
-    employees = Employee.objects.filter(status__in=[Employee.Status.ACTIVE, Employee.Status.ONBOARDING])
+    employees = Employee.objects.exclude(status=Employee.Status.RESIGNED)
     for emp in employees.iterator():
         created.extend(create_entries_for_employee_month(emp.id, year, month))
     return created
@@ -190,7 +190,7 @@ def create_monthly_timesheets_for_month_all(
     year: int | None = None, month: int | None = None
 ) -> List[EmployeeMonthlyTimesheet]:
     year, month = _normalize_year_month(year, month)
-    employees = Employee.objects.filter(status__in=[Employee.Status.ACTIVE, Employee.Status.ONBOARDING])
+    employees = Employee.objects.exclude(status=Employee.Status.RESIGNED)
     created = []
     for emp in employees.iterator():
         result = create_monthly_timesheet_for_employee(emp.id, year, month)
