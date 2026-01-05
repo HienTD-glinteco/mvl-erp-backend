@@ -276,11 +276,6 @@ class TimeSheetEntry(ColoredValueMixin, AutoCodeMixin, BaseModel):
         # Compute working_days according to business rules
         calculator.compute_working_days(is_finalizing=False)
 
-        # Note: set_is_full_salary_from_contract logic is removed from here
-        # as it is now handled by TimesheetSnapshotService, but if you want
-        # to ensure it's called during clean() if not already set, you might check here.
-        # However, per PR comments, it's better to rely on the service.
-
         super().clean()
 
     @property

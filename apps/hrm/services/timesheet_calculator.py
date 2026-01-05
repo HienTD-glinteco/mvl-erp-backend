@@ -13,6 +13,7 @@ from apps.hrm.constants import (
 from apps.hrm.models.proposal import Proposal, ProposalType
 from apps.hrm.models.timesheet import TimeSheetEntry
 from apps.hrm.models.work_schedule import WorkSchedule
+from apps.hrm.services.timesheet_snapshot_service import TimesheetSnapshotService
 from apps.hrm.utils.work_schedule_cache import get_work_schedule_by_weekday
 from libs.datetimes import combine_datetime, compute_intersection_hours
 from libs.decimals import quantize_decimal
@@ -57,8 +58,6 @@ class TimesheetCalculator:
         if work_schedule:
             self._work_schedule = work_schedule
             self._fetched_schedule = True
-
-        from apps.hrm.services.timesheet_snapshot_service import TimesheetSnapshotService
 
         snapshot_service = TimesheetSnapshotService()
         snapshot_service.snapshot_data(self.entry)
@@ -465,12 +464,12 @@ class TimesheetCalculator:
     def _get_maternity_bonus(self) -> Decimal:
         """Return maternity bonus credit if applicable.
 
-        Only applies when there is actual attendance (official_hours > 0).
-        Without attendance, the bonus should not be added.
+        Only applies when there are at least 2 punches (start_time and end_time present).
         """
         if (
             self.entry.allowed_late_minutes_reason == AllowedLateMinutesReason.MATERNITY
-            and (self.entry.official_hours or 0) > 0
+            and self.entry.start_time
+            and self.entry.end_time
         ):
             return Decimal("0.125")
         return Decimal("0.00")
