@@ -652,7 +652,7 @@ class TestEmployeeRelationshipImportHandler:
             "Emergency contact",
         ]
 
-        result = import_handler(row, 1, headers)
+        result = import_handler(1, row, "test_job_id", {"headers": headers})
 
         assert result["ok"] is True
         assert result["action"] == "created"
@@ -704,7 +704,7 @@ class TestEmployeeRelationshipImportHandler:
             "Updated note",
         ]
 
-        result = import_handler(row, 1, headers)
+        result = import_handler(1, row, "test_job_id", {"headers": headers})
 
         assert result["ok"] is True
         assert result["action"] == "updated"
@@ -727,7 +727,7 @@ class TestEmployeeRelationshipImportHandler:
         ]
         row = [1, "", "John Doe", "Jane Doe", "Vợ"]
 
-        result = import_handler(row, 1, headers)
+        result = import_handler(1, row, "test_job_id", {"headers": headers})
 
         assert result["ok"] is False
         assert "Employee code is required" in result["error"]
@@ -745,7 +745,7 @@ class TestEmployeeRelationshipImportHandler:
         ]
         row = [1, "INVALID_CODE", "John Doe", "Jane Doe", "Vợ"]
 
-        result = import_handler(row, 1, headers)
+        result = import_handler(1, row, "test_job_id", {"headers": headers})
 
         assert result["ok"] is False
         assert "not found" in result["error"]
@@ -763,7 +763,7 @@ class TestEmployeeRelationshipImportHandler:
         ]
         row = [1, self.employee.code, "John Doe", "", "Vợ"]
 
-        result = import_handler(row, 1, headers)
+        result = import_handler(1, row, "test_job_id", {"headers": headers})
 
         assert result["ok"] is False
         assert "Relative name is required" in result["error"]
@@ -781,7 +781,7 @@ class TestEmployeeRelationshipImportHandler:
         ]
         row = [1, self.employee.code, "John Doe", "Jane Doe", "INVALID"]
 
-        result = import_handler(row, 1, headers)
+        result = import_handler(1, row, "test_job_id", {"headers": headers})
 
         assert result["ok"] is False
         assert "Invalid relation type" in result["error"]
@@ -801,7 +801,7 @@ class TestEmployeeRelationshipImportHandler:
         ]
         row = [1, self.employee.code, "John Doe", "Jane Doe", "Vợ", "1990-05-15", "12345"]
 
-        result = import_handler(row, 1, headers)
+        result = import_handler(1, row, "test_job_id", {"headers": headers})
 
         assert result["ok"] is False
         assert "Invalid citizen ID length" in result["error"]
@@ -832,7 +832,7 @@ class TestEmployeeRelationshipImportHandler:
             EmployeeRelationship.objects.all().delete()
 
             row = [1, self.employee.code, "John Doe", f"Relative for {vn_type}", vn_type]
-            result = import_handler(row, 1, headers)
+            result = import_handler(1, row, "test_job_id", {"headers": headers})
 
             assert result["ok"] is True, f"Failed for relation type: {vn_type}"
             relationship = EmployeeRelationship.objects.first()

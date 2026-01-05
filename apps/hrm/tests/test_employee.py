@@ -9,7 +9,7 @@ from django.urls import reverse
 from django.utils import timezone
 from rest_framework import status
 
-from apps.core.models import Role
+from apps.core.models import Nationality, Role
 from apps.files.models import FileModel
 from apps.hrm.models import Block, Branch, Department, Employee, Position
 
@@ -968,6 +968,10 @@ class TestEmployeeAPI:
 
     def test_retrieve_employee(self, employees):
         emp1 = employees[0]
+        nationality = Nationality.objects.create(name="Vietnam")
+        emp1.nationality = nationality
+        emp1.save()
+
         url = reverse("hrm:employee-detail", kwargs={"pk": emp1.id})
         response = self.client.get(url)
 
@@ -980,6 +984,9 @@ class TestEmployeeAPI:
         assert "branch" in data
         assert "block" in data
         assert "department" in data
+        assert "nationality" in data
+        assert data["nationality"]["id"] == nationality.id
+        assert data["nationality"]["name"] == "Vietnam"
 
     def test_create_employee(self, department, branch, block):
         url = reverse("hrm:employee-list")
