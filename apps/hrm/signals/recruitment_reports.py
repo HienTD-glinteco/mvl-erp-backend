@@ -2,7 +2,7 @@
 
 from decimal import Decimal
 
-from django.db.models import Sum
+from django.db.models import Q, Sum
 from django.db.models.signals import post_delete, post_save, pre_save
 from django.dispatch import receiver
 
@@ -200,6 +200,28 @@ def _determine_source_type_from_expense(expense: RecruitmentExpense) -> str:
     return RecruitmentSourceType.RECRUITMENT_DEPARTMENT_SOURCE
 
 
+def _build_source_type_filter(source_type: str) -> Q:
+    """Build a Q filter for expenses matching a specific source_type.
+
+    Args:
+        source_type: RecruitmentSourceType value
+
+    Returns:
+        Q: Django Q object to filter expenses by source type
+    """
+    if source_type == RecruitmentSourceType.REFERRAL_SOURCE:
+        return Q(recruitment_source__allow_referral=True)
+    elif source_type == RecruitmentSourceType.MARKETING_CHANNEL:
+        return Q(recruitment_source__allow_referral=False, recruitment_channel__belong_to="marketing")
+    elif source_type == RecruitmentSourceType.JOB_WEBSITE_CHANNEL:
+        return Q(recruitment_source__allow_referral=False, recruitment_channel__belong_to="job_website")
+    else:
+        # RECRUITMENT_DEPARTMENT_SOURCE: not referral, not marketing, not job_website
+        return Q(recruitment_source__allow_referral=False) & ~Q(
+            recruitment_channel__belong_to__in=["marketing", "job_website"]
+        )
+
+
 @receiver(post_save, sender=RecruitmentExpense)
 def update_cost_report_on_expense_save(sender, instance, **kwargs):  # noqa: ARG001
     """Update RecruitmentCostReport when RecruitmentExpense is saved.
@@ -222,7 +244,9 @@ def update_cost_report_on_expense_save(sender, instance, **kwargs):  # noqa: ARG
     month_key = report_date.strftime("%Y-%m")
 
     # Aggregate all expenses for this date, org unit, and source type
+    source_type_filter = _build_source_type_filter(source_type)
     expense_agg = RecruitmentExpense.objects.filter(
+        source_type_filter,
         date=report_date,
         recruitment_request__branch_id=branch_id,
         recruitment_request__block_id=block_id,
@@ -273,8 +297,10 @@ def update_cost_report_on_expense_delete(sender, instance, **kwargs):  # noqa: A
     block_id = request.block_id
     department_id = request.department_id
 
-    # Check if any expenses remain for this combination
+    # Check if any expenses remain for this combination and source type
+    source_type_filter = _build_source_type_filter(source_type)
     remaining_expenses = RecruitmentExpense.objects.filter(
+        source_type_filter,
         date=report_date,
         recruitment_request__branch_id=branch_id,
         recruitment_request__block_id=block_id,

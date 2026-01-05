@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-05 11:50+0700\n"
+"POT-Creation-Date: 2026-01-05 15:33+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -370,7 +370,7 @@ msgid ""
 msgstr ""
 "Thử kết nối đến thiết bị chấm công và cập nhật trạng thái kết nối của nó"
 
-#: apps/hrm/api/views/attendance_device.py:482
+#: apps/hrm/api/views/attendance_device.py:475
 #, python-format
 msgid "Failed to connect to device: %(message)s"
 msgstr "Lỗi kết nối đến thiết bị: %(message)s"
@@ -2850,7 +2850,7 @@ msgstr "Lần đồng bộ cuối"
 msgid "Note"
 msgstr "Ghi Chú"
 
-#: apps/hrm/models/attendance_device.py:196
+#: apps/hrm/models/attendance_device.py:202
 #, python-format
 msgid "Connection successful. Firmware: %(firmware)s"
 msgstr "Kết nối thành công. Phiên bản phần mềm: %(firmware)s"

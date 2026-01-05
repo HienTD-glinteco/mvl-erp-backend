@@ -118,5 +118,8 @@ class AttendanceDeviceSerializer(FieldFilteringSerializerMixin, serializers.Mode
 
                 # Mark as connected
                 attrs["is_connected"] = True
+                # Update device status on success
+                attrs["realtime_enabled"] = True
+                attrs["realtime_disabled_at"] = None
         except Exception:
             attrs["is_connected"] = False

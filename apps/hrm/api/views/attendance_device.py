@@ -468,26 +468,13 @@ class AttendanceDeviceViewSet(AuditLoggingMixin, BaseModelViewSet):
         """
         device = self.get_object()
 
-        # Toggle the is_enabled status
-        new_enabled_status = not device.is_enabled
-        device.is_enabled = new_enabled_status
+        success, error_message = device.toggle_enabled()
 
-        if new_enabled_status:
-            # When enabling, check connection
-            is_connected, message = device.check_and_update_connection()
-            if not is_connected:
-                # Reset is_enabled back to False since connection failed
-                device.is_enabled = False
-                return Response(
-                    {"detail": _("Failed to connect to device: %(message)s") % {"message": message}},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-            # Connection successful, save the is_enabled status
-            device.save(update_fields=["is_enabled", "updated_at"])
-        else:
-            # When disabling, mark as disconnected
-            device.is_connected = False
-            device.save(update_fields=["is_enabled", "is_connected", "updated_at"])
+        if not success:
+            return Response(
+                {"detail": _("Failed to connect to device: %(message)s") % {"message": error_message}},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         serializer = self.get_serializer(device)
         return Response(serializer.data, status=status.HTTP_200_OK)

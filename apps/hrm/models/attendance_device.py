@@ -175,7 +175,9 @@ class AttendanceDevice(AutoCodeMixin, BaseModel):
             with service:
                 if not service._zk_connection:
                     self.is_connected = False
-                    self.save(update_fields=["is_connected", "updated_at"])
+                    self.realtime_enabled = False
+                    self.realtime_disabled_at = timezone.now()
+                    self.save(update_fields=["is_connected", "realtime_enabled", "realtime_disabled_at", "updated_at"])
                     return False, "No connection established"
 
                 # Get serial number and registration number from device
@@ -185,9 +187,13 @@ class AttendanceDevice(AutoCodeMixin, BaseModel):
 
                 # Mark as connected
                 self.is_connected = True
+                self.realtime_enabled = True
+                self.realtime_disabled_at = None
                 self.save(
                     update_fields=[
                         "is_connected",
+                        "realtime_enabled",
+                        "realtime_disabled_at",
                         "serial_number",
                         "registration_number",
                         "updated_at",
@@ -197,5 +203,55 @@ class AttendanceDevice(AutoCodeMixin, BaseModel):
                 return True, success_msg
         except Exception as e:
             self.is_connected = False
-            self.save(update_fields=["is_connected", "updated_at"])
+            self.realtime_enabled = False
+            self.realtime_disabled_at = timezone.now()
+            self.save(update_fields=["is_connected", "realtime_enabled", "realtime_disabled_at", "updated_at"])
             return False, str(e)
+
+    def toggle_enabled(self) -> tuple[bool, str | None]:
+        """Toggle the is_enabled status and update connection/realtime states.
+
+        When enabling:
+            - Checks connection to ensure the device is reachable
+            - If connection fails, keeps device disabled
+            - If connection succeeds, enables realtime
+
+        When disabling:
+            - Marks device as disconnected
+            - Disables realtime
+
+        Returns:
+            tuple: (success: bool, error_message: str | None)
+                - success: True if toggle was successful
+                - error_message: Error message if failed, None if successful
+        """
+        new_enabled_status = not self.is_enabled
+        self.is_enabled = new_enabled_status
+
+        if new_enabled_status:
+            # When enabling, check connection
+            is_connected, message = self.check_and_update_connection()
+            if not is_connected:
+                # Reset is_enabled back to False since connection failed
+                self.is_enabled = False
+                self.save(update_fields=["is_enabled", "updated_at"])
+                return False, message
+
+            # Connection successful
+            self.save(update_fields=["is_enabled", "updated_at"])
+        else:
+            # When disabling, mark as disconnected
+            self.is_connected = False
+            self.realtime_enabled = False
+            self.realtime_disabled_at = timezone.now()
+            self.save(
+                update_fields=[
+                    "is_enabled",
+                    "is_connected",
+                    "realtime_enabled",
+                    "realtime_disabled_at",
+                    "updated_at",
+                ]
+            )
+
+        return True, None

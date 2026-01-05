@@ -329,3 +329,64 @@ class TestRecruitmentReportsSignals:
         assert RecruitmentCostReport.objects.filter(
             source_type=RecruitmentSourceType.RECRUITMENT_DEPARTMENT_SOURCE
         ).exists()
+
+    def test_cost_report_separation_by_source_type(self, setup_data):
+        """Test that expenses with different source_types are aggregated separately.
+
+        This is a regression test for the bug where expenses from different
+        channel types (e.g., marketing vs other) were incorrectly summed together.
+        """
+        source = RecruitmentSource.objects.create(name="LinkedIn", code="LI", allow_referral=False)
+
+        # Create different channels
+        marketing_channel = RecruitmentChannel.objects.create(
+            name="Facebook Ads",
+            code="FB",
+            belong_to=RecruitmentChannel.BelongTo.MARKETING,
+        )
+        other_channel = RecruitmentChannel.objects.create(
+            name="LinkedIn Jobs",
+            code="LIJ",
+            belong_to=RecruitmentChannel.BelongTo.OTHER,
+        )
+
+        expense_date = date(2025, 12, 10)
+        req = setup_data["recruitment_request"]
+
+        # Create expense for marketing channel: 12,000,000
+        RecruitmentExpense.objects.create(
+            date=expense_date,
+            recruitment_source=source,
+            recruitment_channel=marketing_channel,
+            recruitment_request=req,
+            total_cost=Decimal("12000000.00"),
+            num_candidates_hired=1,
+        )
+
+        # Create expense for other channel: 2,500,000
+        RecruitmentExpense.objects.create(
+            date=expense_date,
+            recruitment_source=source,
+            recruitment_channel=other_channel,
+            recruitment_request=req,
+            total_cost=Decimal("2500000.00"),
+            num_candidates_hired=1,
+        )
+
+        # Verify Marketing report only contains 12,000,000 (not 14,500,000)
+        marketing_report = RecruitmentCostReport.objects.get(
+            report_date=expense_date,
+            branch=setup_data["branch"],
+            source_type=RecruitmentSourceType.MARKETING_CHANNEL,
+        )
+        assert marketing_report.total_cost == Decimal("12000000.00")
+        assert marketing_report.num_hires == 1
+
+        # Verify Other channel goes to RECRUITMENT_DEPARTMENT_SOURCE
+        dept_report = RecruitmentCostReport.objects.get(
+            report_date=expense_date,
+            branch=setup_data["branch"],
+            source_type=RecruitmentSourceType.RECRUITMENT_DEPARTMENT_SOURCE,
+        )
+        assert dept_report.total_cost == Decimal("2500000.00")
+        assert dept_report.num_hires == 1
