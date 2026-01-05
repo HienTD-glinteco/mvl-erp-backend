@@ -147,6 +147,11 @@ class EmployeeMonthlyTimesheet(BaseReportModel):
     def __str__(self) -> str:  # pragma: no cover - trivial
         return f"EmployeeMonthlyTimesheet {self.employee_id} {self.month_key}"
 
+    def save(self, *args, **kwargs):
+        if not self.month_key and self.report_date:
+            self.month_key = f"{self.report_date.year:04d}{self.report_date.month:02d}"
+        super().save(*args, **kwargs)
+
     @classmethod
     def compute_aggregates(
         cls, employee_id: int, year: int, month: int, fields: list[str] | None = None
@@ -263,7 +268,7 @@ class EmployeeMonthlyTimesheet(BaseReportModel):
         month_key = aggregates["month_key"]
 
         obj, __ = cls.objects.get_or_create(
-            employee_id=employee_id, report_date=report_date, defaults={"month_key": month_key}
+            employee_id=employee_id, month_key=month_key, defaults={"report_date": report_date}
         )
 
         if fields:

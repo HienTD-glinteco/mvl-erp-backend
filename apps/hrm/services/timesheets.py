@@ -130,7 +130,7 @@ def create_monthly_timesheet_for_employee(
 
     month_key = f"{year:04d}{month:02d}"
     obj, _ = EmployeeMonthlyTimesheet.objects.get_or_create(
-        employee_id=employee_id, report_date=report_date, defaults={"month_key": month_key}
+        employee_id=employee_id, month_key=month_key, defaults={"report_date": report_date}
     )
 
     # 1. Generated Leave
@@ -267,7 +267,7 @@ def trigger_timesheet_updates_from_records(records: List[AttendanceRecord]) -> N
     for emp_id, month_key, report_date in monthly_refreshes:
         try:
             EmployeeMonthlyTimesheet.objects.get_or_create(
-                employee_id=emp_id, month_key=month_key, report_date=report_date
+                employee_id=emp_id, month_key=month_key, defaults={"report_date": report_date}
             )[0].mark_refresh()
         except Exception as e:
             logger.error(f"Failed to mark monthly refresh for employee {emp_id} month {month_key}: {e}")
