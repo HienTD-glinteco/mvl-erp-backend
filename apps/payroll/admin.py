@@ -656,11 +656,13 @@ class PayrollSlipAdmin(admin.ModelAdmin):
         "calculated_at",
     ]
     list_filter = ["status", "salary_period__month", "has_unpaid_penalty", "need_resend_email"]
-    search_fields = ["code", "employee_code", "employee_name"]
+    search_fields = ["code", "employee_code", "employee_name", "employee_email", "tax_code"]
     readonly_fields = [
         "code",
         "employee_code",
         "employee_name",
+        "employee_email",
+        "tax_code",
         "department_name",
         "position_name",
         "employment_status",
@@ -676,6 +678,11 @@ class PayrollSlipAdmin(admin.ModelAdmin):
         "probation_working_days",
         "hourly_rate",
         "total_overtime_hours",
+        "total_position_income",
+        "actual_working_days_income",
+        "taxable_overtime_salary",
+        "overtime_progress_allowance",
+        "non_taxable_overtime_salary",
         "gross_income",
         "taxable_income_base",
         "social_insurance_base",
@@ -707,10 +714,18 @@ class PayrollSlipAdmin(admin.ModelAdmin):
                     "employee",
                     "employee_code",
                     "employee_name",
+                    "employee_email",
+                    "tax_code",
                     "department_name",
                     "position_name",
                     "employment_status",
                 ],
+            },
+        ),
+        (
+            "Penalty Tickets",
+            {
+                "fields": ["has_unpaid_penalty", "unpaid_penalty_count"],
             },
         ),
         (
@@ -764,6 +779,11 @@ class PayrollSlipAdmin(admin.ModelAdmin):
                     "total_overtime_hours",
                     "hourly_rate",
                     "overtime_pay",
+                    "total_position_income",
+                    "actual_working_days_income",
+                    "taxable_overtime_salary",
+                    "overtime_progress_allowance",
+                    "non_taxable_overtime_salary",
                 ],
             },
         ),
@@ -814,12 +834,6 @@ class PayrollSlipAdmin(admin.ModelAdmin):
             "Final Calculation",
             {
                 "fields": ["net_salary"],
-            },
-        ),
-        (
-            "Penalties",
-            {
-                "fields": ["has_unpaid_penalty", "unpaid_penalty_count"],
             },
         ),
         (
