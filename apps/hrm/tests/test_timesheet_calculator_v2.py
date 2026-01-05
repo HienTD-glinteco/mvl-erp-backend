@@ -345,6 +345,25 @@ class TestTimesheetCalculatorV2:
 
         assert entry.working_days == Decimal("1.00")
 
+    def test_maternity_bonus_no_attendance(self, employee, work_schedule):
+        """Maternity bonus should not apply when there's no attendance."""
+        d = date(2023, 1, 2)
+        Proposal.objects.create(
+            created_by=employee,
+            proposal_type=ProposalType.POST_MATERNITY_BENEFITS,
+            proposal_status=ProposalStatus.APPROVED,
+            post_maternity_benefits_start_date=d - timedelta(days=1),
+            post_maternity_benefits_end_date=d + timedelta(days=1),
+        )
+
+        entry = TimeSheetEntry.objects.create(employee=employee, date=d)
+
+        calc = TimesheetCalculator(entry)
+        calc.compute_all(is_finalizing=False)
+
+        # Without attendance, working_days should be 0 (not 0.13)
+        assert entry.working_days == Decimal("0.00")
+
     def test_compensatory_day_compensation(self, employee):
         d = date(2023, 1, 8)  # Sunday
 

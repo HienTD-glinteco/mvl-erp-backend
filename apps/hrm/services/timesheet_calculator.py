@@ -10,7 +10,7 @@ from apps.hrm.constants import (
     TimesheetReason,
     TimesheetStatus,
 )
-from apps.hrm.models.proposal import Proposal
+from apps.hrm.models.proposal import Proposal, ProposalType
 from apps.hrm.models.timesheet import TimeSheetEntry
 from apps.hrm.models.work_schedule import WorkSchedule
 from apps.hrm.utils.work_schedule_cache import get_work_schedule_by_weekday
@@ -455,8 +455,6 @@ class TimesheetCalculator:
     def _get_partial_leave_credits(self) -> Decimal:
         """Calculate credits for partial morning/afternoon leaves."""
         leave_credit = Decimal("0.00")
-        from apps.hrm.models.proposal import Proposal, ProposalType
-
         proposals = Proposal.get_active_leave_proposals(self.entry.employee_id, self.entry.date)
         for p in proposals:
             if p.proposal_type == ProposalType.PAID_LEAVE:
@@ -465,8 +463,15 @@ class TimesheetCalculator:
         return leave_credit
 
     def _get_maternity_bonus(self) -> Decimal:
-        """Return maternity bonus credit if applicable."""
-        if self.entry.allowed_late_minutes_reason == AllowedLateMinutesReason.MATERNITY:
+        """Return maternity bonus credit if applicable.
+
+        Only applies when there is actual attendance (official_hours > 0).
+        Without attendance, the bonus should not be added.
+        """
+        if (
+            self.entry.allowed_late_minutes_reason == AllowedLateMinutesReason.MATERNITY
+            and (self.entry.official_hours or 0) > 0
+        ):
             return Decimal("0.125")
         return Decimal("0.00")
 
