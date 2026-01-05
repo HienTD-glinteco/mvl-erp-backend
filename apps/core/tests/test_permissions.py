@@ -1,4 +1,5 @@
 from io import StringIO
+from unittest.mock import patch
 
 import pytest
 from django.core.management import call_command
@@ -407,3 +408,39 @@ class CollectPermissionsCommandTestCase(TestCase):
         self.assertFalse(created)
         self.assertEqual(permission.module, new_module)
         self.assertEqual(permission.submodule, new_submodule)
+
+    def test_command_removes_stale_permissions(self):
+        # Arrange - Create a stale permission that should be removed
+        stale_code = "stale.permission"
+        Permission.objects.create(code=stale_code, description="Stale permission")
+
+        keep_code = "keep.permission"
+        registered_permission = {
+            "code": keep_code,
+            "name": "Keep Permission",
+            "description": "Keeps data",
+            "module": "Core",
+            "submodule": "Cleanup",
+        }
+
+        with (
+            patch(
+                "apps.core.management.commands.collect_permissions.Command._collect_from_base_viewsets"
+            ) as mock_collect,
+            patch(
+                "apps.core.management.commands.collect_permissions.Command._get_all_url_patterns"
+            ) as mock_get_patterns,
+            patch(
+                "apps.core.management.commands.collect_permissions.Command._extract_permissions_from_pattern"
+            ) as mock_extract,
+        ):
+            mock_collect.return_value = [registered_permission]
+            mock_get_patterns.return_value = []
+            mock_extract.return_value = []
+
+            # Act
+            call_command("collect_permissions", stdout=StringIO())
+
+        # Assert
+        self.assertFalse(Permission.objects.filter(code=stale_code).exists())
+        self.assertTrue(Permission.objects.filter(code=keep_code).exists())

@@ -35,6 +35,8 @@ class Command(BaseCommand):
                 unique_permissions.append(perm)
                 seen_codes.add(perm["code"])
 
+        unique_codes = {perm["code"] for perm in unique_permissions}
+
         # Sync permissions to database
         created_count = 0
         updated_count = 0
@@ -61,10 +63,15 @@ class Command(BaseCommand):
             else:
                 updated_count += 1
 
+        stale_permissions = Permission.objects.exclude(code__in=unique_codes)
+        deleted_count = stale_permissions.count()
+        if deleted_count:
+            stale_permissions.delete()
+
         self.stdout.write(
             self.style.SUCCESS(
                 f"Successfully collected {len(unique_permissions)} permissions "
-                f"({created_count} created, {updated_count} updated)"
+                f"({created_count} created, {updated_count} updated, {deleted_count} deleted)"
             )
         )
 
