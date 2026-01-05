@@ -197,6 +197,26 @@ class EmployeeKPIAssessmentViewSet(ExportXLSXMixin, AuditLoggingMixin, BaseModel
             return EmployeeKPIAssessmentUpdateSerializer
         return EmployeeKPIAssessmentSerializer
 
+    def get_export_data(self, request):
+        """Generate export data using export serializer."""
+        queryset = self.filter_queryset(self.get_queryset())
+        serializer = self.export_serializer_class(queryset, many=True)
+
+        headers = [str(field.label) for field in serializer.child.fields.values()]
+        data = serializer.data
+        field_names = list(serializer.child.fields.keys())
+
+        return {
+            "sheets": [
+                {
+                    "name": "Employee KPI Assessments",
+                    "headers": headers,
+                    "field_names": field_names,
+                    "data": data,
+                }
+            ]
+        }
+
     def perform_update(self, serializer):
         """Set updated_by and hrm_assessment_date when updating."""
         from django.utils import timezone
