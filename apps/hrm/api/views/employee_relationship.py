@@ -251,6 +251,7 @@ class EmployeeRelationshipViewSet(
 
     # Import handler path for AsyncImportProgressMixin
     import_row_handler = "apps.hrm.import_handlers.employee_relationship.import_handler"
+    import_template_name = "hrm_employee_relationship_template"
 
     # Export template path for ExportXLSXMixin
     xlsx_template_name = "apps/hrm/fixtures/export_templates/employee_relationship_export_template.xlsx"
