@@ -342,10 +342,8 @@ msgid "Can only deliver READY slips"
 msgstr "Chỉ có thể giao phiếu READY"
 
 #: apps/payroll/api/views/payroll_slip.py:432
-#, fuzzy
-#| msgid "Employee is required"
 msgid "Employee has no email address"
-msgstr "Trường này là bắt buộc"
+msgstr "Nhân viên không có địa chỉ email"
 
 #: apps/payroll/api/views/penalty_tickets.py:202
 msgid "Penalty Management"

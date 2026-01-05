@@ -1,7 +1,7 @@
 from pathlib import Path
 
 import pytest
-from django.core.management import CommandError, call_command
+from django.core.management import call_command
 from openpyxl import Workbook
 from openpyxl.worksheet.table import Table, TableStyleInfo
 
@@ -21,7 +21,7 @@ def _add_table(sheet, name: str, ref: str):
     sheet.add_table(table)
 
 
-def _build_sample_workbook(file_path: Path):
+def _build_sample_workbook(file_path: Path, role_sheet_names=None, role_extra_permissions=None):
     workbook = Workbook()
     core_sheet = workbook.active
     core_sheet.title = "core_permission"
@@ -38,12 +38,19 @@ def _build_sample_workbook(file_path: Path):
     set_sheet.append(["permission.list", "List Permission", "List Permission", "Core", "Permission", "S_EMPLOYEE"])
     _add_table(set_sheet, "S_EMPLOYEE_TABLE", f"A1:F{set_sheet.max_row}")
 
-    role_sheet = workbook.create_sheet("R-Employee")
-    role_sheet.append(["code", "Tên", "Mô tả", "module", "submodule", "Nhóm"])
-    role_sheet.append(
-        ["permission.create", "Create Permission", "Create Permission", "Core", "Permission", "S_EMPLOYEE"]
-    )
-    role_sheet.append(["permission.list", "List Permission", "List Permission", "Core", "Permission", "S_EMPLOYEE"])
+    role_sheet_names = role_sheet_names or ["R-EMP-Employee"]
+    role_extra_permissions = role_extra_permissions or []
+    for sheet_name in role_sheet_names:
+        role_sheet = workbook.create_sheet(sheet_name)
+        role_sheet.append(["code", "Tên", "Mô tả", "module", "submodule", "Nhóm"])
+        role_sheet.append(
+            ["permission.create", "Create Permission", "Create Permission", "Core", "Permission", "S_EMPLOYEE"]
+        )
+        role_sheet.append(
+            ["permission.list", "List Permission", "List Permission", "Core", "Permission", "S_EMPLOYEE"]
+        )
+        for extra_code, extra_name, extra_description in role_extra_permissions:
+            role_sheet.append([extra_code, extra_name, extra_description, "Core", "Permission", "S_EMPLOYEE"])
 
     workbook.save(file_path)
     workbook.close()
@@ -70,10 +77,24 @@ def test_sync_roles_from_excel_attaches_permissions_and_roles(tmp_path):
     call_command("sync_roles_from_excel", "--file_path", str(file_path))
 
     assert Permission.objects.count() == 2
-    assert Role.objects.filter(name="Employee").exists()
-
-    role = Role.objects.get(name="Employee")
+    role = Role.objects.get(code="EMP")
+    assert role.name == "Employee"
     assert role.is_system_role is True
+    assert set(role.permissions.values_list("code", flat=True)) == {"permission.create", "permission.list"}
+
+
+@pytest.mark.django_db
+def test_sync_roles_from_excel_parses_role_code(tmp_path):
+    file_path = tmp_path / "permissions_role_code.xlsx"
+    _build_sample_workbook(file_path, role_sheet_names=["R-NVKD-Nhân viên kinh doanh"])
+
+    _create_permission("permission.create", "Create Permission", "Create Permission")
+    _create_permission("permission.list", "List Permission", "List Permission")
+
+    call_command("sync_roles_from_excel", "--file_path", str(file_path))
+
+    role = Role.objects.get(code="NVKD")
+    assert role.name == "Nhân viên kinh doanh"
     assert set(role.permissions.values_list("code", flat=True)) == {"permission.create", "permission.list"}
 
 
@@ -92,17 +113,37 @@ def test_sync_roles_from_excel_dry_run(tmp_path):
 
 
 @pytest.mark.django_db
-def test_sync_roles_from_excel_fails_for_unknown_permission(tmp_path):
-    file_path = tmp_path / "permissions_unknown.xlsx"
+def test_sync_roles_from_excel_reports_missing_permissions(tmp_path, capsys):
+    file_path = tmp_path / "permissions_missing.xlsx"
     _build_sample_workbook(file_path)
 
-    with pytest.raises(CommandError) as excinfo:
-        call_command("sync_roles_from_excel", "--file_path", str(file_path))
+    _create_permission("permission.create", "Create Permission", "Create Permission")
+    _create_permission("permission.list", "List Permission", "List Permission")
+    _create_permission("permission.extra", "Extra Permission", "Extra permission")
 
-    message = str(excinfo.value)
-    assert "does not exist in the database" in message
-    assert "sheet 'core_permission'" in message
-    assert "row 2" in message
+    call_command("sync_roles_from_excel", "--file_path", str(file_path))
+
+    captured = capsys.readouterr()
+    assert "Missing permissions" in captured.out
+    assert "Permissions in DB but code NOT declared in core_permission.xlsx" in captured.out
+    assert "permission.extra" in captured.out
+
+
+@pytest.mark.django_db
+def test_sync_roles_from_excel_retains_permissions_present_in_role_sheet_only(tmp_path, capsys):
+    file_path = tmp_path / "permissions_role_only.xlsx"
+    _build_sample_workbook(
+        file_path, role_extra_permissions=[("permission.extra", "Extra Permission", "Extra Description")]
+    )
+
+    _create_permission("permission.create", "Create Permission", "Create Permission")
+    _create_permission("permission.list", "List Permission", "List Permission")
+    _create_permission("permission.extra", "Extra Permission", "Extra Permission")
+
+    call_command("sync_roles_from_excel", "--file_path", str(file_path))
+
+    captured = capsys.readouterr()
+    assert "Missing permissions" not in captured.out
 
 
 @pytest.mark.django_db
