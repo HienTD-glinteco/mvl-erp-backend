@@ -16,7 +16,7 @@ from apps.core.models import Permission, Role
 
 MASTER_SHEET_NAME = "CORE_PERMISSION"
 PERMISSION_SHEET_PREFIX = "S_"
-ROLE_SHEET_PREFIXES = ("R-", "R_", "R ")
+ROLE_SHEET_PREFIX = "R-"
 REQUIRED_PERMISSION_FIELDS = ("name", "description", "module", "submodule")
 HEADER_ALIASES = {
     "code": "code",
@@ -35,6 +35,7 @@ SOURCE_CONTEXT_KEY = "__sources"
 class RolePayload:
     """Container for role data parsed from Excel."""
 
+    code: str
     name: str
     sheet_name: str
     permission_codes: List[str] = field(default_factory=list)
@@ -104,9 +105,9 @@ class WorkbookPermissionExtractor:
             self._store_permission_metadata(row, sheet.title or "", row_number)
 
     def _ingest_role_sheet(self, sheet: Worksheet):
-        role_name = self._derive_role_name(sheet.title)
-        if not role_name:
-            raise CommandError(f"Role sheet '{sheet.title}' is missing a role name.")
+        role_code, role_name = self._derive_role_code_and_name(sheet.title)
+        if not role_code or not role_name:
+            raise CommandError(f"Role sheet '{sheet.title}' must follow format 'R-CODE-Name'.")
 
         codes: List[str] = []
         for row, row_number in self._iter_data_rows(sheet):
@@ -118,7 +119,9 @@ class WorkbookPermissionExtractor:
         if not unique_codes:
             raise CommandError(f"Role sheet '{sheet.title}' does not contain any permission codes.")
 
-        self.roles.append(RolePayload(name=role_name, sheet_name=sheet.title, permission_codes=unique_codes))
+        self.roles.append(
+            RolePayload(code=role_code, name=role_name, sheet_name=sheet.title, permission_codes=unique_codes)
+        )
 
     def _iter_data_rows(self, sheet: Worksheet) -> Iterable[tuple[Dict[str, Any], int]]:
         tables = list(sheet.tables.values())
@@ -212,16 +215,30 @@ class WorkbookPermissionExtractor:
         normalized = unicodedata.normalize("NFD", value)
         return "".join(ch for ch in normalized if unicodedata.category(ch) != "Mn")
 
-    def _derive_role_name(self, sheet_title: str) -> str:
+    def _derive_role_code_and_name(self, sheet_title: str) -> tuple[str, str]:
+        """
+        Derive role code and name from sheet title.
+        Format: R-CODE-Name -> code=CODE, name=Name
+        """
         trimmed = (sheet_title or "").strip()
-        upper_title = trimmed.upper()
-        for prefix in ROLE_SHEET_PREFIXES:
-            if upper_title.startswith(prefix):
-                return trimmed[len(prefix) :].strip()
-        return trimmed
+        if not trimmed.upper().startswith(ROLE_SHEET_PREFIX):
+            return "", ""
+
+        # Remove the R- prefix
+        remainder = trimmed[len(ROLE_SHEET_PREFIX) :]
+
+        # Split by the first dash to get code and name
+        parts = remainder.split("-", 1)
+        if len(parts) < 2:
+            return "", ""
+
+        role_code = parts[0].strip()
+        role_name = parts[1].strip()
+
+        return role_code, role_name
 
     def _is_role_sheet(self, normalized_title: str) -> bool:
-        return any(normalized_title.startswith(prefix) for prefix in ROLE_SHEET_PREFIXES)
+        return normalized_title.startswith(ROLE_SHEET_PREFIX)
 
 
 class Command(BaseCommand):
@@ -252,6 +269,9 @@ class Command(BaseCommand):
         extractor = WorkbookPermissionExtractor(file_path)
         workbook_data = extractor.parse()
 
+        excel_permission_codes = set(workbook_data["permissions"].keys())
+        self._print_permissions_not_in_excel(excel_permission_codes)
+
         with transaction.atomic():
             permission_stats, permission_objects = self._sync_permissions(workbook_data["permissions"])
             role_stats = self._sync_roles(workbook_data["roles"], permission_objects)
@@ -263,6 +283,7 @@ class Command(BaseCommand):
     def _sync_permissions(self, permission_catalog: Dict[str, Dict[str, Any]]):
         stats = {"processed": 0, "missing": 0, "mismatched": 0}
         permission_objects: Dict[str, Permission] = {}
+        mismatch_entries: List[Dict[str, str]] = []
 
         for code, metadata in permission_catalog.items():
             stats["processed"] += 1
@@ -282,16 +303,24 @@ class Command(BaseCommand):
                 raise CommandError(f"Permission '{code}' does not exist in the database{location}.")
 
             permission_objects[code] = permission
-            mismatches = []
+            mismatches = {}
             for _field in ("name", "description"):
                 workbook_value = str(metadata.get(_field) or "").strip()
                 db_value = getattr(permission, _field, "")
                 if workbook_value and workbook_value != db_value:
-                    mismatches.append(f"{_field}: '{db_value}' -> '{workbook_value}'")
+                    mismatches[_field] = db_value
             if mismatches:
                 stats["mismatched"] += 1
-                details = "; ".join(mismatches)
-                self._log("warning", f"Permission '{code}' metadata mismatch - {details}")
+                mismatch_entries.append(
+                    {
+                        "code": code,
+                        "name": mismatches.get("name", permission.name),
+                        "description": mismatches.get("description", permission.description),
+                    }
+                )
+
+        if mismatch_entries:
+            self._print_mismatch_table(mismatch_entries)
 
         return stats, permission_objects
 
@@ -300,19 +329,47 @@ class Command(BaseCommand):
 
         for role_payload in roles:
             stats["processed"] += 1
-            role, created = Role.objects.get_or_create(
-                name=role_payload.name,
-                defaults={
-                    "description": "",
-                    "is_system_role": True,
-                },
-            )
+
+            # Try to get existing role by code first
+            try:
+                role = Role.objects.get(code=role_payload.code)
+                created = False
+            except Role.DoesNotExist:
+                # Check if a role with this name already exists (name is unique)
+                existing_by_name = Role.objects.filter(name=role_payload.name).first()
+                if existing_by_name:
+                    raise CommandError(
+                        f"Cannot create role '{role_payload.code}' with name '{role_payload.name}': "
+                        f"a role with this name already exists (code: '{existing_by_name.code}')."
+                    )
+                role = Role.objects.create(
+                    code=role_payload.code,
+                    name=role_payload.name,
+                    description="",
+                    is_system_role=True,
+                )
+                created = True
 
             if created:
                 stats["created"] += 1
-                self._log("debug", f"Created role {role_payload.name} (sheet: {role_payload.sheet_name})")
+                self._log(
+                    "debug",
+                    f"Created role {role_payload.code} - {role_payload.name} (sheet: {role_payload.sheet_name})",
+                )
             else:
                 updates: List[str] = []
+                if role.name != role_payload.name:
+                    # Check if new name conflicts with another role
+                    existing_by_name = (
+                        Role.objects.filter(name=role_payload.name).exclude(code=role_payload.code).first()
+                    )
+                    if existing_by_name:
+                        raise CommandError(
+                            f"Cannot update role '{role_payload.code}' name to '{role_payload.name}': "
+                            f"a role with this name already exists (code: '{existing_by_name.code}')."
+                        )
+                    role.name = role_payload.name
+                    updates.append("name")
                 if role.is_system_role is not True:
                     role.is_system_role = True
                     updates.append("is_system_role")
@@ -339,6 +396,47 @@ class Command(BaseCommand):
             self.stdout.write(self.style.ERROR(f"✗ {message}"))
         else:
             self.stdout.write(f"  → {message}")
+
+    def _print_mismatch_table(self, mismatch_entries: List[Dict[str, str]]):
+        """Print permission metadata mismatches in table format (DB values)."""
+        self.stdout.write("")
+        self.stdout.write(self.style.WARNING(f"Permission metadata mismatches ({len(mismatch_entries)} items):"))
+        self.stdout.write("Permissions with code in Excel but name/description differ from DB values:")
+        self.stdout.write("")
+        self.stdout.write(f"{'code':<40} | {'name':<40} | {'description'}")
+        self.stdout.write("-" * 120)
+        for entry in mismatch_entries:
+            code = entry["code"]
+            name = entry["name"] if entry["name"] else ""
+            desc = entry["description"] if entry["description"] else ""
+            self.stdout.write(f"{code:<40} | {name:<40} | {desc}")
+        self.stdout.write("")
+
+    def _print_permissions_not_in_excel(self, excel_permission_codes: set):
+        """Print permissions in DB but not in Excel in table format for copy/paste."""
+        db_codes = set(Permission.objects.values_list("code", flat=True))
+        missing_from_excel = db_codes - excel_permission_codes
+        if not missing_from_excel:
+            return
+
+        missing_permissions = Permission.objects.filter(code__in=missing_from_excel).order_by(
+            "module", "submodule", "code"
+        )
+
+        self.stdout.write("")
+        self.stdout.write(self.style.WARNING(f"Missing permissions ({len(missing_from_excel)} items):"))
+        self.stdout.write("Permissions in DB but code NOT declared in core_permission.xlsx:")
+        self.stdout.write("")
+        self.stdout.write(f"{'code':<40} | {'name':<30} | {'description':<30} | {'module':<15} | {'submodule'}")
+        self.stdout.write("-" * 140)
+        for perm in missing_permissions:
+            code = perm.code
+            name = perm.name or ""
+            desc = perm.description or ""
+            module = perm.module or ""
+            submodule = perm.submodule or ""
+            self.stdout.write(f"{code:<40} | {name:<30} | {desc:<30} | {module:<15} | {submodule}")
+        self.stdout.write("")
 
     def _print_summary(self, permission_stats: Dict[str, int], role_stats: Dict[str, int]):
         self.stdout.write("")
