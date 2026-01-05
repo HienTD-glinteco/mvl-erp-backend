@@ -1,5 +1,7 @@
 from datetime import date
+from unittest.mock import MagicMock
 
+from django.db.models.signals import post_save
 from django.urls import reverse
 from rest_framework import status
 
@@ -185,3 +187,58 @@ def test_retrieve_employee_timesheet_not_found(db, api_client):
     resp = client.get(url)
 
     assert resp.status_code == status.HTTP_404_NOT_FOUND
+
+
+def test_create_entries_for_employee_month_sends_post_save(db):
+    """Test that create_entries_for_employee_month sends post_save signals since it uses bulk_create with manual signal dispatch."""
+    province = Province.objects.create(name="Test Province Sig", code="TPS")
+    admin_unit = AdministrativeUnit.objects.create(
+        name="Test Unit Sig", code="TUS", parent_province=province, level=AdministrativeUnit.UnitLevel.DISTRICT
+    )
+    branch = Branch.objects.create(name="Test Branch Sig", province=province, administrative_unit=admin_unit)
+    block = Block.objects.create(name="Test Block Sig", branch=branch, block_type=Block.BlockType.BUSINESS)
+    department = Department.objects.create(
+        name="Test Dept Sig", branch=branch, block=block, function=Department.DepartmentFunction.BUSINESS
+    )
+    position = Position.objects.create(name="Developer Sig")
+
+    emp = Employee.objects.create(
+        code="MV999",
+        fullname="Signal Tester",
+        username="signaltester",
+        email="signaltester@example.com",
+        phone="0900100999",
+        attendance_code="00999",
+        citizen_id="000000000999",
+        branch=branch,
+        block=block,
+        department=department,
+        position=position,
+        start_date=date(2020, 1, 1),
+        status=Employee.Status.ACTIVE,
+    )
+
+    year = 2025
+    month = 5  # May has 31 days
+
+    # Mock the signal receiver
+    handler = MagicMock()
+    post_save.connect(handler, sender=TimeSheetEntry)
+
+    try:
+        from apps.hrm.services.timesheets import create_entries_for_employee_month
+
+        created = create_entries_for_employee_month(emp.id, year, month)
+    finally:
+        post_save.disconnect(handler, sender=TimeSheetEntry)
+
+    assert len(created) == 31
+    # Check that signal was sent 31 times
+    assert handler.call_count == 31
+
+    # Verify call args for one of them
+    call_args = handler.call_args_list[0]
+    kwargs = call_args[1]
+    assert kwargs["sender"] == TimeSheetEntry
+    assert kwargs["created"] is True
+    assert isinstance(kwargs["instance"], TimeSheetEntry)

@@ -6,6 +6,7 @@ from typing import List, Optional
 
 from django.db import transaction
 from django.db.models import Max, Min, Q, Sum
+from django.db.models.signals import post_save
 
 from apps.hrm.models import AttendanceRecord, Contract, Employee, EmployeeMonthlyTimesheet, TimeSheetEntry
 from apps.hrm.services.day_type_service import get_day_type_map
@@ -54,6 +55,8 @@ def create_entries_for_employee_month(
 
     if entries_to_create:
         created = TimeSheetEntry.objects.bulk_create(entries_to_create, ignore_conflicts=True)
+        for timesheet_entry in created:
+            post_save.send(sender=TimeSheetEntry, instance=timesheet_entry, created=True)
         return list(created)
 
     return []
