@@ -1,3 +1,4 @@
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.translation import gettext as _
 
@@ -16,6 +17,7 @@ class Role(AutoCodeMixin, BaseModel):
     name = models.CharField(max_length=100, unique=True, verbose_name="Role name")
     description = models.CharField(max_length=255, blank=True, verbose_name="Description")
     is_system_role = models.BooleanField(default=False, verbose_name="System role")
+    is_default_role = models.BooleanField(default=False, verbose_name="Default role")
     permissions = models.ManyToManyField(
         "Permission",
         related_name="roles",
@@ -29,6 +31,16 @@ class Role(AutoCodeMixin, BaseModel):
         db_table = "core_role"
 
         ordering = ["code"]
+
+    def clean(self):
+        super().clean()
+        if self.is_default_role:
+            if Role.objects.filter(is_default_role=True).exclude(id=self.id).exists():
+                raise ValidationError(_("Only one role can be set as default."))
+
+    def save(self, *args, **kwargs):
+        self.full_clean(exclude=["code"])
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.code} - {self.name}"

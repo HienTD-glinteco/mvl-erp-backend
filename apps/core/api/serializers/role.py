@@ -33,6 +33,7 @@ class RoleSerializer(serializers.ModelSerializer):
             "name",
             "description",
             "is_system_role",
+            "is_default_role",
             "created_by",
             "permission_ids",
             "permissions_detail",

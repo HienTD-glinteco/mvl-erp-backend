@@ -5,6 +5,7 @@ from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 from django.utils import timezone
 
+from apps.core.models import Role
 from apps.hrm.constants import EmployeeType
 from apps.hrm.models import Contract, Employee
 from apps.hrm.services.employee import create_employee_type_change_event
@@ -22,12 +23,14 @@ def create_user_for_employee(sender, instance, created, **kwargs):  # noqa: ARG0
     """
     # Only create user if employee was just created and doesn't have a user yet
     if created and not instance.user:
+        default_role = Role.objects.filter(is_default_role=True).first()
         user = User.objects.create_user(
             username=instance.username,
             email=instance.email,
             first_name=instance.fullname.split()[0] if instance.fullname else "",
             last_name=" ".join(instance.fullname.split()[1:]) if len(instance.fullname.split()) > 1 else "",
             phone_number=instance.phone,
+            role=default_role,
         )
         # Update the employee with the created user
         instance.user = user

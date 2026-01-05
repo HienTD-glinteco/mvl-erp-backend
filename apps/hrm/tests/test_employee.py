@@ -9,6 +9,7 @@ from django.urls import reverse
 from django.utils import timezone
 from rest_framework import status
 
+from apps.core.models import Role
 from apps.files.models import FileModel
 from apps.hrm.models import Block, Branch, Department, Employee, Position
 
@@ -63,6 +64,52 @@ class TestEmployeeModel:
     def setup_patches(self, hr_report_patcher, recruitment_report_patcher, prepare_timesheet_patcher):
         self.mock_prepare_timesheet_delay = prepare_timesheet_patcher
         # other mocks are available via fixtures but we specifically need to assert on prepare_timesheet
+
+    def test_create_employee_assigns_default_role(self, branch, block, department):
+        """Test that creating an employee assigns the default role to the user"""
+        # Create a default role
+        default_role = Role.objects.create(code="DEFAULT", name="Default Role", is_default_role=True)
+
+        employee = Employee.objects.create(
+            fullname="John Doe",
+            username="johndoe",
+            email="john@example.com",
+            phone="0123456789",
+            attendance_code="12345",
+            date_of_birth="1990-01-01",
+            personal_email="john.personal@example.com",
+            start_date="2024-01-01",
+            branch=branch,
+            block=block,
+            department=department,
+            citizen_id="123456789",
+        )
+
+        assert employee.user is not None
+        assert employee.user.role == default_role
+
+    def test_create_employee_without_default_role(self, branch, block, department):
+        """Test creating an employee when no default role exists"""
+        # Ensure no default role exists
+        Role.objects.filter(is_default_role=True).delete()
+
+        employee = Employee.objects.create(
+            fullname="Jane Doe",
+            username="janedoe",
+            email="jane@example.com",
+            phone="0987654321",
+            attendance_code="54321",
+            date_of_birth="1991-01-01",
+            personal_email="jane.personal@example.com",
+            start_date="2024-01-01",
+            branch=branch,
+            block=block,
+            department=department,
+            citizen_id="987654321",
+        )
+
+        assert employee.user is not None
+        assert employee.user.role is None
 
     def test_create_employee(self, branch, block, department):
         """Test creating an employee"""
