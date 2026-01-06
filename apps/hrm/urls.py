@@ -30,6 +30,7 @@ from apps.hrm.api.views import (
     EmployeeViewSet,
     EmployeeWorkHistoryViewSet,
     HolidayViewSet,
+    HRMDashboardViewSet,
     InterviewCandidateViewSet,
     InterviewScheduleViewSet,
     JobDescriptionViewSet,
@@ -174,6 +175,7 @@ router.register(r"reports", RecruitmentReportsViewSet, basename="recruitment-rep
 
 # Dashboard endpoints (single ViewSet with custom actions)
 router.register(r"dashboard", RecruitmentDashboardViewSet, basename="recruitment-dashboard")
+router.register(r"dashboard/hrm/common", HRMDashboardViewSet, basename="hrm-common-dashboard")
 
 # Nested routes for compensatory workdays under holidays
 compensatory_router = DefaultRouter()
