@@ -40,7 +40,6 @@ RELATION_TYPE_MAPPING = {
     "em trai": RelationType.BROTHER,
     "chị": RelationType.SISTER,
     "em gái": RelationType.SISTER,
-    "anh chị em": RelationType.SIBLING,
     "ông nội": RelationType.GRANDFATHER,
     "ông ngoại": RelationType.GRANDFATHER,
     "ông": RelationType.GRANDFATHER,
