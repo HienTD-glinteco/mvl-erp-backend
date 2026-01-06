@@ -63,6 +63,7 @@ from .interview_schedule import (
 )
 from .interview_schedule_export import InterviewScheduleExportSerializer
 from .job_description import JobDescriptionExportSerializer, JobDescriptionSerializer
+from .manager_dashboard import ManagerDashboardRealtimeSerializer
 from .organization import (
     BlockSerializer,
     BranchContactInfoSerializer,
@@ -178,6 +179,7 @@ __all__ = [
     "SourceTypeBreakdownResponseSerializer",
     "MonthlyTrendsResponseSerializer",
     "HRMDashboardRealtimeSerializer",
+    "ManagerDashboardRealtimeSerializer",
     "EmployeeRelationshipSerializer",
     "EmployeeRelationshipExportXLSXSerializer",
     "EmployeeSenioritySerializer",

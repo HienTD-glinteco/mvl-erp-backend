@@ -44,6 +44,7 @@ from .mobile import (
     MyTimesheetEntryViewSet,
     MyTimesheetViewSet,
 )
+from .manager_dashboard import ManagerDashboardViewSet
 from .organization import (
     BlockViewSet,
     BranchContactInfoViewSet,
@@ -116,6 +117,7 @@ __all__ = [
     "RecruitmentReportsViewSet",
     "RecruitmentDashboardViewSet",
     "HRMDashboardViewSet",
+    "ManagerDashboardViewSet",
     "EmployeeRelationshipViewSet",
     "EmployeeTimesheetViewSet",
     "TimeSheetEntryViewSet",

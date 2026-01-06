@@ -7,6 +7,7 @@ Signals are automatically registered when the app is initialized.
 # Import all signal modules to ensure they are registered
 from apps.payroll.signals import (
     code_generation,
+    dashboard_cache,
     deadline_validation,
     kpi_assessment,
     payroll_recalculation,
@@ -15,6 +16,7 @@ from apps.payroll.signals import (
 
 __all__ = [
     "code_generation",
+    "dashboard_cache",
     "deadline_validation",
     "kpi_assessment",
     "payroll_recalculation",

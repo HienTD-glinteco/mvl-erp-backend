@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-06 21:30+0700\n"
+"POT-Creation-Date: 2026-01-07 01:39+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -337,9 +337,7 @@ msgid "View KPI configuration"
 msgstr "Xem cấu hình KPI"
 
 #: apps/payroll/api/views/mobile/kpi.py:74
-#: apps/payroll/api/views/mobile/kpi.py:222
-#, fuzzy
-#| msgid "Payroll Slip"
+#: apps/payroll/api/views/mobile/kpi.py:228
 msgid "Payroll - Mobile"
 msgstr "Phiếu lương"
 
@@ -347,7 +345,15 @@ msgstr "Phiếu lương"
 msgid "My KPI"
 msgstr ""
 
-#: apps/payroll/api/views/mobile/kpi.py:223
+#: apps/payroll/api/views/mobile/kpi.py:79
+msgid "View my KPI assessments"
+msgstr "Xem đánh giá KPI của tôi"
+
+#: apps/payroll/api/views/mobile/kpi.py:80
+msgid "View KPI assessments for myself"
+msgstr "Xem đánh giá KPI của tôi"
+
+#: apps/payroll/api/views/mobile/kpi.py:229
 msgid "Team KPI"
 msgstr ""
 
@@ -387,54 +393,44 @@ msgid "You do not have an associated employee record"
 msgstr "Bạn không có hồ sơ nhân viên liên kết"
 
 #: apps/payroll/api/views/payroll_slip.py:150
-#, fuzzy
-#| msgid "View ready payroll slips"
 msgid "Recalculate payroll slip"
-msgstr "Xem phiếu lương đã sẵn sàng"
+msgstr "Tính lại phiếu lương"
 
 #: apps/payroll/api/views/payroll_slip.py:151
 msgid "Recalculate a specific payroll slip"
-msgstr ""
+msgstr "Tính lại một phiếu lương cụ thể"
 
 #: apps/payroll/api/views/payroll_slip.py:154
-#, fuzzy
-#| msgid "Payroll Slip"
 msgid "Hold payroll slip"
-msgstr "Phiếu lương"
+msgstr "Tạm giữ lương"
 
 #: apps/payroll/api/views/payroll_slip.py:155
 msgid "Put a specific payroll slip on hold"
-msgstr ""
+msgstr "Đặt một phiếu lương cụ thể vào trạng thái tạm giữ"
 
 #: apps/payroll/api/views/payroll_slip.py:158
-#, fuzzy
-#| msgid "View ready payroll slips"
 msgid "Mark payroll slip as ready"
-msgstr "Xem phiếu lương đã sẵn sàng"
+msgstr "Đánh dấu phiếu lương là đã sẵn sàng thanh toán"
 
 #: apps/payroll/api/views/payroll_slip.py:159
 msgid "Change payroll slip status to READY"
-msgstr ""
+msgstr "Thay đổi trạng thái phiếu lương thành sẵn sàng thanh toán"
 
 #: apps/payroll/api/views/payroll_slip.py:162
-#, fuzzy
-#| msgid "View ready payroll slips"
 msgid "Deliver payroll slip"
-msgstr "Xem phiếu lương đã sẵn sàng"
+msgstr "Giao phiếu lương đã sẵn sàng sang kế toán"
 
 #: apps/payroll/api/views/payroll_slip.py:163
 msgid "Mark payroll slip as delivered to accounting"
-msgstr ""
+msgstr "Đánh dấu phiếu lương là đã giao cho kế toán"
 
 #: apps/payroll/api/views/payroll_slip.py:166
-#, fuzzy
-#| msgid "View ready payroll slips"
 msgid "Send payroll slip email"
-msgstr "Xem phiếu lương đã sẵn sàng"
+msgstr "Gửi email thông báo phiếu lương"
 
 #: apps/payroll/api/views/payroll_slip.py:167
 msgid "Send payroll slip notification email to employee"
-msgstr ""
+msgstr "Gửi email thông báo phiếu lương cho nhân viên"
 
 #: apps/payroll/api/views/payroll_slip.py:345
 msgid "Can only mark HOLD slips as READY"
@@ -613,47 +609,34 @@ msgstr "Không thể xóa công tác phí cho một tháng đã có bảng lươ
 
 #: apps/payroll/import_handlers/sales_revenue.py:48
 #: apps/payroll/import_handlers/sales_revenue.py:88
-#, fuzzy
-#| msgid "Employee is required"
 msgid "Employee code is required"
 msgstr "Trường này là bắt buộc"
 
 #: apps/payroll/import_handlers/sales_revenue.py:55
-#, fuzzy
-#| msgid "Name is required"
 msgid "KPI target is required"
 msgstr "Trường này là bắt buộc"
 
 #: apps/payroll/import_handlers/sales_revenue.py:93
-#, fuzzy, python-format
-#| msgid "Employee Union Fee"
+#, python-format
 msgid "Employee not found: %(code)s"
-msgstr "Công đoàn NLĐ đóng"
+msgstr "Không tìm thấy nhân viên: %(code)s"
 
 #: apps/payroll/import_handlers/sales_revenue.py:100
-#, fuzzy
-#| msgid "Revenue must be non-negative"
 msgid "KPI target must be non-negative"
-msgstr "Doanh thu phải là số không âm"
+msgstr "Chỉ tiêu KPI phải là số không âm"
 
 #: apps/payroll/import_handlers/sales_revenue.py:103
-#, fuzzy
-#| msgid "Total KPI target"
 msgid "Invalid KPI target value"
-msgstr "Tổng chỉ tiêu KPI"
+msgstr "Giá trị chỉ tiêu KPI không hợp lệ"
 
 #: apps/payroll/import_handlers/sales_revenue.py:113
 #: apps/payroll/import_handlers/sales_revenue.py:123
-#, fuzzy
-#| msgid "Sales Transaction Count"
 msgid "Invalid revenue or transaction count"
-msgstr "Số lượng giao dịch bán hàng"
+msgstr "Số lượng giao dịch bán hàng hoặc doanh thu không hợp lệ"
 
 #: apps/payroll/import_handlers/sales_revenue.py:130
-#, fuzzy
-#| msgid "Invalid month format. Use YYYY-MM (e.g., 2025-12)"
 msgid "Invalid month format, expected MM/YYYY"
-msgstr "Định dạng tháng không hợp lệ. Sử dụng YYYY-MM (ví dụ: 2025-12)"
+msgstr "Định dạng tháng không hợp lệ. Sử dụng MM/YYYY (ví dụ: 12/2025)"
 
 #: apps/payroll/import_handlers/sales_revenue.py:139
 #, python-format
@@ -738,16 +721,12 @@ msgid "Employee Name"
 msgstr "Tên nhân viên"
 
 #: apps/payroll/models/payroll_slip.py:82
-#, fuzzy
-#| msgid "Employees Need Email"
 msgid "Employee Email"
-msgstr "Nhân viên cần gửi email"
+msgstr "Email nhân viên"
 
 #: apps/payroll/models/payroll_slip.py:83
-#, fuzzy
-#| msgid "Code"
 msgid "Tax Code"
-msgstr "Mã"
+msgstr "Mã số thuế"
 
 #: apps/payroll/models/payroll_slip.py:84
 msgid "Department Name"

@@ -533,6 +533,16 @@ class MyProposalVerifierViewSet(BaseReadOnlyModelViewSet):
     module = _("HRM - Mobile")
     submodule = _("Proposals Verifications")
     permission_prefix = "my_proposal_verification"
+    PERMISSION_REGISTERED_ACTIONS = {
+        "verify": {
+            "name_template": _("Verify proposal"),
+            "description_template": _("Mark a proposal as verified"),
+        },
+        "reject": {
+            "name_template": _("Reject proposal verification"),
+            "description_template": _("Mark a proposal verification as rejected"),
+        },
+    }
 
     def get_queryset(self):
         """Filter to verifications assigned to current user."""

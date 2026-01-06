@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-07 01:26+0700\n"
+"POT-Creation-Date: 2026-01-07 00:51+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -140,44 +140,44 @@ msgstr "Tệp tin không tồn tại"
 msgid "Import job not found"
 msgstr "Job nhập dữ liệu không tồn tại"
 
-#: apps/imports/api/serializers.py:90
+#: apps/imports/api/serializers.py:88
 msgid "batch_size must be an integer"
 msgstr "batch_size phải là một số nguyên"
 
-#: apps/imports/api/serializers.py:98
+#: apps/imports/api/serializers.py:96
 msgid "count_total_first must be a boolean"
 msgstr "count_total_first phải là một giá trị boolean"
 
-#: apps/imports/api/serializers.py:106
+#: apps/imports/api/serializers.py:104
 msgid "header_rows must be an integer"
 msgstr "header_rows phải là một số nguyên"
 
-#: apps/imports/api/serializers.py:114
+#: apps/imports/api/serializers.py:112
 msgid "create_result_file_records must be a boolean"
 msgstr "create_result_file_records phải là một giá trị boolean"
 
-#: apps/imports/api/serializers.py:122
+#: apps/imports/api/serializers.py:120
 msgid "handler_path must be a string or null"
 msgstr "handler_path phải là một chuỗi hoặc null"
 
-#: apps/imports/api/serializers.py:130
+#: apps/imports/api/serializers.py:128
 msgid "handler_options must be a dictionary"
 msgstr "handler_options phải là một từ điển"
 
-#: apps/imports/api/serializers.py:138
+#: apps/imports/api/serializers.py:136
 msgid "result_file_prefix must be a string"
 msgstr "result_file_prefix phải là một chuỗi"
 
-#: apps/imports/api/serializers.py:146
+#: apps/imports/api/serializers.py:144
 msgid "allow_update must be a boolean"
 msgstr "allow_update phải là một giá trị boolean"
 
-#: apps/imports/api/serializers.py:158
+#: apps/imports/api/serializers.py:156
 #, python-format
 msgid "output_format must be one of: %(formats)s"
 msgstr "output_format phải là một trong các giá trị: %(formats)s"
 
-#: apps/imports/api/serializers.py:174
+#: apps/imports/api/serializers.py:172
 msgid "Unknown field"
 msgstr "Trường thông tin không xác định"
 

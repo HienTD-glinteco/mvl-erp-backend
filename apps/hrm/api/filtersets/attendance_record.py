@@ -25,4 +25,5 @@ class AttendanceRecordFilterSet(django_filters.FilterSet):
             "is_valid",
             "attendance_geolocation",
             "attendance_wifi_device",
+            "is_pending",
         ]

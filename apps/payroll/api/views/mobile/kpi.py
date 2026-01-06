@@ -74,6 +74,12 @@ class MyKPIAssessmentViewSet(BaseModelViewSet):
     module = _("Payroll - Mobile")
     submodule = _("My KPI")
     permission_prefix = "my_kpi_assessment"
+    PERMISSION_REGISTERED_ACTIONS = {
+        "current": {
+            "name_template": _("View my KPI assessments"),
+            "description_template": _("View KPI assessments for myself"),
+        },
+    }
 
     def get_queryset(self):
         """Filter to current user's assessments."""
