@@ -375,7 +375,8 @@ class TimesheetCalculator:
             self.entry.status = TimesheetStatus.NOT_ON_TIME if self.entry.is_punished else TimesheetStatus.ON_TIME
             return
 
-        is_working_day = self.work_schedule is not None
+        # Check if schedule has actual working times (not just if record exists)
+        is_working_day = self._get_schedule_max_days() > 0
         if self.entry.day_type == TimesheetDayType.HOLIDAY:
             is_working_day = False
         elif self.entry.day_type == TimesheetDayType.COMPENSATORY:

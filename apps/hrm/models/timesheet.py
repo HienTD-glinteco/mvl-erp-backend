@@ -302,10 +302,15 @@ class TimeSheetEntry(ColoredValueMixin, AutoCodeMixin, BaseModel):
         # Run all calculations via calculator
         calculator = TimesheetCalculator(self)
 
-        # Only calculate hours, overtime, and penalties when finalizing
+        # Calculate hours, overtime only when finalizing
         if is_finalizing:
             calculator.calculate_hours()
             calculator.calculate_overtime()
+
+        # Always calculate penalties if we have 2 punches to determine correct status
+        if self.start_time and self.end_time:
+            calculator.calculate_penalties()
+        elif is_finalizing:
             calculator.calculate_penalties()
 
         # Calculate status
