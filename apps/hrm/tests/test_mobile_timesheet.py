@@ -56,6 +56,7 @@ class TestMyTimesheetViewSet(APITestMixin):
     @pytest.fixture
     def monthly_timesheet(self, employee):
         """Create a monthly timesheet summary."""
+        EmployeeMonthlyTimesheet.objects.filter(employee=employee, month_key="202601").delete()
         return EmployeeMonthlyTimesheet.objects.create(
             employee=employee,
             month_key="202601",

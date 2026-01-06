@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-06 18:00+0700\n"
+"POT-Creation-Date: 2026-01-06 21:30+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -120,54 +120,59 @@ msgstr "Tên không được vượt quá 250 ký tự"
 msgid "Note must not exceed 500 characters."
 msgstr "Ghi chú không được vượt quá 500 ký tự"
 
-#: apps/payroll/api/serializers/sales_revenue.py:81
+#: apps/payroll/api/serializers/sales_revenue.py:82
+#: apps/payroll/import_handlers/sales_revenue.py:62
 msgid "Revenue is required"
 msgstr "Trường này là bắt buộc"
 
-#: apps/payroll/api/serializers/sales_revenue.py:83
+#: apps/payroll/api/serializers/sales_revenue.py:84
+#: apps/payroll/import_handlers/sales_revenue.py:110
 msgid "Revenue must be non-negative"
 msgstr "Doanh thu phải là số không âm"
 
-#: apps/payroll/api/serializers/sales_revenue.py:89
+#: apps/payroll/api/serializers/sales_revenue.py:90
+#: apps/payroll/import_handlers/sales_revenue.py:70
+#: apps/payroll/import_handlers/sales_revenue.py:71
 msgid "Transaction count is required"
 msgstr "Trường này là bắt buộc"
 
-#: apps/payroll/api/serializers/sales_revenue.py:91
+#: apps/payroll/api/serializers/sales_revenue.py:92
+#: apps/payroll/import_handlers/sales_revenue.py:120
 msgid "Transaction count must be non-negative"
 msgstr "Số lượng giao dịch phải là số không âm"
 
-#: apps/payroll/api/serializers/sales_revenue.py:97
+#: apps/payroll/api/serializers/sales_revenue.py:98
 #: apps/payroll/api/serializers/travel_expense.py:101
 msgid "Employee is required"
 msgstr "Trường này là bắt buộc"
 
-#: apps/payroll/api/serializers/sales_revenue.py:100
+#: apps/payroll/api/serializers/sales_revenue.py:101
 #: apps/payroll/api/serializers/travel_expense.py:104
 msgid "Employee must be active"
 msgstr "Nhân viên phải đang hoạt động"
 
-#: apps/payroll/api/serializers/sales_revenue.py:107
+#: apps/payroll/api/serializers/sales_revenue.py:108
 #: apps/payroll/api/serializers/travel_expense.py:111
 msgid "Month is required"
 msgstr "Trường này là bắt buộc"
 
-#: apps/payroll/api/serializers/sales_revenue.py:119
+#: apps/payroll/api/serializers/sales_revenue.py:120
 #: apps/payroll/api/serializers/travel_expense.py:124
 msgid "Month must be between 1 and 12"
 msgstr "Tháng phải nằm trong khoảng từ 1 đến 12"
 
-#: apps/payroll/api/serializers/sales_revenue.py:122
+#: apps/payroll/api/serializers/sales_revenue.py:123
 #: apps/payroll/api/serializers/travel_expense.py:127
 msgid "Year must be between 1900 and 2100"
 msgstr "Năm phải nằm trong khoảng từ 1900 đến 2100"
 
-#: apps/payroll/api/serializers/sales_revenue.py:127
+#: apps/payroll/api/serializers/sales_revenue.py:128
 #: apps/payroll/api/serializers/travel_expense.py:133
 msgid "Month must be in MM/YYYY format (e.g., 11/2025)"
 msgstr "Tháng phải ở định dạng MM/YYYY (ví dụ: 11/2025)"
 
-#: apps/payroll/api/serializers/sales_revenue.py:145
-#: apps/payroll/api/serializers/sales_revenue.py:149
+#: apps/payroll/api/serializers/sales_revenue.py:146
+#: apps/payroll/api/serializers/sales_revenue.py:150
 msgid "Sales revenue for this employee and month already exists"
 msgstr "Đã tồn tại doanh thu bán hàng cho nhân viên và tháng này"
 
@@ -310,13 +315,13 @@ msgstr "Hoàn tất kỳ đánh giá thành công"
 
 #: apps/payroll/api/views/kpi_config.py:20
 #: apps/payroll/api/views/mobile/penalty_ticket.py:121
-#: apps/payroll/api/views/my_penalty_tickets.py:121
+#: apps/payroll/api/views/my_penalty_tickets.py:116
 #: apps/payroll/api/views/penalty_tickets.py:201
 #: apps/payroll/api/views/recovery_voucher.py:339
 #: apps/payroll/api/views/salary_config.py:20
 #: apps/payroll/api/views/salary_period.py:750
 #: apps/payroll/api/views/salary_period.py:887
-#: apps/payroll/api/views/sales_revenue.py:373
+#: apps/payroll/api/views/sales_revenue.py:444
 #: apps/payroll/api/views/sales_revenue_report.py:35
 #: apps/payroll/api/views/travel_expense.py:408
 msgid "Payroll"
@@ -347,53 +352,103 @@ msgid "Team KPI"
 msgstr ""
 
 #: apps/payroll/api/views/mobile/penalty_ticket.py:122
-#: apps/payroll/api/views/my_penalty_tickets.py:122
+#: apps/payroll/api/views/my_penalty_tickets.py:117
 msgid "My Penalty Tickets"
 msgstr "Các phiếu phạt của tôi"
 
 #: apps/payroll/api/views/mobile/penalty_ticket.py:127
-#: apps/payroll/api/views/my_penalty_tickets.py:127
+#: apps/payroll/api/views/my_penalty_tickets.py:122
 msgid "List my penalty tickets"
 msgstr "Danh sách các phiếu phạt của tôi"
 
 #: apps/payroll/api/views/mobile/penalty_ticket.py:128
-#: apps/payroll/api/views/my_penalty_tickets.py:128
+#: apps/payroll/api/views/my_penalty_tickets.py:123
 msgid "View list of my penalty tickets"
 msgstr "Xem danh sách các phiếu phạt của tôi"
 
 #: apps/payroll/api/views/mobile/penalty_ticket.py:131
-#: apps/payroll/api/views/my_penalty_tickets.py:131
+#: apps/payroll/api/views/my_penalty_tickets.py:126
 msgid "View my penalty ticket"
 msgstr "Phiếu phạt của tôi"
 
 #: apps/payroll/api/views/mobile/penalty_ticket.py:132
-#: apps/payroll/api/views/my_penalty_tickets.py:132
+#: apps/payroll/api/views/my_penalty_tickets.py:127
 msgid "View detail of my penalty ticket"
 msgstr "Xem chi tiết phiếu phạt của tôi"
 
 #: apps/payroll/api/views/mobile/penalty_ticket.py:140
-#: apps/payroll/api/views/my_penalty_tickets.py:140
+#: apps/payroll/api/views/my_penalty_tickets.py:135
 msgid "You need to login to perform this action"
 msgstr "Bạn cần đăng nhập để thực hiện hành động này"
 
 #: apps/payroll/api/views/mobile/penalty_ticket.py:144
-#: apps/payroll/api/views/my_penalty_tickets.py:144
+#: apps/payroll/api/views/my_penalty_tickets.py:139
 msgid "You do not have an associated employee record"
 msgstr "Bạn không có hồ sơ nhân viên liên kết"
 
-#: apps/payroll/api/views/payroll_slip.py:323
+#: apps/payroll/api/views/payroll_slip.py:150
+#, fuzzy
+#| msgid "View ready payroll slips"
+msgid "Recalculate payroll slip"
+msgstr "Xem phiếu lương đã sẵn sàng"
+
+#: apps/payroll/api/views/payroll_slip.py:151
+msgid "Recalculate a specific payroll slip"
+msgstr ""
+
+#: apps/payroll/api/views/payroll_slip.py:154
+#, fuzzy
+#| msgid "Payroll Slip"
+msgid "Hold payroll slip"
+msgstr "Phiếu lương"
+
+#: apps/payroll/api/views/payroll_slip.py:155
+msgid "Put a specific payroll slip on hold"
+msgstr ""
+
+#: apps/payroll/api/views/payroll_slip.py:158
+#, fuzzy
+#| msgid "View ready payroll slips"
+msgid "Mark payroll slip as ready"
+msgstr "Xem phiếu lương đã sẵn sàng"
+
+#: apps/payroll/api/views/payroll_slip.py:159
+msgid "Change payroll slip status to READY"
+msgstr ""
+
+#: apps/payroll/api/views/payroll_slip.py:162
+#, fuzzy
+#| msgid "View ready payroll slips"
+msgid "Deliver payroll slip"
+msgstr "Xem phiếu lương đã sẵn sàng"
+
+#: apps/payroll/api/views/payroll_slip.py:163
+msgid "Mark payroll slip as delivered to accounting"
+msgstr ""
+
+#: apps/payroll/api/views/payroll_slip.py:166
+#, fuzzy
+#| msgid "View ready payroll slips"
+msgid "Send payroll slip email"
+msgstr "Xem phiếu lương đã sẵn sàng"
+
+#: apps/payroll/api/views/payroll_slip.py:167
+msgid "Send payroll slip notification email to employee"
+msgstr ""
+
+#: apps/payroll/api/views/payroll_slip.py:345
 msgid "Can only mark HOLD slips as READY"
 msgstr "Chỉ có thể đánh dấu phiếu HOLD là READY"
 
-#: apps/payroll/api/views/payroll_slip.py:328
+#: apps/payroll/api/views/payroll_slip.py:350
 msgid "Cannot mark as READY - employee has unpaid penalty tickets"
 msgstr "Không thể đánh dấu là READY - nhân viên còn phiếu phạt chưa thanh toán"
 
-#: apps/payroll/api/views/payroll_slip.py:376
+#: apps/payroll/api/views/payroll_slip.py:398
 msgid "Can only deliver READY slips"
 msgstr "Chỉ có thể giao phiếu READY"
 
-#: apps/payroll/api/views/payroll_slip.py:432
+#: apps/payroll/api/views/payroll_slip.py:454
 msgid "Employee has no email address"
 msgstr "Nhân viên không có địa chỉ email"
 
@@ -452,24 +507,24 @@ msgstr "Xem phiếu lương chưa sẵn sàng"
 msgid "View not-ready payroll slips"
 msgstr "Xem phiếu lương chưa sẵn sàng"
 
-#: apps/payroll/api/views/sales_revenue.py:374
+#: apps/payroll/api/views/sales_revenue.py:445
 msgid "Sales Revenue Management"
 msgstr "Quản lý doanh thu bán hàng"
 
-#: apps/payroll/api/views/sales_revenue.py:378
-#: apps/payroll/api/views/sales_revenue.py:379
+#: apps/payroll/api/views/sales_revenue.py:449
+#: apps/payroll/api/views/sales_revenue.py:450
 msgid "Download import template for sales revenue"
 msgstr "Tải mẫu import cho doanh thu bán hàng"
 
-#: apps/payroll/api/views/sales_revenue.py:382
+#: apps/payroll/api/views/sales_revenue.py:453
 msgid "Import sales revenue data"
 msgstr "Nhập dữ liệu doanh thu bán hàng"
 
-#: apps/payroll/api/views/sales_revenue.py:383
+#: apps/payroll/api/views/sales_revenue.py:454
 msgid "Import sales revenue data asynchronously"
 msgstr "Nhập dữ liệu doanh thu bán hàng không đồng bộ"
 
-#: apps/payroll/api/views/sales_revenue.py:406
+#: apps/payroll/api/views/sales_revenue.py:477
 msgid "Cannot delete sales revenue for a month with existing payroll."
 msgstr "Không thể xóa doanh thu bán hàng cho một tháng đã có bảng lương."
 
@@ -555,6 +610,71 @@ msgstr "Quản lý công tác phí"
 #: apps/payroll/api/views/travel_expense.py:434
 msgid "Cannot delete travel expense for a month with existing payroll."
 msgstr "Không thể xóa công tác phí cho một tháng đã có bảng lương."
+
+#: apps/payroll/import_handlers/sales_revenue.py:48
+#: apps/payroll/import_handlers/sales_revenue.py:88
+#, fuzzy
+#| msgid "Employee is required"
+msgid "Employee code is required"
+msgstr "Trường này là bắt buộc"
+
+#: apps/payroll/import_handlers/sales_revenue.py:55
+#, fuzzy
+#| msgid "Name is required"
+msgid "KPI target is required"
+msgstr "Trường này là bắt buộc"
+
+#: apps/payroll/import_handlers/sales_revenue.py:93
+#, fuzzy, python-format
+#| msgid "Employee Union Fee"
+msgid "Employee not found: %(code)s"
+msgstr "Công đoàn NLĐ đóng"
+
+#: apps/payroll/import_handlers/sales_revenue.py:100
+#, fuzzy
+#| msgid "Revenue must be non-negative"
+msgid "KPI target must be non-negative"
+msgstr "Doanh thu phải là số không âm"
+
+#: apps/payroll/import_handlers/sales_revenue.py:103
+#, fuzzy
+#| msgid "Total KPI target"
+msgid "Invalid KPI target value"
+msgstr "Tổng chỉ tiêu KPI"
+
+#: apps/payroll/import_handlers/sales_revenue.py:113
+#: apps/payroll/import_handlers/sales_revenue.py:123
+#, fuzzy
+#| msgid "Sales Transaction Count"
+msgid "Invalid revenue or transaction count"
+msgstr "Số lượng giao dịch bán hàng"
+
+#: apps/payroll/import_handlers/sales_revenue.py:130
+#, fuzzy
+#| msgid "Invalid month format. Use YYYY-MM (e.g., 2025-12)"
+msgid "Invalid month format, expected MM/YYYY"
+msgstr "Định dạng tháng không hợp lệ. Sử dụng YYYY-MM (ví dụ: 2025-12)"
+
+#: apps/payroll/import_handlers/sales_revenue.py:139
+#, python-format
+msgid "Month %(row_month)s does not match target month %(target_month)s"
+msgstr ""
+
+#: apps/payroll/import_handlers/sales_revenue.py:170
+msgid "Headers not found in options"
+msgstr ""
+
+#: apps/payroll/import_handlers/sales_revenue.py:177
+msgid "Target month not provided in options"
+msgstr ""
+
+#: apps/payroll/import_handlers/sales_revenue.py:181
+msgid "Invalid target month format, expected MM/YYYY"
+msgstr ""
+
+#: apps/payroll/import_handlers/sales_revenue.py:201
+msgid "Validation failed"
+msgstr ""
 
 #: apps/payroll/models/kpi_criterion.py:38
 msgid "Sales"
