@@ -655,3 +655,16 @@ class InterviewScheduleViewSet(ExportXLSXMixin, EmailTemplateActionMixin, AuditL
                 }
             ]
         }
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        has_email_sent_candidate = instance.interview_candidates.filter(email_sent_at__isnull=False).exists()
+        if has_email_sent_candidate:
+            return Response(
+                {
+                    "success": False,
+                    "error": _("This interview schedule has been sent to candidates so it cannot be deleted."),
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        return super().destroy(request, *args, **kwargs)

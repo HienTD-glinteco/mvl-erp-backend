@@ -103,3 +103,4 @@ webpack-stats.json
 .vscode
 .env
 test_db.sqlite3
+ty.toml

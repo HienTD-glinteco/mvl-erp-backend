@@ -276,6 +276,80 @@ class TestInterviewScheduleAPI(APITestMixin):
         data = self.get_response_data(response)
         assert len(data) == 0
 
+    def test_delete_interview_schedule_prevented_when_candidate_emailed(
+        self, recruitment_request, recruitment_candidate
+    ):
+        """Test deleting interview schedule is prevented when candidate has been emailed"""
+        schedule = InterviewSchedule.objects.create(
+            title="Interview to Delete (Emailed)",
+            recruitment_request=recruitment_request,
+            interview_type=InterviewSchedule.InterviewType.IN_PERSON,
+            location="Room B",
+            time=datetime(2025, 10, 25, 10, 0, 0, tzinfo=timezone.utc),
+            note="Please bring portfolio",
+        )
+
+        # Create candidate with email sent
+        InterviewCandidate.objects.create(
+            recruitment_candidate=recruitment_candidate,
+            interview_schedule=schedule,
+            interview_time=datetime(2025, 10, 25, 10, 0, 0, tzinfo=timezone.utc),
+            email_sent_at=datetime(2025, 10, 24, 10, 0, 0, tzinfo=timezone.utc),
+        )
+
+        url = reverse("hrm:interview-schedule-detail", args=[schedule.id])
+        response = self.client.delete(url)
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        import json
+
+        response_json = json.loads(response.content.decode())
+        assert response_json["success"] is False
+        assert InterviewSchedule.objects.filter(id=schedule.id).exists()
+
+    def test_delete_interview_schedule_success_when_candidate_not_emailed(
+        self, recruitment_request, recruitment_candidate
+    ):
+        """Test deleting interview schedule is successful when candidate has NOT been emailed"""
+        schedule = InterviewSchedule.objects.create(
+            title="Interview to Delete (No Email)",
+            recruitment_request=recruitment_request,
+            interview_type=InterviewSchedule.InterviewType.IN_PERSON,
+            location="Room B",
+            time=datetime(2025, 10, 25, 10, 0, 0, tzinfo=timezone.utc),
+            note="Please bring portfolio",
+        )
+
+        # Create candidate with NO email sent
+        InterviewCandidate.objects.create(
+            recruitment_candidate=recruitment_candidate,
+            interview_schedule=schedule,
+            interview_time=datetime(2025, 10, 25, 10, 0, 0, tzinfo=timezone.utc),
+            email_sent_at=None,
+        )
+
+        url = reverse("hrm:interview-schedule-detail", args=[schedule.id])
+        response = self.client.delete(url)
+
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+        assert not InterviewSchedule.objects.filter(id=schedule.id).exists()
+
+    def test_delete_interview_schedule_success_when_no_candidates(self, recruitment_request):
+        """Test deleting interview schedule is successful when there are no candidates"""
+        schedule = InterviewSchedule.objects.create(
+            title="Empty Interview to Delete",
+            recruitment_request=recruitment_request,
+            interview_type=InterviewSchedule.InterviewType.IN_PERSON,
+            location="Room C",
+            time=datetime(2025, 10, 25, 10, 0, 0, tzinfo=timezone.utc),
+        )
+
+        url = reverse("hrm:interview-schedule-detail", args=[schedule.id])
+        response = self.client.delete(url)
+
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+        assert not InterviewSchedule.objects.filter(id=schedule.id).exists()
+
 
 @pytest.mark.django_db
 class TestInterviewCandidateAPI(APITestMixin):
