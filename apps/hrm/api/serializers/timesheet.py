@@ -55,7 +55,7 @@ class TimesheetEntrySerializer(serializers.ModelSerializer):
         # Map SINGLE_PUNCH to NOT_ON_TIME for list display
         if obj.status == TimesheetStatus.SINGLE_PUNCH:
             return {
-                "value": TimesheetStatus.NOT_ON_TIME.label,
+                "value": TimesheetStatus.NOT_ON_TIME.value,
                 "variant": ColorVariant.YELLOW.value,
             }
         return colored

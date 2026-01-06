@@ -666,7 +666,7 @@ class RecruitmentDashboardViewSet(PermissionRegistrationMixin, viewsets.ViewSet)
 
         return [
             {
-                "source_type": item["source_type"],
+                "source_type": RecruitmentSourceType.get_label(item["source_type"]),
                 "count": item["count"] if item["count"] else 0,
                 "percentage": round((item["count"] / total_hired * 100) if total_hired > 0 else 0, 1),
             }
