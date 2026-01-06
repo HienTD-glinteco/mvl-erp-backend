@@ -134,12 +134,13 @@ class TestTimesheetCalculatorV2:
 
         calc = TimesheetCalculator(entry)
 
-        # Real-time mode (is_finalizing=False)
+        # Real-time mode (is_finalizing=False): check-in at 8:00 is on time
+        # So status should be ON_TIME during the workday
         calc.compute_all(is_finalizing=False)
-        assert entry.status == TimesheetStatus.NOT_ON_TIME
+        assert entry.status == TimesheetStatus.ON_TIME
         assert entry.working_days is None
 
-        # Finalization mode (is_finalizing=True)
+        # Finalization mode (is_finalizing=True): single punch should be SINGLE_PUNCH
         calc.compute_all(is_finalizing=True)
         assert entry.status == TimesheetStatus.SINGLE_PUNCH
         assert entry.working_days == Decimal("0.50")

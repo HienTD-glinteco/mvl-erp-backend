@@ -6,7 +6,7 @@ from django.utils.translation import gettext as _
 
 from apps.core.models import UserDevice
 from apps.core.utils.jwt import bump_user_mobile_token_version, revoke_user_outstanding_tokens
-from apps.hrm.constants import ProposalType, TimesheetReason, TimesheetStatus
+from apps.hrm.constants import ProposalType, TimesheetReason
 from apps.hrm.models import Proposal, ProposalOvertimeEntry, ProposalTimeSheetEntry, TimeSheetEntry
 
 
@@ -98,8 +98,7 @@ class ProposalService:
             # Find or create timesheet entry for this date
             entry, created = TimeSheetEntry.objects.get_or_create(employee=proposal.created_by, date=current_date)
 
-            # Set status and reason
-            entry.status = TimesheetStatus.ABSENT
+            entry.status = None
             entry.absent_reason = absent_reason
 
             # For full_day or maternity leave, clear all hours

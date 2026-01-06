@@ -341,7 +341,7 @@ class TimesheetCalculator:
         snapshot_service.snapshot_data(self.entry)
 
         # 1. Leave Logic (High Precedence)
-        if self._handle_leave_status():
+        if self._handle_leave_status(is_finalizing):
             return
 
         # 2. No Logs
@@ -357,15 +357,23 @@ class TimesheetCalculator:
         # 4. Two Logs - use pre-calculated penalty status
         self.entry.status = TimesheetStatus.NOT_ON_TIME if self.entry.is_punished else TimesheetStatus.ON_TIME
 
-    def _handle_leave_status(self) -> bool:
-        """Return True if status was set due to leave."""
+    def _handle_leave_status(self, is_finalizing: bool) -> bool:
+        """Return True if status was set due to leave.
+
+        For leave reasons (paid/unpaid/maternity leave), status is only set to ABSENT
+        when is_finalizing=True. For future dates (is_finalizing=False), status remains
+        None to show gray/empty in the timesheet grid.
+        """
         leave_reasons = [
             TimesheetReason.PAID_LEAVE,
             TimesheetReason.UNPAID_LEAVE,
             TimesheetReason.MATERNITY_LEAVE,
         ]
         if self.entry.absent_reason in leave_reasons:
-            self.entry.status = TimesheetStatus.ABSENT
+            if is_finalizing:
+                self.entry.status = TimesheetStatus.ABSENT
+            else:
+                self.entry.status = None
             return True
         return False
 
@@ -392,8 +400,20 @@ class TimesheetCalculator:
         return bool(self.entry.start_time) != bool(self.entry.end_time)
 
     def _handle_single_punch_status(self, is_finalizing: bool) -> None:
-        """Handle status for single punch."""
-        self.entry.status = TimesheetStatus.SINGLE_PUNCH if is_finalizing else TimesheetStatus.NOT_ON_TIME
+        """Handle status for single punch.
+
+        During the workday (is_finalizing=False):
+        - If check-in was on time (not punished) → ON_TIME
+        - If check-in was late (punished) → NOT_ON_TIME
+
+        At end of day (is_finalizing=True):
+        - Status becomes SINGLE_PUNCH
+        """
+        if is_finalizing:
+            self.entry.status = TimesheetStatus.SINGLE_PUNCH
+        else:
+            # Use is_punished to determine if check-in was on time or late
+            self.entry.status = TimesheetStatus.NOT_ON_TIME if self.entry.is_punished else TimesheetStatus.ON_TIME
 
     def compute_working_days(self, is_finalizing: bool = False) -> None:
         """Compute working_days according to business rules."""

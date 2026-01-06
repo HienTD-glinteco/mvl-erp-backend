@@ -54,12 +54,12 @@ def test_single_attendance_status_for_single_punch():
     days_until_monday = (7 - today.weekday()) % 7 + 7  # Next Monday
     future_monday = today + timedelta(days=days_until_monday)
 
-    # Single punch: only start_time
+    # Single punch: only start_time (on-time check-in at 8:00)
     ts = TimeSheetEntry.objects.create(
         employee=emp, date=future_monday, check_in_time=combine_datetime(future_monday, time(8, 0))
     )
-    # After save/clean, real-time mode (future date) sets NOT_ON_TIME
-    assert ts.status == TimesheetStatus.NOT_ON_TIME
+    # After save/clean, real-time mode with on-time check-in shows ON_TIME
+    assert ts.status == TimesheetStatus.ON_TIME
     assert ts.working_days is None
 
     # Finalization mode
@@ -67,12 +67,12 @@ def test_single_attendance_status_for_single_punch():
     assert ts.status == TimesheetStatus.SINGLE_PUNCH
     assert ts.working_days == Decimal("0.50")
 
-    # Single punch: only end_time
+    # Single punch: only end_time (can't determine lateness, so ON_TIME by default)
     ts2 = TimeSheetEntry.objects.create(
         employee=emp, date=future_monday, check_out_time=combine_datetime(future_monday, time(17, 0))
     )
-    # After save/clean, real-time mode sets NOT_ON_TIME
-    assert ts2.status == TimesheetStatus.NOT_ON_TIME
+    # After save/clean, real-time mode with only end_time (no late/early penalty)
+    assert ts2.status == TimesheetStatus.ON_TIME
     assert ts2.working_days is None
 
     # Finalization mode

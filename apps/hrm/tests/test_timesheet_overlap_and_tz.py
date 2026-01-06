@@ -100,7 +100,8 @@ def test_full_day_paid_leave_takes_precedence_over_compensatory(settings):
     # Employee did punch in (but leave should still take precedence)
     ts.start_time = make_datetime(d, time(8, 0))
     ts.end_time = make_datetime(d, time(17, 0))
-    TimesheetCalculator(ts).compute_status()
+    # Need is_finalizing=True for leave status to be ABSENT (not None)
+    TimesheetCalculator(ts).compute_status(is_finalizing=True)
 
     assert ts.status == TimesheetStatus.ABSENT
     assert ts.absent_reason == TimesheetReason.PAID_LEAVE
