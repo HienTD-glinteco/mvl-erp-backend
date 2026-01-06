@@ -13,6 +13,7 @@ from apps.hrm.tasks.reports_hr import aggregate_hr_reports_batch, aggregate_hr_r
 from apps.hrm.tasks.reports_recruitment import (
     aggregate_recruitment_reports_batch,
     aggregate_recruitment_reports_for_candidate,
+    aggregate_recruitment_reports_for_work_history,
 )
 
 __all__ = [
@@ -25,6 +26,7 @@ __all__ = [
     "aggregate_hr_reports_for_work_history",
     "aggregate_hr_reports_batch",
     "aggregate_recruitment_reports_for_candidate",
+    "aggregate_recruitment_reports_for_work_history",
     "aggregate_recruitment_reports_batch",
     "reactive_maternity_leave_employees_task",
 ]

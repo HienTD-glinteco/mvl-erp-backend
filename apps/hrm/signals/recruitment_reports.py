@@ -8,6 +8,7 @@ from django.dispatch import receiver
 
 from apps.hrm.constants import RecruitmentSourceType
 from apps.hrm.models import (
+    EmployeeWorkHistory,
     HiredCandidateReport,
     RecruitmentCandidate,
     RecruitmentChannelReport,
@@ -15,7 +16,10 @@ from apps.hrm.models import (
     RecruitmentExpense,
     RecruitmentSourceReport,
 )
-from apps.hrm.tasks import aggregate_recruitment_reports_for_candidate
+from apps.hrm.tasks import (
+    aggregate_recruitment_reports_for_candidate,
+    aggregate_recruitment_reports_for_work_history,
+)
 
 
 @receiver(pre_save, sender=RecruitmentCandidate)
@@ -342,3 +346,61 @@ def update_cost_report_on_expense_delete(sender, instance, **kwargs):  # noqa: A
                 "avg_cost_per_hire": avg_cost,
             },
         )
+
+
+@receiver(post_save, sender=EmployeeWorkHistory)
+def trigger_recruitment_reports_on_work_history_save(sender, instance, created, **kwargs):  # noqa: ARG001
+    """Trigger recruitment reports when an employee returns to work."""
+    if instance.name == EmployeeWorkHistory.EventType.RETURN_TO_WORK:
+        # Create snapshot for the task
+        snapshot = {
+            "previous": None,  # For returning employee, we mostly care about the return event itself
+            "current": {
+                "date": instance.date,
+                "branch_id": instance.branch_id,
+                "block_id": instance.block_id,
+                "department_id": instance.department_id,
+                "employee_id": instance.employee_id,
+            },
+        }
+
+        # Mark reports for refresh
+        _mark_recruitment_reports_for_refresh(
+            report_date=instance.date,
+            branch_id=instance.branch_id,
+            block_id=instance.block_id,
+            department_id=instance.department_id,
+        )
+
+        if created:
+            aggregate_recruitment_reports_for_work_history.delay("create", snapshot)
+        else:
+            # For simplicity, we just trigger a refresh if the event is updated
+            # Though RETURN_TO_WORK usually isn't updated much
+            aggregate_recruitment_reports_for_work_history.delay("update", snapshot)
+
+
+@receiver(post_delete, sender=EmployeeWorkHistory)
+def trigger_recruitment_reports_on_work_history_delete(sender, instance, **kwargs):  # noqa: ARG001
+    """Decrement recruitment reports when a return to work event is deleted."""
+    if instance.name == EmployeeWorkHistory.EventType.RETURN_TO_WORK:
+        snapshot = {
+            "previous": {
+                "date": instance.date,
+                "branch_id": instance.branch_id,
+                "block_id": instance.block_id,
+                "department_id": instance.department_id,
+                "employee_id": instance.employee_id,
+            },
+            "current": None,
+        }
+
+        # Mark reports for refresh
+        _mark_recruitment_reports_for_refresh(
+            report_date=instance.date,
+            branch_id=instance.branch_id,
+            block_id=instance.block_id,
+            department_id=instance.department_id,
+        )
+
+        aggregate_recruitment_reports_for_work_history.delay("delete", snapshot)

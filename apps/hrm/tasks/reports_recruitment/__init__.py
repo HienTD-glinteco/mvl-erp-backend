@@ -10,9 +10,13 @@ Public API exports:
 """
 
 from .batch_tasks import aggregate_recruitment_reports_batch
-from .event_tasks import aggregate_recruitment_reports_for_candidate
+from .event_tasks import (
+    aggregate_recruitment_reports_for_candidate,
+    aggregate_recruitment_reports_for_work_history,
+)
 
 __all__ = [
     "aggregate_recruitment_reports_for_candidate",
+    "aggregate_recruitment_reports_for_work_history",
     "aggregate_recruitment_reports_batch",
 ]

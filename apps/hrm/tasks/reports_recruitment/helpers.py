@@ -13,6 +13,7 @@ from django.db.models.functions import Greatest
 
 from apps.hrm.constants import RecruitmentSourceType
 from apps.hrm.models import (
+    EmployeeWorkHistory,
     HiredCandidateReport,
     RecruitmentCandidate,
     RecruitmentChannel,
@@ -406,6 +407,84 @@ def _increment_recruitment_cost_report(
     report.save(update_fields=["total_cost", "num_hires", "avg_cost_per_hire"])
 
 
+def _increment_returning_employee_reports(event_type: str, snapshot: dict[str, Any]) -> None:
+    """Incrementally update reports based on RETURN_TO_WORK work history event.
+
+    Args:
+        event_type: "create", "update", or "delete"
+        snapshot: Dict with previous and current state
+    """
+    previous = snapshot.get("previous")
+    current = snapshot.get("current")
+
+    if event_type == "create" and current:
+        _process_returning_employee_change(current, delta=1)
+    elif event_type == "delete" and previous:
+        _process_returning_employee_change(previous, delta=-1)
+    elif event_type == "update":
+        if previous:
+            _process_returning_employee_change(previous, delta=-1)
+        if current:
+            _process_returning_employee_change(current, delta=1)
+
+
+def _process_returning_employee_change(data: dict[str, Any], delta: int) -> None:
+    """Process a single returning employee change.
+
+    Args:
+        data: Work history data snapshot
+        delta: +1 for increment, -1 for decrement
+    """
+    report_date = data.get("date")
+    if not report_date:
+        return
+
+    branch_id = data["branch_id"]
+    block_id = data["block_id"]
+    department_id = data["department_id"]
+    source_type = RecruitmentSourceType.RETURNING_EMPLOYEE
+
+    # Update hired candidate report (no experience/referrer info for return event usually)
+    _increment_hired_candidate_report(
+        report_date,
+        branch_id,
+        block_id,
+        department_id,
+        source_type,
+        is_experienced=False,
+        referrer_id=None,
+        delta=delta,
+    )
+
+    # Update cost report (RETURNING_EMPLOYEE has no cost)
+    _increment_recruitment_cost_report_simple(report_date, branch_id, block_id, department_id, source_type, delta)
+
+
+def _increment_recruitment_cost_report_simple(
+    report_date: date, branch_id: int, block_id: int, department_id: int, source_type: str, delta: int
+) -> None:
+    """Simple increment for RecruitmentCostReport (only count, no costs)."""
+    month_key = report_date.strftime("%Y-%m")
+
+    report, __ = RecruitmentCostReport.objects.get_or_create(
+        report_date=report_date,
+        branch_id=branch_id,
+        block_id=block_id,
+        department_id=department_id,
+        source_type=source_type,
+        defaults={
+            "month_key": month_key,
+            "total_cost": Decimal("0"),
+            "num_hires": 0,
+            "avg_cost_per_hire": Decimal("0"),
+        },
+    )
+
+    RecruitmentCostReport.objects.filter(pk=report.pk).update(
+        num_hires=Greatest(F("num_hires") + Value(delta), Value(0))
+    )
+
+
 #### Batch aggregation helper functions
 
 
@@ -593,10 +672,34 @@ def _aggregate_recruitment_cost_for_date(report_date: date, branch, block, depar
             },
         )
 
-    logger.debug(
+    logger.info(
         f"Aggregated recruitment cost for {report_date} - "
         f"{branch.name}/{block.name}/{department.name}: {len(source_type_stats)} source types"
     )
+
+    # Re-aggregate RETURNING_EMPLOYEE from EmployeeWorkHistory
+    num_returns = EmployeeWorkHistory.objects.filter(
+        name=EmployeeWorkHistory.EventType.RETURN_TO_WORK,
+        date=report_date,
+        branch=branch,
+        block=block,
+        department=department,
+    ).count()
+
+    if num_returns > 0:
+        RecruitmentCostReport.objects.update_or_create(
+            report_date=report_date,
+            branch=branch,
+            block=block,
+            department=department,
+            source_type=RecruitmentSourceType.RETURNING_EMPLOYEE,
+            defaults={
+                "month_key": month_key,
+                "total_cost": Decimal("0"),
+                "num_hires": num_returns,
+                "avg_cost_per_hire": Decimal("0"),
+            },
+        )
 
 
 def _aggregate_hired_candidate_for_date(report_date: date, branch, block, department) -> None:
@@ -656,10 +759,34 @@ def _aggregate_hired_candidate_for_date(report_date: date, branch, block, depart
             },
         )
 
-    logger.debug(
+    logger.info(
         f"Aggregated hired candidates for {report_date} - "
         f"{branch.name}/{block.name}/{department.name}: {len(source_type_stats)} source types"
     )
+
+    # Re-aggregate RETURNING_EMPLOYEE from EmployeeWorkHistory
+    num_returns = EmployeeWorkHistory.objects.filter(
+        name=EmployeeWorkHistory.EventType.RETURN_TO_WORK,
+        date=report_date,
+        branch=branch,
+        block=block,
+        department=department,
+    ).count()
+
+    if num_returns > 0:
+        HiredCandidateReport.objects.update_or_create(
+            report_date=report_date,
+            branch=branch,
+            block=block,
+            department=department,
+            source_type=RecruitmentSourceType.RETURNING_EMPLOYEE,
+            defaults={
+                "month_key": month_key,
+                "week_key": week_key,
+                "num_candidates_hired": num_returns,
+                "num_experienced": 0,
+            },
+        )
 
 
 def _update_staff_growth_for_recruitment(report_date: date, branch, block, department) -> None:

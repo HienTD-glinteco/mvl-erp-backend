@@ -390,3 +390,73 @@ class TestRecruitmentReportsSignals:
         )
         assert dept_report.total_cost == Decimal("2500000.00")
         assert dept_report.num_hires == 1
+
+    def test_returning_employee_report_on_work_history_create(self, setup_data):
+        """Test that RETURNING_EMPLOYEE source type is updated when EmployeeWorkHistory RETURN_TO_WORK is created."""
+        from apps.hrm.models import HiredCandidateReport, Position
+        from apps.hrm.tasks.reports_recruitment.helpers import _increment_returning_employee_reports
+
+        # Create position
+        position = Position.objects.create(name="Engineer", code="ENG")
+
+        # Create an employee
+        employee = Employee.objects.create(
+            fullname="Return Employee",
+            username="return_emp",
+            email="return_emp@example.com",
+            branch=setup_data["branch"],
+            block=setup_data["block"],
+            department=setup_data["department"],
+            position=position,
+            phone="0349567893",
+            attendance_code="RETURN_EMP",
+            date_of_birth="1990-01-01",
+            personal_email="return_emp.personal@example.com",
+            start_date="2024-01-01",
+            citizen_id="000000020010",
+            status=Employee.Status.RESIGNED,
+            resignation_start_date=date(2025, 11, 1),
+            resignation_reason=Employee.ResignationReason.VOLUNTARY_PERSONAL,
+        )
+
+        # Verify no report exists before
+        return_date = date(2025, 12, 15)
+        assert not RecruitmentCostReport.objects.filter(
+            report_date=return_date,
+            source_type=RecruitmentSourceType.RETURNING_EMPLOYEE,
+        ).exists()
+
+        # Directly call the helper function (simulating what the Celery task does)
+        snapshot = {
+            "previous": None,
+            "current": {
+                "date": return_date,
+                "branch_id": setup_data["branch"].id,
+                "block_id": setup_data["block"].id,
+                "department_id": setup_data["department"].id,
+                "employee_id": employee.id,
+            },
+        }
+        _increment_returning_employee_reports("create", snapshot)
+
+        # Check RecruitmentCostReport was created
+        cost_report = RecruitmentCostReport.objects.filter(
+            report_date=return_date,
+            branch=setup_data["branch"],
+            source_type=RecruitmentSourceType.RETURNING_EMPLOYEE,
+        ).first()
+
+        assert cost_report is not None
+        assert cost_report.num_hires == 1
+        assert cost_report.total_cost == Decimal("0")
+        assert cost_report.avg_cost_per_hire == Decimal("0")
+
+        # Check HiredCandidateReport was created
+        hired_report = HiredCandidateReport.objects.filter(
+            report_date=return_date,
+            branch=setup_data["branch"],
+            source_type=RecruitmentSourceType.RETURNING_EMPLOYEE,
+        ).first()
+
+        assert hired_report is not None
+        assert hired_report.num_candidates_hired == 1
