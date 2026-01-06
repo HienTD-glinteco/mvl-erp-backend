@@ -310,7 +310,8 @@ class Command(BaseCommand):
                     location = (
                         f" (sheet '{sheet_label}', row {row_label})" if row_label else f" (sheet '{sheet_label}')"
                     )
-                raise CommandError(f"Permission '{code}' does not exist in the database{location}.")
+                # raise CommandError(f"Permission '{code}' does not exist in the database{location}.")
+                continue
 
             permission_objects[code] = permission
             mismatches = {}
