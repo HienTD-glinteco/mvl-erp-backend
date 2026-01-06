@@ -284,7 +284,7 @@ class Command(BaseCommand):
         self._print_summary(permission_stats, role_stats)
 
     def _sync_permissions(self, permission_catalog: Dict[str, Dict[str, Any]]):
-        stats = {"processed": 0, "missing": 0, "mismatched": 0}
+        stats = {"processed": 0, "mismatched": 0}
         permission_objects: Dict[str, Permission] = {}
         mismatch_entries: List[Dict[str, str]] = []
 
@@ -302,7 +302,6 @@ class Command(BaseCommand):
                         f" (sheet '{sheet_label}', row {row_label})" if row_label else f" (sheet '{sheet_label}')"
                     )
             except Permission.DoesNotExist:
-                stats["missing"] += 1
                 if source_context:
                     origin = source_context[0]
                     sheet_label = (origin.get("sheet") or "").strip() or "Unknown sheet"
@@ -310,8 +309,7 @@ class Command(BaseCommand):
                     location = (
                         f" (sheet '{sheet_label}', row {row_label})" if row_label else f" (sheet '{sheet_label}')"
                     )
-                # raise CommandError(f"Permission '{code}' does not exist in the database{location}.")
-                continue
+                raise CommandError(f"Permission '{code}' does not exist in the database{location}.")
 
             permission_objects[code] = permission
             mismatches = {}
@@ -458,7 +456,6 @@ class Command(BaseCommand):
         self.stdout.write(self.style.SUCCESS("=" * 60))
 
         self.stdout.write(f"Permissions checked: {permission_stats['processed']}")
-        self.stdout.write(f"  Missing: {permission_stats['missing']}")
         self.stdout.write(f"  Name/description mismatches: {permission_stats['mismatched']}")
 
         self.stdout.write("")

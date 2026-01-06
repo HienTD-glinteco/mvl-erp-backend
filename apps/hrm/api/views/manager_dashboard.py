@@ -20,7 +20,7 @@ class ManagerDashboardViewSet(BaseGenericViewSet):
     """Manager dashboard metrics for department managers."""
 
     module = _("HRM")
-    submodule = _("Manager Dashboard")
+    submodule = _("Dashboard")
     permission_prefix = "hrm.dashboard.manager"
     PERMISSION_REGISTERED_ACTIONS = {
         "realtime": {

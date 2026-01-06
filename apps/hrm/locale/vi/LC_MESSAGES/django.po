@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-07 00:11+0700\n"
+"POT-Creation-Date: 2026-01-07 00:57+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1052,6 +1052,31 @@ msgstr "Cập nhật người phỏng vấn cho {model_name}"
 msgid ""
 "This interview schedule has been sent to candidates so it cannot be deleted."
 msgstr "Lịch phỏng vấn này đã được gửi cho ứng viên, không thể xoá."
+#: apps/hrm/api/views/manager_dashboard.py:23
+msgid "Dashboard"
+msgstr ""
+
+#: apps/hrm/api/views/manager_dashboard.py:27
+msgid "View Manager realtime dashboard"
+msgstr "Xem thống kê các vấn đề HCNS cần xử lý"
+
+#: apps/hrm/api/views/manager_dashboard.py:28
+msgid "View manager stats for proposals to verify and KPI assessments"
+msgstr "Xem thống kê các đề xuất cần xác nhận và đánh giá KPI"
+
+#: apps/hrm/api/views/manager_dashboard.py:39
+msgid "11.1.3. View statistics pending processing (Manager Dashboard)"
+msgstr "Xem thống kê thông tin cần xử lý (trưởng phòng)"
+
+#: apps/hrm/api/views/manager_dashboard.py:125
+#: apps/hrm/api/views/manager_dashboard.py:148
+msgid "Proposals to verify"
+msgstr "Đề xuất chờ xác nhận"
+
+#: apps/hrm/api/views/manager_dashboard.py:134
+#: apps/hrm/api/views/manager_dashboard.py:157
+msgid "KPI assessments pending"
+msgstr "Đánh giá KPI chờ xử lý"
 
 #: apps/hrm/api/views/mobile/attendance.py:66
 #: apps/hrm/api/views/mobile/proposal.py:85
@@ -1063,10 +1088,8 @@ msgid "HRM - Mobile"
 msgstr ""
 
 #: apps/hrm/api/views/mobile/attendance.py:67
-#, fuzzy
-#| msgid "Attendance"
 msgid "My Attendance"
-msgstr "Quản lý Chấm Công"
+msgstr "Chấm Công"
 
 #: apps/hrm/api/views/mobile/attendance.py:71
 msgid "Record attendance by GeoLocation"
@@ -1094,22 +1117,32 @@ msgstr "Log chấm Công thủ công hoặc lý do khác"
 
 #: apps/hrm/api/views/mobile/proposal.py:86
 #: apps/hrm/api/views/mobile/proposal.py:113
-#, fuzzy
-#| msgid "Proposals"
 msgid "My Proposals"
 msgstr "Đề xuất"
 
 #: apps/hrm/api/views/mobile/proposal.py:534
-#, fuzzy
-#| msgid "Proposal Verifiers"
 msgid "Proposals Verifications"
-msgstr "Người xác nhận"
+msgstr "Đề xuất"
+
+#: apps/hrm/api/views/mobile/proposal.py:538
+msgid "Verify proposal"
+msgstr "Xác nhận Đề xuất"
+
+#: apps/hrm/api/views/mobile/proposal.py:539
+msgid "Mark a proposal as verified"
+msgstr "Đánh dấu đề xuất đã được xác nhận"
+
+#: apps/hrm/api/views/mobile/proposal.py:542
+msgid "Reject proposal verification"
+msgstr "Từ chối xác nhận đề xuất"
+
+#: apps/hrm/api/views/mobile/proposal.py:543
+msgid "Mark a proposal verification as rejected"
+msgstr "Đánh dấu đề xuất đã bị từ chối"
 
 #: apps/hrm/api/views/mobile/timesheet.py:93
-#, fuzzy
-#| msgid "Timesheet"
 msgid "My Timesheet"
-msgstr "Bảng chấm công"
+msgstr "Bảng chấm công của tôi"
 
 #: apps/hrm/api/views/mobile/timesheet.py:110
 #: apps/hrm/api/views/mobile/timesheet.py:155
@@ -1122,35 +1155,8 @@ msgid "Month filter cannot be in the future."
 msgstr "Bộ lọc tháng không thể ở tương lai."
 
 #: apps/hrm/api/views/mobile/timesheet.py:280
-#, fuzzy
-#| msgid "Timesheet entry"
 msgid "My Timesheet Entry"
-msgstr "Ngày công"
-#: apps/hrm/api/views/manager_dashboard.py:23
-msgid "Manager Dashboard"
-msgstr ""
-
-#: apps/hrm/api/views/manager_dashboard.py:27
-msgid "View Manager realtime dashboard"
-msgstr "Xem thống kê các vấn đề HCNS cần xử lý"
-
-#: apps/hrm/api/views/manager_dashboard.py:28
-msgid "View manager stats for proposals to verify and KPI assessments"
-msgstr "Xem thống kê các đề xuất cần xác nhận và đánh giá KPI"
-
-#: apps/hrm/api/views/manager_dashboard.py:39
-msgid "11.1.3. View statistics pending processing (Manager Dashboard)"
-msgstr "Xem thống kê thông tin cần xử lý (trưởng phòng)"
-
-#: apps/hrm/api/views/manager_dashboard.py:125
-#: apps/hrm/api/views/manager_dashboard.py:148
-msgid "Proposals to verify"
-msgstr "Đề xuất chờ xác nhận"
-
-#: apps/hrm/api/views/manager_dashboard.py:134
-#: apps/hrm/api/views/manager_dashboard.py:157
-msgid "KPI assessments pending"
-msgstr "Đánh giá KPI chờ xử lý"
+msgstr "Ngày công của tôi"
 
 #: apps/hrm/api/views/organization.py:236
 #: apps/hrm/api/views/organization.py:468
