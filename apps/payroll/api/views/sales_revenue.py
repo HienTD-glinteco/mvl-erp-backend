@@ -336,7 +336,78 @@ from libs.export_xlsx.mixins import ExportXLSXMixin
             ),
         ],
     ),
-    start_import=extend_schema(tags=["10.5: Sales Revenue Management"]),
+    start_import=extend_schema(
+        summary="Import sales revenue data",
+        description=(
+            "Import sales revenue data from an uploaded Excel file. "
+            "Requires `options.handler_options.target_month` in MM/YYYY format to match the month column in the import file. "
+            "The import will validate that all rows match the specified target month."
+        ),
+        tags=["10.5: Sales Revenue Management"],
+        examples=[
+            OpenApiExample(
+                "Request - Start import",
+                value={
+                    "file_id": 123,
+                    "options": {
+                        "handler_options": {
+                            "target_month": "01/2026",
+                        },
+                    },
+                },
+                request_only=True,
+            ),
+            OpenApiExample(
+                "Request - With all options",
+                value={
+                    "file_id": 123,
+                    "options": {
+                        "batch_size": 500,
+                        "header_rows": 1,
+                        "handler_options": {
+                            "target_month": "01/2026",
+                        },
+                    },
+                },
+                request_only=True,
+            ),
+            OpenApiExample(
+                "Success - Import started",
+                value={
+                    "success": True,
+                    "data": {
+                        "import_job_id": "550e8400-e29b-41d4-a716-446655440000",
+                        "celery_task_id": "abc123-task-id",
+                        "status": "QUEUED",
+                        "created_at": "2026-01-06T10:00:00Z",
+                    },
+                    "error": None,
+                },
+                response_only=True,
+                status_codes=["202"],
+            ),
+            OpenApiExample(
+                "Error - Missing target_month",
+                value={
+                    "success": False,
+                    "data": None,
+                    "error": {"detail": "Target month not provided in options"},
+                },
+                response_only=True,
+                status_codes=["400"],
+            ),
+            OpenApiExample(
+                "Error - Invalid target_month format",
+                value={
+                    "success": False,
+                    "data": None,
+                    "error": {"detail": "Invalid target month format, expected MM/YYYY"},
+                },
+                response_only=True,
+                status_codes=["400"],
+            ),
+        ],
+    ),
     import_template=extend_schema(tags=["10.5: Sales Revenue Management"]),
 )
 class SalesRevenueViewSet(AsyncImportProgressMixin, ExportXLSXMixin, AuditLoggingMixin, BaseModelViewSet):
