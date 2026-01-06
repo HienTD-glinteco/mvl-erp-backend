@@ -77,7 +77,7 @@ class DeviceChangeRequestView(APIView):
             ),
             429: OpenApiResponse(description="Too many requests"),
         },
-        tags=["9.2.11: Device Change Proposals - For Mobile"],
+        tags=["9.2.11: Device Change Proposals"],
         examples=[
             OpenApiExample(
                 "Request device change",
@@ -192,7 +192,7 @@ class DeviceChangeVerifyOTPView(APIView):
             410: OpenApiResponse(description="Request expired"),
             429: OpenApiResponse(description="Too many attempts"),
         },
-        tags=["9.2.11: Device Change Proposals - For Mobile"],
+        tags=["9.2.11: Device Change Proposals"],
         examples=[
             OpenApiExample(
                 "Verify OTP",

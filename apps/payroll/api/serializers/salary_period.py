@@ -3,13 +3,13 @@
 from rest_framework import serializers
 
 from apps.payroll.models import SalaryPeriod
-from libs import ColoredValueSerializer
+from libs.drf.serializers import ColoredValueSerializer
 
 
 class SalaryPeriodListSerializer(serializers.ModelSerializer):
     """List serializer for SalaryPeriod with summary information."""
 
-    colored_status = ColoredValueSerializer(source="get_colored_status", read_only=True)
+    colored_status = ColoredValueSerializer(read_only=True)
     month = serializers.SerializerMethodField()
 
     class Meta:
@@ -38,10 +38,6 @@ class SalaryPeriodListSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = fields
 
-    def get_colored_status(self, obj):
-        """Get colored status value."""
-        return obj.get_colored_value("status")
-
     def get_month(self, obj):
         """Return month in n/YYYY format (month without leading zero)."""
         return obj.month.strftime("%-m/%Y")
@@ -50,7 +46,7 @@ class SalaryPeriodListSerializer(serializers.ModelSerializer):
 class SalaryPeriodSerializer(serializers.ModelSerializer):
     """Detail serializer for SalaryPeriod."""
 
-    colored_status = ColoredValueSerializer(source="get_colored_status", read_only=True)
+    colored_status = ColoredValueSerializer(read_only=True)
     month = serializers.SerializerMethodField()
 
     class Meta:
@@ -110,10 +106,6 @@ class SalaryPeriodSerializer(serializers.ModelSerializer):
             "created_by",
             "updated_by",
         ]
-
-    def get_colored_status(self, obj):
-        """Get colored status value."""
-        return obj.get_colored_value("status")
 
     def get_month(self, obj):
         """Return month in n/YYYY format (month without leading zero)."""

@@ -90,7 +90,7 @@ class AttendanceDeviceValidationAPITest(TransactionTestCase, APITestMixin):
         token_mock.get.side_effect = lambda k: None
         self.client.force_authenticate(user=self.user, token=token_mock)
 
-        url = reverse("hrm:attendance-record-wifi-attendance")
+        url = reverse("hrm-mobile:my-attendance-record-wifi-attendance")
         data = {"bssid": "00:11:22:33:44:55"}
 
         response = self.client.post(url, data, format="json")
@@ -109,7 +109,7 @@ class AttendanceDeviceValidationAPITest(TransactionTestCase, APITestMixin):
 
         # Do not create UserDevice
 
-        url = reverse("hrm:attendance-record-wifi-attendance")
+        url = reverse("hrm-mobile:my-attendance-record-wifi-attendance")
         data = {"bssid": "00:11:22:33:44:55"}
 
         response = self.client.post(url, data, format="json")
@@ -132,7 +132,7 @@ class AttendanceDeviceValidationAPITest(TransactionTestCase, APITestMixin):
         token_mock.get.side_effect = lambda k: "device123" if k == "device_id" else None
         self.client.force_authenticate(user=self.user, token=token_mock)
 
-        url = reverse("hrm:attendance-record-wifi-attendance")
+        url = reverse("hrm-mobile:my-attendance-record-wifi-attendance")
         data = {"bssid": "00:11:22:33:44:55"}
 
         response = self.client.post(url, data, format="json")
@@ -154,7 +154,7 @@ class AttendanceDeviceValidationAPITest(TransactionTestCase, APITestMixin):
         token_mock.get.side_effect = lambda k: "device123" if k == "device_id" else None
         self.client.force_authenticate(user=self.user, token=token_mock)
 
-        url = reverse("hrm:attendance-record-wifi-attendance")
+        url = reverse("hrm-mobile:my-attendance-record-wifi-attendance")
         data = {"bssid": "00:11:22:33:44:55"}
 
         response = self.client.post(url, data, format="json")

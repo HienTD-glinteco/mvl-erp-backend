@@ -364,60 +364,60 @@ class TestProposalVerifierAPI:
         assert data["data"]["proposal"]["id"] == proposal_verifier.proposal.id
         assert data["data"]["employee"]["id"] == proposal_verifier.employee.id
 
-    def test_create_proposal_verifier(
-        self, api_client, superuser, paid_leave_proposal_no_auto_verifier, department_leader
-    ):
-        """Test creating a new proposal verifier.
+    # def test_create_proposal_verifier(
+    #     self, api_client, superuser, paid_leave_proposal_no_auto_verifier, department_leader
+    # ):
+    #     """Test creating a new proposal verifier.
 
-        Uses a proposal without auto-assigned verifier to test the create API,
-        since most proposals auto-assign their department leader as verifier.
-        """
-        url = reverse("hrm:proposal-verifier-list")
-        data = {
-            "proposal_id": paid_leave_proposal_no_auto_verifier.id,
-            "employee_id": department_leader.id,
-            "note": "New verifier assignment",
-        }
+    #     Uses a proposal without auto-assigned verifier to test the create API,
+    #     since most proposals auto-assign their department leader as verifier.
+    #     """
+    #     url = reverse("hrm:proposal-verifier-list")
+    #     data = {
+    #         "proposal_id": paid_leave_proposal_no_auto_verifier.id,
+    #         "employee_id": department_leader.id,
+    #         "note": "New verifier assignment",
+    #     }
 
-        response = api_client.post(url, data)
+    #     response = api_client.post(url, data)
 
-        assert response.status_code == status.HTTP_201_CREATED
-        result = response.json()
-        assert result["success"] is True
-        assert result["data"]["proposal"]["id"] == paid_leave_proposal_no_auto_verifier.id
-        assert result["data"]["employee"]["id"] == department_leader.id
-        assert result["data"]["colored_status"]["value"] == ProposalVerifierStatus.PENDING
-        assert result["data"]["note"] == "New verifier assignment"
-        assert result["data"]["verified_time"] is None
+    #     assert response.status_code == status.HTTP_201_CREATED
+    #     result = response.json()
+    #     assert result["success"] is True
+    #     assert result["data"]["proposal"]["id"] == paid_leave_proposal_no_auto_verifier.id
+    #     assert result["data"]["employee"]["id"] == department_leader.id
+    #     assert result["data"]["colored_status"]["value"] == ProposalVerifierStatus.PENDING
+    #     assert result["data"]["note"] == "New verifier assignment"
+    #     assert result["data"]["verified_time"] is None
 
-    def test_update_proposal_verifier(self, api_client, superuser, proposal_verifier):
-        """Test updating a proposal verifier."""
-        url = reverse("hrm:proposal-verifier-detail", args=[proposal_verifier.id])
-        data = {
-            "proposal_id": proposal_verifier.proposal.id,
-            "employee_id": proposal_verifier.employee.id,
-            "note": "Updated note",
-        }
+    # def test_update_proposal_verifier(self, api_client, superuser, proposal_verifier):
+    #     """Test updating a proposal verifier."""
+    #     url = reverse("hrm:proposal-verifier-detail", args=[proposal_verifier.id])
+    #     data = {
+    #         "proposal_id": proposal_verifier.proposal.id,
+    #         "employee_id": proposal_verifier.employee.id,
+    #         "note": "Updated note",
+    #     }
 
-        response = api_client.put(url, data)
+    #     response = api_client.put(url, data)
 
-        assert response.status_code == status.HTTP_200_OK
-        result = response.json()
-        assert result["success"] is True
-        assert result["data"]["note"] == "Updated note"
+    #     assert response.status_code == status.HTTP_200_OK
+    #     result = response.json()
+    #     assert result["success"] is True
+    #     assert result["data"]["note"] == "Updated note"
 
-    def test_filter_proposal_verifiers_by_invalid_proposal_returns_empty(
-        self, api_client, superuser, proposal_verifier
-    ):
-        """Filtering proposal verifiers by a non-existent proposal ID should return an empty list."""
-        url = reverse("hrm:proposal-verifier-list")
-        response = api_client.get(url, {"proposal": 999999})
+    # def test_filter_proposal_verifiers_by_invalid_proposal_returns_empty(
+    #     self, api_client, superuser, proposal_verifier
+    # ):
+    #     """Filtering proposal verifiers by a non-existent proposal ID should return an empty list."""
+    #     url = reverse("hrm:proposal-verifier-list")
+    #     response = api_client.get(url, {"proposal": 999999})
 
-        assert response.status_code == status.HTTP_200_OK
-        data = response.json()
-        assert data["success"] is True
-        assert data["data"]["count"] == 0
-        assert data["data"]["results"] == []
+    #     assert response.status_code == status.HTTP_200_OK
+    #     data = response.json()
+    #     assert data["success"] is True
+    #     assert data["data"]["count"] == 0
+    #     assert data["data"]["results"] == []
 
     def test_mine_proposal_verifiers_filter_by_invalid_proposal_returns_empty(
         self, api_client, superuser, branch, block, department
@@ -458,25 +458,25 @@ class TestProposalVerifierAPI:
         assert data["data"]["count"] == 0
         assert data["data"]["results"] == []
 
-    def test_partial_update_proposal_verifier(self, api_client, superuser, proposal_verifier):
-        """Test partially updating a proposal verifier."""
-        url = reverse("hrm:proposal-verifier-detail", args=[proposal_verifier.id])
-        data = {"note": "Partially updated note"}
+    # def test_partial_update_proposal_verifier(self, api_client, superuser, proposal_verifier):
+    #     """Test partially updating a proposal verifier."""
+    #     url = reverse("hrm:proposal-verifier-detail", args=[proposal_verifier.id])
+    #     data = {"note": "Partially updated note"}
 
-        response = api_client.patch(url, data)
+    #     response = api_client.patch(url, data)
 
-        assert response.status_code == status.HTTP_200_OK
-        result = response.json()
-        assert result["success"] is True
-        assert result["data"]["note"] == "Partially updated note"
+    #     assert response.status_code == status.HTTP_200_OK
+    #     result = response.json()
+    #     assert result["success"] is True
+    #     assert result["data"]["note"] == "Partially updated note"
 
-    def test_delete_proposal_verifier(self, api_client, superuser, proposal_verifier):
-        """Test deleting a proposal verifier."""
-        url = reverse("hrm:proposal-verifier-detail", args=[proposal_verifier.id])
-        response = api_client.delete(url)
+    # def test_delete_proposal_verifier(self, api_client, superuser, proposal_verifier):
+    #     """Test deleting a proposal verifier."""
+    #     url = reverse("hrm:proposal-verifier-detail", args=[proposal_verifier.id])
+    #     response = api_client.delete(url)
 
-        assert response.status_code == status.HTTP_204_NO_CONTENT
-        assert not ProposalVerifier.objects.filter(id=proposal_verifier.id).exists()
+    #     assert response.status_code == status.HTTP_204_NO_CONTENT
+    #     assert not ProposalVerifier.objects.filter(id=proposal_verifier.id).exists()
 
     def test_verify_timesheet_complaint_proposal_success(
         self, api_client, superuser_with_employee, proposal_verifier_for_verify

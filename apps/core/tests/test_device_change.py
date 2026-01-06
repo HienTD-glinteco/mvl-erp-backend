@@ -77,8 +77,8 @@ class DeviceChangeRequestTestCase(TestCase):
         UserDevice.objects.create(user=self.user, device_id=self.old_device_id, platform="android")
 
         # URLs
-        self.request_url = reverse("core:device_change_request")
-        self.verify_otp_url = reverse("core:device_change_verify_otp")
+        self.request_url = reverse("mobile-core:device_change_request")
+        self.verify_otp_url = reverse("mobile-core:device_change_verify_otp")
 
     @patch("apps.core.api.views.auth.device_change.send_otp_device_change_task.delay")
     def test_device_change_request_success(self, mock_email_task):

@@ -43,7 +43,7 @@ class TestGeoLocationAttendanceAPI(APITestMixin):
 
     def test_geolocation_attendance_success(self, employee, attendance_geolocation, confirmed_file):
         """Test successful GeoLocation attendance recording."""
-        url = reverse("hrm:attendance-record-geolocation-attendance")
+        url = reverse("mobile-hrm:my-attendance-record-geolocation-attendance")
         data = {
             "latitude": "10.7769000",
             "longitude": "106.7009000",
@@ -66,7 +66,7 @@ class TestGeoLocationAttendanceAPI(APITestMixin):
 
     def test_geolocation_attendance_outside_radius(self, employee, attendance_geolocation, confirmed_file):
         """Test GeoLocation attendance recording fails when outside radius."""
-        url = reverse("hrm:attendance-record-geolocation-attendance")
+        url = reverse("mobile-hrm:my-attendance-record-geolocation-attendance")
         data = {
             "latitude": "10.7800000",  # About 350m away
             "longitude": "106.7050000",
@@ -101,7 +101,7 @@ class TestGeoLocationAttendanceAPI(APITestMixin):
             updated_by=user,
         )
 
-        url = reverse("hrm:attendance-record-geolocation-attendance")
+        url = reverse("mobile-hrm:my-attendance-record-geolocation-attendance")
         data = {
             "latitude": "10.7769000",
             "longitude": "106.7009000",
@@ -127,7 +127,7 @@ class TestGeoLocationAttendanceAPI(APITestMixin):
             uploaded_by=user,
         )
 
-        url = reverse("hrm:attendance-record-geolocation-attendance")
+        url = reverse("mobile-hrm:my-attendance-record-geolocation-attendance")
         data = {
             "latitude": "10.7769000",
             "longitude": "106.7009000",
@@ -157,7 +157,7 @@ class TestWiFiAttendanceAPI(APITestMixin):
 
     def test_wifi_attendance_success(self, employee, attendance_wifi_device):
         """Test successful WiFi attendance recording."""
-        url = reverse("hrm:attendance-record-wifi-attendance")
+        url = reverse("mobile-hrm:my-attendance-record-wifi-attendance")
         data = {"bssid": "00:11:22:33:44:55"}
 
         response = self.client.post(url, data, format="json")
@@ -181,7 +181,7 @@ class TestWiFiAttendanceAPI(APITestMixin):
             state=AttendanceWifiDevice.State.NOT_IN_USE,
         )
 
-        url = reverse("hrm:attendance-record-wifi-attendance")
+        url = reverse("mobile-hrm:my-attendance-record-wifi-attendance")
         data = {"bssid": "AA:BB:CC:DD:EE:FF"}
 
         response = self.client.post(url, data, format="json")
@@ -193,7 +193,7 @@ class TestWiFiAttendanceAPI(APITestMixin):
 
     def test_wifi_attendance_device_not_found(self):
         """Test WiFi attendance fails when device doesn't exist."""
-        url = reverse("hrm:attendance-record-wifi-attendance")
+        url = reverse("mobile-hrm:my-attendance-record-wifi-attendance")
         data = {"bssid": "FF:FF:FF:FF:FF:FF"}  # Non-existent BSSID
 
         response = self.client.post(url, data, format="json")

@@ -63,7 +63,7 @@ class MailTemplateViewSet(BaseGenericViewSet):
     @extend_schema(
         summary="List all mail templates",
         description="Retrieve a list of all available mail templates with their metadata",
-        tags=["0.6 Mail Templates"],
+        tags=["0.6: Mail Templates"],
         parameters=[
             {
                 "name": "include_preview",
@@ -133,7 +133,7 @@ class MailTemplateViewSet(BaseGenericViewSet):
     @extend_schema(
         summary="Get template details",
         description="Retrieve detailed information about a specific template",
-        tags=["0.6 Mail Templates"],
+        tags=["0.6: Mail Templates"],
         parameters=[
             {
                 "name": "include_content",
@@ -197,7 +197,7 @@ class MailTemplateViewSet(BaseGenericViewSet):
     @extend_schema(
         summary="Save template content",
         description="Save edited template HTML content with automatic backup",
-        tags=["0.6 Mail Templates"],
+        tags=["0.6: Mail Templates"],
         request=TemplateSaveRequestSerializer,
         responses={
             200: TemplateSaveResponseSerializer,
@@ -266,7 +266,7 @@ class MailTemplateViewSet(BaseGenericViewSet):
     @extend_schema(
         summary="Preview template",
         description="Render and preview a template with sample or real data",
-        tags=["0.6 Mail Templates"],
+        tags=["0.6: Mail Templates"],
         parameters=[
             {
                 "name": "mode",
@@ -384,7 +384,7 @@ class MailTemplateViewSet(BaseGenericViewSet):
     @extend_schema(
         summary="Send bulk emails",
         description="Create a bulk email send job with multiple recipients",
-        tags=["0.6 Mail Templates"],
+        tags=["0.6: Mail Templates"],
         request=BulkSendRequestSerializer,
         responses={
             202: BulkSendResponseSerializer,

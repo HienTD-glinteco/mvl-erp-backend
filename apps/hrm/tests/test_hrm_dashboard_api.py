@@ -26,7 +26,7 @@ class APITestMixin:
 
 
 @pytest.mark.django_db
-class TestHCNSDashboardAPI(APITestMixin):
+class TestHRMDashboardAPI(APITestMixin):
     """Tests for HCNS dashboard realtime endpoint."""
 
     @pytest.fixture(autouse=True)
@@ -37,7 +37,7 @@ class TestHCNSDashboardAPI(APITestMixin):
         self.employee = employee
 
         permission = Permission.objects.create(
-            code="hrm.hcns_dashboard.realtime",
+            code="hrm.dashboard.common.realtime",
             name="View HCNS dashboard",
             description="View KPIs for HCNS staff",
             module="HRM",
@@ -124,7 +124,7 @@ class TestHCNSDashboardAPI(APITestMixin):
         )
 
         self.client.force_authenticate(user=self.user)
-        url = reverse("hrm:hcns-dashboard-realtime")
+        url = reverse("hrm:hrm-common-dashboard-realtime")
         response = self.client.get(url)
 
         assert response.status_code == status.HTTP_200_OK
@@ -132,7 +132,7 @@ class TestHCNSDashboardAPI(APITestMixin):
 
         assert data["proposals_pending"][ProposalType.PAID_LEAVE] == 1
         assert data["proposals_pending"][ProposalType.LATE_EXEMPTION] == 1
-        assert data["proposals_pending"][ProposalType.TIMESHEET_ENTRY_COMPLAINT] == 2
+        assert ProposalType.TIMESHEET_ENTRY_COMPLAINT not in data["proposals_pending"]
         assert data["proposals_pending"]["unknown"] == 1
         assert data["attendance_other_pending"] == 1
         assert data["timesheet_complaints_pending"] == 2
