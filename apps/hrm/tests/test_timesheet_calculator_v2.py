@@ -317,7 +317,7 @@ class TestTimesheetCalculatorV2:
         )
 
         calc = TimesheetCalculator(entry)
-        calc.compute_all()
+        calc.compute_all(is_finalizing=True)  # Past date with complete attendance
 
         assert entry.working_days == Decimal("0.88")
 
@@ -342,7 +342,7 @@ class TestTimesheetCalculatorV2:
         )
 
         calc = TimesheetCalculator(entry)
-        calc.compute_all()
+        calc.compute_all(is_finalizing=True)  # Past date with complete attendance
 
         assert entry.working_days == Decimal("1.00")
 
@@ -362,8 +362,8 @@ class TestTimesheetCalculatorV2:
         calc = TimesheetCalculator(entry)
         calc.compute_all(is_finalizing=False)
 
-        # Without attendance, working_days should be 0 (not 0.13)
-        assert entry.working_days == Decimal("0.00")
+        # Without attendance and not finalizing, working_days should be None (preview mode)
+        assert entry.working_days is None
 
     def test_compensatory_day_compensation(self, employee):
         d = date(2023, 1, 8)  # Sunday
@@ -393,7 +393,7 @@ class TestTimesheetCalculatorV2:
         entry.save()
 
         calc = TimesheetCalculator(entry)
-        calc.compute_all()
+        calc.compute_all(is_finalizing=True)  # Past date with complete attendance
 
         assert entry.working_days == Decimal("1.00")
         assert entry.compensation_value == Decimal("0.00")

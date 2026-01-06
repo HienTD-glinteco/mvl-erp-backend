@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-05 23:50+0700\n"
+"POT-Creation-Date: 2026-01-06 12:57+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -244,7 +244,7 @@ msgstr "Ngày làm bù vào thứ Bảy chỉ được phép trong buổi chiề
 
 #: apps/hrm/api/serializers/holiday.py:83 apps/hrm/models/holiday.py:86
 msgid "A compensatory workday with this date already exists for this holiday"
-msgstr "Ngày làm bù bị trùng với ngày làm bù khác"
+msgstr "Ngày làm bù với ngày nghỉ lễ này đã tồn tại"
 
 #: apps/hrm/api/serializers/holiday.py:121
 msgid "Cannot create/edit compensatory workdays in the past or present"
@@ -336,7 +336,7 @@ msgstr "Ứng viên {code} đã được chuyển đổi thành nhân viên"
 msgid "Number of positions must be at least 1."
 msgstr "Số lượng vị trí tuyển dụng phải lớn hơn hoặc bằng 1."
 
-#: apps/hrm/api/serializers/timesheet.py:99
+#: apps/hrm/api/serializers/timesheet.py:120
 msgid "End time must be after start time."
 msgstr "Thời gian kết thúc phải sau thời gian bắt đầu"
 

@@ -108,6 +108,8 @@ def test_full_day_paid_leave_takes_precedence_over_compensatory(settings):
 
 
 def test_timezone_aware_start_times_respect_schedule(settings):
+    from apps.hrm.services.timesheet_snapshot_service import TimesheetSnapshotService
+
     emp = _create_employee()
     _create_monday_schedule()
 
@@ -123,10 +125,15 @@ def test_timezone_aware_start_times_respect_schedule(settings):
     target_on = allowed_base - timedelta(minutes=2)
     start_on_hcm = target_on.astimezone(hcm)
 
+    snapshot_service = TimesheetSnapshotService()
+
     ts_on = TimeSheetEntry(employee=emp, date=d)
     ts_on.start_time = start_on_hcm
     ts_on.end_time = start_on_hcm.astimezone(timezone.get_default_timezone()).replace(hour=17, minute=0)
-    TimesheetCalculator(ts_on).compute_status()
+    snapshot_service.snapshot_data(ts_on)  # Snapshot allowed_late_minutes from work schedule
+    calc_on = TimesheetCalculator(ts_on)
+    calc_on.calculate_penalties()  # Must calculate penalties before compute_status
+    calc_on.compute_status()
     assert ts_on.status == TimesheetStatus.ON_TIME
     # 1 minute after allowed => NOT_ON_TIME
     target_late = allowed_base + timedelta(minutes=1)
@@ -135,5 +142,8 @@ def test_timezone_aware_start_times_respect_schedule(settings):
     ts_late = TimeSheetEntry(employee=emp, date=d)
     ts_late.start_time = start_late_hcm
     ts_late.end_time = start_late_hcm.astimezone(timezone.get_default_timezone()).replace(hour=17, minute=0)
-    TimesheetCalculator(ts_late).compute_status()
+    snapshot_service.snapshot_data(ts_late)  # Snapshot allowed_late_minutes from work schedule
+    calc_late = TimesheetCalculator(ts_late)
+    calc_late.calculate_penalties()  # Must calculate penalties before compute_status
+    calc_late.compute_status()
     assert ts_late.status == TimesheetStatus.NOT_ON_TIME

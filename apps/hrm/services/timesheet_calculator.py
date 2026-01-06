@@ -354,8 +354,7 @@ class TimesheetCalculator:
             self._handle_single_punch_status(is_finalizing)
             return
 
-        # 4. Two Logs
-        self.calculate_penalties()
+        # 4. Two Logs - use pre-calculated penalty status
         self.entry.status = TimesheetStatus.NOT_ON_TIME if self.entry.is_punished else TimesheetStatus.ON_TIME
 
     def _handle_leave_status(self) -> bool:
@@ -397,13 +396,9 @@ class TimesheetCalculator:
 
     def compute_working_days(self, is_finalizing: bool = False) -> None:
         """Compute working_days according to business rules."""
-        # Check for single punch BEFORE setting default
-        is_single_punch = (self.entry.start_time and not self.entry.end_time) or (
-            not self.entry.start_time and self.entry.end_time
-        )
-
-        # Real-time single punch: leave working_days as None
-        if is_single_punch and not is_finalizing:
+        # Real-time preview: leave working_days as None until day is finalized
+        # This applies to all incomplete workdays (single punch or two punches)
+        if not is_finalizing:
             self.entry.working_days = None
             return
 

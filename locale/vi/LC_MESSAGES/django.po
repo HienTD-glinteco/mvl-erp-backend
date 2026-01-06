@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-05 16:43+0700\n"
+"POT-Creation-Date: 2026-01-06 12:57+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -339,64 +339,54 @@ msgid "Inactive"
 msgstr "Không hoạt động"
 
 #: libs/drf/base_api_view.py:45
-#, fuzzy, python-brace-format
-#| msgid "Export {model_name}"
+#, python-brace-format
 msgid "GET {model_name}"
-msgstr "Quyền xuất {model_name}"
+msgstr "GET {model_name}"
 
 #: libs/drf/base_api_view.py:46
-#, fuzzy, python-brace-format
-#| msgid "View history of {model_name}"
+#, python-brace-format
 msgid "Perform GET on {model_name}"
-msgstr "Xem lịch sử {model_name}"
+msgstr "Thực hiện GET trên {model_name}"
 
 #: libs/drf/base_api_view.py:49
-#, fuzzy, python-brace-format
-#| msgid "List {model_name}"
+#, python-brace-format
 msgid "POST {model_name}"
-msgstr "Danh sách {model_name}"
+msgstr "POST {model_name}"
 
 #: libs/drf/base_api_view.py:50
-#, fuzzy, python-brace-format
-#| msgid "View history of {model_name}"
+#, python-brace-format
 msgid "Perform POST on {model_name}"
-msgstr "Xem lịch sử {model_name}"
+msgstr "Thực hiện POST trên {model_name}"
 
 #: libs/drf/base_api_view.py:53
-#, fuzzy, python-brace-format
-#| msgid "Update {model_name}"
+#, python-brace-format
 msgid "PUT {model_name}"
-msgstr "Quyền cập nhật {model_name}"
+msgstr "PUT {model_name}"
 
 #: libs/drf/base_api_view.py:54
-#, fuzzy, python-brace-format
-#| msgid "View history of {model_name}"
+#, python-brace-format
 msgid "Perform PUT on {model_name}"
-msgstr "Xem lịch sử {model_name}"
+msgstr "Thực hiện PUT trên {model_name}"
 
 #: libs/drf/base_api_view.py:57
-#, fuzzy, python-brace-format
-#| msgid "Create {model_name}"
+#, python-brace-format
 msgid "PATCH {model_name}"
-msgstr "Quyền tạo {model_name}"
+msgstr "PATCH {model_name}"
 
 #: libs/drf/base_api_view.py:58
-#, fuzzy, python-brace-format
-#| msgid "View history of {model_name}"
+#, python-brace-format
 msgid "Perform PATCH on {model_name}"
-msgstr "Xem lịch sử {model_name}"
+msgstr "Thực hiện PATCH trên {model_name}"
 
 #: libs/drf/base_api_view.py:61
-#, fuzzy, python-brace-format
-#| msgid "List {model_name}"
+#, python-brace-format
 msgid "DELETE {model_name}"
-msgstr "Danh sách {model_name}"
+msgstr "DELETE {model_name}"
 
 #: libs/drf/base_api_view.py:62
-#, fuzzy, python-brace-format
-#| msgid "View history of {model_name}"
+#, python-brace-format
 msgid "Perform DELETE on {model_name}"
-msgstr "Xem lịch sử {model_name}"
+msgstr "Thực hiện DELETE trên {model_name}"
 
 #: libs/drf/base_viewset.py:65 libs/drf/mixin/permission.py:28
 #, python-brace-format
@@ -471,7 +461,7 @@ msgstr "Quyền xóa {model_name}"
 #: libs/drf/mixin/permission.py:52
 #, python-brace-format
 msgid "Export {model_name}"
-msgstr "Quyền xuất {model_name}"
+msgstr "Xuất {model_name}"
 
 #: libs/drf/mixin/permission.py:53
 #, python-brace-format

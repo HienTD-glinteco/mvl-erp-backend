@@ -4,8 +4,9 @@ from django.utils import timezone
 from django.utils.translation import gettext as _
 from rest_framework import serializers
 
+from apps.hrm.constants import TimesheetStatus
 from apps.hrm.models import TimeSheetEntry
-from libs.drf.serializers.colored_value import ColoredValueSerializer
+from libs.constants import ColorVariant
 
 from .employee import EmployeeSerializer
 
@@ -15,8 +16,14 @@ class TimesheetEntryComplain(serializers.Serializer):
 
 
 class TimesheetEntrySerializer(serializers.ModelSerializer):
+    """Serializer for timesheet list view.
+
+    Note: SINGLE_PUNCH status is mapped to NOT_ON_TIME for list display
+    because the list view has fewer status options.
+    """
+
     has_complaint = serializers.SerializerMethodField()
-    colored_status = ColoredValueSerializer()
+    colored_status = serializers.SerializerMethodField()
 
     class Meta:
         model = TimeSheetEntry
@@ -38,6 +45,20 @@ class TimesheetEntrySerializer(serializers.ModelSerializer):
     def get_has_complaint(self, obj) -> bool:
         complaint_entry_ids = self.context.get("complaint_entry_ids", set())
         return obj.id in complaint_entry_ids if obj.id else False
+
+    def get_colored_status(self, obj) -> dict | None:
+        """Get colored status, mapping SINGLE_PUNCH to NOT_ON_TIME for list display."""
+        colored = obj.colored_status
+        if not colored:
+            return None
+
+        # Map SINGLE_PUNCH to NOT_ON_TIME for list display
+        if obj.status == TimesheetStatus.SINGLE_PUNCH:
+            return {
+                "value": TimesheetStatus.NOT_ON_TIME.label,
+                "variant": ColorVariant.YELLOW.value,
+            }
+        return colored
 
 
 class TimeSheetEntryDetailSerializer(serializers.ModelSerializer):
