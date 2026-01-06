@@ -502,9 +502,13 @@ class RecruitmentDashboardViewSet(PermissionRegistrationMixin, viewsets.ViewSet)
 
     def _get_experience_breakdown(self, from_date, to_date):
         """Get experience breakdown from HiredCandidateReport."""
-        experience_data = HiredCandidateReport.objects.filter(report_date__range=[from_date, to_date]).aggregate(
-            total_hired=Sum("num_candidates_hired"),
-            total_experienced=Sum("num_experienced"),
+        experience_data = (
+            HiredCandidateReport.objects.filter(report_date__range=[from_date, to_date])
+            .exclude(source_type=RecruitmentSourceType.RETURNING_EMPLOYEE.value)
+            .aggregate(
+                total_hired=Sum("num_candidates_hired"),
+                total_experienced=Sum("num_experienced"),
+            )
         )
 
         total_hired = experience_data["total_hired"] or 0
