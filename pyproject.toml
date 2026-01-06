@@ -46,6 +46,7 @@ addopts = [
     "--tb=short",
     "-v",
     "--reuse-db",
+    "--nomigrations",
     "--strict-markers",
     "--strict-config",
     "--maxfail=10",

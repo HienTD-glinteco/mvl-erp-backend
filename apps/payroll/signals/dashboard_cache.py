@@ -1,0 +1,75 @@
+"""Signal handlers for dashboard cache invalidation in payroll app.
+
+Handles cache invalidation when PenaltyTicket and EmployeeKPIAssessment are modified.
+"""
+
+import logging
+
+from django.db.models.signals import post_delete, post_save
+from django.dispatch import receiver
+
+from apps.payroll.models import EmployeeKPIAssessment, PenaltyTicket
+
+logger = logging.getLogger(__name__)
+
+__all__ = [
+    "invalidate_hrm_cache_on_penalty_ticket_save",
+    "invalidate_hrm_cache_on_penalty_ticket_delete",
+    "invalidate_manager_cache_on_kpi_assessment_save",
+    "invalidate_manager_cache_on_kpi_assessment_delete",
+]
+
+
+# PenaltyTicket signals - invalidate HRM dashboard cache
+
+
+@receiver(post_save, sender=PenaltyTicket)
+def invalidate_hrm_cache_on_penalty_ticket_save(sender, instance, created, **kwargs):
+    """Invalidate HRM dashboard cache when a PenaltyTicket is created or updated."""
+    from apps.hrm.utils.dashboard_cache import invalidate_hrm_dashboard_cache
+
+    action = "created" if created else "updated"
+    logger.debug("PenaltyTicket %s %s, invalidating HRM dashboard cache", instance.id, action)
+    invalidate_hrm_dashboard_cache()
+
+
+@receiver(post_delete, sender=PenaltyTicket)
+def invalidate_hrm_cache_on_penalty_ticket_delete(sender, instance, **kwargs):
+    """Invalidate HRM dashboard cache when a PenaltyTicket is deleted."""
+    from apps.hrm.utils.dashboard_cache import invalidate_hrm_dashboard_cache
+
+    logger.debug("PenaltyTicket %s deleted, invalidating HRM dashboard cache", instance.id)
+    invalidate_hrm_dashboard_cache()
+
+
+# EmployeeKPIAssessment signals - invalidate manager dashboard cache
+
+
+@receiver(post_save, sender=EmployeeKPIAssessment)
+def invalidate_manager_cache_on_kpi_assessment_save(sender, instance, created, **kwargs):
+    """Invalidate manager dashboard cache when an EmployeeKPIAssessment is created or updated."""
+    from apps.hrm.utils.dashboard_cache import invalidate_manager_dashboard_cache
+
+    if instance.manager_id:
+        action = "created" if created else "updated"
+        logger.debug(
+            "EmployeeKPIAssessment %s %s, invalidating manager dashboard cache for manager %s",
+            instance.id,
+            action,
+            instance.manager_id,
+        )
+        invalidate_manager_dashboard_cache(instance.manager_id)
+
+
+@receiver(post_delete, sender=EmployeeKPIAssessment)
+def invalidate_manager_cache_on_kpi_assessment_delete(sender, instance, **kwargs):
+    """Invalidate manager dashboard cache when an EmployeeKPIAssessment is deleted."""
+    from apps.hrm.utils.dashboard_cache import invalidate_manager_dashboard_cache
+
+    if instance.manager_id:
+        logger.debug(
+            "EmployeeKPIAssessment %s deleted, invalidating manager dashboard cache for manager %s",
+            instance.id,
+            instance.manager_id,
+        )
+        invalidate_manager_dashboard_cache(instance.manager_id)

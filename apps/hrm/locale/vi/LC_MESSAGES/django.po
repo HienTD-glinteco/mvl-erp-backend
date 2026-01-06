@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-07 01:26+0700\n"
+"POT-Creation-Date: 2026-01-07 00:11+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -458,9 +458,10 @@ msgstr "Báo cáo chấm công GPS theo phòng ban"
 #: apps/hrm/api/views/employee_relationship.py:238
 #: apps/hrm/api/views/employee_role.py:108
 #: apps/hrm/api/views/employee_work_history.py:124
-#: apps/hrm/api/views/holiday.py:220 apps/hrm/api/views/hrm_dashboard.py:21
+#: apps/hrm/api/views/holiday.py:220 apps/hrm/api/views/hrm_dashboard.py:23
 #: apps/hrm/api/views/interview_candidate.py:157
 #: apps/hrm/api/views/job_description.py:233
+#: apps/hrm/api/views/manager_dashboard.py:22
 #: apps/hrm/api/views/organization.py:235
 #: apps/hrm/api/views/organization.py:467
 #: apps/hrm/api/views/organization.py:516
@@ -983,21 +984,37 @@ msgstr "Không tìm thấy ngày nghỉ lễ"
 msgid "Cannot delete compensatory workdays that are in the past or present"
 msgstr "Không thể xóa ngày làm bù trong quá khứ hoặc hiện tại"
 
-#: apps/hrm/api/views/hrm_dashboard.py:22
+#: apps/hrm/api/views/hrm_dashboard.py:24
 msgid "HRM Dashboard"
 msgstr ""
 
-#: apps/hrm/api/views/hrm_dashboard.py:26
+#: apps/hrm/api/views/hrm_dashboard.py:28
 msgid "View Common HRM realtime dashboard"
 msgstr "Xem thống kê dành cho HRM chung"
 
-#: apps/hrm/api/views/hrm_dashboard.py:27
+#: apps/hrm/api/views/hrm_dashboard.py:29
 msgid "View HRM stats for handling proposals, attendance, and penalties"
 msgstr "Xem thống kê HRM về xử lý đề xuất, chấm công và phạt"
 
-#: apps/hrm/api/views/hrm_dashboard.py:34
-msgid "11.1. Management Dashboard"
+#: apps/hrm/api/views/hrm_dashboard.py:40
+msgid "11.1.4. Common HRM Dashboard"
 msgstr "11.1. HRM Dashboard"
+
+#: apps/hrm/api/views/hrm_dashboard.py:172
+msgid "Pending Proposals"
+msgstr "Đề xuất chờ xử lý"
+
+#: apps/hrm/api/views/hrm_dashboard.py:177
+msgid "Manual attendance pending"
+msgstr "Chấm công khác chờ duyệt"
+
+#: apps/hrm/api/views/hrm_dashboard.py:186
+msgid "Timesheet complaints"
+msgstr "Khiếu nại chấm công chờ duyệt"
+
+#: apps/hrm/api/views/hrm_dashboard.py:195
+msgid "Unpaid penalty tickets"
+msgstr "Số lượng phiếu phạt chưa thanh toán"
 
 #: apps/hrm/api/views/interview_candidate.py:158
 #: apps/hrm/api/views/interview_schedule.py:311
@@ -1109,6 +1126,31 @@ msgstr "Bộ lọc tháng không thể ở tương lai."
 #| msgid "Timesheet entry"
 msgid "My Timesheet Entry"
 msgstr "Ngày công"
+#: apps/hrm/api/views/manager_dashboard.py:23
+msgid "Manager Dashboard"
+msgstr ""
+
+#: apps/hrm/api/views/manager_dashboard.py:27
+msgid "View Manager realtime dashboard"
+msgstr "Xem thống kê các vấn đề HCNS cần xử lý"
+
+#: apps/hrm/api/views/manager_dashboard.py:28
+msgid "View manager stats for proposals to verify and KPI assessments"
+msgstr "Xem thống kê các đề xuất cần xác nhận và đánh giá KPI"
+
+#: apps/hrm/api/views/manager_dashboard.py:39
+msgid "11.1.3. View statistics pending processing (Manager Dashboard)"
+msgstr "Xem thống kê thông tin cần xử lý (trưởng phòng)"
+
+#: apps/hrm/api/views/manager_dashboard.py:125
+#: apps/hrm/api/views/manager_dashboard.py:148
+msgid "Proposals to verify"
+msgstr "Đề xuất chờ xác nhận"
+
+#: apps/hrm/api/views/manager_dashboard.py:134
+#: apps/hrm/api/views/manager_dashboard.py:157
+msgid "KPI assessments pending"
+msgstr "Đánh giá KPI chờ xử lý"
 
 #: apps/hrm/api/views/organization.py:236
 #: apps/hrm/api/views/organization.py:468
