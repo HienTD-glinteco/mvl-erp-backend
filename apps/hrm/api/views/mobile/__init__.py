@@ -8,9 +8,9 @@ from apps.hrm.api.views.mobile.proposal import (
     MyProposalOvertimeWorkViewSet,
     MyProposalPaidLeaveViewSet,
     MyProposalPostMaternityBenefitsViewSet,
-    MyProposalsVerificationViewSet,
     MyProposalTimesheetEntryComplaintViewSet,
     MyProposalUnpaidLeaveViewSet,
+    MyProposalVerifierViewSet,
     MyProposalViewSet,
 )
 from apps.hrm.api.views.mobile.timesheet import MyTimesheetEntryViewSet, MyTimesheetViewSet
@@ -27,7 +27,7 @@ __all__ = [
     "MyProposalDeviceChangeViewSet",
     "MyProposalAssetAllocationViewSet",
     "MyProposalTimesheetEntryComplaintViewSet",
-    "MyProposalsVerificationViewSet",
+    "MyProposalVerifierViewSet",
     "MyTimesheetViewSet",
     "MyTimesheetEntryViewSet",
     "MyAttendanceRecordViewSet",

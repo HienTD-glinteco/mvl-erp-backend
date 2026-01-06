@@ -187,7 +187,7 @@ class TestMyProposalPaidLeaveViewSet(APITestMixin):
 
 
 @pytest.mark.django_db
-class TestMyProposalsVerificationViewSet(APITestMixin):
+class TestMyProposalVerifierViewSet(APITestMixin):
     """Test cases for MyProposalsVerificationViewSet."""
 
     @pytest.fixture(autouse=True)
@@ -236,7 +236,7 @@ class TestMyProposalsVerificationViewSet(APITestMixin):
 
     def test_list_pending_verifications(self, pending_verifications):
         """Test listing proposals pending verification."""
-        url = reverse("hrm-mobile:my-proposals-verification-list")
+        url = reverse("hrm-mobile:my-proposal-verifier-list")
         response = self.client.get(url)
 
         assert response.status_code == status.HTTP_200_OK
@@ -246,7 +246,7 @@ class TestMyProposalsVerificationViewSet(APITestMixin):
     def test_retrieve_verification_detail(self, pending_verifications):
         """Test retrieving verification details."""
         verifier = pending_verifications[0]
-        url = reverse("hrm-mobile:my-proposals-verification-detail", kwargs={"pk": verifier.pk})
+        url = reverse("hrm-mobile:my-proposal-verifier-detail", kwargs={"pk": verifier.pk})
         response = self.client.get(url)
 
         assert response.status_code == status.HTTP_200_OK
@@ -257,7 +257,7 @@ class TestMyProposalsVerificationViewSet(APITestMixin):
     def test_verify_proposal(self, pending_verifications):
         """Test verifying a proposal."""
         verifier = pending_verifications[0]
-        url = reverse("hrm-mobile:my-proposals-verification-verify", kwargs={"pk": verifier.pk})
+        url = reverse("hrm-mobile:my-proposal-verifier-verify", kwargs={"pk": verifier.pk})
         data = {"note": "Approved"}
         response = self.client.post(url, data, format="json")
 
@@ -271,7 +271,7 @@ class TestMyProposalsVerificationViewSet(APITestMixin):
     def test_reject_proposal(self, pending_verifications):
         """Test rejecting a proposal."""
         verifier = pending_verifications[0]
-        url = reverse("hrm-mobile:my-proposals-verification-reject", kwargs={"pk": verifier.pk})
+        url = reverse("hrm-mobile:my-proposal-verifier-reject", kwargs={"pk": verifier.pk})
         data = {"note": "Not approved"}
         response = self.client.post(url, data, format="json")
 
@@ -290,7 +290,7 @@ class TestMyProposalsVerificationViewSet(APITestMixin):
         # by verifying the current employee only sees their 2 assigned verifications
 
         # The pending_verifications fixture creates 2 verifications for self.employee
-        url = reverse("hrm-mobile:my-proposals-verification-list")
+        url = reverse("hrm-mobile:my-proposal-verifier-list")
         response = self.client.get(url)
 
         assert response.status_code == status.HTTP_200_OK

@@ -485,7 +485,7 @@ class MyProposalTimesheetEntryComplaintViewSet(MyProposalMixin):
 
 @extend_schema_view(
     list=extend_schema(
-        summary="List pending verifications",
+        summary="List my proposal verifiers",
         description="Retrieve proposals that need verification by the current user",
         tags=["9.3: Proposal Verifiers"],
         examples=[
@@ -515,13 +515,13 @@ class MyProposalTimesheetEntryComplaintViewSet(MyProposalMixin):
         ],
     ),
     retrieve=extend_schema(
-        summary="Get pending verification details",
-        description="Retrieve detailed information for a specific pending verification",
+        summary="Get my proposal verifier details",
+        description="Retrieve detailed information for a specific proposal verifier",
         tags=["9.3: Proposal Verifiers"],
     ),
 )
-class MyProposalsVerificationViewSet(BaseReadOnlyModelViewSet):
-    """Mobile ViewSet for proposal verifications assigned to current user."""
+class MyProposalVerifierViewSet(BaseReadOnlyModelViewSet):
+    """Mobile ViewSet for proposal verifier assigned to current user."""
 
     queryset = ProposalVerifier.objects.none()
     serializer_class = ProposalVerifierNeedVerificationSerializer

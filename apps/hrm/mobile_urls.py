@@ -17,9 +17,9 @@ from apps.hrm.api.views import (
     MyProposalOvertimeWorkViewSet,
     MyProposalPaidLeaveViewSet,
     MyProposalPostMaternityBenefitsViewSet,
-    MyProposalsVerificationViewSet,
     MyProposalTimesheetEntryComplaintViewSet,
     MyProposalUnpaidLeaveViewSet,
+    MyProposalVerifierViewSet,
     MyProposalViewSet,
     MyTimesheetEntryViewSet,
     MyTimesheetViewSet,
@@ -98,9 +98,9 @@ router.register(r"me/proposals", MyProposalViewSet, basename="my-proposal")
 
 # Pending verifications
 router.register(
-    r"me/proposals-verifications",
-    MyProposalsVerificationViewSet,
-    basename="my-proposals-verification",
+    r"me/proposal-verifiers",
+    MyProposalVerifierViewSet,
+    basename="my-proposal-verifier",
 )
 
 urlpatterns = router.urls
