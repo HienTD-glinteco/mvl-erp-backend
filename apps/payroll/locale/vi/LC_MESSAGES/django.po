@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-06 12:57+0700\n"
+"POT-Creation-Date: 2026-01-06 13:11+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -314,7 +314,7 @@ msgid "Period finalized successfully"
 msgstr "Hoàn tất kỳ đánh giá thành công"
 
 #: apps/payroll/api/views/kpi_config.py:20
-#: apps/payroll/api/views/my_penalty_tickets.py:121
+#: apps/payroll/api/views/my_penalty_tickets.py:116
 #: apps/payroll/api/views/penalty_tickets.py:201
 #: apps/payroll/api/views/recovery_voucher.py:339
 #: apps/payroll/api/views/salary_config.py:20
@@ -335,47 +335,87 @@ msgstr "Cấu hình KPI"
 msgid "View KPI configuration"
 msgstr "Xem cấu hình KPI"
 
-#: apps/payroll/api/views/my_penalty_tickets.py:122
+#: apps/payroll/api/views/my_penalty_tickets.py:117
 msgid "My Penalty Tickets"
 msgstr "Các phiếu phạt của tôi"
 
-#: apps/payroll/api/views/my_penalty_tickets.py:127
+#: apps/payroll/api/views/my_penalty_tickets.py:122
 msgid "List my penalty tickets"
 msgstr "Danh sách các phiếu phạt của tôi"
 
-#: apps/payroll/api/views/my_penalty_tickets.py:128
+#: apps/payroll/api/views/my_penalty_tickets.py:123
 msgid "View list of my penalty tickets"
 msgstr "Xem danh sách các phiếu phạt của tôi"
 
-#: apps/payroll/api/views/my_penalty_tickets.py:131
+#: apps/payroll/api/views/my_penalty_tickets.py:126
 msgid "View my penalty ticket"
 msgstr "Phiếu phạt của tôi"
 
-#: apps/payroll/api/views/my_penalty_tickets.py:132
+#: apps/payroll/api/views/my_penalty_tickets.py:127
 msgid "View detail of my penalty ticket"
 msgstr "Xem chi tiết phiếu phạt của tôi"
 
-#: apps/payroll/api/views/my_penalty_tickets.py:140
+#: apps/payroll/api/views/my_penalty_tickets.py:135
 msgid "You need to login to perform this action"
 msgstr "Bạn cần đăng nhập để thực hiện hành động này"
 
-#: apps/payroll/api/views/my_penalty_tickets.py:144
+#: apps/payroll/api/views/my_penalty_tickets.py:139
 msgid "You do not have an associated employee record"
 msgstr "Bạn không có hồ sơ nhân viên liên kết"
 
-#: apps/payroll/api/views/payroll_slip.py:323
-msgid "Can only mark HOLD slips as READY"
-msgstr "Chỉ có thể đánh dấu phiếu HOLD là READY"
+#: apps/payroll/api/views/payroll_slip.py:150
+msgid "Recalculate payroll slip"
+msgstr "Tính toán lại phiếu lương"
 
-#: apps/payroll/api/views/payroll_slip.py:328
+#: apps/payroll/api/views/payroll_slip.py:151
+msgid "Recalculate a specific payroll slip"
+msgstr "Tính toán lại một phiếu lương cụ thể"
+
+#: apps/payroll/api/views/payroll_slip.py:154
+msgid "Hold payroll slip"
+msgstr "Giữ phiếu lương"
+
+#: apps/payroll/api/views/payroll_slip.py:155
+msgid "Put a specific payroll slip on hold"
+msgstr "Thay đổi trạng thái phiếu lương thành tạm giữ"
+
+#: apps/payroll/api/views/payroll_slip.py:158
+msgid "Mark payroll slip as ready"
+msgstr "Đánh dấu phiếu lương là đã sẵn sàng"
+
+#: apps/payroll/api/views/payroll_slip.py:159
+msgid "Change payroll slip status to READY"
+msgstr "Thay đổi trạng thái phiếu lương thành READY"
+
+#: apps/payroll/api/views/payroll_slip.py:162
+msgid "Deliver payroll slip"
+msgstr "Chuyển phiếu lương cho kế toán"
+
+#: apps/payroll/api/views/payroll_slip.py:163
+msgid "Mark payroll slip as delivered to accounting"
+msgstr "Đánh dấu phiếu lương là đã giao cho kế toán"
+
+#: apps/payroll/api/views/payroll_slip.py:166
+msgid "Send payroll slip email"
+msgstr "Gửi email phiếu lương"
+
+#: apps/payroll/api/views/payroll_slip.py:167
+msgid "Send payroll slip notification email to employee"
+msgstr "Gửi email thông báo phiếu lương cho nhân viên"
+
+#: apps/payroll/api/views/payroll_slip.py:345
+msgid "Can only mark HOLD slips as READY"
+msgstr "Chỉ có thể chuyển phiếu lương đang có trạng thái HOLD thành READY"
+
+#: apps/payroll/api/views/payroll_slip.py:350
 msgid "Cannot mark as READY - employee has unpaid penalty tickets"
 msgstr "Không thể đánh dấu là READY - nhân viên còn phiếu phạt chưa thanh toán"
 
-#: apps/payroll/api/views/payroll_slip.py:376
+#: apps/payroll/api/views/payroll_slip.py:398
 msgid "Can only deliver READY slips"
 msgstr "Chỉ có thể giao phiếu READY"
 
-#: apps/payroll/api/views/payroll_slip.py:432
+#: apps/payroll/api/views/payroll_slip.py:454
 msgid "Employee has no email address"
 msgstr "Nhân viên không có địa chỉ email"
 

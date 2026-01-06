@@ -277,7 +277,8 @@ jobs:
             poetry run python manage.py compilemessages -l vi
             poetry run python manage.py collect_permissions
             poetry run python manage.py upload_import_templates
-            poetry run python manage.py sync_roles_from_excel --file_path apps/core/fixtures/core_permission.xlsx  --verbose
+            poetry run python manage.py sync_roles_from_excel
+            poetry run python manage.py init_org_data
 
 
             # Update supervisor configuration and restart gunicorn workers

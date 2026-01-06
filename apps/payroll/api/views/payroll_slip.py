@@ -145,6 +145,28 @@ class PayrollSlipViewSet(ExportDocumentMixin, ExportXLSXMixin, AuditLoggingMixin
     module = "Payroll"
     submodule = "Payroll Slips"
     permission_prefix = "payroll_slip"
+    PERMISSION_REGISTERED_ACTIONS = {
+        "recalculate": {
+            "name_template": _("Recalculate payroll slip"),
+            "description_template": _("Recalculate a specific payroll slip"),
+        },
+        "hold": {
+            "name_template": _("Hold payroll slip"),
+            "description_template": _("Put a specific payroll slip on hold"),
+        },
+        "ready": {
+            "name_template": _("Mark payroll slip as ready"),
+            "description_template": _("Change payroll slip status to READY"),
+        },
+        "deliver": {
+            "name_template": _("Deliver payroll slip"),
+            "description_template": _("Mark payroll slip as delivered to accounting"),
+        },
+        "send_email": {
+            "name_template": _("Send payroll slip email"),
+            "description_template": _("Send payroll slip notification email to employee"),
+        },
+    }
 
     # Document export configuration
     document_template_name = "documents/payroll_slip.html"
