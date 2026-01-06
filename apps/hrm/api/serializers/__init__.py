@@ -55,6 +55,7 @@ from .holiday import (
     HolidayExportXLSXSerializer,
     HolidaySerializer,
 )
+from .hrm_dashboard import HRMDashboardRealtimeSerializer
 from .interview_candidate import InterviewCandidateSerializer
 from .interview_schedule import (
     InterviewScheduleSerializer,
@@ -176,6 +177,7 @@ __all__ = [
     "CostByBranchesResponseSerializer",
     "SourceTypeBreakdownResponseSerializer",
     "MonthlyTrendsResponseSerializer",
+    "HRMDashboardRealtimeSerializer",
     "EmployeeRelationshipSerializer",
     "EmployeeRelationshipExportXLSXSerializer",
     "EmployeeSenioritySerializer",

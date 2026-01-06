@@ -480,7 +480,7 @@ msgstr "Báo cáo chấm công GPS theo phòng ban"
 #: apps/hrm/api/views/employee_relationship.py:238
 #: apps/hrm/api/views/employee_role.py:108
 #: apps/hrm/api/views/employee_work_history.py:124
-#: apps/hrm/api/views/holiday.py:220
+#: apps/hrm/api/views/holiday.py:220 apps/hrm/api/views/hrm_dashboard.py:21
 #: apps/hrm/api/views/interview_candidate.py:157
 #: apps/hrm/api/views/job_description.py:233
 #: apps/hrm/api/views/organization.py:235
@@ -1004,6 +1004,22 @@ msgstr "Không tìm thấy ngày nghỉ lễ"
 #: apps/hrm/api/views/holiday.py:277
 msgid "Cannot delete compensatory workdays that are in the past or present"
 msgstr "Không thể xóa ngày làm bù trong quá khứ hoặc hiện tại"
+
+#: apps/hrm/api/views/hrm_dashboard.py:22
+msgid "HRM Dashboard"
+msgstr ""
+
+#: apps/hrm/api/views/hrm_dashboard.py:26
+msgid "View Common HRM realtime dashboard"
+msgstr "Xem thống kê dành cho HRM chung"
+
+#: apps/hrm/api/views/hrm_dashboard.py:27
+msgid "View HRM stats for handling proposals, attendance, and penalties"
+msgstr "Xem thống kê HRM về xử lý đề xuất, chấm công và phạt"
+
+#: apps/hrm/api/views/hrm_dashboard.py:34
+msgid "11.1. Management Dashboard"
+msgstr "11.1. HRM Dashboard"
 
 #: apps/hrm/api/views/interview_candidate.py:158
 #: apps/hrm/api/views/interview_schedule.py:311
