@@ -3,8 +3,14 @@ from django.utils.crypto import get_random_string
 
 
 class BaseModel(models.Model):
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        db_index=True,
+    )
+    updated_at = models.DateTimeField(
+        auto_now=True,
+        db_index=True,
+    )
 
     class Meta:
         abstract = True
@@ -59,7 +65,10 @@ class BaseReportModel(BaseModel):
     recalculation due to source data changes (including deletions).
     """
 
-    report_date = models.DateField(verbose_name="Report date")
+    report_date = models.DateField(
+        verbose_name="Report date",
+        db_index=True,
+    )
     need_refresh = models.BooleanField(
         default=False,
         db_index=True,
