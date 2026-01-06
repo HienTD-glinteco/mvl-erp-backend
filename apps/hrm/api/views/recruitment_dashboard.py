@@ -1,4 +1,4 @@
-from django.db.models import Case, DecimalField, F, Sum, When
+from django.db.models import DecimalField, Sum
 from django.db.models.functions import Coalesce
 from django.utils import timezone
 from django.utils.translation import gettext as _
@@ -575,7 +575,13 @@ class RecruitmentDashboardViewSet(PermissionRegistrationMixin, viewsets.ViewSet)
         ]
 
     def _get_average_cost_breakdown_by_branches(self, from_date, to_date):
-        """Get average cost breakdown by branches from RecruitmentCostReport."""
+        """Get average cost breakdown by branches.
+
+        Formula: Total cost / Total candidates who accepted job offers
+        - Total cost from RecruitmentCostReport
+        - Total hired candidates from HiredCandidateReport.num_candidates_hired
+        """
+        # Get total costs by month and branch from RecruitmentCostReport
         cost_by_branches = (
             RecruitmentCostReport.objects.filter(
                 report_date__range=[from_date, to_date],
@@ -587,24 +593,41 @@ class RecruitmentDashboardViewSet(PermissionRegistrationMixin, viewsets.ViewSet)
                     0,
                     output_field=DecimalField(max_digits=12, decimal_places=2),
                 ),
+            )
+            .order_by("month_key", "branch__name")
+        )
+
+        # Get total hired candidates by month and branch from HiredCandidateReport
+        # Note: HiredCandidateReport.month_key format is MM/YYYY, need to convert to YYYY-MM
+        hired_by_branches = (
+            HiredCandidateReport.objects.filter(
+                report_date__range=[from_date, to_date],
+            )
+            .values("month_key", "branch__name", "branch")
+            .annotate(
                 total_hires=Coalesce(
-                    Sum("num_hires"),
+                    Sum("num_candidates_hired"),
                     0,
                     output_field=DecimalField(max_digits=12, decimal_places=2),
                 ),
             )
-            .annotate(
-                avg_cost=Case(
-                    When(
-                        total_hires=0,
-                        then=0,
-                    ),
-                    default=F("total_cost") / F("total_hires"),
-                    output_field=DecimalField(max_digits=12, decimal_places=2),
-                )
-            )
-            .order_by("month_key", "branch__name")
         )
+
+        # Build lookup for hired candidates (convert month_key from MM/YYYY to YYYY-MM)
+        hired_lookup = {}
+        for item in hired_by_branches:
+            # Convert MM/YYYY to YYYY-MM format
+            month_key = item["month_key"]
+            if "/" in month_key:
+                parts = month_key.split("/")
+                month_key_converted = f"{parts[1]}-{parts[0]}"
+            else:
+                month_key_converted = month_key
+            key = (month_key_converted, item["branch"])
+            if key in hired_lookup:
+                hired_lookup[key] += int(item["total_hires"])
+            else:
+                hired_lookup[key] = int(item["total_hires"])
 
         # Get all unique month keys and branches
         all_month_keys = sorted({item["month_key"] for item in cost_by_branches})
@@ -615,14 +638,17 @@ class RecruitmentDashboardViewSet(PermissionRegistrationMixin, viewsets.ViewSet)
             if branch_id and branch_name:
                 all_branches[branch_id] = branch_name
 
-        # Build lookup dict for actual data
+        # Build lookup dict for cost data and merge with hired data
         data_lookup = {}
         for item in cost_by_branches:
             key = (item["month_key"], item["branch"])
+            total_cost = float(item["total_cost"])
+            total_hires = hired_lookup.get(key, 0)
+            avg_cost = total_cost / total_hires if total_hires > 0 else 0.0
             data_lookup[key] = {
-                "total_cost": float(item["total_cost"]),
-                "total_hires": int(item["total_hires"]),
-                "avg_cost": float(item["avg_cost"]),
+                "total_cost": total_cost,
+                "total_hires": total_hires,
+                "avg_cost": avg_cost,
             }
 
         # Build result list with default values for all combinations

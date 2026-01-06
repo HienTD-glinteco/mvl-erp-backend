@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-06 13:11+0700\n"
+"POT-Creation-Date: 2026-01-06 22:04+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -82,6 +82,11 @@ msgstr "Ngày nộp tiền không được ở tương lai."
 #: apps/payroll/api/serializers/penalty_ticket.py:112
 msgid "Payment date cannot be before the penalty month."
 msgstr "Ngày nộp tiền không được trước tháng phạt."
+
+#: apps/payroll/api/serializers/penalty_ticket.py:165
+#, python-brace-format
+msgid "Tickets not found: {missing_ids}"
+msgstr "Không tìm thấy phiếu phạt: {missing_ids}"
 
 #: apps/payroll/api/serializers/recovery_voucher.py:91
 msgid "Month is required."
@@ -296,6 +301,11 @@ msgstr "Định dạng tháng không hợp lệ. Sử dụng YYYY-MM (ví dụ: 
 #: apps/payroll/api/views/kpi_assessment_period.py:387
 msgid "Cannot create assessment period for future months"
 msgstr "Không thể tạo kỳ đánh giá cho các tháng trong tương lai"
+
+#: apps/payroll/api/views/kpi_assessment_period.py:394
+#, python-brace-format
+msgid "Assessment period for {month_str} already exists"
+msgstr "Đã tồn tại kỳ đánh giá cho tháng {month_str}"
 
 #: apps/payroll/api/views/kpi_assessment_period.py:402
 msgid "No KPI configuration found. Please create one first."

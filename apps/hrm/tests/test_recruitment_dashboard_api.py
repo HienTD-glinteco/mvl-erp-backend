@@ -365,18 +365,36 @@ class TestRecruitmentDashboardIndividualChartsAPI(APITestMixin):
             assert "percentage" in item
 
     def test_cost_by_branches_chart_endpoint(self):
-        """Test cost by branches chart endpoint"""
+        """Test cost by branches chart endpoint.
+
+        Verifies that avg_cost is calculated as:
+        total_cost / num_candidates_hired (from HiredCandidateReport)
+        NOT total_cost / num_hires (from RecruitmentCostReport)
+        """
         # Arrange: Create cost data
         cost_month_key = self.first_day_month.strftime("%Y-%m")
+        hired_month_key = self.first_day_month.strftime("%m/%Y")
 
+        # Create RecruitmentCostReport with total_cost=10,000,000 and num_hires=5
         RecruitmentCostReport.objects.create(
             report_date=self.first_day_month,
             branch=self.branch,
             source_type=RecruitmentSourceType.MARKETING_CHANNEL.value,
             month_key=cost_month_key,
             total_cost=Decimal("10000000.00"),
-            num_hires=5,
+            num_hires=5,  # This should NOT be used for avg_cost calculation
             avg_cost_per_hire=Decimal("2000000.00"),
+        )
+
+        # Create HiredCandidateReport with num_candidates_hired=2
+        # This SHOULD be used for avg_cost calculation: 10,000,000 / 2 = 5,000,000
+        HiredCandidateReport.objects.create(
+            report_date=self.first_day_month,
+            branch=self.branch,
+            source_type=RecruitmentSourceType.MARKETING_CHANNEL.value,
+            month_key=hired_month_key,
+            num_candidates_hired=2,  # This should be used for avg_cost calculation
+            num_experienced=1,
         )
 
         # Act: Call the cost by branches API
@@ -408,6 +426,13 @@ class TestRecruitmentDashboardIndividualChartsAPI(APITestMixin):
         assert branch_data["type"] == "branch"
         assert branch_data["name"] == self.branch.name
         assert "statistics" in branch_data
+
+        # Verify avg_cost calculation uses num_candidates_hired (2), not num_hires (5)
+        # Expected: 10,000,000 / 2 = 5,000,000
+        stats = branch_data["statistics"][0]
+        assert stats["total_cost"] == 10000000.00
+        assert stats["total_hires"] == 2  # From HiredCandidateReport
+        assert stats["avg_cost"] == 5000000.00  # 10,000,000 / 2
 
     def test_source_type_breakdown_chart_endpoint(self):
         """Test source type breakdown chart endpoint"""
