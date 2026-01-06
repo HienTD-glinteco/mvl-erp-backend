@@ -69,7 +69,11 @@ class CompensatoryWorkdaySerializer(serializers.ModelSerializer):
         if overlapping_holidays.exists():
             holiday_name = overlapping_holidays.first().name
             raise serializers.ValidationError(
-                {"date": _(f"Compensatory workday date overlaps with holiday: {holiday_name}")}
+                {
+                    "date": _("Compensatory workday date overlaps with holiday: {holiday_name}").format(
+                        holiday_name=holiday_name
+                    )
+                }
             )
 
     def _validate_no_duplicate_for_holiday(self, holiday, date):
@@ -97,8 +101,8 @@ class CompensatoryWorkdaySerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError(
                     {
                         "session": _(
-                            f"A compensatory workday with the same date and session already exists for holiday '{comp_day.holiday.name}'"
-                        )
+                            "A compensatory workday with the same date and session already exists for holiday '{holiday_name}'"
+                        ).format(holiday_name=comp_day.holiday.name)
                     }
                 )
             elif (
@@ -108,8 +112,8 @@ class CompensatoryWorkdaySerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError(
                     {
                         "session": _(
-                            f"A compensatory workday with full_day session conflicts with existing session for holiday '{comp_day.holiday.name}'"
-                        )
+                            "A compensatory workday with full_day session conflicts with existing session for holiday '{holiday_name}'"
+                        ).format(holiday_name=comp_day.holiday.name)
                     }
                 )
 
@@ -233,7 +237,11 @@ class HolidaySerializer(serializers.ModelSerializer):
         """Validate compensatory date is on weekend."""
         if weekday not in [5, 6]:
             raise serializers.ValidationError(
-                {"compensatory_dates": _(f"Compensatory date {comp_date} must be on Saturday or Sunday")}
+                {
+                    "compensatory_dates": _("Compensatory date {comp_date} must be on Saturday or Sunday").format(
+                        comp_date=comp_date
+                    )
+                }
             )
 
     def _auto_set_session(self, comp_entry, weekday):
@@ -253,8 +261,8 @@ class HolidaySerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 {
                     "compensatory_dates": _(
-                        f"For Saturday compensatory workday {comp_date}, only afternoon session is allowed"
-                    )
+                        "For Saturday compensatory workday {comp_date}, only afternoon session is allowed"
+                    ).format(comp_date=comp_date)
                 }
             )
 
@@ -263,7 +271,11 @@ class HolidaySerializer(serializers.ModelSerializer):
         if not self.instance and start_date and end_date:
             if start_date <= comp_date <= end_date:
                 raise serializers.ValidationError(
-                    {"compensatory_dates": _(f"Compensatory date {comp_date} falls within the holiday date range")}
+                    {
+                        "compensatory_dates": _(
+                            "Compensatory date {comp_date} falls within the holiday date range"
+                        ).format(comp_date=comp_date)
+                    }
                 )
 
     def _validate_comp_date_no_holiday_overlap(self, comp_date):
@@ -279,7 +291,11 @@ class HolidaySerializer(serializers.ModelSerializer):
         if overlapping_holidays.exists():
             holiday_name = overlapping_holidays.first().name
             raise serializers.ValidationError(
-                {"compensatory_dates": _(f"Compensatory date {comp_date} overlaps with holiday: {holiday_name}")}
+                {
+                    "compensatory_dates": _(
+                        "Compensatory date {comp_date} overlaps with holiday: {holiday_name}"
+                    ).format(comp_date=comp_date, holiday_name=holiday_name)
+                }
             )
 
     def _validate_comp_date_no_session_conflicts(self, comp_date, comp_session):
@@ -296,7 +312,11 @@ class HolidaySerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError(
                     {
                         "compensatory_dates": _(
-                            f"Compensatory date {comp_date} with session {comp_session} already exists for holiday '{comp_day.holiday.name}'"
+                            "Compensatory date {comp_date} with session {comp_session} already exists for holiday '{holiday_name}'"
+                        ).format(
+                            comp_date=comp_date,
+                            comp_session=comp_session,
+                            holiday_name=comp_day.holiday.name,
                         )
                     }
                 )
@@ -307,7 +327,11 @@ class HolidaySerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError(
                     {
                         "compensatory_dates": _(
-                            f"Compensatory date {comp_date} with full_day session conflicts with existing {comp_day.session} session for holiday '{comp_day.holiday.name}'"
+                            "Compensatory date {comp_date} with full_day session conflicts with existing {comp_session} session for holiday '{holiday_name}'"
+                        ).format(
+                            comp_date=comp_date,
+                            comp_session=comp_day.session,
+                            holiday_name=comp_day.holiday.name,
                         )
                     }
                 )

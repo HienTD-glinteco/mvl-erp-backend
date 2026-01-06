@@ -31,7 +31,11 @@ class ImportOptionsSerializer(serializers.Serializer):
         min_value=MIN_BATCH_SIZE,
         max_value=MAX_BATCH_SIZE,
         help_text=_(
-            f"Number of rows to process per batch (default: {DEFAULT_BATCH_SIZE}, range: {MIN_BATCH_SIZE}-{MAX_BATCH_SIZE})"
+            "Number of rows to process per batch (default: {DEFAULT_BATCH_SIZE}, range: {MIN_BATCH_SIZE}-{MAX_BATCH_SIZE})"
+        ).format(
+            DEFAULT_BATCH_SIZE=DEFAULT_BATCH_SIZE,
+            MIN_BATCH_SIZE=MIN_BATCH_SIZE,
+            MAX_BATCH_SIZE=MAX_BATCH_SIZE,
         ),
     )
     count_total_first = serializers.BooleanField(
@@ -45,7 +49,11 @@ class ImportOptionsSerializer(serializers.Serializer):
         min_value=MIN_HEADER_ROWS,
         max_value=MAX_HEADER_ROWS,
         help_text=_(
-            f"Number of header rows to skip (default: {DEFAULT_HEADER_ROWS}, range: {MIN_HEADER_ROWS}-{MAX_HEADER_ROWS})"
+            "Number of header rows to skip (default: {DEFAULT_HEADER_ROWS}, range: {MIN_HEADER_ROWS}-{MAX_HEADER_ROWS})"
+        ).format(
+            DEFAULT_HEADER_ROWS=DEFAULT_HEADER_ROWS,
+            MIN_HEADER_ROWS=MIN_HEADER_ROWS,
+            MAX_HEADER_ROWS=MAX_HEADER_ROWS,
         ),
     )
     output_format = serializers.CharField(
