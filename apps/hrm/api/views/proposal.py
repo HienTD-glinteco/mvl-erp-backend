@@ -496,7 +496,10 @@ class ProposalViewSet(ProposalMixin, BaseReadOnlyModelViewSet):
     @action(detail=False, methods=["get"], url_path="mine", filterset_class=MeProposalFilterSet)
     def mine(self, request):
         """Get proposals created by the current user."""
-        queryset = self.filter_queryset(self.get_queryset().filter(created_by=request.user.employee))
+        if hasattr(request.user, "employee"):
+            queryset = self.filter_queryset(self.get_queryset().filter(created_by=request.user.employee))
+        else:
+            queryset = self.filter_queryset(self.get_queryset().none())
 
         # Reset to original filterset_class
         self.filterset_class = ProposalFilterSet
@@ -3537,7 +3540,10 @@ class ProposalVerifierViewSet(AuditLoggingMixin, BaseModelViewSet):
     @action(detail=False, methods=["get"], url_path="mine", filterset_class=MeProposalVerifierFilterSet)
     def mine(self, request):
         """Get proposal verifiers for the current user."""
-        queryset = self.filter_queryset(self.get_queryset().filter(employee=request.user.employee))
+        if hasattr(request.user, "employee"):
+            queryset = self.filter_queryset(self.get_queryset().filter(employee=request.user.employee))
+        else:
+            queryset = self.filter_queryset(self.get_queryset().none())
 
         # Reset to original filterset_class
         self.filterset_class = ProposalVerifierFilterSet

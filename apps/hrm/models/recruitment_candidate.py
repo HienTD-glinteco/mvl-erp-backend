@@ -49,7 +49,8 @@ class RecruitmentCandidate(ColoredValueMixin, AutoCodeMixin, BaseModel):
     name = models.CharField(max_length=200, verbose_name=_("Candidate name"))
     citizen_id = models.CharField(
         max_length=12,
-        unique=True,
+        null=True,
+        blank=True,
         verbose_name=_("Citizen ID"),
         validators=[CitizenIdValidator],
     )
@@ -138,6 +139,13 @@ class RecruitmentCandidate(ColoredValueMixin, AutoCodeMixin, BaseModel):
         verbose_name_plural = _("Recruitment Candidates")
         db_table = "hrm_recruitment_candidate"
         ordering = ["-created_at"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["citizen_id"],
+                condition=models.Q(citizen_id__isnull=False),
+                name="unique_citizen_id_when_not_null",
+            )
+        ]
 
     def __str__(self):
         return f"{self.code} - {self.name}"
