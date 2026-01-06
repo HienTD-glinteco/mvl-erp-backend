@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-06 21:30+0700\n"
+"POT-Creation-Date: 2026-01-06 23:48+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -821,7 +821,7 @@ msgstr "Tuần"
 
 #: apps/hrm/api/views/employee_reports.py:98
 #: apps/hrm/api/views/recruitment_reports.py:165
-#: apps/hrm/api/views/recruitment_reports.py:842 apps/hrm/constants.py:69
+#: apps/hrm/api/views/recruitment_reports.py:891 apps/hrm/constants.py:69
 #: apps/hrm/constants.py:74
 msgid "Month"
 msgstr "Tháng"
@@ -2247,11 +2247,11 @@ msgstr "Xem biểu đồ xu hướng hàng tháng"
 msgid "View monthly trends of candidate sources chart"
 msgstr "Xem biểu đồ xu hướng hàng tháng của các nguồn ứng viên"
 
-#: apps/hrm/api/views/recruitment_dashboard.py:516
+#: apps/hrm/api/views/recruitment_dashboard.py:520
 msgid "Experienced"
 msgstr "Có kinh nghiệm"
 
-#: apps/hrm/api/views/recruitment_dashboard.py:521
+#: apps/hrm/api/views/recruitment_dashboard.py:525
 msgid "Inexperienced"
 msgstr "Không có kinh nghiệm"
 
@@ -2331,6 +2331,19 @@ msgstr "Không có phòng ban"
 #: apps/hrm/api/views/recruitment_reports.py:719
 msgid "Total"
 msgstr "Tổng"
+
+#: apps/hrm/api/views/recruitment_reports.py:779 apps/hrm/constants.py:52
+msgid "Referral Source"
+msgstr "Giới thiệu"
+
+#: apps/hrm/api/views/recruitment_reports.py:784
+#: apps/hrm/models/recruitment_source.py:27
+msgid "Recruitment Source"
+msgstr "Nguồn tuyển dụng"
+
+#: apps/hrm/api/views/recruitment_reports.py:789 apps/hrm/constants.py:56
+msgid "Returning Employee"
+msgstr "Quay lại"
 
 #: apps/hrm/api/views/recruitment_request.py:396
 #: apps/hrm/api/views/recruitment_request.py:397
@@ -2426,10 +2439,6 @@ msgstr "Chấm công WiFi"
 msgid "GeoLocation"
 msgstr "Chấm công GPS"
 
-#: apps/hrm/constants.py:52
-msgid "Referral Source"
-msgstr "Giới thiệu"
-
 #: apps/hrm/constants.py:53
 msgid "Marketing Channel"
 msgstr "Marketing"
@@ -2441,10 +2450,6 @@ msgstr "Trang web việc làm"
 #: apps/hrm/constants.py:55
 msgid "Recruitment Department Source"
 msgstr "Phòng tuyển dụng"
-
-#: apps/hrm/constants.py:56
-msgid "Returning Employee"
-msgstr "Quay lại"
 
 #: apps/hrm/constants.py:82
 msgid "All data"
@@ -4755,10 +4760,6 @@ msgstr "Mã nguồn"
 #: apps/hrm/models/recruitment_source.py:22
 msgid "Allow referral"
 msgstr ""
-
-#: apps/hrm/models/recruitment_source.py:27
-msgid "Recruitment Source"
-msgstr "Nguồn tuyển dụng"
 
 #: apps/hrm/models/recruitment_source.py:28
 msgid "Recruitment Sources"

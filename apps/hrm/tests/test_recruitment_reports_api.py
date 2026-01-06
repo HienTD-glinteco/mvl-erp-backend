@@ -331,16 +331,29 @@ class TestRecruitmentReportsAPI(APITestMixin):
         # Verify data structure includes source types
         assert isinstance(data["data"], list)
         source_types = [item["name"] for item in data["data"]]
+        # Per SRS, there should be exactly 3 groups: Referral Source, Recruitment Source, Returning Employee
         assert "Referral Source" in source_types
-        assert "Marketing Channel" in source_types
+        assert "Recruitment Source" in source_types  # Combined: marketing, job website, department source
+        assert "Returning Employee" in source_types
+        assert len(source_types) == 3  # Only 3 groups per SRS
 
         # Verify referral source has children (employee breakdown)
         referral_data = next(
             item for item in data["data"] if item["type"] == "source_type" and "Referral" in item["name"]
         )
         assert "children" in referral_data
-        if referral_data["children"]:
-            assert len(referral_data["children"]) > 0
+        # Referral source should have children with referrer employee data
+        assert referral_data["children"] is not None
+        assert len(referral_data["children"]) > 0
+        # Verify child structure
+        child = referral_data["children"][0]
+        assert child["type"] == "employee"
+        assert "name" in child
+        assert "statistics" in child
+
+        # Verify non-referral sources have no children (None)
+        recruitment_data = next(item for item in data["data"] if item["name"] == "Recruitment Source")
+        assert recruitment_data["children"] is None
 
     def test_hired_candidate_report_week_aggregation(self):
         """Test hired candidate report with weekly aggregation"""

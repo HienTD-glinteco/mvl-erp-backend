@@ -720,47 +720,96 @@ class RecruitmentReportsViewSet(BaseGenericViewSet):
         return periods, period_labels
 
     def _aggregate_hired_candidate_stats(self, raw_stats):
+        """Aggregate stats into 3 main groups per SRS.
+
+        Groups:
+        - REFERRAL_SOURCE: Referral source
+        - recruitment_source (combined): Recruitment source
+            (MARKETING_CHANNEL, JOB_WEBSITE_CHANNEL, RECRUITMENT_DEPARTMENT_SOURCE)
+        - RETURNING_EMPLOYEE: Returning employee
+        """
         stats = defaultdict(lambda: defaultdict(int))
-        emp_stats = defaultdict(lambda: defaultdict(lambda: defaultdict(int)))
+        emp_stats = defaultdict(lambda: defaultdict(int))
         emp_code_to_name = {}
+
+        # Define combined recruitment source types
+        recruitment_source_types = {
+            RecruitmentSourceType.MARKETING_CHANNEL.value,
+            RecruitmentSourceType.JOB_WEBSITE_CHANNEL.value,
+            RecruitmentSourceType.RECRUITMENT_DEPARTMENT_SOURCE.value,
+        }
+        combined_key = "recruitment_source"  # Internal key for combined group
+
         for item in raw_stats:
             source_type = item["source_type"]
             key = item["key"]
             total_hired = item["total_hired"] or 0
             employee_code = item.get("employee__code")
             employee_fullname = item.get("employee__fullname")
-            stats[source_type][key] += total_hired
+
+            # Map source type to group
+            if source_type in recruitment_source_types:
+                group_key = combined_key
+            else:
+                group_key = source_type
+
+            stats[group_key][key] += total_hired
+
+            # For referral source, gather employee (referrer) data
             if source_type == RecruitmentSourceType.REFERRAL_SOURCE.value and employee_code:
-                emp_stats[employee_code][source_type][key] += total_hired
+                emp_stats[employee_code][key] += total_hired
                 emp_code_to_name[employee_code] = employee_fullname
+
         return stats, emp_stats, emp_code_to_name
 
     def _format_hired_candidate_result(self, periods, stats, emp_stats, emp_code_to_name):
+        """Format result into 3 main groups per SRS.
+
+        Groups:
+        - Referral source (REFERRAL_SOURCE): with children list of referrers
+        - Recruitment source (combined): MARKETING_CHANNEL, JOB_WEBSITE_CHANNEL, RECRUITMENT_DEPARTMENT_SOURCE
+        - Returning employee (RETURNING_EMPLOYEE)
+        """
         data = []
-        for source_type_value in RecruitmentSourceType.values:
-            source_type_label = RecruitmentSourceType.get_label(source_type_value)
+
+        # Define the 3 groups in order: referral, recruitment, returning
+        source_groups = [
+            {
+                "key": RecruitmentSourceType.REFERRAL_SOURCE.value,
+                "label": _("Referral Source"),
+                "has_children": True,
+            },
+            {
+                "key": "recruitment_source",  # Combined key
+                "label": _("Recruitment Source"),
+                "has_children": False,
+            },
+            {
+                "key": RecruitmentSourceType.RETURNING_EMPLOYEE.value,
+                "label": _("Returning Employee"),
+                "has_children": False,
+            },
+        ]
+
+        for group in source_groups:
+            group_key = group["key"]
             statistics = []
             total_hired_sum = 0
             for period in periods:
-                hired = stats[source_type_value][period] if period in stats[source_type_value] else 0
+                hired = stats[group_key][period] if period in stats[group_key] else 0
                 statistics.append(hired)
                 total_hired_sum += hired
             statistics.append(total_hired_sum)
 
             children = []
-            if source_type_value == RecruitmentSourceType.REFERRAL_SOURCE.value:
+            if group["has_children"]:
+                # Build children list for referral source (referrer employees)
                 sorted_emps = sorted(emp_stats.items(), key=lambda x: emp_code_to_name.get(x[0], ""))
-                for emp_code, emp_source_dict in sorted_emps:
-                    if source_type_value not in emp_source_dict:
-                        continue
+                for emp_code, emp_period_stats in sorted_emps:
                     emp_statistics = []
                     emp_total_hired = 0
                     for period in periods:
-                        hired = (
-                            emp_source_dict[source_type_value][period]
-                            if period in emp_source_dict[source_type_value]
-                            else 0
-                        )
+                        hired = emp_period_stats.get(period, 0)
                         emp_statistics.append(hired)
                         emp_total_hired += hired
                     emp_statistics.append(emp_total_hired)
@@ -775,9 +824,9 @@ class RecruitmentReportsViewSet(BaseGenericViewSet):
             data.append(
                 {
                     "type": "source_type",
-                    "name": source_type_label,
+                    "name": group["label"],
                     "statistics": statistics,
-                    "children": children,
+                    "children": children if children else None,
                 }
             )
         return data
