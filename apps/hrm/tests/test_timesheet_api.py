@@ -1,14 +1,18 @@
 from datetime import date
+from decimal import Decimal
 from unittest.mock import MagicMock
 
+from django.core.cache import cache
 from django.db.models.signals import post_save
 from django.urls import reverse
 from rest_framework import status
 
 from apps.core.models import AdministrativeUnit, Province
-from apps.hrm.models import Block, Branch, Department, Employee, Position
+from apps.hrm.constants import TimesheetStatus
+from apps.hrm.models import Block, Branch, Department, Employee, Position, WorkSchedule
 from apps.hrm.models.monthly_timesheet import EmployeeMonthlyTimesheet
 from apps.hrm.models.timesheet import TimeSheetEntry
+from apps.hrm.services.timesheets import create_entries_for_employee_month
 
 
 def test_list_timesheets_returns_entries_and_aggregates(db, api_client):
@@ -79,6 +83,89 @@ def test_list_timesheets_returns_entries_and_aggregates(db, api_client):
     assert "total_work_days" in item
     assert "total_work_days" in item
     assert "remaining_leave_balance" in item
+
+
+def test_bulk_create_past_entries_finalized(db):
+    """Test that entries created via bulk_create for past dates are properly finalized.
+
+    This regression test ensures that working_days and status are computed
+    for past entries even when created via bulk_create (which skips clean()).
+    """
+    # Create work schedules for weekdays (Mon-Fri)
+    cache.clear()  # Clear cache to ensure schedules are picked up
+    for weekday in [
+        WorkSchedule.Weekday.MONDAY,
+        WorkSchedule.Weekday.TUESDAY,
+        WorkSchedule.Weekday.WEDNESDAY,
+        WorkSchedule.Weekday.THURSDAY,
+        WorkSchedule.Weekday.FRIDAY,
+    ]:
+        WorkSchedule.objects.create(
+            weekday=weekday,
+            morning_start_time="08:00",
+            morning_end_time="12:00",
+            noon_start_time="12:00",
+            noon_end_time="13:00",
+            afternoon_start_time="13:00",
+            afternoon_end_time="17:00",
+        )
+
+    # Create organizational structure for employee
+    province = Province.objects.create(name="Test Province Finalize", code="TPF")
+    admin_unit = AdministrativeUnit.objects.create(
+        name="Test Unit Finalize",
+        code="TUF",
+        parent_province=province,
+        level=AdministrativeUnit.UnitLevel.DISTRICT,
+    )
+    branch = Branch.objects.create(
+        name="Test Branch Finalize",
+        province=province,
+        administrative_unit=admin_unit,
+    )
+    block = Block.objects.create(name="Test Block Finalize", branch=branch, block_type=Block.BlockType.BUSINESS)
+    department = Department.objects.create(
+        name="Test Dept Finalize", branch=branch, block=block, function=Department.DepartmentFunction.BUSINESS
+    )
+    position = Position.objects.create(name="Developer Finalize")
+
+    emp = Employee.objects.create(
+        code="MVFIN",
+        fullname="Finalize Tester",
+        username="finalize_tester",
+        email="finalize@example.com",
+        phone="0900100099",
+        attendance_code="00099",
+        citizen_id="000000000099",
+        branch=branch,
+        block=block,
+        department=department,
+        position=position,
+        start_date=date(2020, 1, 1),
+        status=Employee.Status.ACTIVE,
+    )
+
+    # Create entries for a past month (October 2025)
+    # As of January 2026, all October 2025 dates are in the past
+    year, month = 2025, 10
+    created = create_entries_for_employee_month(emp.id, year, month)
+
+    # Verify entries were created
+    assert len(created) == 31  # October has 31 days
+
+    # Verify past WEEKDAY entries have status=ABSENT and working_days=0
+    # Weekend entries (no schedule) will have status=None
+    for entry in created:
+        weekday = entry.date.isoweekday()  # 1=Mon, 7=Sun
+        is_weekday = weekday <= 5
+
+        if is_weekday:
+            # Weekday: should be ABSENT with working_days = 0
+            assert entry.status == TimesheetStatus.ABSENT, f"Entry {entry.date} (weekday) should be ABSENT"
+            assert entry.working_days == Decimal("0.00"), f"Entry {entry.date} should have 0 working_days"
+        else:
+            # Weekend: should have working_days set (even if status is None)
+            assert entry.working_days is not None, f"Entry {entry.date} (weekend) should have working_days set"
 
 
 def test_create_empty_entries_for_month_and_refresh(db):

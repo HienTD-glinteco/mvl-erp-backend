@@ -50,6 +50,8 @@ def _process_contract_change(contract: Contract):
 
     if updates:
         TimeSheetEntry.objects.bulk_update(updates, fields=["contract", "net_percentage", "is_full_salary"])
+        for entry in updates:
+            post_save.send(sender=TimeSheetEntry, instance=entry, created=False)
 
 
 @receiver([post_save, post_delete], sender=Holiday)
@@ -105,6 +107,8 @@ def _process_calendar_change(start_date: date, end_date: date):
             "is_punished",
         ]
         TimeSheetEntry.objects.bulk_update(updates, fields=fields)
+        for entry in updates:
+            post_save.send(sender=TimeSheetEntry, instance=entry, created=False)
 
 
 @receiver([post_save, post_delete], sender=AttendanceExemption)
@@ -154,6 +158,8 @@ def _process_exemption_change(exemption: AttendanceExemption):
                 "allowed_late_minutes_reason",
             ],
         )
+        for entry in recalc_updates:
+            post_save.send(sender=TimeSheetEntry, instance=entry, created=False)
 
 
 @receiver([post_save, post_delete], sender=Proposal)
@@ -254,6 +260,8 @@ def _process_proposal_change(proposal: Proposal):
                 "approved_ot_minutes",
             ],
         )
+        for entry in updates:
+            post_save.send(sender=TimeSheetEntry, instance=entry, created=False)
 
 
 def _get_start_end_dates(proposal: Proposal) -> Tuple[Optional[date], Optional[date]]:

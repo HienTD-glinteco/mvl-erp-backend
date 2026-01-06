@@ -10,6 +10,8 @@ from django.db.models.signals import post_save
 
 from apps.hrm.models import AttendanceRecord, Contract, Employee, EmployeeMonthlyTimesheet, TimeSheetEntry
 from apps.hrm.services.day_type_service import get_day_type_map
+from apps.hrm.services.timesheet_calculator import TimesheetCalculator
+from apps.hrm.services.timesheet_snapshot_service import TimesheetSnapshotService
 from libs.decimals import DECIMAL_ZERO, quantize_decimal
 
 logger = logging.getLogger(__name__)
@@ -54,10 +56,48 @@ def create_entries_for_employee_month(
             entries_to_create.append(TimeSheetEntry(employee_id=employee_id, date=entry_date, day_type=day_type))
 
     if entries_to_create:
-        created = TimeSheetEntry.objects.bulk_create(entries_to_create, ignore_conflicts=True)
+        TimeSheetEntry.objects.bulk_create(entries_to_create, ignore_conflicts=True)
+
+        # Re-fetch created entries to get their PKs (bulk_create with ignore_conflicts doesn't set PKs)
+        created_dates = [e.date for e in entries_to_create]
+        created = list(TimeSheetEntry.objects.filter(employee_id=employee_id, date__in=created_dates))
+
+        # Finalize past entries since bulk_create skips clean() -> compute_working_days()
+        # This ensures working_days, status, and other computed fields are set for past dates
+        today = date.today()
+        past_entries = [e for e in created if e.date < today]
+        if past_entries:
+            snapshot_service = TimesheetSnapshotService()
+            for entry in past_entries:
+                snapshot_service.snapshot_data(entry)
+                calculator = TimesheetCalculator(entry)
+                calculator.compute_all(is_finalizing=True)
+
+            TimeSheetEntry.objects.bulk_update(
+                past_entries,
+                fields=[
+                    "working_days",
+                    "status",
+                    "day_type",
+                    "absent_reason",
+                    "morning_hours",
+                    "afternoon_hours",
+                    "official_hours",
+                    "overtime_hours",
+                    "total_worked_hours",
+                    "is_punished",
+                    "late_minutes",
+                    "early_minutes",
+                    "contract",
+                    "net_percentage",
+                    "is_full_salary",
+                    "is_exempt",
+                ],
+            )
+
         for timesheet_entry in created:
             post_save.send(sender=TimeSheetEntry, instance=timesheet_entry, created=True)
-        return list(created)
+        return created
 
     return []
 
