@@ -262,7 +262,10 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-        file_path = Path(options["file_path"]).expanduser()
+        if options.get("file_path"):
+            file_path = Path(options["file_path"]).expanduser()
+        else:
+            file_path = Path(__file__).resolve().parents[2] / "fixtures" / "core_permission.xlsx"
         self.verbose = options.get("verbose", False)
         self.dry_run = options.get("dry_run", False)
 
@@ -287,12 +290,19 @@ class Command(BaseCommand):
 
         for code, metadata in permission_catalog.items():
             stats["processed"] += 1
+            source_context: Optional[List[Dict[str, Any]]] = metadata.get("__sources")
+            location = ""
             try:
                 permission = Permission.objects.get(code=code)
+                if source_context:
+                    origin = source_context[0]
+                    sheet_label = (origin.get("sheet") or "").strip() or "Unknown sheet"
+                    row_label = origin.get("row")
+                    location = (
+                        f" (sheet '{sheet_label}', row {row_label})" if row_label else f" (sheet '{sheet_label}')"
+                    )
             except Permission.DoesNotExist:
                 stats["missing"] += 1
-                source_context: Optional[List[Dict[str, Any]]] = metadata.get("__sources")
-                location = ""
                 if source_context:
                     origin = source_context[0]
                     sheet_label = (origin.get("sheet") or "").strip() or "Unknown sheet"
@@ -316,6 +326,7 @@ class Command(BaseCommand):
                         "code": code,
                         "name": mismatches.get("name", permission.name),
                         "description": mismatches.get("description", permission.description),
+                        "location": location,
                     }
                 )
 
@@ -403,13 +414,14 @@ class Command(BaseCommand):
         self.stdout.write(self.style.WARNING(f"Permission metadata mismatches ({len(mismatch_entries)} items):"))
         self.stdout.write("Permissions with code in Excel but name/description differ from DB values:")
         self.stdout.write("")
-        self.stdout.write(f"{'code':<40} | {'name':<40} | {'description'}")
+        self.stdout.write(f"{'code':<40} | {'name':<40} | {'description'} | {'location':<40}")
         self.stdout.write("-" * 120)
         for entry in mismatch_entries:
             code = entry["code"]
             name = entry["name"] if entry["name"] else ""
             desc = entry["description"] if entry["description"] else ""
-            self.stdout.write(f"{code:<40} | {name:<40} | {desc}")
+            location = entry["location"] if entry.get("location") else ""
+            self.stdout.write(f"{code:<40} | {name:<40} | {desc} | {location:<40}")
         self.stdout.write("")
 
     def _print_permissions_not_in_excel(self, excel_permission_codes: set):

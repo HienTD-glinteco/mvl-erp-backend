@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-06 12:57+0700\n"
+"POT-Creation-Date: 2026-01-06 13:11+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -2420,7 +2420,6 @@ msgid "Probation"
 msgstr "Thử việc"
 
 #: apps/hrm/constants.py:30
-#: apps/hrm/management/commands/setup_default_org_data.py:80
 msgid "Intern"
 msgstr "Thực tập sinh"
 
@@ -2716,64 +2715,6 @@ msgstr "Ngày hết hạn phải sau hoặc vào ngày hiệu lực"
 #: apps/hrm/import_handlers/employee.py:1194
 msgid "Imported from file"
 msgstr "Đã nhập từ tệp"
-
-#: apps/hrm/management/commands/setup_default_org_data.py:8
-msgid "Setup default organizational data"
-msgstr ""
-
-#: apps/hrm/management/commands/setup_default_org_data.py:11
-msgid "Setting up default organizational data..."
-msgstr ""
-
-#: apps/hrm/management/commands/setup_default_org_data.py:17
-msgid "Chief Executive Officer"
-msgstr ""
-
-#: apps/hrm/management/commands/setup_default_org_data.py:24
-msgid "Business Block Director"
-msgstr ""
-
-#: apps/hrm/management/commands/setup_default_org_data.py:31
-msgid "Support Block Director"
-msgstr ""
-
-#: apps/hrm/management/commands/setup_default_org_data.py:38
-msgid "Deputy Business Block Director"
-msgstr ""
-
-#: apps/hrm/management/commands/setup_default_org_data.py:45
-msgid "Deputy Support Block Director"
-msgstr ""
-
-#: apps/hrm/management/commands/setup_default_org_data.py:52
-msgid "Department Manager"
-msgstr ""
-
-#: apps/hrm/management/commands/setup_default_org_data.py:59
-msgid "Deputy Department Manager"
-msgstr ""
-
-#: apps/hrm/management/commands/setup_default_org_data.py:66
-msgid "Supervisor"
-msgstr ""
-
-#: apps/hrm/management/commands/setup_default_org_data.py:73
-msgid "Staff"
-msgstr ""
-
-#: apps/hrm/management/commands/setup_default_org_data.py:97
-#, python-format
-msgid "Created position: %s"
-msgstr ""
-
-#: apps/hrm/management/commands/setup_default_org_data.py:99
-#, python-format
-msgid "Position already exists: %s"
-msgstr ""
-
-#: apps/hrm/management/commands/setup_default_org_data.py:101
-msgid "Successfully set up default organizational data!"
-msgstr ""
 
 #: apps/hrm/models/attendance_device.py:39
 msgid "Attendance Device"

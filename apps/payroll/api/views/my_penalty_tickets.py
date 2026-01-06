@@ -5,16 +5,13 @@ from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiExample, extend_schema, extend_schema_view
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.filters import OrderingFilter
-from rest_framework.mixins import ListModelMixin, RetrieveModelMixin
-from rest_framework.viewsets import GenericViewSet
 
 from apps.core.api.permissions import RoleBasedPermission
 from apps.payroll.api.filtersets import PenaltyTicketFilterSet
 from apps.payroll.api.serializers import PenaltyTicketSerializer
 from apps.payroll.models import PenaltyTicket
+from libs.drf.base_viewset import BaseReadOnlyModelViewSet
 from libs.drf.filtersets.search import PhraseSearchFilter
-from libs.drf.mixin.permission import PermissionRegistrationMixin
-from libs.drf.spectacular.permission_schema import PermissionSchemaMixin
 
 
 @extend_schema_view(
@@ -100,9 +97,7 @@ from libs.drf.spectacular.permission_schema import PermissionSchemaMixin
         ],
     ),
 )
-class MyPenaltyTicketViewSet(
-    PermissionSchemaMixin, PermissionRegistrationMixin, ListModelMixin, RetrieveModelMixin, GenericViewSet
-):
+class MyPenaltyTicketViewSet(BaseReadOnlyModelViewSet):
     """ViewSet for viewing current user's own penalty tickets.
 
     Provides read-only access to penalty tickets for the authenticated user.
@@ -122,7 +117,7 @@ class MyPenaltyTicketViewSet(
     submodule = _("My Penalty Tickets")
     permission_prefix = "payroll.my_penalty_ticket"
 
-    PERMISSION_REGISTERED_ACTIONS = {
+    PERMISSIONS_REGISTERED_ACTIONS = {
         "list": {
             "name_template": _("List my penalty tickets"),
             "description_template": _("View list of my penalty tickets"),
