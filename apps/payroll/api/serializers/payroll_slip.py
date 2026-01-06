@@ -17,7 +17,7 @@ class PayrollSlipSerializer(serializers.ModelSerializer):
 
     employee = EmployeeNestedSerializer(read_only=True)
     salary_period = SalaryPeriodNestedSerializer(read_only=True)
-    colored_status = ColoredValueSerializer(source="get_colored_status", read_only=True)
+    colored_status = ColoredValueSerializer(read_only=True)
 
     class Meta:
         model = PayrollSlip
@@ -117,9 +117,9 @@ class PayrollSlipSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = fields
 
-    def get_colored_status(self, obj):
-        """Get colored status value."""
-        return obj.get_colored_value("status")
+    # def get_colored_status(self, obj):
+    #     """Get colored status value."""
+    #     return obj.get_colored_value("status")
 
 
 class PayrollSlipHoldSerializer(serializers.Serializer):

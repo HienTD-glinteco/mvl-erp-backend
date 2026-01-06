@@ -353,3 +353,8 @@ class PayrollSlip(AutoCodeMixin, ColoredValueMixin, BaseModel):
 
     def __str__(self):
         return f"{self.code} - {self.employee_code} - {self.salary_period.month.strftime('%Y-%m')}"
+
+    @property
+    def colored_status(self):
+        """Get colored value representation for status field."""
+        return self.get_colored_value("status")

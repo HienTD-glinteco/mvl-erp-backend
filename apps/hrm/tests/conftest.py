@@ -108,6 +108,44 @@ def employee(db, branch, block, department, position, user):
 
 
 @pytest.fixture
+def employee_factory(db, branch, block, department, position):
+    """Factory for creating test employees."""
+    from apps.core.models import User
+
+    counter = {"value": 1}
+
+    def create_employee(**kwargs):
+        counter["value"] += 1
+        num = counter["value"]
+
+        user = User.objects.create_user(
+            username=f"testuser{num}",
+            email=f"test{num}@example.com",
+            password="testpass123",
+        )
+
+        defaults = {
+            "user": user,
+            "code": f"MV{num:06d}",
+            "fullname": f"Test Employee {num}",
+            "username": f"testemployee{num}",
+            "email": f"test{num}@example.com",
+            "phone": f"012345678{num}",
+            "attendance_code": f"{12345 + num}",
+            "start_date": "2024-01-01",
+            "branch": branch,
+            "block": block,
+            "department": department,
+            "position": position,
+            "citizen_id": f"{123456789000 + num:012d}",
+        }
+        defaults.update(kwargs)
+        return Employee.objects.create(**defaults)
+
+    return create_employee
+
+
+@pytest.fixture
 def job_description(db):
     """Create a test job description."""
     return JobDescription.objects.create(

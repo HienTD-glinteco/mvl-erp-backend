@@ -8,6 +8,7 @@ from apps.payroll.api.serializers.common_nested import (
     KPIAssessmentPeriodNestedSerializer,
 )
 from apps.payroll.models import EmployeeKPIAssessment, EmployeeKPIItem
+from libs import ColoredValueSerializer
 
 
 class EmployeeKPIItemScoreSerializer(serializers.Serializer):
@@ -185,7 +186,7 @@ class BaseEmployeeKPIAssessmentSerializer(serializers.ModelSerializer):
     employee = EmployeeWithDetailsNestedSerializer(read_only=True)
     period = KPIAssessmentPeriodNestedSerializer(read_only=True)
     department_snapshot = DepartmentNestedSerializer(read_only=True)
-    colored_status = serializers.ReadOnlyField()
+    colored_status = ColoredValueSerializer(read_only=True)
 
     class Meta:
         model = EmployeeKPIAssessment
@@ -301,6 +302,7 @@ class EmployeeKPIAssessmentSerializer(BaseEmployeeKPIAssessmentSerializer):
         source="employee",
         write_only=True,
     )
+    colored_status = ColoredValueSerializer(read_only=True)
 
     class Meta:
         model = EmployeeKPIAssessment
@@ -337,6 +339,7 @@ class EmployeeKPIAssessmentSerializer(BaseEmployeeKPIAssessmentSerializer):
             "id",
             "department_snapshot",
             "status",
+            "colored_status",
             "total_possible_score",
             "total_employee_score",
             "total_manager_score",
@@ -379,6 +382,8 @@ class EmployeeKPIAssessmentSerializer(BaseEmployeeKPIAssessmentSerializer):
 
 class EmployeeKPIAssessmentListSerializer(BaseEmployeeKPIAssessmentSerializer):
     """Lightweight serializer for listing employee KPI assessments without nested items."""
+
+    colored_status = ColoredValueSerializer(read_only=True)
 
     class Meta:
         model = EmployeeKPIAssessment
@@ -433,6 +438,7 @@ class EmployeeSelfAssessmentSerializer(BaseEmployeeKPIAssessmentSerializer):
     """
 
     items = EmployeeKPIItemSerializer(many=True, read_only=True)
+    colored_status = ColoredValueSerializer(read_only=True)
 
     class Meta:
         model = EmployeeKPIAssessment
@@ -465,6 +471,7 @@ class EmployeeSelfAssessmentSerializer(BaseEmployeeKPIAssessmentSerializer):
             "employee",
             "department_snapshot",
             "status",
+            "colored_status",
             "total_possible_score",
             "total_employee_score",
             "total_manager_score",
@@ -504,6 +511,7 @@ class ManagerAssessmentSerializer(BaseEmployeeKPIAssessmentSerializer):
         max_length=10,
         help_text="Manager's grade override",
     )
+    colored_status = ColoredValueSerializer(read_only=True)
 
     class Meta:
         model = EmployeeKPIAssessment
@@ -537,6 +545,7 @@ class ManagerAssessmentSerializer(BaseEmployeeKPIAssessmentSerializer):
             "employee",
             "department_snapshot",
             "status",
+            "colored_status",
             "total_possible_score",
             "total_employee_score",
             "total_manager_score",

@@ -208,6 +208,11 @@ class SalaryPeriod(AutoCodeMixin, ColoredValueMixin, BaseModel):
     def __str__(self):
         return f"{self.code} - {self.month.strftime('%Y-%m')}"
 
+    @property
+    def colored_status(self):
+        """Get colored value representation for status field."""
+        return self.get_colored_value("status")
+
     def save(self, *args, **kwargs):
         """Override save to auto-generate code and calculate working days."""
         # Calculate standard working days if not set

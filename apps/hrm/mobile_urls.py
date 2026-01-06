@@ -1,115 +1,165 @@
-from django.urls import include, path
+from django.urls import path
 from rest_framework.routers import DefaultRouter
 
 from apps.hrm.api.views import (
-    AttendanceExemptionViewSet,
     AttendanceGeolocationViewSet,
-    AttendanceRecordViewSet,
-    AttendanceReportViewSet,
     AttendanceWifiDeviceViewSet,
     BlockViewSet,
-    BranchContactInfoViewSet,
     BranchViewSet,
     DepartmentViewSet,
-    EmployeeTimesheetViewSet,
     EmployeeViewSet,
+    MyAttendanceRecordViewSet,
+    MyProposalAssetAllocationViewSet,
+    MyProposalDeviceChangeViewSet,
+    MyProposalJobTransferViewSet,
+    MyProposalLateExemptionViewSet,
+    MyProposalMaternityLeaveViewSet,
+    MyProposalOvertimeWorkViewSet,
+    MyProposalPaidLeaveViewSet,
+    MyProposalPostMaternityBenefitsViewSet,
+    MyProposalsVerificationViewSet,
+    MyProposalTimesheetEntryComplaintViewSet,
+    MyProposalUnpaidLeaveViewSet,
+    MyProposalViewSet,
+    MyTimesheetEntryViewSet,
+    MyTimesheetViewSet,
     PositionViewSet,
-    ProposalAssetAllocationViewSet,
-    ProposalDeviceChangeViewSet,
-    ProposalJobTransferViewSet,
-    ProposalLateExemptionViewSet,
-    ProposalMaternityLeaveViewSet,
-    ProposalOvertimeWorkViewSet,
-    ProposalPaidLeaveViewSet,
-    ProposalPostMaternityBenefitsViewSet,
-    ProposalTimesheetEntryComplaintViewSet,
-    ProposalUnpaidLeaveViewSet,
-    ProposalVerifierViewSet,
-    ProposalViewSet,
-    TimeSheetEntryViewSet,
-    WorkScheduleViewSet,
 )
 
-app_name = "hrm"
+app_name = "hrm-mobile"
 
 router = DefaultRouter()
-router.register(r"branches", BranchViewSet, basename="branch")
-router.register(r"branch-contact-infos", BranchContactInfoViewSet, basename="branch-contact-info")
-router.register(r"blocks", BlockViewSet, basename="block")
-router.register(r"departments", DepartmentViewSet, basename="department")
-router.register(r"positions", PositionViewSet, basename="position")
-router.register(r"attendance-geolocations", AttendanceGeolocationViewSet, basename="attendance-geolocation")
-router.register(r"attendance-exemptions", AttendanceExemptionViewSet, basename="attendance-exemption")
-router.register(r"attendance-wifi-devices", AttendanceWifiDeviceViewSet, basename="attendance-wifi-device")
 
-router.register(r"attendance-records", AttendanceRecordViewSet, basename="attendance-record")
-router.register(r"attendance-reports", AttendanceReportViewSet, basename="attendance-report")
-router.register(r"timesheets", EmployeeTimesheetViewSet, basename="employee-timesheet")
-router.register(r"timesheet/entries", TimeSheetEntryViewSet, basename="timesheet-entry")
-router.register(r"work-schedules", WorkScheduleViewSet, basename="work-schedule")
-# router.register(r"decisions", DecisionViewSet, basename="decision")
+# router.register(r"attendance-geolocations", AttendanceGeolocationViewSet, basename="attendance-geolocation")
 
-# Proposal endpoints - nested under proposals/
+# My timesheets
+router.register(r"me/timesheets", MyTimesheetViewSet, basename="my-timesheet")
+
+# My timesheet entries
+router.register(r"me/timesheet/entries", MyTimesheetEntryViewSet, basename="my-timesheet-entry")
+
+# My attendance records
+router.register(r"me/attendance-records", MyAttendanceRecordViewSet, basename="my-attendance-record")
+
+# Type-specific proposal endpoints (must be registered before general proposals)
 router.register(
-    r"proposals/timesheet-entry-complaint",
-    ProposalTimesheetEntryComplaintViewSet,
-    basename="proposal-timesheet-entry-complaint",
+    r"me/proposals/maternity-leave",
+    MyProposalMaternityLeaveViewSet,
+    basename="my-proposal-maternity-leave",
 )
 router.register(
-    r"proposals/post-maternity-benefits",
-    ProposalPostMaternityBenefitsViewSet,
-    basename="proposal-post-maternity-benefits",
+    r"me/proposals/unpaid-leave",
+    MyProposalUnpaidLeaveViewSet,
+    basename="my-proposal-unpaid-leave",
 )
 router.register(
-    r"proposals/late-exemption",
-    ProposalLateExemptionViewSet,
-    basename="proposal-late-exemption",
+    r"me/proposals/paid-leave",
+    MyProposalPaidLeaveViewSet,
+    basename="my-proposal-paid-leave",
 )
 router.register(
-    r"proposals/overtime-work",
-    ProposalOvertimeWorkViewSet,
-    basename="proposal-overtime-work",
+    r"me/proposals/post-maternity-benefits",
+    MyProposalPostMaternityBenefitsViewSet,
+    basename="my-proposal-post-maternity-benefits",
 )
 router.register(
-    r"proposals/paid-leave",
-    ProposalPaidLeaveViewSet,
-    basename="proposal-paid-leave",
+    r"me/proposals/overtime-work",
+    MyProposalOvertimeWorkViewSet,
+    basename="my-proposal-overtime-work",
 )
 router.register(
-    r"proposals/unpaid-leave",
-    ProposalUnpaidLeaveViewSet,
-    basename="proposal-unpaid-leave",
+    r"me/proposals/late-exemption",
+    MyProposalLateExemptionViewSet,
+    basename="my-proposal-late-exemption",
 )
 router.register(
-    r"proposals/maternity-leave",
-    ProposalMaternityLeaveViewSet,
-    basename="proposal-maternity-leave",
+    r"me/proposals/job-transfer",
+    MyProposalJobTransferViewSet,
+    basename="my-proposal-job-transfer",
 )
 router.register(
-    r"proposals/job-transfer",
-    ProposalJobTransferViewSet,
-    basename="proposal-job-transfer",
+    r"me/proposals/device-change",
+    MyProposalDeviceChangeViewSet,
+    basename="my-proposal-device-change",
 )
 router.register(
-    r"proposals/asset-allocation",
-    ProposalAssetAllocationViewSet,
-    basename="proposal-asset-allocation",
+    r"me/proposals/asset-allocation",
+    MyProposalAssetAllocationViewSet,
+    basename="my-proposal-asset-allocation",
 )
 router.register(
-    r"proposals/device-change",
-    ProposalDeviceChangeViewSet,
-    basename="proposal-device-change",
+    r"me/proposals/timesheet-entry-complaint",
+    MyProposalTimesheetEntryComplaintViewSet,
+    basename="my-proposal-timesheet-entry-complaint",
 )
 
-# Proposal verifiers
-router.register(r"proposal-verifiers", ProposalVerifierViewSet, basename="proposal-verifier")
+# My proposals (all types) - must be registered AFTER specific types
+router.register(r"me/proposals", MyProposalViewSet, basename="my-proposal")
 
-# Proposal endpoints
-router.register(r"proposals", ProposalViewSet, basename="proposal")
+# Pending verifications
+router.register(
+    r"me/proposals-verifications",
+    MyProposalsVerificationViewSet,
+    basename="my-proposals-verification",
+)
 
+urlpatterns = router.urls
 
-urlpatterns = [
-    path("", include(router.urls)),
+urlpatterns += [
+    path(
+        "attendance-geolocations/",
+        AttendanceGeolocationViewSet.as_view(
+            {
+                "get": "list",
+            }
+        ),
+        name="list-attendance-geolocaitons",
+    ),
+    path(
+        "attendance-wifi-devices/",
+        AttendanceWifiDeviceViewSet.as_view(
+            {
+                "get": "list",
+            }
+        ),
+        name="list-attendance-wifidevices",
+    ),
+    path(
+        "blocks/",
+        BlockViewSet.as_view(
+            {
+                "get": "list",
+            }
+        ),
+        name="list-blocks",
+    ),
+    path(
+        "branches/",
+        BranchViewSet.as_view(
+            {
+                "get": "list",
+            }
+        ),
+        name="list-branches",
+    ),
+    path(
+        "departments/",
+        DepartmentViewSet.as_view(
+            {
+                "get": "list",
+            }
+        ),
+        name="list-departments",
+    ),
+    path(
+        "positions/",
+        PositionViewSet.as_view(
+            {
+                "get": "list",
+            }
+        ),
+        name="list-positions",
+    ),
     path(
         "employees/dropdown/",
         EmployeeViewSet.as_view({"get": "dropdown"}),

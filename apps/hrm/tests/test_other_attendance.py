@@ -81,7 +81,7 @@ class TestOtherAttendanceAndBulkApprove:
         user = make_user()
         employee = make_employee(user=user)
 
-        permission = Permission.objects.create(code="attendance_record.other_attendance")
+        permission = Permission.objects.create(code="my_attendance_record.other_attendance")
         role = Role.objects.create(name="Employee Role")
         role.permissions.add(permission)
         user.role = role
@@ -168,7 +168,7 @@ class TestOtherAttendanceAndBulkApprove:
         }
         cache.set(cache_key, json.dumps(cache_data), 3600)
 
-        url = reverse("hrm:attendance-record-other-attendance")
+        url = reverse("hrm-mobile:my-attendance-record-other-attendance")
         data = {
             "timestamp": "2023-10-27T10:00:00Z",
             "latitude": "10.123",

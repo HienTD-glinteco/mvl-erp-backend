@@ -26,21 +26,15 @@ from libs.drf.spectacular.client_schema import MobileSpectacularAPIView, WebSpec
 urlpatterns = []
 urlpatterns += [
     path("health/", include("health_check.urls")),
-    # Mobile API routes (web routes remain unchanged)
-    path("api/mobile/", include(("apps.core.urls", "core"), namespace="mobile-core")),
-    path("api/mobile/hrm/", include(("apps.hrm.mobile_urls", "hrm"), namespace="mobile-hrm")),
-    path("api/mobile/payroll/", include(("apps.payroll.mobile_urls", "payroll"), namespace="mobile-payroll")),
-    path("api/mobile/realestate/", include(("apps.realestate.urls", "realestate"), namespace="mobile-realestate")),
-    # path("api/mobile/audit-logs/", include(("apps.audit_logging.urls", "audit_logging"), namespace="mobile-audit-logs")),
+    # Mobile API routes - New v2 routes with /me/ pattern
+    path("api/mobile/", include(("apps.core.mobile_urls", "core"), namespace="mobile-core")),
+    path("api/mobile/hrm/", include(("apps.hrm.mobile_urls", "hrm-mobile"), namespace="mobile-hrm")),
+    path("api/mobile/payroll/", include(("apps.payroll.mobile_urls", "payroll-mobile"), namespace="mobile-payroll")),
     path(
         "api/mobile/notifications/",
         include(("apps.notifications.urls", "notifications"), namespace="mobile-notifications"),
     ),
     path("api/mobile/files/", include(("apps.files.urls", "files"), namespace="mobile-files")),
-    path(
-        "api/mobile/mailtemplates/",
-        include(("apps.mailtemplates.urls", "mailtemplates"), namespace="mobile-mailtemplates"),
-    ),
     # Web API routes
     path("api/", include("apps.core.urls")),
     path("api/hrm/", include("apps.hrm.urls")),
@@ -56,8 +50,6 @@ urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 if settings.ENVIRONMENT in ["local", "develop"]:
     urlpatterns += i18n_patterns(path("admin/", admin.site.urls), prefix_default_language=False) + [
         # Combined schema (backward-compatible)
-        # path("schema/", SpectacularAPIView.as_view(), name="schema"),
-        # path("docs/", SpectacularSwaggerView.as_view(url_name="schema"), name="swagger-ui"),
         # Web-only schema/docs
         path("schema/", WebSpectacularAPIView.as_view(), name="schema"),
         path("docs/", SpectacularSwaggerView.as_view(url_name="schema"), name="swagger-ui"),

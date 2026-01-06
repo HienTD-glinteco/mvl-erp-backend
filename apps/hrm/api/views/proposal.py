@@ -16,7 +16,6 @@ from rest_framework.response import Response
 
 from apps.audit_logging.api.mixins import AuditLoggingMixin
 from apps.hrm.api.filtersets.proposal import (
-    MeProposalFilterSet,
     MeProposalVerifierFilterSet,
     ProposalFilterSet,
     ProposalVerifierFilterSet,
@@ -25,7 +24,6 @@ from apps.hrm.api.serializers.proposal import (
     ProposalApproveSerializer,
     ProposalAssetAllocationExportXLSXSerializer,
     ProposalAssetAllocationSerializer,
-    ProposalCombinedSerializer,
     ProposalDeviceChangeExportXLSXSerializer,
     ProposalDeviceChangeSerializer,
     ProposalExportXLSXSerializer,
@@ -57,7 +55,7 @@ from apps.hrm.api.serializers.proposal import (
 )
 from apps.hrm.constants import ProposalType
 from apps.hrm.models import Proposal, ProposalVerifier
-from libs import BaseModelViewSet, BaseReadOnlyModelViewSet
+from libs import BaseReadOnlyModelViewSet
 from libs.drf.filtersets.search import PhraseSearchFilter
 from libs.export_xlsx.mixins import ExportXLSXMixin
 
@@ -148,10 +146,10 @@ class ProposalMixin(AuditLoggingMixin, ExportXLSXMixin):
             "name_template": _("Reject {model_name}"),
             "description_template": _("Reject {model_name}"),
         },
-        "mine": {
-            "name_template": _("View the list of requests pending my approval"),
-            "description_template": _("View the list of requests pending my approval"),
-        },
+        # "mine": {
+        #     "name_template": _("View the list of requests pending my approval"),
+        #     "description_template": _("View the list of requests pending my approval"),
+        # },
         "verify": {
             "name_template": _("View the list of requests pending my verification"),
             "description_template": _("View the list of requests pending my verification"),
@@ -343,11 +341,6 @@ class ProposalViewSet(ProposalMixin, BaseReadOnlyModelViewSet):
     def get_prefetch_related_fields(self) -> List[str]:
         return ["timesheet_entries", "timesheet_entries__timesheet_entry"]
 
-    def get_serializer_class(self):
-        if self.action == "mine":
-            return ProposalCombinedSerializer
-        return super().get_serializer_class()
-
     @extend_schema(
         summary="Approve proposal",
         description="Approve a proposal",
@@ -444,74 +437,6 @@ class ProposalViewSet(ProposalMixin, BaseReadOnlyModelViewSet):
     def export(self, request, *args, **kwargs):
         return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
-    @extend_schema(
-        summary="List my proposals",
-        description="Retrieve a list of proposals created by the current user with optional filtering and pagination",
-        tags=["9.2: Proposals", "9.2: Proposals - For Mobile"],
-        filters=MeProposalFilterSet,  # type: ignore
-        responses={200: ProposalCombinedSerializer(many=True)},
-        examples=[
-            OpenApiExample(
-                "Success",
-                value={
-                    "success": True,
-                    "data": {
-                        "count": 2,
-                        "next": None,
-                        "previous": None,
-                        "results": [
-                            {
-                                "id": 1,
-                                "code": "DX000001",
-                                "proposal_date": "2025-01-15",
-                                "proposal_type": "timesheet_entry_complaint",
-                                "colored_proposal_status": {"value": "pending", "variant": "yellow"},
-                                "timesheet_entry_complaint_complaint_reason": "Incorrect check-in time recorded",
-                                "proposed_check_in_time": "08:00:00",
-                                "proposed_check_out_time": "17:00:00",
-                                "approved_check_in_time": None,
-                                "approved_check_out_time": None,
-                                "note": "",
-                                "created_at": "2025-01-15T10:00:00Z",
-                                "updated_at": "2025-01-15T10:00:00Z",
-                            },
-                            {
-                                "id": 2,
-                                "code": "DX000002",
-                                "proposal_date": "2025-01-16",
-                                "proposal_type": "paid_leave",
-                                "colored_proposal_status": {"value": "approved", "variant": "green"},
-                                "note": "Annual leave",
-                                "created_at": "2025-01-16T09:00:00Z",
-                                "updated_at": "2025-01-16T14:00:00Z",
-                            },
-                        ],
-                    },
-                    "error": None,
-                },
-                response_only=True,
-            ),
-        ],
-    )
-    @action(detail=False, methods=["get"], url_path="mine", filterset_class=MeProposalFilterSet)
-    def mine(self, request):
-        """Get proposals created by the current user."""
-        if hasattr(request.user, "employee"):
-            queryset = self.filter_queryset(self.get_queryset().filter(created_by=request.user.employee))
-        else:
-            queryset = self.filter_queryset(self.get_queryset().none())
-
-        # Reset to original filterset_class
-        self.filterset_class = ProposalFilterSet
-
-        page = self.paginate_queryset(queryset)
-        if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
-
-        serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
-
 
 @extend_schema_view(
     list=extend_schema(
@@ -555,7 +480,7 @@ class ProposalViewSet(ProposalMixin, BaseReadOnlyModelViewSet):
     retrieve=extend_schema(
         summary="Get timesheet entry complaint proposal details",
         description="Retrieve detailed information for a specific timesheet entry complaint proposal",
-        tags=["6.8: Timesheet Entry Complaint Proposals", "6.8: Timesheet Entry Complaint Proposals - For Mobile"],
+        tags=["6.8: Timesheet Entry Complaint Proposals"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -702,7 +627,7 @@ class ProposalViewSet(ProposalMixin, BaseReadOnlyModelViewSet):
         tags=["6.8: Timesheet Entry Complaint Proposals"],
     ),
 )
-class ProposalTimesheetEntryComplaintViewSet(ProposalMixin, BaseModelViewSet):
+class ProposalTimesheetEntryComplaintViewSet(ProposalMixin, BaseReadOnlyModelViewSet):
     """ViewSet for Timesheet Entry Complaint proposals with approve and reject actions."""
 
     proposal_type = ProposalType.TIMESHEET_ENTRY_COMPLAINT
@@ -902,7 +827,7 @@ class ProposalTimesheetEntryComplaintViewSet(ProposalMixin, BaseModelViewSet):
     retrieve=extend_schema(
         summary="Get post-maternity benefits proposal details",
         description="Retrieve detailed information for a specific post-maternity benefits proposal",
-        tags=["9.2.2: Post-Maternity Benefits Proposals", "9.2.2: Post-Maternity Benefits Proposals - For Mobile"],
+        tags=["9.2.2: Post-Maternity Benefits Proposals"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -994,7 +919,7 @@ class ProposalTimesheetEntryComplaintViewSet(ProposalMixin, BaseModelViewSet):
         tags=["9.2.2: Post-Maternity Benefits Proposals"],
     ),
 )
-class ProposalPostMaternityBenefitsViewSet(ProposalMixin, BaseModelViewSet):
+class ProposalPostMaternityBenefitsViewSet(ProposalMixin, BaseReadOnlyModelViewSet):
     """ViewSet for Post-Maternity Benefits proposals."""
 
     proposal_type = ProposalType.POST_MATERNITY_BENEFITS
@@ -1178,7 +1103,7 @@ class ProposalPostMaternityBenefitsViewSet(ProposalMixin, BaseModelViewSet):
     retrieve=extend_schema(
         summary="Get late exemption proposal details",
         description="Retrieve detailed information for a specific late exemption proposal",
-        tags=["9.2.3: Late Exemption Proposals", "9.2.3: Late Exemption Proposals - For Mobile"],
+        tags=["9.2.3: Late Exemption Proposals"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -1274,7 +1199,7 @@ class ProposalPostMaternityBenefitsViewSet(ProposalMixin, BaseModelViewSet):
         tags=["9.2.3: Late Exemption Proposals"],
     ),
 )
-class ProposalLateExemptionViewSet(ProposalMixin, BaseModelViewSet):
+class ProposalLateExemptionViewSet(ProposalMixin, BaseReadOnlyModelViewSet):
     """ViewSet for Late Exemption proposals."""
 
     proposal_type = ProposalType.LATE_EXEMPTION
@@ -1463,7 +1388,7 @@ class ProposalLateExemptionViewSet(ProposalMixin, BaseModelViewSet):
     retrieve=extend_schema(
         summary="Get overtime work proposal details",
         description="Retrieve detailed information for a specific overtime work proposal",
-        tags=["9.2.4: Overtime Work Proposals", "9.2.4: Overtime Work Proposals - For Mobile"],
+        tags=["9.2.4: Overtime Work Proposals"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -1602,7 +1527,7 @@ class ProposalLateExemptionViewSet(ProposalMixin, BaseModelViewSet):
         tags=["9.2.4: Overtime Work Proposals"],
     ),
 )
-class ProposalOvertimeWorkViewSet(ProposalMixin, BaseModelViewSet):
+class ProposalOvertimeWorkViewSet(ProposalMixin, BaseReadOnlyModelViewSet):
     """ViewSet for Overtime Work proposals."""
 
     proposal_type = ProposalType.OVERTIME_WORK
@@ -1802,7 +1727,7 @@ class ProposalOvertimeWorkViewSet(ProposalMixin, BaseModelViewSet):
     retrieve=extend_schema(
         summary="Get paid leave proposal details",
         description="Retrieve detailed information for a specific paid leave proposal",
-        tags=["9.2.5: Paid Leave Proposals", "9.2.5: Paid Leave Proposals - For Mobile"],
+        tags=["9.2.5: Paid Leave Proposals"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -1899,7 +1824,7 @@ class ProposalOvertimeWorkViewSet(ProposalMixin, BaseModelViewSet):
         tags=["9.2.5: Paid Leave Proposals"],
     ),
 )
-class ProposalPaidLeaveViewSet(ProposalMixin, BaseModelViewSet):
+class ProposalPaidLeaveViewSet(ProposalMixin, BaseReadOnlyModelViewSet):
     """ViewSet for Paid Leave proposals."""
 
     proposal_type = ProposalType.PAID_LEAVE
@@ -1914,22 +1839,6 @@ class ProposalPaidLeaveViewSet(ProposalMixin, BaseModelViewSet):
         "retrieve": {
             "name_template": _("Retrieve Paid Leave Proposal"),
             "description_template": _("Allows the user to retrieve a specific paid leave proposal"),
-        },
-        "create": {
-            "name_template": _("Create Paid Leave Proposal"),
-            "description_template": _("Allows the user to create a new paid leave proposal"),
-        },
-        "update": {
-            "name_template": _("Update Paid Leave Proposal"),
-            "description_template": _("Allows the user to update an existing paid leave proposal"),
-        },
-        "partial_update": {
-            "name_template": _("Partially Update Paid Leave Proposal"),
-            "description_template": _("Allows the user to partially update an existing paid leave proposal"),
-        },
-        "destroy": {
-            "name_template": _("Delete Paid Leave Proposal"),
-            "description_template": _("Allows the user to delete a paid leave proposal"),
         },
         "export": {
             "name_template": _("Export Paid Leave Proposals"),
@@ -2084,7 +1993,7 @@ class ProposalPaidLeaveViewSet(ProposalMixin, BaseModelViewSet):
     retrieve=extend_schema(
         summary="Get unpaid leave proposal details",
         description="Retrieve detailed information for a specific unpaid leave proposal",
-        tags=["9.2.6: Unpaid Leave Proposals", "9.2.6: Unpaid Leave Proposals - For Mobile"],
+        tags=["9.2.6: Unpaid Leave Proposals"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -2181,7 +2090,7 @@ class ProposalPaidLeaveViewSet(ProposalMixin, BaseModelViewSet):
         tags=["9.2.6: Unpaid Leave Proposals"],
     ),
 )
-class ProposalUnpaidLeaveViewSet(ProposalMixin, BaseModelViewSet):
+class ProposalUnpaidLeaveViewSet(ProposalMixin, BaseReadOnlyModelViewSet):
     """ViewSet for Unpaid Leave proposals."""
 
     proposal_type = ProposalType.UNPAID_LEAVE
@@ -2365,7 +2274,7 @@ class ProposalUnpaidLeaveViewSet(ProposalMixin, BaseModelViewSet):
     retrieve=extend_schema(
         summary="Get maternity leave proposal details",
         description="Retrieve detailed information for a specific maternity leave proposal",
-        tags=["9.2.7: Maternity Leave Proposals", "9.2.7: Maternity Leave Proposals - For Mobile"],
+        tags=["9.2.7: Maternity Leave Proposals"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -2460,7 +2369,7 @@ class ProposalUnpaidLeaveViewSet(ProposalMixin, BaseModelViewSet):
         tags=["9.2.7: Maternity Leave Proposals"],
     ),
 )
-class ProposalMaternityLeaveViewSet(ProposalMixin, BaseModelViewSet):
+class ProposalMaternityLeaveViewSet(ProposalMixin, BaseReadOnlyModelViewSet):
     """ViewSet for Maternity Leave proposals."""
 
     proposal_type = ProposalType.MATERNITY_LEAVE
@@ -2654,7 +2563,7 @@ class ProposalMaternityLeaveViewSet(ProposalMixin, BaseModelViewSet):
     retrieve=extend_schema(
         summary="Get job transfer proposal details",
         description="Retrieve detailed information for a specific job transfer proposal",
-        tags=["9.2.9: Job Transfer Proposals", "9.2.9: Job Transfer Proposals - For Mobile"],
+        tags=["9.2.9: Job Transfer Proposals"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -2765,7 +2674,7 @@ class ProposalMaternityLeaveViewSet(ProposalMixin, BaseModelViewSet):
         tags=["9.2.9: Job Transfer Proposals"],
     ),
 )
-class ProposalJobTransferViewSet(ProposalMixin, BaseModelViewSet):
+class ProposalJobTransferViewSet(ProposalMixin, BaseReadOnlyModelViewSet):
     """ViewSet for Job Transfer proposals."""
 
     proposal_type = ProposalType.JOB_TRANSFER
@@ -2979,7 +2888,7 @@ class ProposalJobTransferViewSet(ProposalMixin, BaseModelViewSet):
     retrieve=extend_schema(
         summary="Get asset allocation proposal details",
         description="Retrieve detailed information for a specific asset allocation proposal",
-        tags=["9.2.10: Asset Allocation Proposals", "9.2.10: Asset Allocation Proposals - For Mobile"],
+        tags=["9.2.10: Asset Allocation Proposals"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -3090,7 +2999,7 @@ class ProposalJobTransferViewSet(ProposalMixin, BaseModelViewSet):
         tags=["9.2.10: Asset Allocation Proposals"],
     ),
 )
-class ProposalAssetAllocationViewSet(ProposalMixin, BaseModelViewSet):
+class ProposalAssetAllocationViewSet(ProposalMixin, BaseReadOnlyModelViewSet):
     """ViewSet for Asset Allocation proposals."""
 
     proposal_type = ProposalType.ASSET_ALLOCATION
@@ -3252,7 +3161,7 @@ class ProposalAssetAllocationViewSet(ProposalMixin, BaseModelViewSet):
     list=extend_schema(
         summary="List proposal verifiers",
         description="Retrieve a list of proposal verifiers with optional filtering",
-        tags=["9.3: Proposal Verifiers", "9.3: Proposal Verifiers - For Mobile"],
+        tags=["9.3: Proposal Verifiers"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -3284,7 +3193,7 @@ class ProposalAssetAllocationViewSet(ProposalMixin, BaseModelViewSet):
     retrieve=extend_schema(
         summary="Get proposal verifier details",
         description="Retrieve detailed information for a specific proposal verifier",
-        tags=["9.3: Proposal Verifiers", "9.3: Proposal Verifiers - For Mobile"],
+        tags=["9.3: Proposal Verifiers"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -3356,7 +3265,7 @@ class ProposalAssetAllocationViewSet(ProposalMixin, BaseModelViewSet):
         tags=["9.3: Proposal Verifiers - For Mobile"],
     ),
 )
-class ProposalVerifierViewSet(AuditLoggingMixin, BaseModelViewSet):
+class ProposalVerifierViewSet(AuditLoggingMixin, BaseReadOnlyModelViewSet):
     """ViewSet for managing proposal verifiers."""
 
     queryset = ProposalVerifier.objects.select_related("proposal", "employee")
@@ -3398,7 +3307,7 @@ class ProposalVerifierViewSet(AuditLoggingMixin, BaseModelViewSet):
     @extend_schema(
         summary="Verify proposal",
         description="Mark a proposal as verified. Only applicable for timesheet entry complaint proposals.",
-        tags=["9.3: Proposal Verifiers", "9.3: Proposal Verifiers - For Mobile"],
+        tags=["9.3: Proposal Verifiers"],
         request=ProposalVerifierVerifySerializer,
         examples=[
             OpenApiExample(
@@ -3453,7 +3362,7 @@ class ProposalVerifierViewSet(AuditLoggingMixin, BaseModelViewSet):
     @extend_schema(
         summary="Reject proposal verification",
         description="Mark a proposal verification as rejected (not verified).",
-        tags=["9.3: Proposal Verifiers", "9.3: Proposal Verifiers - For Mobile"],
+        tags=["9.3: Proposal Verifiers"],
         request=ProposalVerifierRejectSerializer,
         examples=[
             OpenApiExample(
@@ -3506,7 +3415,7 @@ class ProposalVerifierViewSet(AuditLoggingMixin, BaseModelViewSet):
     @extend_schema(
         summary="List my proposal verifiers",
         description="Retrieve a list of proposal verifiers assigned to the current user that need verification with optional filtering and pagination",
-        tags=["9.3: Proposal Verifiers", "9.3: Proposal Verifiers - For Mobile"],
+        tags=["9.3: Proposal Verifiers"],
         filters=MeProposalVerifierFilterSet,  # type: ignore
         responses={200: ProposalVerifierNeedVerificationSerializer(many=True)},
         examples=[
@@ -3695,7 +3604,7 @@ class ProposalVerifierViewSet(AuditLoggingMixin, BaseModelViewSet):
         tags=["9.2.11: Device Change Proposals"],
     ),
 )
-class ProposalDeviceChangeViewSet(ProposalMixin, BaseModelViewSet):
+class ProposalDeviceChangeViewSet(ProposalMixin, BaseReadOnlyModelViewSet):
     """ViewSet for Device Change proposals with approve and reject actions."""
 
     proposal_type = ProposalType.DEVICE_CHANGE
@@ -3711,22 +3620,22 @@ class ProposalDeviceChangeViewSet(ProposalMixin, BaseModelViewSet):
             "name_template": _("Retrieve Device Change Proposal"),
             "description_template": _("Allows the user to retrieve a specific device change proposal"),
         },
-        "create": {
-            "name_template": _("Create Device Change Proposal"),
-            "description_template": _("Allows the user to create a new device change proposal"),
-        },
-        "update": {
-            "name_template": _("Update Device Change Proposal"),
-            "description_template": _("Allows the user to update an existing device change proposal"),
-        },
-        "partial_update": {
-            "name_template": _("Partially Update Device Change Proposal"),
-            "description_template": _("Allows the user to partially update an existing device change proposal"),
-        },
-        "destroy": {
-            "name_template": _("Delete Device Change Proposal"),
-            "description_template": _("Allows the user to delete a device change proposal"),
-        },
+        # "create": {
+        #     "name_template": _("Create Device Change Proposal"),
+        #     "description_template": _("Allows the user to create a new device change proposal"),
+        # },
+        # "update": {
+        #     "name_template": _("Update Device Change Proposal"),
+        #     "description_template": _("Allows the user to update an existing device change proposal"),
+        # },
+        # "partial_update": {
+        #     "name_template": _("Partially Update Device Change Proposal"),
+        #     "description_template": _("Allows the user to partially update an existing device change proposal"),
+        # },
+        # "destroy": {
+        #     "name_template": _("Delete Device Change Proposal"),
+        #     "description_template": _("Allows the user to delete a device change proposal"),
+        # },
         "export": {
             "name_template": _("Export Device Change Proposals"),
             "description_template": _("Allows the user to export device change proposals"),

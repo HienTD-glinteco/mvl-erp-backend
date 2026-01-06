@@ -27,6 +27,23 @@ from .hrm_dashboard import HRMDashboardViewSet
 from .interview_candidate import InterviewCandidateViewSet
 from .interview_schedule import InterviewScheduleViewSet
 from .job_description import JobDescriptionViewSet
+from .mobile import (
+    MyAttendanceRecordViewSet,
+    MyProposalAssetAllocationViewSet,
+    MyProposalDeviceChangeViewSet,
+    MyProposalJobTransferViewSet,
+    MyProposalLateExemptionViewSet,
+    MyProposalMaternityLeaveViewSet,
+    MyProposalOvertimeWorkViewSet,
+    MyProposalPaidLeaveViewSet,
+    MyProposalPostMaternityBenefitsViewSet,
+    MyProposalsVerificationViewSet,
+    MyProposalTimesheetEntryComplaintViewSet,
+    MyProposalUnpaidLeaveViewSet,
+    MyProposalViewSet,
+    MyTimesheetEntryViewSet,
+    MyTimesheetViewSet,
+)
 from .organization import (
     BlockViewSet,
     BranchContactInfoViewSet,
@@ -116,4 +133,19 @@ __all__ = [
     "ProposalVerifierViewSet",
     "ProposalViewSet",
     "DecisionViewSet",
+    "MyProposalViewSet",
+    "MyProposalMaternityLeaveViewSet",
+    "MyProposalUnpaidLeaveViewSet",
+    "MyProposalPaidLeaveViewSet",
+    "MyProposalPostMaternityBenefitsViewSet",
+    "MyProposalOvertimeWorkViewSet",
+    "MyProposalLateExemptionViewSet",
+    "MyProposalJobTransferViewSet",
+    "MyProposalDeviceChangeViewSet",
+    "MyProposalAssetAllocationViewSet",
+    "MyProposalTimesheetEntryComplaintViewSet",
+    "MyProposalsVerificationViewSet",
+    "MyTimesheetViewSet",
+    "MyTimesheetEntryViewSet",
+    "MyAttendanceRecordViewSet",
 ]
