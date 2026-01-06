@@ -88,6 +88,7 @@ class SalesRevenueReportAggregator:
                 total_revenue=Sum("revenue"),
                 employees_with_revenue=Count("employee", filter=Q(revenue__gt=0), distinct=True),
                 total_employees_in_sales=Count("employee", distinct=True),
+                total_kpi_target=Sum("kpi_target"),
             )
         )
 
@@ -114,7 +115,10 @@ class SalesRevenueReportAggregator:
             employees_with_revenue = sales_data["employees_with_revenue"] or 0
 
             # Calculate derived fields
-            total_kpi_target = Decimal(total_sales_employees) * cls.TARGET_PER_EMPLOYEE
+            total_kpi_target = sales_data["total_kpi_target"] or 0
+            target_per_employee = (
+                sales_data["target_per_employee"] / total_sales_employees if total_sales_employees > 0 else 0
+            )
 
             if total_kpi_target > 0:
                 revenue_vs_target_percent = round((Decimal(total_revenue) / total_kpi_target) * 100, 2)
@@ -142,7 +146,7 @@ class SalesRevenueReportAggregator:
                     "total_revenue": total_revenue,
                     "total_sales_employees": total_sales_employees,
                     "employees_with_revenue": employees_with_revenue,
-                    "target_per_employee": cls.TARGET_PER_EMPLOYEE,
+                    "target_per_employee": target_per_employee,
                     "total_kpi_target": total_kpi_target,
                     "revenue_vs_target_percent": revenue_vs_target_percent,
                     "employee_with_revenue_percent": employee_with_revenue_percent,

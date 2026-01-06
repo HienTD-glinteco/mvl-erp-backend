@@ -7,4 +7,8 @@ services:
       - ../:/workspace:cached  # cached flag only effect Docker Desktop
     command: sleep infinity # Keep container running
     env_file:
-      - ../.env
+      - ./docker.env
+    ports:
+      - "8000:8000"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"

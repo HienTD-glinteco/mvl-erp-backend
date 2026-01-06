@@ -17,7 +17,7 @@ def sales_employee(employee):
 @pytest.fixture
 def headers():
     """Excel headers for sales revenue import."""
-    return ["Mã nhân viên", "Họ tên", "Doanh Số", "Số giao dịch", "Thời gian"]
+    return ["Mã nhân viên", "Họ tên", "Chỉ tiêu", "Doanh Số", "Số giao dịch", "Thời gian"]
 
 
 @pytest.mark.django_db
@@ -27,7 +27,7 @@ class TestSalesRevenueImportHandler:
     def test_process_row_success_create(self, sales_employee, headers):
         """Test processing a row successfully creates new record."""
         # Arrange
-        row = [sales_employee.code, sales_employee.username, 150000000, 12, "11/2025"]
+        row = [sales_employee.code, sales_employee.username, 100000000, 150000000, 12, "11/2025"]
         options = {"headers": headers, "handler_options": {"target_month": "11/2025"}}
 
         # Act
@@ -46,11 +46,12 @@ class TestSalesRevenueImportHandler:
         # Arrange
         existing = SalesRevenue.objects.create(
             employee=sales_employee,
+            kpi_target=100000000,
             revenue=100000000,
             transaction_count=10,
             month=date(2025, 11, 1),
         )
-        row = [sales_employee.code, sales_employee.username, 200000000, 20, "11/2025"]
+        row = [sales_employee.code, sales_employee.username, 150000000, 200000000, 20, "11/2025"]
         options = {"headers": headers, "handler_options": {"target_month": "11/2025"}}
 
         # Act
@@ -64,10 +65,10 @@ class TestSalesRevenueImportHandler:
         assert existing.revenue == 200000000
         assert existing.transaction_count == 20
 
-    def test_process_row_without_month_uses_target(self, sales_employee, headers):
-        """Test processing row without month uses target month from options."""
+    def test_process_row_with_month_matching_target(self, sales_employee, headers):
+        """Test processing row with month matching target month from options."""
         # Arrange
-        row = [sales_employee.code, sales_employee.username, 150000000, 12, ""]
+        row = [sales_employee.code, sales_employee.username, 100000000, 150000000, 12, "12/2025"]
         options = {"headers": headers, "handler_options": {"target_month": "12/2025"}}
 
         # Act
@@ -80,7 +81,7 @@ class TestSalesRevenueImportHandler:
     def test_process_row_missing_employee_code(self, headers):
         """Test processing row with missing employee code."""
         # Arrange
-        row = ["", "Test", 150000000, 12, "11/2025"]
+        row = ["", "Test", 100000000, 150000000, 12, "11/2025"]
         options = {"headers": headers, "handler_options": {"target_month": "11/2025"}}
 
         # Act
@@ -93,7 +94,7 @@ class TestSalesRevenueImportHandler:
     def test_process_row_employee_not_found(self, headers):
         """Test processing row with non-existent employee code."""
         # Arrange
-        row = ["INVALID", "Test", 150000000, 12, "11/2025"]
+        row = ["INVALID", "Test", 100000000, 150000000, 12, "11/2025"]
         options = {"headers": headers, "handler_options": {"target_month": "11/2025"}}
 
         # Act
@@ -106,7 +107,7 @@ class TestSalesRevenueImportHandler:
     def test_process_row_month_mismatch(self, sales_employee, headers):
         """Test processing row with month not matching target month."""
         # Arrange
-        row = [sales_employee.code, sales_employee.username, 150000000, 12, "12/2025"]
+        row = [sales_employee.code, sales_employee.username, 100000000, 150000000, 12, "12/2025"]
         options = {"headers": headers, "handler_options": {"target_month": "11/2025"}}
 
         # Act
@@ -119,7 +120,7 @@ class TestSalesRevenueImportHandler:
     def test_process_row_invalid_month_format(self, sales_employee, headers):
         """Test processing row with invalid month format."""
         # Arrange
-        row = [sales_employee.code, sales_employee.username, 150000000, 12, "2025-11"]
+        row = [sales_employee.code, sales_employee.username, 100000000, 150000000, 12, "2025-11"]
         options = {"headers": headers, "handler_options": {"target_month": "11/2025"}}
 
         # Act
@@ -132,7 +133,7 @@ class TestSalesRevenueImportHandler:
     def test_process_row_invalid_revenue(self, sales_employee, headers):
         """Test processing row with invalid revenue value."""
         # Arrange
-        row = [sales_employee.code, sales_employee.username, "invalid", 12, "11/2025"]
+        row = [sales_employee.code, sales_employee.username, 100000000, "invalid", 12, "11/2025"]
         options = {"headers": headers, "handler_options": {"target_month": "11/2025"}}
 
         # Act
@@ -145,7 +146,7 @@ class TestSalesRevenueImportHandler:
     def test_process_row_negative_revenue(self, sales_employee, headers):
         """Test processing row with negative revenue."""
         # Arrange
-        row = [sales_employee.code, sales_employee.username, -100000, 12, "11/2025"]
+        row = [sales_employee.code, sales_employee.username, 100000000, -100000, 12, "11/2025"]
         options = {"headers": headers, "handler_options": {"target_month": "11/2025"}}
 
         # Act
@@ -158,7 +159,7 @@ class TestSalesRevenueImportHandler:
     def test_process_row_missing_target_month(self, sales_employee, headers):
         """Test processing row without target month in options."""
         # Arrange
-        row = [sales_employee.code, sales_employee.username, 150000000, 12, "11/2025"]
+        row = [sales_employee.code, sales_employee.username, 100000000, 150000000, 12, "11/2025"]
         options = {"headers": headers, "handler_options": {}}
 
         # Act
@@ -171,7 +172,7 @@ class TestSalesRevenueImportHandler:
     def test_process_row_missing_headers(self, sales_employee):
         """Test processing row without headers in options."""
         # Arrange
-        row = [sales_employee.code, sales_employee.username, 150000000, 12, "11/2025"]
+        row = [sales_employee.code, sales_employee.username, 100000000, 150000000, 12, "11/2025"]
         options = {"handler_options": {"target_month": "11/2025"}}
 
         # Act
@@ -184,7 +185,7 @@ class TestSalesRevenueImportHandler:
     def test_process_row_invalid_target_month_format(self, sales_employee, headers):
         """Test processing row with invalid target month format."""
         # Arrange
-        row = [sales_employee.code, sales_employee.username, 150000000, 12, "11/2025"]
+        row = [sales_employee.code, sales_employee.username, 100000000, 150000000, 12, "11/2025"]
         options = {"headers": headers, "handler_options": {"target_month": "2025-11"}}
 
         # Act

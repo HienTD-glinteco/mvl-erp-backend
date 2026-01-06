@@ -52,6 +52,7 @@ class SalesRevenueSerializer(serializers.ModelSerializer):
             "department",
             "position",
             "employee_id",
+            "kpi_target",
             "revenue",
             "transaction_count",
             "month",

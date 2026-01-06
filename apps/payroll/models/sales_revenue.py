@@ -48,6 +48,9 @@ class SalesRevenue(ColoredValueMixin, AutoCodeMixin, BaseModel):
         related_name="sales_revenues",
         verbose_name="Employee",
     )
+    kpi_target = models.BigIntegerField(
+        validators=[MinValueValidator(0)], verbose_name="KPI Target", default=50_000_000
+    )
     revenue = models.BigIntegerField(validators=[MinValueValidator(0)], verbose_name="Revenue")
     transaction_count = models.IntegerField(validators=[MinValueValidator(0)], verbose_name="Transaction count")
     month = models.DateField(db_index=True, help_text="First day of the revenue month", verbose_name="Month")
