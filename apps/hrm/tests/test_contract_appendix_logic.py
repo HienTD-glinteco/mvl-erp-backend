@@ -53,6 +53,7 @@ class TestContractAppendixLogic:
             start_date=timezone.now().date(),
             citizen_id="001001001001",
             phone="0901001001",
+            personal_email="test@example.com",
         )
 
     @pytest.fixture
@@ -138,6 +139,7 @@ class TestContractAppendixLogic:
             start_date=timezone.now().date(),
             citizen_id="002002002002",
             phone="0902002002",
+            personal_email="other@example.com",
         )
 
         # Technically the model allows different employees, but business logic might flag this.

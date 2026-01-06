@@ -96,6 +96,7 @@ def manager_employee(department):
         block=department.block,
         status=Employee.Status.ACTIVE,
         start_date=date.today(),
+        personal_email=f"manager{code}@example.com",
     )
 
     # Ensure a corresponding User exists for authentication.
@@ -126,6 +127,7 @@ def employee_with_manager(department, manager_employee):
         block=department.block,
         status=Employee.Status.ACTIVE,
         start_date=date.today(),
+        personal_email=f"employee{code}@example.com",
     )
     return employee
 
@@ -341,6 +343,7 @@ class TestManagerAssessmentViews:
             block=department.block,
             status=Employee.Status.ACTIVE,
             start_date=date(2025, 11, 15),  # Different month to avoid signal creating assessment
+            personal_email=f"othermgr{code}@example.com",
         )
 
         # Create assessment with different manager

@@ -79,6 +79,7 @@ class TestProposalVerifierModel:
             branch=branch,
             block=block,
             department=department,
+            personal_email="test.employee.verifier@example.com",
         )
 
     @pytest.fixture
@@ -210,6 +211,7 @@ class TestProposalVerifierAPI:
             branch=branch,
             block=block,
             department=department,
+            personal_email="leader.verifier@example.com",
         )
         # Set the leader properly using ForeignKey assignment
         department.leader = employee
@@ -230,6 +232,7 @@ class TestProposalVerifierAPI:
             branch=branch,
             block=block,
             department=department,
+            personal_email="test.employee.api@example.com",
         )
 
     @pytest.fixture
@@ -291,6 +294,7 @@ class TestProposalVerifierAPI:
             branch=branch,
             block=block,
             department=dept,
+            personal_email="noleader.api@example.com",
         )
         return Proposal.objects.create(
             code="DX000099",
@@ -432,6 +436,7 @@ class TestProposalVerifierAPI:
             department=department,
             citizen_id="111222333444",
             user=superuser,
+            personal_email="verifier.mine@example.com",
         )
         proposal = Proposal.objects.create(
             code="DX020001",
@@ -642,6 +647,7 @@ class TestProposalAutoAssignVerifier:
             branch=branch,
             block=block,
             department=department,
+            personal_email="leader.auto@example.com",
         )
         # Set the leader on the department
         department.leader = leader
@@ -663,6 +669,7 @@ class TestProposalAutoAssignVerifier:
             branch=department.branch,
             block=department.block,
             department=department,
+            personal_email="regular.auto@example.com",
         )
 
     @pytest.fixture
@@ -691,6 +698,7 @@ class TestProposalAutoAssignVerifier:
             branch=department_without_leader.branch,
             block=department_without_leader.block,
             department=department_without_leader,
+            personal_email="noleader.auto@example.com",
         )
 
     def test_auto_assign_department_leader_as_verifier(self, employee_with_leader, department_leader):
@@ -845,6 +853,7 @@ class TestProposalVerifierSerializerCombinedFields:
             branch=branch,
             block=block,
             department=department,
+            personal_email="test.combined@example.com",
         )
 
     @pytest.fixture
@@ -861,6 +870,7 @@ class TestProposalVerifierSerializerCombinedFields:
             branch=branch,
             block=block,
             department=department,
+            personal_email="verifier.combined@example.com",
         )
 
     def test_proposal_verifier_returns_base_proposal_fields(self, api_client, superuser, employee, verifier_employee):

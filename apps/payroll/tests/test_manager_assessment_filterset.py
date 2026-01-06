@@ -78,6 +78,7 @@ def employee2(db, branch, block, department, position):
         attendance_code=random_digits(6),
         citizen_id=random_digits(12),
         phone=f"09{random_digits(8)}",
+        personal_email=f"emp{suffix}.personal@example.com",
     )
 
 

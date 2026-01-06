@@ -76,6 +76,7 @@ class TestOSEmployeeExclusion(TestCase):
             position=self.position,
             status=Employee.Status.ACTIVE,
             start_date=timezone.now().date(),
+            personal_email="mv.personal@example.com",
         )
 
         # Create OS employee
@@ -93,6 +94,7 @@ class TestOSEmployeeExclusion(TestCase):
             position=self.position,
             status=Employee.Status.ACTIVE,
             start_date=timezone.now().date(),
+            personal_email="os.personal@example.com",
         )
 
         self.report_date = date.today()
@@ -283,6 +285,7 @@ class TestOSEmployeeExclusion(TestCase):
             position=self.position,
             status=Employee.Status.ACTIVE,
             start_date=timezone.now().date(),
+            personal_email="ctv.personal@example.com",
         )
 
         # Create work history for all three types
@@ -326,6 +329,7 @@ class TestOSEmployeeExclusion(TestCase):
             position=self.position,
             status=Employee.Status.ACTIVE,
             start_date=timezone.now().date(),
+            personal_email="ctv.personal@example.com",
         )
 
         # Create work history for all three types

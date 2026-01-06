@@ -233,6 +233,7 @@ class TestEmployeeKPIAssessmentExport:
             position=self.position,
             start_date=date(2025, 1, 1),
             phone="0912345678",
+            personal_email="emp002.personal@example.com",
         )
 
         EmployeeKPIAssessment.objects.create(
@@ -308,6 +309,7 @@ class TestEmployeeKPIAssessmentExport:
                 start_date=date(2025, 1, 1),
                 phone=f"091234567{i}",
                 citizen_id=f"12345678901{i}",
+                personal_email=f"emp00{i + 2}.personal@example.com",
             )
 
             EmployeeKPIAssessment.objects.create(

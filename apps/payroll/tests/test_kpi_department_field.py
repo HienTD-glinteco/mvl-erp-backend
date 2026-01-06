@@ -142,6 +142,7 @@ class TestDepartmentKPIAssessmentListView:
             attendance_code="123456",
             citizen_id="123456789012",
             phone="0912345678",
+            personal_email="emp1.personal@test.com",
         )
         emp2 = Employee.objects.create(
             code="EMP002",
@@ -159,6 +160,7 @@ class TestDepartmentKPIAssessmentListView:
             attendance_code="123457",
             citizen_id="123456789013",
             phone="0912345679",
+            personal_email="emp2.personal@test.com",
         )
 
         # Create department assessment
@@ -274,6 +276,7 @@ class TestDepartmentKPIAssessmentListView:
             attendance_code="123458",
             citizen_id="123456789014",
             phone="0912345680",
+            personal_email="emp3.personal@test.com",
         )
         emp2 = Employee.objects.create(
             code="EMP004",
@@ -291,6 +294,7 @@ class TestDepartmentKPIAssessmentListView:
             attendance_code="123459",
             citizen_id="123456789015",
             phone="0912345681",
+            personal_email="emp4.personal@test.com",
         )
 
         # Create department assessment
@@ -351,6 +355,7 @@ class TestDepartmentKPIAssessmentListView:
             attendance_code="123460",
             citizen_id="123456789016",
             phone="0912345682",
+            personal_email="emp5.personal@test.com",
         )
         emp2 = Employee.objects.create(
             code="EMP006",
@@ -368,6 +373,7 @@ class TestDepartmentKPIAssessmentListView:
             attendance_code="123461",
             citizen_id="123456789017",
             phone="0912345683",
+            personal_email="emp6.personal@test.com",
         )
 
         # Create department assessment

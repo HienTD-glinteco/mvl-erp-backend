@@ -60,6 +60,7 @@ class DeviceChangeProposalApprovalTestCase(TestCase):
             department=self.department,
             position=self.position,
             start_date="2024-01-01",
+            personal_email="requester@example.com",
         )
 
         # Create admin user with employee
@@ -78,6 +79,7 @@ class DeviceChangeProposalApprovalTestCase(TestCase):
             department=self.department,
             position=self.admin_position,
             start_date="2024-01-01",
+            personal_email="admin@example.com",
         )
 
         # Create existing device for requester
@@ -102,6 +104,7 @@ class DeviceChangeProposalApprovalTestCase(TestCase):
             department=self.department,
             position=self.position,
             start_date="2024-01-01",
+            personal_email="other@example.com",
         )
         self.conflicting_device_id = "device_to_reassign"
         self.other_device = UserDevice.objects.create(

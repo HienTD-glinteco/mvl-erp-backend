@@ -322,8 +322,7 @@ class Employee(ColoredValueMixin, AutoCodeMixin, BaseModel):
     )
     personal_email = models.EmailField(
         max_length=100,
-        null=True,
-        blank=True,
+        unique=True,
         verbose_name=_("Personal email"),
     )
 

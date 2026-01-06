@@ -81,6 +81,7 @@ class EmployeeFieldRestrictionsTest(TestCase):
             position=self.position,
             status=Employee.Status.ACTIVE,
             citizen_id="000000010001",
+            personal_email="testuser1.personal@example.com",
         )
 
     def test_update_restricted_field_status_raises_error(self):
@@ -182,6 +183,7 @@ class EmployeeFieldRestrictionsTest(TestCase):
                 "position_id": self.position.id,
                 "status": Employee.Status.ONBOARDING,
                 "citizen_id": "000000010002",
+                "personal_email": "newuser.personal@example.com",
             },
             format="json",
         )

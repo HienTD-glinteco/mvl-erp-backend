@@ -85,6 +85,7 @@ class TestPositionReportExclusion(TestCase):
             position=self.included_position,
             status=Employee.Status.ACTIVE,
             start_date=timezone.now().date(),
+            personal_email="included.personal@example.com",
         )
 
         # Create employee with excluded position
@@ -102,6 +103,7 @@ class TestPositionReportExclusion(TestCase):
             position=self.excluded_position,
             status=Employee.Status.ACTIVE,
             start_date=timezone.now().date(),
+            personal_email="excluded.personal@example.com",
         )
 
         self.report_date = date.today()
@@ -235,6 +237,7 @@ class TestPositionReportExclusion(TestCase):
             position=self.included_position,
             status=Employee.Status.ACTIVE,
             start_date=timezone.now().date(),
+            personal_email="another.included.personal@example.com",
         )
 
         # Create work history for all three employees
@@ -278,6 +281,7 @@ class TestPositionReportExclusion(TestCase):
             position=None,
             status=Employee.Status.ACTIVE,
             start_date=timezone.now().date(),
+            personal_email="nullposition.personal@example.com",
         )
 
         # Create work history

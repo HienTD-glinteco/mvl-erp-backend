@@ -82,6 +82,7 @@ class ReactiveMaternityLeaveEmployeesTaskTest(TestCase):
             department=self.department,
             citizen_id=citizen_id,
             phone=phone,
+            personal_email=f"personal_{email}",
         )
         # Set to maternity leave status
         employee.status = Employee.Status.MATERNITY_LEAVE
@@ -163,6 +164,7 @@ class ReactiveMaternityLeaveEmployeesTaskTest(TestCase):
             department=self.department,
             citizen_id="000000010004",
             resignation_reason="Personal reasons",
+            personal_email="personal_active@example.com",
         )
         active_employee.status = Employee.Status.ACTIVE
         active_employee.save(update_fields=["status"])
@@ -180,6 +182,7 @@ class ReactiveMaternityLeaveEmployeesTaskTest(TestCase):
             block=self.block,
             department=self.department,
             citizen_id="000000010005",
+            personal_email="personal_resigned@example.com",
         )
         resigned_employee.status = Employee.Status.RESIGNED
         resigned_employee.resignation_start_date = today - timedelta(days=30)

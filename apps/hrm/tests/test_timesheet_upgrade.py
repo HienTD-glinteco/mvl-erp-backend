@@ -80,6 +80,7 @@ def employee_with_contract(db):
         start_date=date(2023, 1, 1),
         status=Employee.Status.ACTIVE,
         employee_type=EmployeeType.OFFICIAL,
+        personal_email="mv001.personal@example.com",
     )
 
     contract_type = ContractType.objects.create(name="Full Time", code="FT")
@@ -251,6 +252,7 @@ class TestTimesheetUpgrade:
             start_date=date(2023, 1, 1),
             status=Employee.Status.ACTIVE,
             employee_type=EmployeeType.UNPAID_OFFICIAL,
+            personal_email="unpaid.personal@example.com",
         )
 
         entry = TimeSheetEntry.objects.create(employee=unpaid_emp, date=date(2023, 10, 5))

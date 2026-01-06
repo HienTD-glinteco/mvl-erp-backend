@@ -69,6 +69,7 @@ class DeviceChangeRequestTestCase(TestCase):
             department=self.department,
             position=self.position,
             start_date="2024-01-01",
+            personal_email="test@example.com",
         )
 
         # Create existing device for user
@@ -164,6 +165,7 @@ class DeviceChangeRequestTestCase(TestCase):
             department=self.department,
             position=self.position,
             start_date="2024-01-01",
+            personal_email="test2@example.com",
         )
         UserDevice.objects.create(user=user2, device_id="old_device_2", platform="android")
 

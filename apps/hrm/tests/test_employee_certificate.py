@@ -60,6 +60,7 @@ class EmployeeCertificateModelTest(TestCase):
             department=self.department,
             start_date=date(2020, 1, 1),
             citizen_id="000000020000",
+            personal_email="test@example.com",
         )
 
     def test_create_certificate_with_code(self):
@@ -406,6 +407,7 @@ class EmployeeCertificateAPITest(TestCase):
             department=self.department,
             start_date=date(2020, 1, 1),
             citizen_id="000000020001",
+            personal_email="test@example.com",
         )
 
     def get_response_data(self, response):
@@ -627,6 +629,7 @@ class EmployeeCertificateAPITest(TestCase):
             department=self.department,
             start_date=date(2020, 1, 1),
             citizen_id="000000020002",
+            personal_email="test2@example.com",
         )
 
         # Create certificates for both employees

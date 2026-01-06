@@ -222,6 +222,7 @@ def test_employee(db):
         position=position,
         start_date=date(2020, 1, 1),
         status=Employee.Status.ACTIVE,
+        personal_email="prop001.personal@example.com",
     )
     return employee
 
@@ -360,6 +361,7 @@ class TestProposalAPI:
             position=test_employee.position,
             citizen_id="999999999999",
             user=superuser,
+            personal_email="superemployee.personal@example.com",
         )
         Proposal.objects.create(
             code="DX010002",
@@ -453,6 +455,7 @@ class TestProposalAPI:
             position=test_employee.position,
             start_date=date(2020, 1, 1),
             status=Employee.Status.ACTIVE,
+            personal_email="approver002.personal@example.com",
         )
 
         proposal = Proposal.objects.create(
@@ -537,6 +540,7 @@ class TestProposalAPI:
             position=position,
             start_date=date(2020, 1, 1),
             status=Employee.Status.ACTIVE,
+            personal_email="prop_other.personal@example.com",
         )
 
         Proposal.objects.create(
@@ -596,6 +600,7 @@ class TestProposalAPI:
             position=position,
             start_date=date(2020, 1, 1),
             status=Employee.Status.ACTIVE,
+            personal_email="prop_dept.personal@example.com",
         )
 
         Proposal.objects.create(
@@ -654,6 +659,7 @@ class TestProposalAPI:
             position=position,
             start_date=date(2020, 1, 1),
             status=Employee.Status.ACTIVE,
+            personal_email="prop_branch.personal@example.com",
         )
 
         Proposal.objects.create(
@@ -712,6 +718,7 @@ class TestProposalAPI:
             position=position,
             start_date=date(2020, 1, 1),
             status=Employee.Status.ACTIVE,
+            personal_email="prop_block.personal@example.com",
         )
 
         Proposal.objects.create(
@@ -770,6 +777,7 @@ class TestProposalAPI:
             position=other_position,
             start_date=date(2020, 1, 1),
             status=Employee.Status.ACTIVE,
+            personal_email="prop_pos.personal@example.com",
         )
 
         Proposal.objects.create(
@@ -810,6 +818,7 @@ class TestProposalAPI:
             position=test_employee.position,
             start_date=date(2020, 1, 1),
             status=Employee.Status.ACTIVE,
+            personal_email="prop_approver.personal@example.com",
         )
 
         Proposal.objects.create(
@@ -887,6 +896,7 @@ class TestProposalAPI:
             position=test_employee.position,
             start_date=date(2020, 1, 1),
             status=Employee.Status.ACTIVE,
+            personal_email="prop_other_fullname.personal@example.com",
         )
 
         Proposal.objects.create(
@@ -938,6 +948,7 @@ class TestProposalAPI:
             position=test_employee.position,
             start_date=date(2020, 1, 1),
             status=Employee.Status.ACTIVE,
+            personal_email="prop_xyz.personal@example.com",
         )
 
         Proposal.objects.create(
@@ -1094,6 +1105,7 @@ class TestTimesheetEntryComplaintProposalAPI:
             position=test_employee.position,
             start_date=date(2020, 1, 1),
             status=Employee.Status.ACTIVE,
+            personal_email="approver001.personal@example.com",
         )
 
         # Grant superuser permission to bypass RoleBasedPermission checks
@@ -1181,6 +1193,7 @@ class TestTimesheetEntryComplaintProposalAPI:
             position=test_employee.position,
             start_date=date(2020, 1, 1),
             status=Employee.Status.ACTIVE,
+            personal_email="rejecter001.personal@example.com",
         )
 
         # Create a proposal

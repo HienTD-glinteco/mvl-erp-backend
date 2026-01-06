@@ -74,6 +74,7 @@ class EmployeeActionAPITest(TestCase):
             department=self.department,
             status=Employee.Status.ONBOARDING,
             citizen_id="000000010024",
+            personal_email="onboarding1@example.com",
         )
 
         self.active_employee = Employee.objects.create(
@@ -83,12 +84,13 @@ class EmployeeActionAPITest(TestCase):
             phone="6586993429",
             attendance_code="ACT001",
             date_of_birth=date(1988, 3, 5),
-            start_date=date(2019, 1, 1),
+            start_date="2024-01-01",
             branch=self.branch,
             block=self.block,
             department=self.department,
             position=self.position,
             citizen_id="000000010025",
+            personal_email="requester@example.com",
         )
         # Set status to ACTIVE using update_fields to bypass validation
         self.active_employee.status = Employee.Status.ACTIVE
@@ -534,6 +536,7 @@ class EmployeeEmailTemplateContextTest(TestCase):
             "branch": self.branch,
             "block": self.block,
             "citizen_id": f"987654{self.employee_counter:04d}",
+            "personal_email": f"employee{suffix}@example.com",
         }
         defaults.update(overrides)
         return Employee.objects.create(**defaults)
@@ -577,7 +580,7 @@ class EmployeeEmailTemplateContextTest(TestCase):
 
         self.assertEqual(
             context["new_password"],
-            "new password will be set when the email is sent",
+            "********",
         )
         employee.user.set_password.assert_not_called()
         employee.user.save.assert_not_called()

@@ -72,6 +72,7 @@ class EmployeeTypeConversionReportAPITest(TransactionTestCase):
             citizen_id="000000020211",
             attendance_code="11111",
             phone="0123456701",
+            personal_email="alice.personal@example.com",
         )
 
         self.emp2 = Employee.objects.create(
@@ -87,6 +88,7 @@ class EmployeeTypeConversionReportAPITest(TransactionTestCase):
             citizen_id="000000020212",
             attendance_code="22222",
             phone="0123456702",
+            personal_email="bob.personal@example.com",
         )
 
         # Create type-conversion work history records

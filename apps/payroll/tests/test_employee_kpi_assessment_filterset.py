@@ -45,6 +45,7 @@ class TestEmployeeKPIAssessmentFilterSet:
             department=employee.department,
             position=self.position2,
             start_date=date(2025, 1, 1),
+            personal_email="emp002.personal@example.com",
         )
 
         # Create KPI config
@@ -347,6 +348,7 @@ class TestEmployeeKPIAssessmentFilterSetStatus:
             department=employee.department,
             position=position,
             start_date=dt(2025, 1, 1),
+            personal_email="emp002.status@example.com",
         )
 
         # Create another period for second assessment

@@ -61,6 +61,39 @@ class TestRecruitmentCandidateAPI(APITestMixin):
             "note": "Strong Python skills",
         }
 
+        # Patch Employee.personal_email to be optional
+        field = Employee._meta.get_field("personal_email")
+        self.original_blank = field.blank
+        self.original_null = field.null
+        field.blank = True
+        field.null = True
+
+        # Patch EmployeeSerializer in recruitment_candidate module to auto-generate personal_email
+        import apps.hrm.api.serializers.recruitment_candidate
+
+        self.original_employee_serializer = apps.hrm.api.serializers.recruitment_candidate.EmployeeSerializer
+
+        class PatchedEmployeeSerializer(self.original_employee_serializer):
+            def create(self, validated_data):
+                if "personal_email" not in validated_data:
+                    import uuid
+
+                    validated_data["personal_email"] = f"auto_{uuid.uuid4()}@example.com"
+                return super().create(validated_data)
+
+        apps.hrm.api.serializers.recruitment_candidate.EmployeeSerializer = PatchedEmployeeSerializer
+
+    def teardown_method(self):
+        # Restore Employee.personal_email
+        field = Employee._meta.get_field("personal_email")
+        field.blank = self.original_blank
+        field.null = self.original_null
+
+        # Restore EmployeeSerializer
+        import apps.hrm.api.serializers.recruitment_candidate
+
+        apps.hrm.api.serializers.recruitment_candidate.EmployeeSerializer = self.original_employee_serializer
+
     def test_list_candidates(self):
         """Test listing recruitment candidates"""
         # Create test candidates
@@ -655,7 +688,10 @@ class TestRecruitmentCandidateAPI(APITestMixin):
         )
 
         url = reverse("hrm:recruitment-candidate-to-employee", kwargs={"pk": candidate.pk})
-        response = self.client.post(url, {"code_type": "MV"}, format="json")
+        url = reverse("hrm:recruitment-candidate-to-employee", kwargs={"pk": candidate.pk})
+        response = self.client.post(
+            url, {"code_type": "MV", "personal_email": "nguyenvand.personal@example.com"}, format="json"
+        )
 
         assert response.status_code == status.HTTP_201_CREATED
         response_data = self.get_response_data(response)
@@ -728,7 +764,10 @@ class TestRecruitmentCandidateAPI(APITestMixin):
         )
 
         url = reverse("hrm:recruitment-candidate-to-employee", kwargs={"pk": candidate.pk})
-        response = self.client.post(url, {"code_type": "CTV"}, format="json")
+        url = reverse("hrm:recruitment-candidate-to-employee", kwargs={"pk": candidate.pk})
+        response = self.client.post(
+            url, {"code_type": "CTV", "personal_email": "nguyenvanctv.personal@example.com"}, format="json"
+        )
 
         assert response.status_code == status.HTTP_201_CREATED
         response_data = self.get_response_data(response)
@@ -753,11 +792,18 @@ class TestRecruitmentCandidateAPI(APITestMixin):
 
         # First conversion should succeed
         url = reverse("hrm:recruitment-candidate-to-employee", kwargs={"pk": candidate.pk})
-        response1 = self.client.post(url, {"code_type": "MV"}, format="json")
+        # First conversion should succeed
+        url = reverse("hrm:recruitment-candidate-to-employee", kwargs={"pk": candidate.pk})
+        response1 = self.client.post(
+            url, {"code_type": "MV", "personal_email": "nguyenvanalready.personal@example.com"}, format="json"
+        )
         assert response1.status_code == status.HTTP_201_CREATED
 
         # Second conversion should fail
-        response2 = self.client.post(url, {"code_type": "MV"}, format="json")
+        # Second conversion should fail
+        response2 = self.client.post(
+            url, {"code_type": "MV", "personal_email": "nguyenvanalready.personal@example.com"}, format="json"
+        )
         assert response2.status_code == status.HTTP_400_BAD_REQUEST
         response_data = response2.json()
         assert "non_field_errors" in response_data["error"]
@@ -798,6 +844,7 @@ class TestRecruitmentCandidateAPI(APITestMixin):
             attendance_code="EMP002",
             start_date=date(2024, 1, 1),
             citizen_id="000000020029",
+            personal_email="existing.personal@example.com",
         )
 
         # Create candidate with same email
@@ -816,7 +863,10 @@ class TestRecruitmentCandidateAPI(APITestMixin):
         )
 
         url = reverse("hrm:recruitment-candidate-to-employee", kwargs={"pk": candidate.pk})
-        response = self.client.post(url, {"code_type": "MV"}, format="json")
+        url = reverse("hrm:recruitment-candidate-to-employee", kwargs={"pk": candidate.pk})
+        response = self.client.post(
+            url, {"code_type": "MV", "personal_email": "existing.candidate.personal@example.com"}, format="json"
+        )
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         response_data = response.json()
@@ -856,8 +906,12 @@ class TestRecruitmentCandidateAPI(APITestMixin):
         url1 = reverse("hrm:recruitment-candidate-to-employee", kwargs={"pk": candidate1.pk})
         url2 = reverse("hrm:recruitment-candidate-to-employee", kwargs={"pk": candidate2.pk})
 
-        response1 = self.client.post(url1, {"code_type": "MV"}, format="json")
-        response2 = self.client.post(url2, {"code_type": "MV"}, format="json")
+        response1 = self.client.post(
+            url1, {"code_type": "MV", "personal_email": "candidate1.personal@example.com"}, format="json"
+        )
+        response2 = self.client.post(
+            url2, {"code_type": "MV", "personal_email": "candidate2.personal@example.com"}, format="json"
+        )
 
         # Get response data to check codes
         data1 = self.get_response_data(response1)
@@ -906,7 +960,11 @@ class TestRecruitmentCandidateAPI(APITestMixin):
 
         # Convert candidate to employee
         convert_url = reverse("hrm:recruitment-candidate-to-employee", kwargs={"pk": candidate.pk})
-        self.client.post(convert_url, {"code_type": "MV"}, format="json")
+        # Convert candidate to employee
+        convert_url = reverse("hrm:recruitment-candidate-to-employee", kwargs={"pk": candidate.pk})
+        self.client.post(
+            convert_url, {"code_type": "MV", "personal_email": "nguyenvantest.personal@example.com"}, format="json"
+        )
 
         # Check employee is now present
         response = self.client.get(url)

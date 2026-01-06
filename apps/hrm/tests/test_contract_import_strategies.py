@@ -72,6 +72,7 @@ class TestContractImportStrategies:
             email="emp001@example.com",
             citizen_id="001001001001",
             phone="0900000001",
+            personal_email="emp001@example.com",
         )
 
         yield
@@ -283,6 +284,7 @@ class TestContractImportStrategies:
             email="emp002@example.com",
             citizen_id="002002002002",
             phone="0900000002",
+            personal_email="emp002@example.com",
         )
 
         row_no_change = [

@@ -88,6 +88,7 @@ class TestKPIAssessmentPeriodSummaryAPI:
             branch=branch,
             block=block,
             start_date=date.today(),
+            personal_email="emp1_sales.personal@example.com",
         )
         self.emp2_dept1 = Employee.objects.create(
             username="emp2_sales",
@@ -99,6 +100,7 @@ class TestKPIAssessmentPeriodSummaryAPI:
             branch=branch,
             block=block,
             start_date=date.today(),
+            personal_email="emp2_sales.personal@example.com",
         )
 
         # Create employees for dept2 (IT) - partially graded
@@ -112,6 +114,7 @@ class TestKPIAssessmentPeriodSummaryAPI:
             branch=branch,
             block=block,
             start_date=date.today(),
+            personal_email="emp1_it.personal@example.com",
         )
         self.emp2_dept2 = Employee.objects.create(
             username="emp2_it",
@@ -123,6 +126,7 @@ class TestKPIAssessmentPeriodSummaryAPI:
             branch=branch,
             block=block,
             start_date=date.today(),
+            personal_email="emp2_it.personal@example.com",
         )
 
         # Create employees for dept3 (HR) - not graded
@@ -136,6 +140,7 @@ class TestKPIAssessmentPeriodSummaryAPI:
             branch=branch,
             block=block,
             start_date=date.today(),
+            personal_email="emp1_hr.personal@example.com",
         )
 
         # Create employee assessments for dept1 - all finished
@@ -268,6 +273,7 @@ class TestKPIAssessmentPeriodSummaryAPI:
             branch=branch,
             block=block,
             start_date=date.today(),
+            personal_email="emp1_finance.personal@example.com",
         )
 
         EmployeeKPIAssessment.objects.create(

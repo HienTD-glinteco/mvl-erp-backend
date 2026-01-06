@@ -4,7 +4,7 @@ from django.conf import settings
 from django.db import transaction
 from django.utils.translation import gettext as _
 from django_filters.rest_framework import DjangoFilterBackend
-from drf_spectacular.utils import OpenApiExample, extend_schema, extend_schema_view
+from drf_spectacular.utils import OpenApiExample, OpenApiParameter, extend_schema, extend_schema_view
 from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter
 from rest_framework.response import Response
@@ -173,9 +173,7 @@ class EmployeeViewSet(
     def get_template_action_data(self, instance: Employee, template_slug: str) -> Dict[str, Any]:
         """Get context data for employee email templates."""
         new_password_condition = self.action == "welcome_email_send"
-        new_password = (
-            generate_valid_password() if new_password_condition else "new password will be set when the email is sent"
-        )
+        new_password = generate_valid_password() if new_password_condition else "********"
         if new_password_condition and instance.user:
             instance.user.set_password(new_password)
             instance.user.save()
@@ -429,6 +427,15 @@ class EmployeeViewSet(
                 },
             }
         },
+        parameters=[
+            OpenApiParameter(
+                name="use_real",
+                description="Use real data instead of sample data. Default is 0. Accepted value: 0 or 1.",
+                default="0",
+                location=OpenApiParameter.QUERY,
+                enum=["0", "1"],
+            )
+        ],
         responses={
             200: TemplatePreviewResponseSerializer,
             400: {
@@ -530,14 +537,14 @@ class EmployeeViewSet(
 
         For employees, returns a single recipient using the employee's email.
         """
-        if not instance.email:
+        if not instance.personal_email:
             from apps.mailtemplates.services import TemplateValidationError
 
             raise TemplateValidationError("Employee does not have an email address")
 
         return [
             {
-                "email": instance.email,
+                "email": instance.personal_email,
                 "data": self.get_template_action_data(
                     instance, template_slug=request.data.get("template_slug", "welcome")
                 ),

@@ -305,6 +305,7 @@ class KPIAssessmentPeriodStatisticsTest(TestCase):
             block=self.block,
             department=self.dept1,
             start_date=date(2025, 1, 1),
+            personal_email="emp1.personal@example.com",
         )
         self.emp2 = Employee.objects.create(
             username="emp2",
@@ -316,6 +317,7 @@ class KPIAssessmentPeriodStatisticsTest(TestCase):
             block=self.block,
             department=self.dept1,
             start_date=date(2025, 1, 1),
+            personal_email="emp2.personal@example.com",
         )
         self.emp3 = Employee.objects.create(
             username="emp3",
@@ -327,6 +329,7 @@ class KPIAssessmentPeriodStatisticsTest(TestCase):
             block=self.block,
             department=self.dept2,
             start_date=date(2025, 1, 1),
+            personal_email="emp3.personal@example.com",
         )
         self.emp4 = Employee.objects.create(
             username="emp4",
@@ -338,6 +341,7 @@ class KPIAssessmentPeriodStatisticsTest(TestCase):
             block=self.block,
             department=self.dept2,
             start_date=date(2025, 1, 1),
+            personal_email="emp4.personal@example.com",
         )
 
         # Create department assessments
@@ -666,6 +670,7 @@ class KPIAssessmentPeriodManagerAPITest(TestCase):
             code="MGR001",
             department=self.dept1,
             start_date=date(2025, 1, 1),
+            personal_email="manager.personal@example.com",
         )
 
         self.other_manager_employee = Employee.objects.create(
@@ -677,6 +682,7 @@ class KPIAssessmentPeriodManagerAPITest(TestCase):
             code="MGR002",
             department=self.dept2,
             start_date=date(2025, 1, 1),
+            personal_email="other_manager.personal@example.com",
         )
 
         self.employee1 = Employee.objects.create(
@@ -687,6 +693,7 @@ class KPIAssessmentPeriodManagerAPITest(TestCase):
             code="EMP001",
             department=self.dept1,
             start_date=date(2025, 1, 1),
+            personal_email="employee1.personal@example.com",
         )
 
         self.employee2 = Employee.objects.create(
@@ -697,6 +704,7 @@ class KPIAssessmentPeriodManagerAPITest(TestCase):
             code="EMP002",
             department=self.dept1,
             start_date=date(2025, 1, 1),
+            personal_email="employee2.personal@example.com",
         )
 
         self.employee3 = Employee.objects.create(
@@ -707,6 +715,7 @@ class KPIAssessmentPeriodManagerAPITest(TestCase):
             code="EMP003",
             department=self.dept2,
             start_date=date(2025, 1, 1),
+            personal_email="employee3.personal@example.com",
         )
 
         # Create KPI config

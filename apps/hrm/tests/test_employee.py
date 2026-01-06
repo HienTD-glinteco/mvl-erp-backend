@@ -207,6 +207,7 @@ class TestEmployeeModel:
             resignation_start_date=timezone.now(),
             resignation_reason="Personal reasons",
             status=Employee.Status.RESIGNED,
+            personal_email="resigned.personal@example.com",
         )
 
         old_status = employee.status
@@ -445,6 +446,7 @@ class TestEmployeeModel:
             start_date="2024-01-01",
             department=department,
             citizen_id="123456789",
+            personal_email="onboarding.fail@example.com",
         )
         employee.status = Employee.Status.ACTIVE
         employee.save(update_fields=["status"])
@@ -682,6 +684,7 @@ class TestEmployeeModel:
             department=department,
             citizen_id="111111111111",
             code_type=Employee.CodeType.MV,
+            personal_email="mv.employee@example.com",
         )
         assert employee_mv.code.startswith("MV")
 
@@ -697,6 +700,7 @@ class TestEmployeeModel:
             department=department,
             citizen_id="222222222222",
             code_type=Employee.CodeType.CTV,
+            personal_email="ctv.employee@example.com",
         )
         assert employee_ctv.code.startswith("CTV")
 
@@ -712,6 +716,7 @@ class TestEmployeeModel:
             department=department,
             citizen_id="333333333333",
             code_type=Employee.CodeType.OS,
+            personal_email="os.employee@example.com",
         )
         assert employee_os.code.startswith("OS")
 
@@ -1423,7 +1428,7 @@ class TestEmployeeAPI:
             department=department,
             citizen_id="123456792",
         )
-        assert employee.personal_email is None
+        assert employee.personal_email == ""
         assert employee.fullname == "Bob Smith"
         assert employee.email == "bob@example.com"
 
@@ -1446,8 +1451,8 @@ class TestEmployeeAPI:
         assert employee.personal_email == "alice.personal@example.com"
         assert employee.fullname == "Alice Johnson"
 
-    def test_create_multiple_employees_without_personal_email(self, branch, block, department):
-        employee1 = Employee.objects.create(
+    def test_create_multiple_employees_without_personal_email_fails(self, branch, block, department):
+        Employee.objects.create(
             fullname="Charlie Brown",
             username="charliebrown",
             email="charlie@example.com",
@@ -1460,22 +1465,19 @@ class TestEmployeeAPI:
             citizen_id="123456783",
         )
 
-        employee2 = Employee.objects.create(
-            fullname="David Green",
-            username="davidgreen",
-            email="david@example.com",
-            phone="0123456784",
-            attendance_code="12350",
-            start_date="2024-01-01",
-            branch=branch,
-            block=block,
-            department=department,
-            citizen_id="123456784",
-        )
-
-        assert employee1.personal_email is None
-        assert employee2.personal_email is None
-        assert Employee.objects.filter(personal_email__isnull=True).count() >= 2
+        with pytest.raises(IntegrityError):
+            Employee.objects.create(
+                fullname="David Green",
+                username="davidgreen",
+                email="david@example.com",
+                phone="0123456784",
+                attendance_code="12350",
+                start_date="2024-01-01",
+                branch=branch,
+                block=block,
+                department=department,
+                citizen_id="123456784",
+            )
 
     def test_is_onboarding_email_sent_default(self, branch, block, department):
         employee = Employee.objects.create(
@@ -1555,6 +1557,7 @@ class TestEmployeeFilter:
             position=leadership_position,
             is_onboarding_email_sent=True,
             citizen_id="123456789",
+            personal_email="leader1.personal@example.com",
         )
 
         staff_employee = Employee.objects.create(
@@ -1571,6 +1574,7 @@ class TestEmployeeFilter:
             position=regular_position,
             is_onboarding_email_sent=False,
             citizen_id="123456780",
+            personal_email="staff1.personal@example.com",
         )
 
         onboarding_employee = Employee.objects.create(
@@ -1587,6 +1591,7 @@ class TestEmployeeFilter:
             position=regular_position,
             is_onboarding_email_sent=True,
             citizen_id="123456781",
+            personal_email="onboarding1.personal@example.com",
         )
 
         march_birthday_employee = Employee.objects.create(
@@ -1603,6 +1608,7 @@ class TestEmployeeFilter:
             position=leadership_position,
             is_onboarding_email_sent=False,
             citizen_id="123456782",
+            personal_email="march1.personal@example.com",
         )
 
         # Link a citizen ID file to the leader employee for filter tests
@@ -1629,6 +1635,7 @@ class TestEmployeeFilter:
             position=regular_position,
             code_type=Employee.CodeType.OS,
             citizen_id="123456783",
+            personal_email="os1.personal@example.com",
         )
 
         ctv_employee = Employee.objects.create(
@@ -1645,6 +1652,7 @@ class TestEmployeeFilter:
             position=regular_position,
             code_type=Employee.CodeType.CTV,
             citizen_id="123456784",
+            personal_email="ctv1.personal@example.com",
         )
 
         return {

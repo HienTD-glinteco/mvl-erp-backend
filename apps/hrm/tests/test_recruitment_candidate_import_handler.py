@@ -240,6 +240,7 @@ class TestEntityCreation:
             branch=sample_branch,
             block=sample_block,
             department=sample_department,
+            personal_email="proposer.personal@test.com",
         )
 
         existing_request = RecruitmentRequest.objects.create(
@@ -274,6 +275,7 @@ class TestEntityCreation:
             branch=sample_branch,
             block=sample_block,
             department=sample_department,
+            personal_email="proposer.new.personal@test.com",
         )
 
         cache = {}
@@ -363,6 +365,7 @@ class TestImportHandler:
             branch=sample_branch,
             block=sample_block,
             department=sample_department,
+            personal_email="referrer.personal@test.com",
         )
         row = [
             1,

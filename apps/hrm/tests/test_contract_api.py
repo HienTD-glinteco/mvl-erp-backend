@@ -95,6 +95,7 @@ def employee(db, province, admin_unit):
         department=department,
         block=block,
         branch=branch,
+        personal_email="john.doe@test.com",
     )
 
 

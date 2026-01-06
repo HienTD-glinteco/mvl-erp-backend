@@ -75,6 +75,7 @@ class TestEmployeeExportAPI(APITestMixin):
             resignation_start_date=date(2024, 12, 1),
             resignation_reason=Employee.ResignationReason.VOLUNTARY_CAREER_CHANGE,
             citizen_id="999999999999",
+            personal_email="resigned.personal@example.com",
         )
 
         url = reverse("hrm:employee-export")
@@ -108,6 +109,7 @@ class TestEmployeeExportAPI(APITestMixin):
                 department=department,
                 status=Employee.Status.ACTIVE,
                 citizen_id=f"11111111{i:04d}",
+                personal_email=f"emp{i}@example.com",
             )
 
         url = reverse("hrm:employee-export")

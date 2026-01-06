@@ -71,6 +71,7 @@ class TestOtherAttendanceAndBulkApprove:
                 block=block,
                 department=dept,
                 attendance_code="12345",
+                personal_email=user.email,
             )
 
         return _make_employee
@@ -126,6 +127,7 @@ class TestOtherAttendanceAndBulkApprove:
             block=block,
             department=dept,
             attendance_code="99999",
+            personal_email=user.email,
         )
 
     @pytest.mark.django_db

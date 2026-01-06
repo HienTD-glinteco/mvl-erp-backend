@@ -111,6 +111,7 @@ class AttendanceExemptionAPITest(TransactionTestCase, APITestMixin):
             status=Employee.Status.ACTIVE,
             start_date=date(2024, 1, 1),
             citizen_id="001234567890",
+            personal_email="john.doe.personal@example.com",
         )
 
         self.employee2 = Employee.objects.create(
@@ -127,6 +128,7 @@ class AttendanceExemptionAPITest(TransactionTestCase, APITestMixin):
             status=Employee.Status.ACTIVE,
             start_date=date(2024, 1, 1),
             citizen_id="001234567891",
+            personal_email="jane.smith.personal@example.com",
         )
 
         # Create test exemption
@@ -223,6 +225,7 @@ class AttendanceExemptionAPITest(TransactionTestCase, APITestMixin):
             resignation_start_date=date(2024, 12, 1),
             resignation_reason=Employee.ResignationReason.VOLUNTARY_OTHER,
             citizen_id="001234567892",
+            personal_email="inactive.personal@example.com",
         )
 
         url = reverse("hrm:attendance-exemption-list")

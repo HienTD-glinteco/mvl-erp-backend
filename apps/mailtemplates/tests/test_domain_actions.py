@@ -77,6 +77,7 @@ class EmployeeEmailActionTests(TestCase):
             block=self.block,
             department=self.department,
             position=self.position,
+            personal_email="john.doe.personal@example.com",
         )
 
     def test_welcome_email_preview(self):
@@ -214,6 +215,7 @@ class InterviewScheduleEmailActionTests(TestCase):
             block=self.block,
             department=self.department,
             position=self.position,
+            personal_email="hr.personal@example.com",
         )
 
         # Create job description

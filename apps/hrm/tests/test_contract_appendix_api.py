@@ -96,6 +96,7 @@ def employee(db, province, admin_unit):
         department=department,
         block=block,
         branch=branch,
+        personal_email="john.doe@test.com",
     )
 
 
@@ -471,6 +472,7 @@ class TestContractAppendixAPI:
             department=department,
             block=block,
             branch=branch,
+            personal_email="jane.smith@test.com",
         )
         new_contract = Contract.objects.create(
             employee=new_employee,

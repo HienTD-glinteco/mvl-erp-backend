@@ -78,6 +78,7 @@ class EmployeeCitizenIdTest(TestCase):
                     block=self.block,
                     department=self.department,
                     citizen_id=citizen_id,
+                    personal_email=f"john_{citizen_id}@example.com",
                 )
                 # Provide temporary code so full_clean doesn't fail on 'code' field
                 employee.code = f"TEMP_{citizen_id}"
@@ -99,6 +100,7 @@ class EmployeeCitizenIdTest(TestCase):
                     block=self.block,
                     department=self.department,
                     citizen_id=citizen_id,
+                    personal_email=f"john_{citizen_id}@example.com",
                 )
                 with self.assertRaises(ValidationError) as context:
                     # Provide temporary code so full_clean doesn't fail on 'code' field
@@ -142,6 +144,7 @@ class EmployeeCitizenIdTest(TestCase):
             block=self.block,
             department=self.department,
             citizen_id="123456789",
+            personal_email="john@example.com",
         )
 
         # Try to create another employee with same citizen_id
@@ -157,6 +160,7 @@ class EmployeeCitizenIdTest(TestCase):
                 block=self.block,
                 department=self.department,
                 citizen_id="123456789",  # Same as first employee
+                personal_email="jane@example.com",
             )
 
     def test_valid_citizen_id(self):
@@ -172,6 +176,7 @@ class EmployeeCitizenIdTest(TestCase):
             block=self.block,
             department=self.department,
             citizen_id="123456789",
+            personal_email="john@example.com",
         )
 
         self.assertEqual(employee.citizen_id, "123456789")
@@ -223,6 +228,7 @@ class EmployeeTaxCodeTest(TestCase):
             department=self.department,
             citizen_id="123456789012",
             # tax_code not provided
+            personal_email="john@example.com",
         )
 
         self.assertEqual(employee.tax_code, "")
@@ -241,6 +247,7 @@ class EmployeeTaxCodeTest(TestCase):
             department=self.department,
             citizen_id="123456789012",
             tax_code="TAX123456",
+            personal_email="john@example.com",
         )
 
         # Try to create another employee with same tax_code
@@ -257,6 +264,7 @@ class EmployeeTaxCodeTest(TestCase):
                 department=self.department,
                 citizen_id="098765432109",
                 tax_code="TAX123456",  # Same as first employee
+                personal_email="jane@example.com",
             )
 
     def test_multiple_employees_with_empty_tax_code(self):
@@ -273,6 +281,7 @@ class EmployeeTaxCodeTest(TestCase):
             department=self.department,
             citizen_id="123456789012",
             tax_code="",  # Empty
+            personal_email="john@example.com",
         )
 
         employee2 = Employee.objects.create(
@@ -287,6 +296,7 @@ class EmployeeTaxCodeTest(TestCase):
             department=self.department,
             citizen_id="098765432109",
             tax_code="",  # Empty
+            personal_email="jane@example.com",
         )
 
         self.assertEqual(employee1.tax_code, "")
@@ -306,6 +316,7 @@ class EmployeeTaxCodeTest(TestCase):
             department=self.department,
             citizen_id="123456789012",
             tax_code="TAX123456",
+            personal_email="john@example.com",
         )
 
         self.assertEqual(employee.tax_code, "TAX123456")

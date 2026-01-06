@@ -83,6 +83,7 @@ class TestHRReportsAggregationTasks(TestCase):
             position=self.position,
             status=Employee.Status.ACTIVE,
             start_date=timezone.now(),
+            personal_email="test.personal@example.com",
         )
 
         # Create work history
@@ -323,6 +324,7 @@ class TestRecruitmentReportsAggregationTasks(TestCase):
             department=self.department,
             start_date="2023-01-01",
             citizen_id="000000020014",
+            personal_email="proposer.personal@example.com",
         )
 
         # Create recruitment request
@@ -590,6 +592,7 @@ class TestSignalIntegration(TestCase):
             position=self.position,
             status=Employee.Status.ACTIVE,
             start_date=date.today(),  # Required field
+            personal_email="test.signal.personal@example.com",
         )
 
     @patch("apps.hrm.signals.hr_reports.aggregate_hr_reports_for_work_history")
@@ -674,6 +677,7 @@ class TestSignalIntegration(TestCase):
             department=self.department,
             start_date=date.today(),
             citizen_id="000000020014",
+            personal_email="proposer.signal.personal@example.com",
         )
 
         request = RecruitmentRequest.objects.create(

@@ -78,6 +78,7 @@ class TestDepartmentAssessmentAutoUpdate:
                 branch=branch,
                 block=block,
                 start_date=date.today(),
+                personal_email=f"emp{i}.personal@example.com",
             )
             self.employees.append(emp)
 

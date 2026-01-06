@@ -67,6 +67,7 @@ class EmployeeWorkHistoryModelTest(TransactionTestCase):
             citizen_id="000000020201",
             attendance_code="12345",
             phone="0123456789",
+            personal_email="johndoe_wh.personal@example.com",
         )
 
     def test_create_work_history_auto_populates_fields(self):
@@ -220,6 +221,7 @@ class EmployeeWorkHistoryAPITest(TransactionTestCase):
             citizen_id="000000020202",
             attendance_code="12345",
             phone="0123456789",
+            personal_email="johndoe_api.personal@example.com",
         )
 
     def get_response_data(self, response):
@@ -378,6 +380,7 @@ class EmployeeWorkHistoryAPITest(TransactionTestCase):
             citizen_id="000000020203",
             attendance_code="54321",
             phone="0987654321",
+            personal_email="janesmith.personal@example.com",
         )
         EmployeeWorkHistory.objects.create(
             employee=self.employee,

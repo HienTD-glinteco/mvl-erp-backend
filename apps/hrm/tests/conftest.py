@@ -103,6 +103,7 @@ def employee(db, branch, block, department, position, user):
         department=department,
         position=position,
         citizen_id="123456789012",
+        personal_email="test.employee@example.com",
     )
 
 

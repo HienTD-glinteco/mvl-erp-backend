@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-06 13:11+0700\n"
+"POT-Creation-Date: 2026-01-06 16:23+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -626,23 +626,23 @@ msgstr "Xem danh sách nhân viên cho dạng dropdown"
 msgid "List employee for dropdown selection"
 msgstr "Danh sách nhân viên cho dạng dropdown"
 
-#: apps/hrm/api/views/employee.py:639
+#: apps/hrm/api/views/employee.py:646
 msgid "No."
 msgstr "STT"
 
-#: apps/hrm/api/views/employee.py:640
+#: apps/hrm/api/views/employee.py:647
 msgid "Employee Code"
 msgstr "Mã Nhân Viên"
 
-#: apps/hrm/api/views/employee.py:641
+#: apps/hrm/api/views/employee.py:648
 msgid "Full Name"
 msgstr "Tên đầy đủ"
 
-#: apps/hrm/api/views/employee.py:642
+#: apps/hrm/api/views/employee.py:649
 msgid "Attendance Code"
 msgstr "Mã Chấm Công"
 
-#: apps/hrm/api/views/employee.py:643
+#: apps/hrm/api/views/employee.py:650
 #: apps/hrm/models/attendance_geolocation.py:77 apps/hrm/models/employee.py:227
 #: apps/hrm/models/employee_certificate.py:170
 #: apps/hrm/models/employee_work_history.py:116 apps/hrm/models/proposal.py:806
@@ -651,29 +651,29 @@ msgstr "Mã Chấm Công"
 msgid "Status"
 msgstr "Trạng Thái"
 
-#: apps/hrm/api/views/employee.py:644
+#: apps/hrm/api/views/employee.py:651
 msgid "Start Date"
 msgstr "Ngày Bắt Đầu"
 
-#: apps/hrm/api/views/employee.py:645
+#: apps/hrm/api/views/employee.py:652
 msgid "Resignation Reason"
 msgstr "Lý Do Nghỉ Việc"
 
-#: apps/hrm/api/views/employee.py:646
+#: apps/hrm/api/views/employee.py:653
 msgid "Resignation Date"
 msgstr "Ngày Nghỉ Việc"
 
-#: apps/hrm/api/views/employee.py:647 apps/hrm/models/contract_type.py:263
+#: apps/hrm/api/views/employee.py:654 apps/hrm/models/contract_type.py:263
 msgid "Contract Type"
 msgstr "Loại Hợp Đồng"
 
-#: apps/hrm/api/views/employee.py:648 apps/hrm/models/employee.py:211
+#: apps/hrm/api/views/employee.py:655 apps/hrm/models/employee.py:211
 #: apps/hrm/models/employee_work_history.py:103
 #: apps/hrm/models/organization.py:314
 msgid "Position"
 msgstr "Chức Vụ"
 
-#: apps/hrm/api/views/employee.py:649 apps/hrm/models/attendance_report.py:39
+#: apps/hrm/api/views/employee.py:656 apps/hrm/models/attendance_report.py:39
 #: apps/hrm/models/attendance_wifi_device.py:37 apps/hrm/models/employee.py:191
 #: apps/hrm/models/employee_report.py:34 apps/hrm/models/employee_report.py:101
 #: apps/hrm/models/employee_work_history.py:76
@@ -685,7 +685,7 @@ msgstr "Chức Vụ"
 msgid "Branch"
 msgstr "Chi Nhánh"
 
-#: apps/hrm/api/views/employee.py:650 apps/hrm/models/attendance_device.py:54
+#: apps/hrm/api/views/employee.py:657 apps/hrm/models/attendance_device.py:54
 #: apps/hrm/models/attendance_report.py:47
 #: apps/hrm/models/attendance_wifi_device.py:46 apps/hrm/models/employee.py:197
 #: apps/hrm/models/employee_report.py:40 apps/hrm/models/employee_report.py:107
@@ -697,7 +697,7 @@ msgstr "Chi Nhánh"
 msgid "Block"
 msgstr "Khối"
 
-#: apps/hrm/api/views/employee.py:651 apps/hrm/models/attendance_report.py:55
+#: apps/hrm/api/views/employee.py:658 apps/hrm/models/attendance_report.py:55
 #: apps/hrm/models/employee.py:203 apps/hrm/models/employee_report.py:46
 #: apps/hrm/models/employee_report.py:113
 #: apps/hrm/models/employee_work_history.py:94
@@ -708,94 +708,94 @@ msgstr "Khối"
 msgid "Department"
 msgstr "Phòng Ban"
 
-#: apps/hrm/api/views/employee.py:652
+#: apps/hrm/api/views/employee.py:659
 #: apps/hrm/models/employee_relationship.py:127
 #: apps/hrm/models/recruitment_candidate.py:57
 msgid "Phone"
 msgstr "Số điện thoại"
 
-#: apps/hrm/api/views/employee.py:653
+#: apps/hrm/api/views/employee.py:660
 msgid "Personal Email"
 msgstr "Email cá nhân"
 
-#: apps/hrm/api/views/employee.py:654 apps/hrm/models/employee.py:184
+#: apps/hrm/api/views/employee.py:661 apps/hrm/models/employee.py:184
 #: apps/hrm/models/organization.py:22 apps/hrm/models/organization.py:68
 #: apps/hrm/models/recruitment_candidate.py:56
 msgid "Email"
 msgstr "Email"
 
-#: apps/hrm/api/views/employee.py:655
+#: apps/hrm/api/views/employee.py:662
 msgid "Bank Name"
 msgstr "Tên Ngân Hàng"
 
-#: apps/hrm/api/views/employee.py:656
+#: apps/hrm/api/views/employee.py:663
 msgid "Bank Account Number"
 msgstr "Số Tài Khoản Ngân Hàng"
 
-#: apps/hrm/api/views/employee.py:657
+#: apps/hrm/api/views/employee.py:664
 msgid "Tax Code"
 msgstr "Mã Số Thuế"
 
-#: apps/hrm/api/views/employee.py:658
+#: apps/hrm/api/views/employee.py:665
 msgid "Emergency Contact"
 msgstr "Liên Hệ Khẩn Cấp"
 
-#: apps/hrm/api/views/employee.py:659 apps/hrm/models/employee.py:258
+#: apps/hrm/api/views/employee.py:666 apps/hrm/models/employee.py:258
 msgid "Gender"
 msgstr "Giới Tính"
 
-#: apps/hrm/api/views/employee.py:660
+#: apps/hrm/api/views/employee.py:667
 msgid "Date of Birth"
 msgstr "Ngày Sinh"
 
-#: apps/hrm/api/views/employee.py:661
+#: apps/hrm/api/views/employee.py:668
 msgid "Place of Birth"
 msgstr "Nơi Sinh"
 
-#: apps/hrm/api/views/employee.py:662
+#: apps/hrm/api/views/employee.py:669
 msgid "Marital Status"
 msgstr "Tình Trạng Hôn Nhân"
 
-#: apps/hrm/api/views/employee.py:663 apps/hrm/models/employee.py:277
+#: apps/hrm/api/views/employee.py:670 apps/hrm/models/employee.py:277
 msgid "Ethnicity"
 msgstr "Dân Tộc"
 
-#: apps/hrm/api/views/employee.py:664 apps/hrm/models/employee.py:282
+#: apps/hrm/api/views/employee.py:671 apps/hrm/models/employee.py:282
 msgid "Religion"
 msgstr "Tôn giáo"
 
-#: apps/hrm/api/views/employee.py:665 apps/hrm/models/employee.py:272
+#: apps/hrm/api/views/employee.py:672 apps/hrm/models/employee.py:272
 msgid "Nationality"
 msgstr "Quốc Tịch"
 
-#: apps/hrm/api/views/employee.py:666 apps/hrm/models/employee.py:290
+#: apps/hrm/api/views/employee.py:673 apps/hrm/models/employee.py:290
 #: apps/hrm/models/employee_dependent.py:78
 #: apps/hrm/models/employee_relationship.py:99
 #: apps/hrm/models/recruitment_candidate.py:53
 msgid "Citizen ID"
 msgstr "Số CMND/CCCD"
 
-#: apps/hrm/api/views/employee.py:667
+#: apps/hrm/api/views/employee.py:674
 msgid "ID Issued Date"
 msgstr "Ngày Cấp CMND/CCCD"
 
-#: apps/hrm/api/views/employee.py:668
+#: apps/hrm/api/views/employee.py:675
 msgid "ID Issued Place"
 msgstr "Nơi Cấp CMND/CCCD"
 
-#: apps/hrm/api/views/employee.py:669
+#: apps/hrm/api/views/employee.py:676
 msgid "Residential Address"
 msgstr "Địa Chỉ Cư Trú"
 
-#: apps/hrm/api/views/employee.py:670
+#: apps/hrm/api/views/employee.py:677
 msgid "Permanent Address"
 msgstr "Địa Chỉ Thường Trú"
 
-#: apps/hrm/api/views/employee.py:671
+#: apps/hrm/api/views/employee.py:678
 msgid "Login Username"
 msgstr "Tên Đăng Nhập"
 
-#: apps/hrm/api/views/employee.py:672
+#: apps/hrm/api/views/employee.py:679
 #: apps/hrm/models/attendance_exemption.py:38
 #: apps/hrm/models/attendance_geolocation.py:79
 #: apps/hrm/models/attendance_record.py:201
@@ -2799,7 +2799,7 @@ msgstr "Kết nối thành công. Phiên bản phần mềm: %(firmware)s"
 #: apps/hrm/models/attendance_exemption.py:26
 #: apps/hrm/models/attendance_record.py:100
 #: apps/hrm/models/attendance_report.py:33 apps/hrm/models/bank_account.py:25
-#: apps/hrm/models/contract.py:98 apps/hrm/models/employee.py:394
+#: apps/hrm/models/contract.py:98 apps/hrm/models/employee.py:393
 #: apps/hrm/models/employee_certificate.py:94
 #: apps/hrm/models/employee_dependent.py:50
 #: apps/hrm/models/employee_relationship.py:54
@@ -3422,59 +3422,59 @@ msgstr "Số điện thoại phải đúng 10 chữ số"
 msgid "Phone number"
 msgstr "Số Điện Thoại"
 
-#: apps/hrm/models/employee.py:327
+#: apps/hrm/models/employee.py:326
 msgid "Personal email"
 msgstr "Email cá nhân"
 
-#: apps/hrm/models/employee.py:334
+#: apps/hrm/models/employee.py:333
 msgid "Place of birth"
 msgstr "Nơi Sinh"
 
-#: apps/hrm/models/employee.py:339
+#: apps/hrm/models/employee.py:338
 msgid "Residential address"
 msgstr "Địa Chỉ Cư Trú"
 
-#: apps/hrm/models/employee.py:344
+#: apps/hrm/models/employee.py:343
 msgid "Permanent address"
 msgstr "Địa Chỉ Thường Trú"
 
-#: apps/hrm/models/employee.py:351
+#: apps/hrm/models/employee.py:350
 msgid "Emergency contact name"
 msgstr "Liên Hệ Khẩn Cấp"
 
-#: apps/hrm/models/employee.py:356
+#: apps/hrm/models/employee.py:355
 msgid "Phone number must contain only digits"
 msgstr "Số điện thoại chỉ được chứa chữ số"
 
-#: apps/hrm/models/employee.py:357
+#: apps/hrm/models/employee.py:356
 msgid "Emergency contact phone"
 msgstr "Số Điện Thoại Liên Hệ Khẩn Cấp"
 
-#: apps/hrm/models/employee.py:367
+#: apps/hrm/models/employee.py:366
 msgid "User"
 msgstr "Người dùng"
 
-#: apps/hrm/models/employee.py:371
+#: apps/hrm/models/employee.py:370
 msgid "Is onboarding email sent"
 msgstr "Đã gửi email onboarding"
 
-#: apps/hrm/models/employee.py:381 apps/hrm/models/recruitment_candidate.py:137
+#: apps/hrm/models/employee.py:380 apps/hrm/models/recruitment_candidate.py:137
 msgid "Recruitment Candidate"
 msgstr "Ứng viên"
 
-#: apps/hrm/models/employee.py:389
+#: apps/hrm/models/employee.py:388
 msgid "Available leave days"
 msgstr "Số ngày nghỉ còn lại"
 
-#: apps/hrm/models/employee.py:395
+#: apps/hrm/models/employee.py:394
 msgid "Employees"
 msgstr "Nhân sự"
 
-#: apps/hrm/models/employee.py:447
+#: apps/hrm/models/employee.py:446
 msgid "Cannot change status back to On-boarding for an existing employee."
 msgstr "Không thể thay đổi trạng thái On-boarding cho nhân viên đã làm việc."
 
-#: apps/hrm/models/employee.py:462
+#: apps/hrm/models/employee.py:461
 msgid ""
 "Resignation start date is required when changing status to Resigned, "
 "Maternity Leave, or Unpaid Leave."
@@ -3482,11 +3482,11 @@ msgstr ""
 "Ngày bắt đầu nghỉ việc là bắt buộc khi thay đổi trạng thái thành Đã nghỉ "
 "việc, Nghỉ việc hưởng chế độ thai sản hoặc Nghỉ không lương."
 
-#: apps/hrm/models/employee.py:469
+#: apps/hrm/models/employee.py:468
 msgid "Resignation reason is required when status is Resigned."
 msgstr "Lý do nghỉ việc là bắt buộc khi trạng thái là Đã nghỉ việc."
 
-#: apps/hrm/models/employee.py:474
+#: apps/hrm/models/employee.py:473
 msgid "Resignation end date is required when status is Maternity Leave."
 msgstr ""
 "Ngày kết thúc nghỉ việc là bắt buộc khi trạng thái là Nghỉ việc hưởng chế độ "

@@ -75,6 +75,7 @@ def employee(db, organization):
         department=organization["department"],
         block=organization["block"],
         branch=organization["branch"],
+        personal_email="contract.status.personal@test.com",
     )
 
 

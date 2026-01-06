@@ -76,6 +76,7 @@ class TestEmployeeSeniorityReport(APITestMixin):
             "position": self.position,
             "start_date": start_date,
             "status": status,
+            "personal_email": f"{code.lower()}.personal@example.com",
         }
 
         # Add resignation fields if status requires them

@@ -119,6 +119,7 @@ class TestAggregateEmployeeResignedReasonForDate(TransactionTestCase):
             resignation_reason=Employee.ResignationReason.VOLUNTARY_CAREER_CHANGE,
             resignation_start_date=self.report_date,
             start_date=date(2025, 1, 1),
+            personal_email="test1.personal@example.com",
         )
 
         EmployeeWorkHistory.objects.create(
@@ -167,6 +168,7 @@ class TestAggregateEmployeeResignedReasonForDate(TransactionTestCase):
                 resignation_reason=Employee.ResignationReason.PROBATION_FAIL,
                 resignation_start_date=self.report_date,
                 start_date=date(2025, 1, 1),
+                personal_email=f"test{i + 1}.personal@example.com",
             )
 
             EmployeeWorkHistory.objects.create(
@@ -221,6 +223,7 @@ class TestAggregateEmployeeResignedReasonForDate(TransactionTestCase):
                 resignation_reason=reason,
                 resignation_start_date=self.report_date,
                 start_date=date(2025, 1, 1),
+                personal_email=f"test{i + 1}.personal@example.com",
             )
 
             EmployeeWorkHistory.objects.create(
@@ -269,6 +272,7 @@ class TestAggregateEmployeeResignedReasonForDate(TransactionTestCase):
             resignation_reason=Employee.ResignationReason.VOLUNTARY_CAREER_CHANGE,
             resignation_start_date=self.report_date,
             start_date=date(2025, 1, 1),
+            personal_email="mv.personal@example.com",
         )
 
         EmployeeWorkHistory.objects.create(
@@ -299,6 +303,7 @@ class TestAggregateEmployeeResignedReasonForDate(TransactionTestCase):
             resignation_reason=Employee.ResignationReason.PROBATION_FAIL,
             resignation_start_date=self.report_date,
             start_date=date(2025, 1, 1),
+            personal_email="os.personal@example.com",
         )
 
         EmployeeWorkHistory.objects.create(
@@ -345,6 +350,7 @@ class TestAggregateEmployeeResignedReasonForDate(TransactionTestCase):
             resignation_reason=Employee.ResignationReason.VOLUNTARY_CAREER_CHANGE,
             resignation_start_date=different_date,
             start_date=date(2025, 1, 1),
+            personal_email="test.personal@example.com",
         )
 
         # Create work history for different date
@@ -390,6 +396,7 @@ class TestAggregateEmployeeResignedReasonForDate(TransactionTestCase):
             resignation_reason=Employee.ResignationReason.VOLUNTARY_CAREER_CHANGE,
             resignation_start_date=self.report_date,
             start_date=date(2025, 1, 1),
+            personal_email="test.personal@example.com",
         )
 
         EmployeeWorkHistory.objects.create(
@@ -464,6 +471,7 @@ class TestAggregateEmployeeResignedReasonForDate(TransactionTestCase):
             resignation_reason=Employee.ResignationReason.PROBATION_FAIL,
             resignation_start_date=self.report_date,
             start_date=date(2025, 1, 1),
+            personal_email="test.personal@example.com",
         )
 
         EmployeeWorkHistory.objects.create(

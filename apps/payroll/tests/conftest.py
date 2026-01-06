@@ -109,6 +109,7 @@ def employee(db, branch, block, department, position):
         attendance_code=random_digits(6),
         citizen_id=random_digits(12),
         phone=f"09{random_digits(8)}",
+        personal_email=f"emp{suffix}.personal@example.com",
     )
 
 
@@ -324,6 +325,7 @@ def employee_ready(branch, block, department, position):
         position=position,
         start_date=date(2024, 1, 1),
         attendance_code=random_digits(6),
+        personal_email=f"emp_ready{suffix}.personal@example.com",
     )
 
 

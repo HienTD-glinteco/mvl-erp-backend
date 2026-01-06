@@ -74,6 +74,7 @@ class EmployeeRecruitmentCandidateTest(TransactionTestCase):
             department=self.department,
             start_date="2023-01-01",
             citizen_id="000000020014",
+            personal_email="proposer.personal@example.com",
         )
 
         self.recruitment_request = RecruitmentRequest.objects.create(
@@ -115,6 +116,7 @@ class EmployeeRecruitmentCandidateTest(TransactionTestCase):
             start_date="2024-02-01",
             recruitment_candidate=self.candidate,
             citizen_id="000000020015",
+            personal_email="jane.candidate.personal@example.com",
         )
 
         self.assertEqual(employee.recruitment_candidate, self.candidate)
@@ -134,6 +136,7 @@ class EmployeeRecruitmentCandidateTest(TransactionTestCase):
             department=self.department,
             start_date="2024-01-01",
             citizen_id="000000020016",
+            personal_email="john.doe.personal@example.com",
         )
 
         self.assertIsNone(employee.recruitment_candidate)
@@ -153,6 +156,7 @@ class EmployeeRecruitmentCandidateTest(TransactionTestCase):
             start_date="2024-02-01",
             recruitment_candidate=self.candidate,
             citizen_id="000000020017",
+            personal_email="jane.candidate.setnull@example.com",
         )
 
         candidate_id = self.candidate.id
@@ -176,6 +180,7 @@ class EmployeeRecruitmentCandidateTest(TransactionTestCase):
             start_date="2024-02-01",
             recruitment_candidate=self.candidate,
             citizen_id="000000020018",
+            personal_email="jane1.personal@example.com",
         )
 
         employee2 = Employee.objects.create(
@@ -191,6 +196,7 @@ class EmployeeRecruitmentCandidateTest(TransactionTestCase):
             start_date="2024-02-15",
             recruitment_candidate=self.candidate,
             citizen_id="000000020019",
+            personal_email="jane2.personal@example.com",
         )
 
         self.assertEqual(employee1.recruitment_candidate, self.candidate)

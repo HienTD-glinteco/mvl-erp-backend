@@ -160,6 +160,7 @@ class TestFixEmployeeKPIDepartmentCommand:
                 attendance_code=f"{i:06d}",
                 citizen_id=f"{i:012d}",
                 phone=f"09{i:08d}",
+                personal_email=f"emp{i}.personal@test.com",
             )
             employees.append(emp)
 
