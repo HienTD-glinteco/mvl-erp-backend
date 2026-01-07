@@ -4,7 +4,7 @@ from datetime import date, timedelta
 
 from django.db.models import Sum
 from django.utils.translation import gettext as _
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
@@ -18,6 +18,11 @@ from libs.drf.base_viewset import BaseGenericViewSet
 from libs.export_xlsx.mixins import ExportXLSXMixin
 
 
+@extend_schema_view(
+    export=extend_schema(
+        tags=["10.5.1: Sales Personnel Quality Report"],
+    ),
+)
 class SalesRevenueReportViewSet(ExportXLSXMixin, BaseGenericViewSet):
     """ViewSet for sales revenue reports.
 
@@ -148,6 +153,7 @@ class SalesRevenueReportViewSet(ExportXLSXMixin, BaseGenericViewSet):
             "Returns employee counts and percentages by month. "
             "Default: current year."
         ),
+        filters=True,
         responses={200: SalesRevenueReportChartResponseSerializer},
         tags=["10.5.1: Sales Personnel Quality Report"],
     )

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-07 01:39+0700\n"
+"POT-Creation-Date: 2026-01-07 09:39+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -322,7 +322,7 @@ msgstr "Hoàn tất kỳ đánh giá thành công"
 #: apps/payroll/api/views/salary_period.py:750
 #: apps/payroll/api/views/salary_period.py:887
 #: apps/payroll/api/views/sales_revenue.py:444
-#: apps/payroll/api/views/sales_revenue_report.py:35
+#: apps/payroll/api/views/sales_revenue_report.py:40
 #: apps/payroll/api/views/travel_expense.py:408
 msgid "Payroll"
 msgstr "Bảng lương"
@@ -524,70 +524,70 @@ msgstr "Nhập dữ liệu doanh thu bán hàng không đồng bộ"
 msgid "Cannot delete sales revenue for a month with existing payroll."
 msgstr "Không thể xóa doanh thu bán hàng cho một tháng đã có bảng lương."
 
-#: apps/payroll/api/views/sales_revenue_report.py:36
+#: apps/payroll/api/views/sales_revenue_report.py:41
 #: apps/payroll/models/sales_revenue_report.py:116
 msgid "Sales Revenue Reports"
 msgstr "Báo cáo doanh thu bán hàng"
 
-#: apps/payroll/api/views/sales_revenue_report.py:41
+#: apps/payroll/api/views/sales_revenue_report.py:46
 msgid "View sales revenue quality reports"
 msgstr "Xem báo cáo chất lượng doanh thu bán hàng"
 
-#: apps/payroll/api/views/sales_revenue_report.py:42
+#: apps/payroll/api/views/sales_revenue_report.py:47
 msgid "View list of sales revenue quality reports"
 msgstr "Xem danh sách báo cáo chất lượng doanh thu bán hàng"
 
-#: apps/payroll/api/views/sales_revenue_report.py:45
+#: apps/payroll/api/views/sales_revenue_report.py:50
 msgid "View sales revenue chart"
 msgstr "Xem biểu đồ doanh thu bán hàng"
 
-#: apps/payroll/api/views/sales_revenue_report.py:46
+#: apps/payroll/api/views/sales_revenue_report.py:51
 msgid "View sales revenue chart data for dashboard"
 msgstr "Xem dữ liệu biểu đồ doanh thu bán hàng cho bảng điều khiển"
 
-#: apps/payroll/api/views/sales_revenue_report.py:49
+#: apps/payroll/api/views/sales_revenue_report.py:54
 msgid "Export sales revenue quality reports"
 msgstr "Xuất báo cáo chất lượng doanh thu bán hàng"
 
-#: apps/payroll/api/views/sales_revenue_report.py:50
+#: apps/payroll/api/views/sales_revenue_report.py:55
 msgid "Export sales revenue quality reports to file"
 msgstr "Xuất báo cáo chất lượng doanh thu bán hàng ra file"
 
-#: apps/payroll/api/views/sales_revenue_report.py:131
+#: apps/payroll/api/views/sales_revenue_report.py:136
 msgid "KPI Target"
 msgstr "Chỉ tiêu KPI"
 
-#: apps/payroll/api/views/sales_revenue_report.py:132
+#: apps/payroll/api/views/sales_revenue_report.py:137
 msgid "Total Revenue"
 msgstr "Tổng doanh thu"
 
-#: apps/payroll/api/views/sales_revenue_report.py:133
-#: apps/payroll/api/views/sales_revenue_report.py:192
+#: apps/payroll/api/views/sales_revenue_report.py:138
+#: apps/payroll/api/views/sales_revenue_report.py:198
 msgid "Employees with Revenue"
 msgstr "Nhân viên có doanh thu"
 
-#: apps/payroll/api/views/sales_revenue_report.py:134
+#: apps/payroll/api/views/sales_revenue_report.py:139
 msgid "Total Sales Employees"
 msgstr "Tổng số nhân viên kinh doanh"
 
-#: apps/payroll/api/views/sales_revenue_report.py:135
+#: apps/payroll/api/views/sales_revenue_report.py:140
 msgid "Revenue vs Target (%)"
 msgstr "Doanh thu so với chỉ tiêu (%)"
 
-#: apps/payroll/api/views/sales_revenue_report.py:136
+#: apps/payroll/api/views/sales_revenue_report.py:141
 msgid "Employee with Revenue (%)"
 msgstr "Tỷ lệ nhân viên có doanh thu (%)"
 
-#: apps/payroll/api/views/sales_revenue_report.py:137
+#: apps/payroll/api/views/sales_revenue_report.py:142
 msgid "Average Revenue per Employee"
 msgstr "Doanh thu trung bình mỗi nhân viên"
 
-#: apps/payroll/api/views/sales_revenue_report.py:192
+#: apps/payroll/api/views/sales_revenue_report.py:198
 #: apps/payroll/models/salary_period.py:93
 msgid "Total Employees"
 msgstr "Tổng số nhân viên"
 
-#: apps/payroll/api/views/sales_revenue_report.py:208
+#: apps/payroll/api/views/sales_revenue_report.py:214
 #: apps/payroll/models/penalty_ticket.py:55
 #: apps/payroll/models/recovery_voucher.py:65
 #: apps/payroll/models/salary_period.py:69
@@ -595,7 +595,7 @@ msgstr "Tổng số nhân viên"
 msgid "Month"
 msgstr "Tháng"
 
-#: apps/payroll/api/views/sales_revenue_report.py:216
+#: apps/payroll/api/views/sales_revenue_report.py:222
 msgid "Sales Revenue Quality Report"
 msgstr "Báo cáo chất lượng doanh thu bán hàng"
 

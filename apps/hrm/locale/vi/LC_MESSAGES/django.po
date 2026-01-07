@@ -1052,6 +1052,7 @@ msgstr "Cập nhật người phỏng vấn cho {model_name}"
 msgid ""
 "This interview schedule has been sent to candidates so it cannot be deleted."
 msgstr "Lịch phỏng vấn này đã được gửi cho ứng viên, không thể xoá."
+
 #: apps/hrm/api/views/manager_dashboard.py:23
 msgid "Dashboard"
 msgstr ""
