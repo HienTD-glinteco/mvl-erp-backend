@@ -23,6 +23,7 @@ class AttendanceRecordFilterSet(django_filters.FilterSet):
             "timestamp_before",
             "date",
             "is_valid",
+            "approve_status",
             "attendance_geolocation",
             "attendance_wifi_device",
             "is_pending",

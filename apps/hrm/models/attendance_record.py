@@ -181,6 +181,13 @@ class AttendanceRecord(ColoredValueMixin, AutoCodeMixin, BaseModel):
         verbose_name=_("Is pending"),
         help_text="Whether this attendance record is pending approval",
     )
+    approve_status = models.CharField(
+        max_length=20,
+        choices=ApproveStatus.choices,
+        default=ApproveStatus.APPROVED,
+        verbose_name=_("Approve status"),
+        help_text="Approval status of this attendance record",
+    )
     approved_at = models.DateTimeField(
         null=True,
         blank=True,
@@ -213,22 +220,6 @@ class AttendanceRecord(ColoredValueMixin, AutoCodeMixin, BaseModel):
         if self.employee:
             return f"{self.employee.fullname} - {self.timestamp}"
         return f"{self.attendance_code} - {self.timestamp}"
-
-    @property
-    def approve_status(self):
-        """Get approval status based on is_pending and is_valid flags.
-
-        Logic:
-        - If is_pending is True -> PENDING
-        - If is_valid is True -> APPROVED
-        - Else (is_valid is False/None) -> REJECTED
-        """
-        if self.is_pending:
-            return self.ApproveStatus.PENDING
-        elif self.is_valid:
-            return self.ApproveStatus.APPROVED
-        else:
-            return self.ApproveStatus.REJECTED
 
     @property
     def colored_approve_status(self):

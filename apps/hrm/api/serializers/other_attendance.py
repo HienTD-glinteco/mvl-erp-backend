@@ -43,6 +43,7 @@ class OtherAttendanceSerializer(FileConfirmSerializerMixin, serializers.ModelSer
             attendance_type=AttendanceType.OTHER,
             is_pending=True,
             is_valid=None,  # Explicitly None as per requirement
+            approve_status=AttendanceRecord.ApproveStatus.PENDING,
         )
         return attrs
 
@@ -65,6 +66,10 @@ class OtherAttendanceBulkApproveSerializer(serializers.Serializer):
         note = self.validated_data.get("note", "")
         request = self.context.get("request")
 
+        approve_status = (
+            AttendanceRecord.ApproveStatus.APPROVED if is_approve else AttendanceRecord.ApproveStatus.REJECTED
+        )
+
         # Get employee from user
         try:
             approver = request.user.employee
@@ -79,6 +84,7 @@ class OtherAttendanceBulkApproveSerializer(serializers.Serializer):
             update_fields = {
                 "is_valid": is_approve,
                 "is_pending": False,
+                "approve_status": approve_status,
                 "approved_at": timezone.now(),
                 "approved_by": approver,
             }

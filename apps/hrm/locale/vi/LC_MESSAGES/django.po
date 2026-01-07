@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-07 12:22+0700\n"
+"POT-Creation-Date: 2026-01-07 14:06+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -184,10 +184,8 @@ msgstr ""
 "thai sản."
 
 #: apps/hrm/api/serializers/employee.py:690
-#, fuzzy
-#| msgid "Maternity leave end date"
 msgid "Maternity leave ended, employee returned to work."
-msgstr "Ngày kết thúc nghỉ việc hưởng chế độ thai sản"
+msgstr "Ngày kết thúc nghỉ thai sản, nhân viên trở lại làm việc."
 
 #: apps/hrm/api/serializers/employee.py:780
 #: apps/hrm/import_handlers/employee.py:1203
@@ -356,7 +354,7 @@ msgstr ""
 "Nhân viên không thể vừa là trưởng phòng vừa là cấp dưới trong cùng một hệ "
 "thống phân cấp."
 
-#: apps/hrm/api/serializers/other_attendance.py:59
+#: apps/hrm/api/serializers/other_attendance.py:60
 msgid "No valid 'Other' attendance records found for the provided IDs."
 msgstr "Không tìm thấy log chấm công Khác hợp lệ cho các IDs được cung cấp."
 
@@ -845,7 +843,7 @@ msgstr "Tên Đăng Nhập"
 #: apps/hrm/api/views/employee.py:679
 #: apps/hrm/models/attendance_exemption.py:38
 #: apps/hrm/models/attendance_geolocation.py:79
-#: apps/hrm/models/attendance_record.py:201
+#: apps/hrm/models/attendance_record.py:208
 #: apps/hrm/models/attendance_wifi_device.py:61
 #: apps/hrm/models/employee_certificate.py:149 apps/hrm/models/holiday.py:23
 #: apps/hrm/models/holiday.py:75
@@ -3055,15 +3053,19 @@ msgstr "Còn hiệu lực"
 msgid "Is pending"
 msgstr "Đang chờ"
 
-#: apps/hrm/models/attendance_record.py:187 apps/hrm/models/proposal.py:72
+#: apps/hrm/models/attendance_record.py:188
+msgid "Approve status"
+msgstr "Trạng thái duyệt"
+
+#: apps/hrm/models/attendance_record.py:194 apps/hrm/models/proposal.py:72
 msgid "Approved at"
 msgstr "Đã duyệt lúc"
 
-#: apps/hrm/models/attendance_record.py:196 apps/hrm/models/proposal.py:67
+#: apps/hrm/models/attendance_record.py:203 apps/hrm/models/proposal.py:67
 msgid "Approved by"
 msgstr "Đã duyệt bởi"
 
-#: apps/hrm/models/attendance_record.py:207
+#: apps/hrm/models/attendance_record.py:214
 msgid "Raw data"
 msgstr "Đữ liệu thô"
 
