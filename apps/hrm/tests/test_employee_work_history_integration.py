@@ -187,7 +187,7 @@ class EmployeeWorkHistoryIntegrationTest(TransactionTestCase):
         self.assertEqual(work_history.status, Employee.Status.ACTIVE)
 
     def test_update_employee_position_creates_work_history(self):
-        """Test that updating employee position creates a work history record."""
+        """Test that updating only employee position creates a CHANGE_POSITION work history record."""
         # Arrange - Create employee
         employee = Employee.objects.create(
             fullname="John Doe",
@@ -208,7 +208,7 @@ class EmployeeWorkHistoryIntegrationTest(TransactionTestCase):
         # Clear the initial work history
         EmployeeWorkHistory.objects.all().delete()
 
-        # Act - Update position using transfer action
+        # Act - Update only position (department stays the same) using transfer action
         url = reverse("hrm:employee-transfer", kwargs={"pk": employee.pk})
         response = self.client.post(
             url,
@@ -229,8 +229,8 @@ class EmployeeWorkHistoryIntegrationTest(TransactionTestCase):
         self.assertEqual(work_histories.count(), 1)
 
         work_history = work_histories.first()
-        # Transfer action always creates TRANSFER event type
-        self.assertEqual(work_history.name, EmployeeWorkHistory.EventType.TRANSFER)
+        # When only position changes (department stays same), event type is CHANGE_POSITION
+        self.assertEqual(work_history.name, EmployeeWorkHistory.EventType.CHANGE_POSITION)
         self.assertIn("Senior Developer", work_history.detail)
         self.assertIn("HR Manager", work_history.detail)
 

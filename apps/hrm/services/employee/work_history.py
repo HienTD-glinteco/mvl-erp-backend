@@ -158,6 +158,10 @@ def create_transfer_event(
         "department_id": old_department.id if old_department else None,
     }
 
+    event_name = EmployeeWorkHistory.EventType.TRANSFER
+    if old_department == new_department and old_position != new_position:
+        event_name = EmployeeWorkHistory.EventType.CHANGE_POSITION
+
     if old_position != new_position and new_position is not None:
         old_pos_name = old_position.name if old_position else _("None")
         new_pos_name = new_position.name if new_position else _("None")
@@ -172,7 +176,7 @@ def create_transfer_event(
 
     return EmployeeWorkHistory.objects.create(
         employee=employee,
-        name=EmployeeWorkHistory.EventType.TRANSFER,
+        name=event_name,
         date=effective_date,
         note=note or "",
         detail=detail,

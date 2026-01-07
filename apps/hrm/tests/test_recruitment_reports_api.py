@@ -547,7 +547,7 @@ class TestRecruitmentReportsAPI(APITestMixin):
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
     def test_hired_candidate_report_week_aggregation_no_data(self):
-        """Test hired candidate report with weekly aggregation shows week columns even with no data"""
+        """Test hired candidate report with weekly aggregation shows only Total when no data exists"""
         # Arrange: No data created - ensure no reports exist for the date range
         # Using a future date range to guarantee no data
         start_date = date(2030, 1, 1)
@@ -564,21 +564,20 @@ class TestRecruitmentReportsAPI(APITestMixin):
             },
         )
 
-        # Assert: Verify response has week labels even with no data
+        # Assert: Verify response - no week labels when no data (only Total)
         assert response.status_code == status.HTTP_200_OK
         data = self.get_response_data(response)
         assert "period_type" in data
         assert data["period_type"] == "week"
         assert "labels" in data
 
-        # Should have week labels for the date range plus Total
+        # When no data exists, only "Total" label is shown (week columns derived from DB data)
         labels = data["labels"]
-        assert len(labels) >= 2  # At least one week label + Total
-        assert "Total" in labels
+        assert labels == ["Total"]
 
         # Check data structure still has 3 source types with 0 values
         assert "data" in data
         assert len(data["data"]) == 3  # 3 source type groups per SRS
         for source_data in data["data"]:
-            # All statistics should be zeros
-            assert all(stat == 0 for stat in source_data["statistics"])
+            # All statistics should be zeros (just the Total column)
+            assert source_data["statistics"] == [0]

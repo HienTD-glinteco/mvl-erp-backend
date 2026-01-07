@@ -1,5 +1,4 @@
 from collections import defaultdict
-from datetime import timedelta
 from decimal import Decimal
 
 from django.db.models import Sum
@@ -17,7 +16,7 @@ from apps.hrm.models import (
     RecruitmentSourceReport,
     StaffGrowthReport,
 )
-from apps.hrm.utils import get_current_month_range, get_current_week_range, get_week_key_from_date
+from apps.hrm.utils import get_current_month_range, get_current_week_range
 from libs.drf.base_viewset import BaseGenericViewSet
 
 from ..serializers.recruitment_reports import (
@@ -702,11 +701,6 @@ class RecruitmentReportsViewSet(BaseGenericViewSet):
         return months_set, months_list
 
     def _get_periods_and_labels(self, period_type, start_date, end_date, raw_stats):
-        periods_set = set()
-        for item in raw_stats:
-            if item["key"]:
-                periods_set.add(item["key"])
-
         if period_type == ReportPeriodType.MONTH.value:
             # Month keys are the same for lookup and display
             periods = []
@@ -719,21 +713,33 @@ class RecruitmentReportsViewSet(BaseGenericViewSet):
                     cur = cur.replace(month=cur.month + 1)
             period_keys = periods  # Same for months
         else:
-            # For week period, generate all weeks in the date range
-            # Week key format stored in DB: "Week {iso_week} - MM/YYYY" (English)
-            period_keys = []  # English keys for lookup in stats
-            periods = []  # Translated keys for display
-            seen_week_keys = set()
-            # Start from Monday of the week containing start_date
-            cur = start_date - timedelta(days=start_date.weekday())
-            while cur <= end_date:
-                week_key = get_week_key_from_date(cur)
-                if week_key not in seen_week_keys:
-                    seen_week_keys.add(week_key)
-                    period_keys.append(week_key)
-                    translated_key = week_key.replace("Week", str(_("Week")))
-                    periods.append(translated_key)
-                cur += timedelta(weeks=1)
+            # For week period, use week_key values from database data (already filtered by report_date)
+            # This ensures we only show weeks that have data within the filtered date range
+            periods_set = set()
+            for item in raw_stats:
+                if item["key"]:
+                    periods_set.add(item["key"])
+
+            # Sort week keys chronologically
+            # Week key format: "Week W - MM/YYYY"
+            def week_key_sort(key):
+                # Extract week number and month/year from key
+                # Format: "Week W - MM/YYYY"
+                parts = key.split(" - ")
+                if len(parts) == 2:
+                    week_part = parts[0].replace("Week ", "").strip()
+                    month_year = parts[1]
+                    try:
+                        week_num = int(week_part)
+                        month, year = month_year.split("/")
+                        return (int(year), int(month), week_num)
+                    except (ValueError, IndexError):
+                        return (0, 0, 0)
+                return (0, 0, 0)
+
+            period_keys = sorted(periods_set, key=week_key_sort)
+            # Translate keys for display
+            periods = [key.replace("Week", str(_("Week"))) for key in period_keys]
 
         period_labels = periods + [_("Total")]
         return period_keys, periods, period_labels

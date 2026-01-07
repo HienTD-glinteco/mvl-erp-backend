@@ -723,6 +723,11 @@ class EmployeeTransferActionSerializer(EmployeeDecisionMixin, serializers.Serial
         self.employee.position = position
         self.employee_update_fields.extend(["department", "position", "block", "branch"])
 
+        if department == self.old_department and position == self.old_position:
+            raise serializers.ValidationError(
+                {"non_field_errors": _("At least department or position must be different from the current ones.")}
+            )
+
         # Validate using model's clean method
         try:
             self.employee.clean()
