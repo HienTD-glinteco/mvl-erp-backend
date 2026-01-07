@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-07 09:57+0700\n"
+"POT-Creation-Date: 2026-01-07 10:36+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -5011,11 +5011,11 @@ msgstr "Chỉnh sửa thủ công lúc"
 msgid "Timesheets"
 msgstr "Bảng chấm công"
 
-#: apps/hrm/models/timesheet.py:334
+#: apps/hrm/models/timesheet.py:330
 msgid "Paid"
 msgstr "Có lương"
 
-#: apps/hrm/models/timesheet.py:336
+#: apps/hrm/models/timesheet.py:332
 msgid "Unpaid"
 msgstr "Không lương"
 

@@ -415,3 +415,85 @@ class TestTimesheetCalculatorV2:
         # When finalized, status should be ABSENT
         calc.compute_status(is_finalizing=True)
         assert entry.status == TimesheetStatus.ABSENT
+
+    def test_single_punch_late_minutes(self, employee, work_schedule):
+        """Verify that a single punch (start_time only) still calculates late minutes correctly."""
+        d = date(2023, 1, 2)
+        # Schedule: 08:00 - 17:30.
+        # Check-in at 08:30 (30 mins late)
+        entry = TimeSheetEntry.objects.create(
+            employee=employee,
+            date=d,
+            check_in_time=combine_datetime(d, time(8, 30)),
+            is_manually_corrected=True,
+            start_time=combine_datetime(d, time(8, 30)),
+            # end_time is None
+        )
+
+        calc = TimesheetCalculator(entry)
+        calc.compute_all(is_finalizing=False)
+
+        assert entry.late_minutes == 30
+        assert entry.is_punished is True
+        assert entry.status == TimesheetStatus.NOT_ON_TIME
+
+    def test_single_punch_early_minutes(self, employee, work_schedule):
+        """Verify that a single punch (end_time only) calculates early minutes correctly."""
+        d = date(2023, 1, 2)
+        # Schedule: 08:00 - 17:30.
+        # Check-out at 17:00 (30 mins early)
+        entry = TimeSheetEntry.objects.create(
+            employee=employee,
+            date=d,
+            # check_in_time/start_time is None
+            check_out_time=combine_datetime(d, time(17, 0)),
+            is_manually_corrected=True,
+            end_time=combine_datetime(d, time(17, 0)),
+        )
+
+        calc = TimesheetCalculator(entry)
+        calc.compute_all(is_finalizing=False)
+
+        assert entry.early_minutes == 30
+        assert entry.is_punished is True
+        # Note: If start time is missing, and we only have end time, logic might treat this as Single Punch status
+        # but until finalized, it shows punish status if is_punished=True.
+        # Current logic: status = NOT_ON_TIME if is_punished else ON_TIME
+        assert entry.status == TimesheetStatus.NOT_ON_TIME
+
+    def test_partial_leave_boundary_shift_lateness(self, employee, work_schedule):
+        """Verify that Morning Leave shifts the expected start time to Afternoon Start.
+        If employee is late for Afternoon Start, they should be punished.
+        """
+        d = date(2023, 1, 2)
+        # Create Morning Leave (08:00-12:00 excused)
+        Proposal.objects.create(
+            created_by=employee,
+            proposal_type=ProposalType.PAID_LEAVE,
+            proposal_status=ProposalStatus.APPROVED,
+            paid_leave_shift=ProposalWorkShift.MORNING,
+            paid_leave_start_date=d,
+            paid_leave_end_date=d,
+        )
+
+        # Employee arrives at 14:00.
+        # Afternoon starts at 13:30.
+        # Late: 30 minutes.
+        entry = TimeSheetEntry.objects.create(
+            employee=employee,
+            date=d,
+            check_in_time=combine_datetime(d, time(14, 0)),
+            check_out_time=combine_datetime(d, time(17, 30)),
+            is_manually_corrected=True,
+            start_time=combine_datetime(d, time(14, 0)),
+            end_time=combine_datetime(d, time(17, 30)),
+        )
+
+        calc = TimesheetCalculator(entry)
+        calc.compute_all(is_finalizing=False)
+
+        # Old logic might set late_minutes=0 because "Morning Leave" exists.
+        # New logic should shift expected start to 13:30, calculate 30 mins late.
+        assert entry.late_minutes == 30
+        assert entry.is_punished is True
+        assert entry.status == TimesheetStatus.NOT_ON_TIME

@@ -265,12 +265,22 @@ class TimesheetCalculator:
     # ---------------------------------------------------------------------------
 
     def calculate_penalties(self) -> None:
-        """Calculate late/early minutes and determine punishment status."""
+        """Calculate late/early minutes and determine punishment status.
+
+        Supports single punch scenarios:
+        - If only start_time exists: calculate late_minutes only
+        - If only end_time exists: calculate early_minutes only
+        - If both exist: calculate both late_minutes and early_minutes
+
+        Also accounts for Partial Leaves (Morning/Afternoon) by adjusting the
+        expected schedule boundaries.
+        """
         self.entry.late_minutes = 0
         self.entry.early_minutes = 0
         self.entry.is_punished = False
 
-        if not self.entry.start_time or not self.entry.end_time:
+        # Need at least one punch to calculate penalties
+        if not self.entry.start_time and not self.entry.end_time:
             return
 
         if not self.work_schedule:
@@ -278,55 +288,71 @@ class TimesheetCalculator:
 
         morning_start, morning_end, afternoon_start, afternoon_end = self._get_schedule_times()
 
-        # Simple heuristic:
-        # Start time should be compared to the earliest session start.
-        # End time should be compared to the latest session end.
+        # 1. Determine Grace Period from Snapshot (or default)
+        grace_period = self.entry.allowed_late_minutes or 0
+
+        # 2. Determine Adjusted Schedule Boundaries based on Leave Proposals
+        sched_start, sched_end = self._determine_adjusted_schedule_boundaries(
+            morning_start, morning_end, afternoon_start, afternoon_end
+        )
+
+        late_min = 0
+        early_min = 0
+
+        # 3. Calculate Minutes based on Adjusted Boundaries
+
+        # Calculate late minutes if start_time exists and we have an expected start
+        if self.entry.start_time and sched_start:
+            check_in = self.entry.start_time
+            # Late: check_in > sched_start
+            late_sec = max(0.0, (check_in - sched_start).total_seconds())
+            late_min = int(late_sec // 60)
+            self.entry.late_minutes = late_min
+
+        # Calculate early minutes if end_time exists and we have an expected end
+        if self.entry.end_time and sched_end:
+            check_out = self.entry.end_time
+            # Early: check_out < sched_end
+            early_sec = max(0.0, (sched_end - check_out).total_seconds())
+            early_min = int(early_sec // 60)
+            self.entry.early_minutes = early_min
+
+        # 4. Determine Punishment
+        if (late_min + early_min) > grace_period:
+            self.entry.is_punished = True
+
+    def _determine_adjusted_schedule_boundaries(self, morning_start, morning_end, afternoon_start, afternoon_end):
+        """Determine effective schedule start/end based on leave proposals."""
+        # Check for Leave Proposals
+        proposals = Proposal.get_active_leave_proposals(self.entry.employee_id, self.entry.date)
+        has_morning_leave = any(p.is_morning_leave for p in proposals)
+        has_afternoon_leave = any(p.is_afternoon_leave for p in proposals)
+
+        # Baseline Schedule Boundaries
         sched_start = morning_start or afternoon_start
         sched_end = afternoon_end or morning_end
 
-        if not sched_start or not sched_end:
-            return
+        # Adjust Start Boundary (Expected Check-in)
+        if has_morning_leave:
+            # If Morning is excused, expected start shifts to Afternoon
+            sched_start = afternoon_start
 
-        # Calculate Minutes
-        check_in = self.entry.start_time
-        check_out = self.entry.end_time
+        if has_afternoon_leave and sched_start == afternoon_start:
+            # If Afternoon is ALSO excused (and we were expecting to start then),
+            # then we have NO expected start time.
+            sched_start = None
 
-        # Late: check_in > sched_start
-        late_sec = max(0.0, (check_in - sched_start).total_seconds())
-        late_min = int(late_sec // 60)
+        # Adjust End Boundary (Expected Check-out)
+        if has_afternoon_leave:
+            # If Afternoon is excused, expected end shifts to Morning
+            sched_end = morning_end
 
-        # Early: check_out < sched_end
-        early_sec = max(0.0, (sched_end - check_out).total_seconds())
-        early_min = int(early_sec // 60)
+        if has_morning_leave and sched_end == morning_end:
+            # If Morning is ALSO excused (and we were expecting to end then),
+            # then we have NO expected end time.
+            sched_end = None
 
-        self.entry.late_minutes = late_min
-        self.entry.early_minutes = early_min
-
-        # 1. Excuse Penalties based on Partial Leaves (from Proposals)
-        # We check both late_min and early_min separately
-        if late_min > 0 or early_min > 0:
-            proposals = Proposal.get_active_leave_proposals(self.entry.employee_id, self.entry.date)
-            for p in proposals:
-                # Morning Leave excuses lateness
-                if p.is_morning_leave:
-                    late_min = 0
-                # Afternoon Leave excuses early leaving
-                if p.is_afternoon_leave:
-                    early_min = 0
-
-            self.entry.late_minutes = late_min
-            self.entry.early_minutes = early_min
-
-        # Determine Grace Period from Snapshot
-        grace_period = self.entry.allowed_late_minutes or 0
-
-        # Note: Previous logic for checking proposals (POST_MATERNITY_BENEFITS, LATE_EXEMPTION)
-        # is now moved to TimesheetSnapshotService.snapshot_allowed_late_minutes.
-        # So we simply use the value on the entry.
-
-        self.entry.is_punished = False
-        if (late_min + early_min) > grace_period:
-            self.entry.is_punished = True
+        return sched_start, sched_end
 
     # ---------------------------------------------------------------------------
     # Status & Working Days
@@ -334,8 +360,6 @@ class TimesheetCalculator:
 
     def compute_status(self, is_finalizing: bool = False) -> None:
         """Compute status: ABSENT, SINGLE_PUNCH, ON_TIME, NOT_ON_TIME."""
-        from apps.hrm.services.timesheet_snapshot_service import TimesheetSnapshotService
-
         # 0. Support for direct calls (tests): ensure snapshot and penalties are run
         snapshot_service = TimesheetSnapshotService()
         snapshot_service.snapshot_data(self.entry)
