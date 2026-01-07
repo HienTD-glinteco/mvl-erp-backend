@@ -10,7 +10,6 @@ from rest_framework.response import Response
 
 from apps.payroll.api.serializers import (
     KPIAssessmentPeriodFinalizeResponseSerializer,
-    KPIAssessmentPeriodGenerateResponseSerializer,
     KPIAssessmentPeriodGenerateSerializer,
     KPIAssessmentPeriodSerializer,
     KPIAssessmentPeriodSummarySerializer,
@@ -21,11 +20,7 @@ from apps.payroll.models import (
     KPIAssessmentPeriod,
     KPIConfig,
 )
-from apps.payroll.utils import (
-    generate_department_assessments_for_period,
-    generate_employee_assessments_for_period,
-    update_department_assessment_status,
-)
+from apps.payroll.utils import update_department_assessment_status
 from libs import BaseReadOnlyModelViewSet
 from libs.drf.filtersets.search import PhraseSearchFilter
 
@@ -184,12 +179,23 @@ from libs.drf.filtersets.search import PhraseSearchFilter
         tags=["8.6: KPI Assessment Periods"],
     ),
     generate=extend_schema(
-        summary="Generate KPI assessments for a month",
-        description="Generate employee and department KPI assessments for the specified month. Creates a new period if it doesn't exist. Only allows creating periods for current or past months.",
+        summary="Generate KPI assessments for a month (async)",
+        description=(
+            "Generate employee and department KPI assessments for the specified month asynchronously. "
+            "Creates a new period if it doesn't exist. Only allows creating periods for current or past months.\n\n"
+            "Returns a task_id that can be used to check the generation progress via the task-status endpoint."
+        ),
         tags=["8.6: KPI Assessment Periods"],
         request=KPIAssessmentPeriodGenerateSerializer,
         responses={
-            201: KPIAssessmentPeriodGenerateResponseSerializer,
+            202: {
+                "type": "object",
+                "properties": {
+                    "task_id": {"type": "string"},
+                    "status": {"type": "string"},
+                    "message": {"type": "string"},
+                },
+            },
             400: {"type": "object", "properties": {"detail": {"type": "string"}}},
         },
         examples=[
@@ -199,16 +205,14 @@ from libs.drf.filtersets.search import PhraseSearchFilter
                 request_only=True,
             ),
             OpenApiExample(
-                "Success",
+                "Success - Task Created",
                 value={
-                    "message": "Assessment generation completed successfully",
-                    "period_id": 1,
-                    "month": "2025-12",
-                    "employee_assessments_created": 50,
-                    "department_assessments_created": 10,
+                    "task_id": "abc123-def456-ghi789",
+                    "status": "Task created",
+                    "message": "KPI assessment period generation started. Use task_status endpoint to check progress.",
                 },
                 response_only=True,
-                status_codes=["201"],
+                status_codes=["202"],
             ),
             OpenApiExample(
                 "Error - Future month",
@@ -361,7 +365,7 @@ class KPIAssessmentPeriodViewSet(BaseReadOnlyModelViewSet):
 
     @action(detail=False, methods=["post"], url_path="generate")
     def generate(self, request):
-        """Generate KPI assessments for a specific month."""
+        """Generate KPI assessments for a specific month asynchronously."""
         month_str = request.data.get("month")
         if not month_str:
             return Response(
@@ -403,30 +407,18 @@ class KPIAssessmentPeriodViewSet(BaseReadOnlyModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        # Create assessment period
-        with transaction.atomic():
-            period = KPIAssessmentPeriod.objects.create(
-                month=month_date,
-                kpi_config_snapshot=kpi_config.config,
-                finalized=False,
-                created_by=request.user,
-            )
+        # Launch async task
+        from apps.payroll.tasks import generate_kpi_period_task
 
-            # Generate employee assessments for all targets
-            employee_count = generate_employee_assessments_for_period(period)
-
-            # Generate department assessments
-            department_count = generate_department_assessments_for_period(period)
+        task = generate_kpi_period_task.delay(month_str)
 
         return Response(
             {
-                "message": _("Assessment generation completed successfully"),
-                "period_id": period.id,
-                "month": period.month.strftime("%Y-%m"),
-                "employee_assessments_created": employee_count,
-                "department_assessments_created": department_count,
+                "task_id": task.id,
+                "status": "Task created",
+                "message": "KPI assessment period generation started. Use task_status endpoint to check progress.",
             },
-            status=status.HTTP_201_CREATED,
+            status=status.HTTP_202_ACCEPTED,
         )
 
     @action(detail=True, methods=["post"], url_path="finalize")
@@ -530,6 +522,108 @@ class KPIAssessmentPeriodViewSet(BaseReadOnlyModelViewSet):
             },
             status=status.HTTP_200_OK,
         )
+
+    @extend_schema(
+        summary="Check KPI generation task status",
+        description=(
+            "Check the status of a KPI assessment period generation task.\n\n"
+            "Task states:\n"
+            "- PENDING: Task is waiting to be executed\n"
+            "- PROGRESS: Task is currently running\n"
+            "- SUCCESS: Task completed successfully (result contains period details)\n"
+            "- FAILURE: Task failed (error contains error message)"
+        ),
+        tags=["8.6: KPI Assessment Periods"],
+        responses={
+            200: {
+                "type": "object",
+                "properties": {
+                    "task_id": {"type": "string"},
+                    "state": {"type": "string", "enum": ["PENDING", "PROGRESS", "SUCCESS", "FAILURE"]},
+                    "status": {"type": "string"},
+                    "result": {"type": "object"},
+                    "meta": {"type": "object"},
+                    "error": {"type": "string"},
+                },
+            },
+        },
+        examples=[
+            OpenApiExample(
+                "Success - Task Completed",
+                value={
+                    "task_id": "abc123-def456",
+                    "state": "SUCCESS",
+                    "status": "Task completed successfully",
+                    "result": {
+                        "period_id": 42,
+                        "month": "2025-12",
+                        "employee_assessments_created": 150,
+                        "department_assessments_created": 10,
+                        "status": "completed",
+                    },
+                },
+                response_only=True,
+                status_codes=["200"],
+            ),
+            OpenApiExample(
+                "Progress - Task Running",
+                value={
+                    "task_id": "abc123-def456",
+                    "state": "PROGRESS",
+                    "status": "Task is in progress",
+                    "meta": {"status": "Generating employee assessments"},
+                },
+                response_only=True,
+                status_codes=["200"],
+            ),
+            OpenApiExample(
+                "Pending - Task Queued",
+                value={
+                    "task_id": "abc123-def456",
+                    "state": "PENDING",
+                    "status": "Task is waiting to be executed",
+                },
+                response_only=True,
+                status_codes=["200"],
+            ),
+            OpenApiExample(
+                "Failure - Task Failed",
+                value={
+                    "task_id": "abc123-def456",
+                    "state": "FAILURE",
+                    "status": "Task failed",
+                    "error": "No KPI configuration found. Please create one first.",
+                },
+                response_only=True,
+                status_codes=["200"],
+            ),
+        ],
+    )
+    @action(detail=False, methods=["get"], url_path="task-status/(?P<task_id>[^/.]+)")
+    def task_status(self, request, task_id=None):
+        """Check status of a Celery task."""
+        from celery.result import AsyncResult
+
+        task = AsyncResult(task_id)
+
+        response_data = {
+            "task_id": task_id,
+            "state": task.state,
+        }
+
+        if task.state == "PENDING":
+            response_data["status"] = "Task is waiting to be executed"
+        elif task.state == "PROGRESS":
+            response_data["status"] = "Task is in progress"
+            response_data["meta"] = task.info
+        elif task.state == "SUCCESS":
+            response_data["status"] = "Task completed successfully"
+            response_data["result"] = task.result
+        elif task.state == "FAILURE":
+            response_data["status"] = "Task failed"
+            response_data["error"] = str(task.info)
+
+        return Response(response_data)
 
 
 @extend_schema_view(

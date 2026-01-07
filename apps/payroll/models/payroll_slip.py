@@ -294,7 +294,7 @@ class PayrollSlip(AutoCodeMixin, ColoredValueMixin, BaseModel):
     )
 
     need_resend_email = models.BooleanField(
-        default=False, db_index=True, verbose_name=_("Need Resend Email"), help_text="Flag if email needs to be resent"
+        default=True, db_index=True, verbose_name=_("Need Resend Email"), help_text="Flag if email needs to be resent"
     )
 
     email_sent_at = models.DateTimeField(null=True, blank=True, verbose_name=_("Email Sent At"))

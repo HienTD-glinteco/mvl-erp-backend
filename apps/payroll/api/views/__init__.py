@@ -15,8 +15,8 @@ from .penalty_tickets import PenaltyTicketViewSet
 from .recovery_voucher import RecoveryVoucherViewSet
 from .salary_config import CurrentSalaryConfigView
 from .salary_period import (
-    SalaryPeriodNotReadySlipsView,
-    SalaryPeriodReadySlipsView,
+    SalaryPeriodNotReadySlipsViewSet,
+    SalaryPeriodReadySlipsViewSet,
     SalaryPeriodViewSet,
 )
 from .sales_revenue import SalesRevenueViewSet
@@ -41,8 +41,8 @@ __all__ = [
     # "MyPenaltyTicketViewSet",
     "SalaryPeriodViewSet",
     "PayrollSlipViewSet",
-    "SalaryPeriodReadySlipsView",
-    "SalaryPeriodNotReadySlipsView",
+    "SalaryPeriodReadySlipsViewSet",
+    "SalaryPeriodNotReadySlipsViewSet",
     "MyKPIAssessmentViewSet",
     "MyTeamKPIAssessmentViewSet",
     "MyPenaltyTicketViewSet",

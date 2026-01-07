@@ -59,47 +59,54 @@ class TestAutoGenerateSalaryPeriod:
     """Test auto_generate_salary_period task."""
 
     @patch("apps.payroll.tasks.date")
-    def test_not_last_day_of_month(self, mock_date):
-        """Test task does nothing if not last day of month."""
-        # Arrange
-        mock_date.today.return_value = date(2024, 1, 15)
+    def test_runs_on_first_day_of_month(self, mock_date, salary_config, employee):
+        """Test task creates previous month period when run on 1st of month."""
+        # Arrange - Run on February 1st
+        mock_date.today.return_value = date(2024, 2, 1)
         mock_date.side_effect = lambda *args, **kw: date(*args, **kw)
 
         # Act
         result = auto_generate_salary_period()
 
-        # Assert
-        assert "Not last day of month" in result
-
-    @patch("apps.payroll.tasks.date")
-    def test_last_day_creates_next_month(self, mock_date, salary_config, employee):
-        """Test task creates next month period on last day."""
-        # Arrange
-        mock_date.today.return_value = date(2024, 1, 31)
-        mock_date.side_effect = lambda *args, **kw: date(*args, **kw)
-
-        # Act
-        result = auto_generate_salary_period()
-
-        # Assert
-        assert "Created salary period for 2024-02-01" in result
-        assert SalaryPeriod.objects.filter(month=date(2024, 2, 1)).exists()
+        # Assert - Should create period for January (previous month)
+        assert "Created salary period for 2024-01-01" in result
+        assert SalaryPeriod.objects.filter(month=date(2024, 1, 1)).exists()
 
     @patch("apps.payroll.tasks.date")
     def test_creates_payroll_slips_and_calculates(self, mock_date, salary_config, employee, contract):
         """Test task creates and calculates payroll slips."""
-        # Arrange
-        mock_date.today.return_value = date(2024, 1, 31)
+        # Arrange - Run on February 1st
+        mock_date.today.return_value = date(2024, 2, 1)
         mock_date.side_effect = lambda *args, **kw: date(*args, **kw)
 
         # Act
         result = auto_generate_salary_period()
 
-        # Assert
-        period = SalaryPeriod.objects.get(month=date(2024, 2, 1))
+        # Assert - Should create period for January
+        period = SalaryPeriod.objects.get(month=date(2024, 1, 1))
         slip = PayrollSlip.objects.get(salary_period=period, employee=employee)
         assert slip.calculated_at is not None
         assert "calculated all payrolls" in result
+
+    @patch("apps.payroll.tasks.date")
+    def test_already_exists(self, mock_date, salary_config, employee):
+        """Test task does nothing if period already exists."""
+        # Arrange - Run on February 1st, but January period already exists
+        mock_date.today.return_value = date(2024, 2, 1)
+        mock_date.side_effect = lambda *args, **kw: date(*args, **kw)
+
+        # Create January period first
+        SalaryPeriod.objects.create(
+            month=date(2024, 1, 1),
+            salary_config_snapshot=salary_config.config,
+        )
+
+        # Act
+        result = auto_generate_salary_period()
+
+        # Assert
+        assert "already exists" in result
+        assert SalaryPeriod.objects.filter(month=date(2024, 1, 1)).count() == 1
 
 
 @pytest.mark.django_db

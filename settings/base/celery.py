@@ -61,6 +61,21 @@ CELERY_BEAT_SCHEDULE: dict[str, dict] = {
         "task": "apps.hrm.tasks.timesheets.prepare_monthly_timesheets",
         "schedule": crontab(day_of_month="1", hour=0, minute=1),
     },
+    # Generate salary period for the current month on first day of month
+    "auto_generate_salary_period": {
+        "task": "apps.payroll.tasks.auto_generate_salary_period",
+        "schedule": crontab(day_of_month="1", hour=0, minute=0),  # First day at 00:00
+    },
+    # Generate KPI assessment period for the current month on first day of month
+    "generate_kpi_assessment_period": {
+        "task": "apps.payroll.tasks.generate_kpi_assessment_period_task",
+        "schedule": crontab(day_of_month="1", hour=0, minute=1),  # First day at 00:01 (after salary period)
+    },
+    # Check KPI assessment deadlines and finalize periods daily
+    "check_kpi_assessment_deadline_and_finalize": {
+        "task": "apps.payroll.tasks.check_kpi_assessment_deadline_and_finalize_task",
+        "schedule": crontab(hour=0, minute=30),  # Daily at 00:30
+    },
     # Update EmployeeMonthlyTimesheet rows marked with need_refresh every short period
     "update_monthly_timesheet_async": {
         "task": "apps.hrm.tasks.timesheets.update_monthly_timesheet_async",
