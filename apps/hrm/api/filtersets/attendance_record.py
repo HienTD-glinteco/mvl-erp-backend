@@ -11,6 +11,10 @@ class AttendanceRecordFilterSet(django_filters.FilterSet):
     timestamp_after = django_filters.DateTimeFilter(field_name="timestamp", lookup_expr="gte")
     timestamp_before = django_filters.DateTimeFilter(field_name="timestamp", lookup_expr="lte")
     date = django_filters.DateFilter(field_name="timestamp", lookup_expr="date")
+    approve_status = django_filters.MultipleChoiceFilter(
+        choices=AttendanceRecord.ApproveStatus.choices,
+        help_text="Filter by approve status (supports multiple values)",
+    )
 
     class Meta:
         model = AttendanceRecord
