@@ -31,7 +31,8 @@ class ComplexPasswordValidator:
             )
         if not SPECIAL_CHARS_RE.search(password):
             raise ValidationError(
-                _(r'Password must contain at least one special character (!@#$%^&*(),.?":{}|<>).'),
+                # xgettext:no-python-format
+                _('Password must contain at least one special character (!@#$%^&*(),.?":{}|<>).'),
                 code="password_no_special",
             )
 

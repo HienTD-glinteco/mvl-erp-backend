@@ -17,7 +17,7 @@ from apps.hrm.models import (
     RecruitmentSourceReport,
     StaffGrowthReport,
 )
-from apps.hrm.utils import get_current_month_range, get_current_week_range
+from apps.hrm.utils import get_current_month_range, get_current_week_range, get_week_key_from_date
 from libs.drf.base_viewset import BaseGenericViewSet
 
 from ..serializers.recruitment_reports import (
@@ -727,14 +727,11 @@ class RecruitmentReportsViewSet(BaseGenericViewSet):
             # Start from Monday of the week containing start_date
             cur = start_date - timedelta(days=start_date.weekday())
             while cur <= end_date:
-                iso_week = cur.isocalendar()[1]
-                month_key = cur.strftime("%m/%Y")
-                week_key = f"Week {iso_week} - {month_key}"  # English, matches DB storage
+                week_key = get_week_key_from_date(cur)
                 if week_key not in seen_week_keys:
                     seen_week_keys.add(week_key)
                     period_keys.append(week_key)
-                    # Translate "Week" for display labels
-                    translated_key = f"{_('Week')} {iso_week} - {month_key}"
+                    translated_key = week_key.replace("Week", str(_("Week")))
                     periods.append(translated_key)
                 cur += timedelta(weeks=1)
 

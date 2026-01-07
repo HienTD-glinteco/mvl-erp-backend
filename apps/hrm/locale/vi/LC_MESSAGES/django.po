@@ -884,14 +884,14 @@ msgid "Retrieve employee resigned reasons summary report"
 msgstr "Xem báo cáo Báo cáo Tỉ lệ lý do nghỉ việc"
 
 #: apps/hrm/api/views/employee_reports.py:78
-#: apps/hrm/api/views/recruitment_reports.py:737 apps/hrm/constants.py:68
+#: apps/hrm/api/views/recruitment_reports.py:734 apps/hrm/constants.py:68
 #: apps/hrm/constants.py:73 apps/hrm/utils/functions.py:162
 msgid "Week"
 msgstr "Tuần"
 
 #: apps/hrm/api/views/employee_reports.py:98
 #: apps/hrm/api/views/recruitment_reports.py:166
-#: apps/hrm/api/views/recruitment_reports.py:913 apps/hrm/constants.py:69
+#: apps/hrm/api/views/recruitment_reports.py:910 apps/hrm/constants.py:69
 #: apps/hrm/constants.py:74
 msgid "Month"
 msgstr "Tháng"
@@ -2443,20 +2443,20 @@ msgid "No Department"
 msgstr "Không có phòng ban"
 
 #: apps/hrm/api/views/recruitment_reports.py:701
-#: apps/hrm/api/views/recruitment_reports.py:741
+#: apps/hrm/api/views/recruitment_reports.py:738
 msgid "Total"
 msgstr "Tổng"
 
-#: apps/hrm/api/views/recruitment_reports.py:801 apps/hrm/constants.py:52
+#: apps/hrm/api/views/recruitment_reports.py:798 apps/hrm/constants.py:52
 msgid "Referral Source"
 msgstr "Giới thiệu"
 
-#: apps/hrm/api/views/recruitment_reports.py:806
+#: apps/hrm/api/views/recruitment_reports.py:803
 #: apps/hrm/models/recruitment_source.py:27
 msgid "Recruitment Source"
 msgstr "Nguồn tuyển dụng"
 
-#: apps/hrm/api/views/recruitment_reports.py:811 apps/hrm/constants.py:56
+#: apps/hrm/api/views/recruitment_reports.py:808 apps/hrm/constants.py:56
 msgid "Returning Employee"
 msgstr "Quay lại"
 
