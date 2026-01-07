@@ -14,6 +14,7 @@ from apps.hrm.models import (
     BankAccount,
     Block,
     Branch,
+    Contract,
     Decision,
     Department,
     Employee,
@@ -874,32 +875,42 @@ class EmployeeExportXLSXSerializer(serializers.ModelSerializer):
     """
 
     # Index field (will be computed in the view)
-    no = serializers.SerializerMethodField(read_only=True)
+    no = serializers.SerializerMethodField(read_only=True, label=_("No."))
 
     # Related fields
-    position__name = serializers.CharField(source="position.name", read_only=True)
-    branch__name = serializers.CharField(source="branch.name", read_only=True)
-    block__name = serializers.CharField(source="block.name", read_only=True)
-    department__name = serializers.CharField(source="department.name", read_only=True)
+    contract_type = serializers.SerializerMethodField(read_only=True, label=_("Contract Type"))
+    position__name = serializers.CharField(source="position.name", read_only=True, label=_("Position"))
+    branch__name = serializers.CharField(source="branch.name", read_only=True, label=_("Branch"))
+    block__name = serializers.CharField(source="block.name", read_only=True, label=_("Block"))
+    department__name = serializers.CharField(source="department.name", read_only=True, label=_("Department"))
 
     # Latest EmployeeWorkHistory fields
-    latest_work_history_resignation_reason = serializers.SerializerMethodField(read_only=True)
-    latest_work_history_from_date = serializers.SerializerMethodField(read_only=True)
+    latest_work_history_resignation_reason = serializers.SerializerMethodField(
+        read_only=True, label=_("Resignation Reason")
+    )
+    latest_work_history_from_date = serializers.SerializerMethodField(read_only=True, label=_("Resignation Date"))
 
     # Default BankAccount fields (using is_primary field per actual model implementation)
-    default_bank_name = serializers.SerializerMethodField(read_only=True)
-    default_bank_account_number = serializers.SerializerMethodField(read_only=True)
+    default_bank_name = serializers.SerializerMethodField(read_only=True, label=_("Bank Name"))
+    default_bank_account_number = serializers.SerializerMethodField(read_only=True, label=_("Bank Account Number"))
 
     # Emergency contact combined field
-    emergency_contact = serializers.SerializerMethodField(read_only=True)
+    emergency_contact = serializers.SerializerMethodField(read_only=True, label=_("Emergency Contact"))
 
     # Nationality name
-    nationality__name = serializers.CharField(source="nationality.name", read_only=True)
+    nationality__name = serializers.CharField(source="nationality.name", read_only=True, label=_("Nationality"))
 
     def get_no(self, obj: Employee):
         """Get the index number from context (1-based)."""
         # This will be set from the view when preparing the data
         return getattr(obj, "_export_index", "")
+
+    def get_contract_type(self, obj: Employee):
+        """Get the contract type name of the active contract."""
+        active_contract = obj.contracts.filter(status=Contract.ContractStatus.ACTIVE).first()
+        if active_contract and active_contract.contract_type:
+            return active_contract.contract_type.name
+        return ""
 
     def get_latest_work_history_resignation_reason(self, obj: Employee):
         """Get resignation_reason from the latest EmployeeWorkHistory record."""
@@ -948,6 +959,7 @@ class EmployeeExportXLSXSerializer(serializers.ModelSerializer):
             "start_date",
             "latest_work_history_resignation_reason",
             "latest_work_history_from_date",
+            "contract_type",
             "position__name",
             "branch__name",
             "block__name",
@@ -975,6 +987,30 @@ class EmployeeExportXLSXSerializer(serializers.ModelSerializer):
             "note",
         ]
         read_only_fields = fields
+        extra_kwargs = {
+            "code": {"label": _("Employee Code")},
+            "fullname": {"label": _("Full Name")},
+            "attendance_code": {"label": _("Attendance Code")},
+            "status": {"label": _("Status")},
+            "start_date": {"label": _("Start Date")},
+            "phone": {"label": _("Phone")},
+            "personal_email": {"label": _("Personal Email")},
+            "email": {"label": _("Email")},
+            "tax_code": {"label": _("Tax Code")},
+            "gender": {"label": _("Gender")},
+            "date_of_birth": {"label": _("Date of Birth")},
+            "place_of_birth": {"label": _("Place of Birth")},
+            "marital_status": {"label": _("Marital Status")},
+            "ethnicity": {"label": _("Ethnicity")},
+            "religion": {"label": _("Religion")},
+            "citizen_id": {"label": _("Citizen ID")},
+            "citizen_id_issued_date": {"label": _("ID Issued Date")},
+            "citizen_id_issued_place": {"label": _("ID Issued Place")},
+            "residential_address": {"label": _("Residential Address")},
+            "permanent_address": {"label": _("Permanent Address")},
+            "username": {"label": _("Login Username")},
+            "note": {"label": _("Notes")},
+        }
 
 
 class EmployeeDropdownSerializer(serializers.ModelSerializer):

@@ -99,6 +99,8 @@ class EmployeeViewSet(
     module = _("HRM")
     submodule = _("Employee Management")
     permission_prefix = "employee"
+
+    xlsx_template_name = "apps/hrm/fixtures/export_templates/employee_export_template.xlsx"
     PERMISSION_REGISTERED_ACTIONS = {
         "active": {
             "name_template": _("Activate employee"),
@@ -638,47 +640,16 @@ class EmployeeViewSet(
         serializer = EmployeeExportXLSXSerializer(employees, many=True)
         data = serializer.data
 
+        # Get headers from serializer labels
+        headers = [str(field.label) for field in serializer.child.fields.values()]
+        field_names = list(serializer.child.fields.keys())
+
         return {
             "sheets": [
                 {
                     "name": "Employees",
-                    "headers": [
-                        _("No."),
-                        _("Employee Code"),
-                        _("Full Name"),
-                        _("Attendance Code"),
-                        _("Status"),
-                        _("Start Date"),
-                        _("Resignation Reason"),
-                        _("Resignation Date"),
-                        _("Contract Type"),
-                        _("Position"),
-                        _("Branch"),
-                        _("Block"),
-                        _("Department"),
-                        _("Phone"),
-                        _("Personal Email"),
-                        _("Email"),
-                        _("Bank Name"),
-                        _("Bank Account Number"),
-                        _("Tax Code"),
-                        _("Emergency Contact"),
-                        _("Gender"),
-                        _("Date of Birth"),
-                        _("Place of Birth"),
-                        _("Marital Status"),
-                        _("Ethnicity"),
-                        _("Religion"),
-                        _("Nationality"),
-                        _("Citizen ID"),
-                        _("ID Issued Date"),
-                        _("ID Issued Place"),
-                        _("Residential Address"),
-                        _("Permanent Address"),
-                        _("Login Username"),
-                        _("Notes"),
-                    ],
-                    "field_names": EmployeeExportXLSXSerializer.Meta.fields,
+                    "headers": headers,
+                    "field_names": field_names,
                     "data": data,
                 }
             ]
