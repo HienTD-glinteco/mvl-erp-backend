@@ -31,13 +31,13 @@ class HRMDashboardViewSet(BaseGenericViewSet):
     }
 
     @extend_schema(
-        summary="Common HRM realtime dashboard KPIs",
+        summary="Common HRM stats for handling proposals, attendance, and penalties",
         description=(
             "Get HRM stats with navigation info for frontend. "
             "Each item includes path and query_params for direct navigation to filtered list views. "
             "Results are cached for 5 minutes and invalidated when relevant data changes."
         ),
-        tags=[_("11.1.4. Common HRM Dashboard")],
+        tags=["11. HRM Dashboard"],
         responses={200: HRMDashboardRealtimeSerializer},
         examples=[
             OpenApiExample(
@@ -150,7 +150,7 @@ class HRMDashboardViewSet(BaseGenericViewSet):
                     "key": f"proposals_{choice_value}",
                     "label": str(choice_label),
                     "count": count,
-                    "path": f"/decisions-proposals/proposals/{str(choice_label).replace('_', '-')}",
+                    "path": f"/decisions-proposals/proposals/{choice_value.replace('_', '-')}",
                     "query_params": {
                         "status": ProposalStatus.PENDING,
                     },

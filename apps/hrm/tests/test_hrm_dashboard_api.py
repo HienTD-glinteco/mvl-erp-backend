@@ -426,8 +426,9 @@ class TestManagerDashboardAPI(APITestMixin):
         kpi_pending = data["kpi_assessments_pending"]
         assert kpi_pending["key"] == "kpi_assessments_pending"
         assert kpi_pending["count"] == 1
-        assert kpi_pending["path"] == "/kpi/manager/period-evaluation"
-        assert kpi_pending["query_params"]["finalized"] == "false"
+        # Path should point to current KPI period evaluation
+        assert kpi_pending["path"] == f"/kpi/manager/period-evaluation/{kpi_period1.id}"
+        assert kpi_pending["query_params"]["status"] == EmployeeKPIAssessment.StatusChoices.WAITING_MANAGER
 
     def test_manager_realtime_returns_zero_counts_when_empty(self):
         """Ensure manager realtime endpoint returns zero counts when no data exists."""
