@@ -437,6 +437,11 @@ class HolidayExportXLSXSerializer(FieldFilteringSerializerMixin, HolidaySerializ
 
     class Meta(HolidaySerializer.Meta):
         fields = HolidaySerializer.Meta.fields + ["compensatory_days"]
+        extra_kwargs = {
+            "compensatory_days": {
+                "label": _("Compensatory Workdays"),
+            }
+        }
 
     def get_compensatory_days(self, obj: Holiday) -> str:
         """Get serialized compensatory days for export."""

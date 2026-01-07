@@ -76,7 +76,7 @@ class CompensatoryWorkday(BaseModel):
 
     class Meta:
         verbose_name = _("Compensatory Workday")
-        verbose_name_plural = "Compensatory Workdays"
+        verbose_name_plural = _("Compensatory Workdays")
         db_table = "hrm_compensatory_workday"
         ordering = ["date"]
         constraints = [
