@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-07 00:57+0700\n"
+"POT-Creation-Date: 2026-01-07 09:44+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -242,31 +242,93 @@ msgstr "Ngày làm bù phải vào thứ Bảy hoặc Chủ Nhật"
 msgid "For Saturday compensatory workdays, only afternoon session is allowed"
 msgstr "Ngày làm bù vào thứ Bảy chỉ được phép trong buổi chiều"
 
-#: apps/hrm/api/serializers/holiday.py:83 apps/hrm/models/holiday.py:86
+#: apps/hrm/api/serializers/holiday.py:73
+#, python-brace-format
+msgid "Compensatory workday date overlaps with holiday: {holiday_name}"
+msgstr "Ngày làm bù không thể nằm trong khoảng ngày nghỉ lễ: {holiday_name}"
+
+#: apps/hrm/api/serializers/holiday.py:87 apps/hrm/models/holiday.py:86
 msgid "A compensatory workday with this date already exists for this holiday"
 msgstr "Ngày làm bù bị trùng với ngày làm bù khác"
 
-#: apps/hrm/api/serializers/holiday.py:121
+#: apps/hrm/api/serializers/holiday.py:104
+#, python-brace-format
+msgid ""
+"A compensatory workday with the same date and session already exists for "
+"holiday '{holiday_name}'"
+msgstr ""
+"Ngày làm bù với cùng ngày và buổi đã tồn tại cho ngày lễ '{holiday_name}'"
+
+#: apps/hrm/api/serializers/holiday.py:115
+#, python-brace-format
+msgid ""
+"A compensatory workday with full_day session conflicts with existing session "
+"for holiday '{holiday_name}'"
+msgstr ""
+"Ngày làm bù với buổi làm việc cả ngày bị trùng với buổi làm việc đã tồn tại "
+"cho ngày lễ '{holiday_name}'"
+
+#: apps/hrm/api/serializers/holiday.py:125
 msgid "Cannot create/edit compensatory workdays in the past or present"
 msgstr "Không thể tạo/chỉnh sửa ngày làm bù trong quá khứ hoặc hiện tại."
 
-#: apps/hrm/api/serializers/holiday.py:165
+#: apps/hrm/api/serializers/holiday.py:169
 msgid "Cannot create compensatory workdays in the past or present"
 msgstr "Không thể tạo ngày làm bù trong quá khứ hoặc hiện tại."
 
-#: apps/hrm/api/serializers/holiday.py:216 apps/hrm/models/holiday.py:43
+#: apps/hrm/api/serializers/holiday.py:220 apps/hrm/models/holiday.py:43
 msgid "End date must be greater than or equal to start date"
 msgstr "Ngày kết thúc phải lớn hơn hoặc bằng ngày bắt đầu"
 
-#: apps/hrm/api/serializers/holiday.py:230
+#: apps/hrm/api/serializers/holiday.py:234
 msgid "This holiday overlaps with an existing holiday"
 msgstr "Kỳ nghỉ lễ này trùng với một kỳ nghỉ lễ đã tồn tại"
 
-#: apps/hrm/api/serializers/holiday.py:337
+#: apps/hrm/api/serializers/holiday.py:241
+#, python-brace-format
+msgid "Compensatory date {comp_date} must be on Saturday or Sunday"
+msgstr "Ngày làm bù {comp_date} phải vào thứ Bảy hoặc Chủ Nhật"
+
+#: apps/hrm/api/serializers/holiday.py:264
+#, python-brace-format
+msgid ""
+"For Saturday compensatory workday {comp_date}, only afternoon session is "
+"allowed"
+msgstr "Ngày làm bù {comp_date} vào thứ Bảy chỉ được phép trong buổi chiều"
+
+#: apps/hrm/api/serializers/holiday.py:276
+#, python-brace-format
+msgid "Compensatory date {comp_date} falls within the holiday date range"
+msgstr "Ngày làm bù {comp_date} nằm trong khoảng ngày nghỉ lễ"
+
+#: apps/hrm/api/serializers/holiday.py:296
+#, python-brace-format
+msgid "Compensatory date {comp_date} overlaps with holiday: {holiday_name}"
+msgstr "Ngày làm bù {comp_date} trùng với ngày nghỉ lễ: {holiday_name}"
+
+#: apps/hrm/api/serializers/holiday.py:315
+#, python-brace-format
+msgid ""
+"Compensatory date {comp_date} with session {comp_session} already exists for "
+"holiday '{holiday_name}'"
+msgstr ""
+"Ngày làm bù {comp_date} với buổi {comp_session} đã tồn tại cho ngày lễ "
+"'{holiday_name}'"
+
+#: apps/hrm/api/serializers/holiday.py:330
+#, python-brace-format
+msgid ""
+"Compensatory date {comp_date} with full_day session conflicts with existing "
+"{comp_session} session for holiday '{holiday_name}'"
+msgstr ""
+"Ngày làm bù {comp_date} với buổi làm việc cả ngày bị trùng với buổi "
+"{comp_session} đã tồn tại cho ngày lễ '{holiday_name}'"
+
+#: apps/hrm/api/serializers/holiday.py:361
 msgid "Cannot modify holidays that are in the past or present"
 msgstr "Không thể sửa ngày lễ trong quá khứ hoặc hiện tại"
 
-#: apps/hrm/api/serializers/holiday.py:342
+#: apps/hrm/api/serializers/holiday.py:366
 msgid "Cannot create/edit holidays in the past or present"
 msgstr "Không thể tạo/sửa ngày lễ trong quá khứ hoặc hiện tại"
 
@@ -2603,7 +2665,7 @@ msgstr "Không đúng giờ"
 
 #: apps/hrm/constants.py:156
 msgid "Single punch"
-msgstr "Chấm công một lần"
+msgstr "Quên check-in/out"
 
 #: apps/hrm/constants.py:157
 msgid "Absent"

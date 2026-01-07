@@ -391,7 +391,7 @@ class KPIAssessmentPeriodViewSet(BaseReadOnlyModelViewSet):
         # Check if period already exists
         if KPIAssessmentPeriod.objects.filter(month=month_date).exists():
             return Response(
-                {"detail": _(f"Assessment period for {month_str} already exists")},
+                {"detail": _("Assessment period for {month_str} already exists").format(month_str=month_str)},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 

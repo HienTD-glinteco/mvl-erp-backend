@@ -162,7 +162,7 @@ class BulkUpdateStatusSerializer(serializers.Serializer):
         existing_ids = set(PenaltyTicket.objects.filter(id__in=value).values_list("id", flat=True))
         missing_ids = sorted(set(value) - existing_ids)
         if missing_ids:
-            raise serializers.ValidationError(_(f"Tickets not found: {missing_ids}"))
+            raise serializers.ValidationError(_("Tickets not found: {missing_ids}").format(missing_ids=missing_ids))
         return value
 
     def bulk_update_status(self):
