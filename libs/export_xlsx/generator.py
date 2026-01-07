@@ -105,6 +105,7 @@ class XLSXGenerator:
         start_row = sheet.max_row + 1
         current_row = start_row if start_row > 9 else 9  # NOTE: this usually the line right under the logo image
         self._finalize_sheet(sheet, sheet_def, current_row)
+        self._adjust_sheet_title(sheet)
         return workbook
 
     def _render_sheet_with_context(self, sheet: Worksheet, template_context: dict = None) -> Worksheet:  # type: ignore
@@ -396,3 +397,14 @@ class XLSXGenerator:
             # Set column width (add padding)
             adjusted_width = min(max_length + 2, 50)
             ws.column_dimensions[column_letter].width = adjusted_width
+
+    def _adjust_sheet_title(self, ws: Worksheet) -> None:
+        """
+        Adjust sheet title to fit content, especially for template that has logo image.
+
+        NOTE: Use for export with template only.
+        """
+        default_title_col_letter = "B"  # NOTE: Hardcoded for now, since the template is BE self-prepared.
+        default_title_row_inx = 2  # NOTE: Hardcoded for now, since the template is BE self-prepared.
+        ws.column_dimensions[default_title_col_letter].width = 20
+        ws.row_dimensions[default_title_row_inx].height = 25
