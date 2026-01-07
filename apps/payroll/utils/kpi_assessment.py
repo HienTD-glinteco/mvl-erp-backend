@@ -108,7 +108,15 @@ def recalculate_assessment_scores(assessment: EmployeeKPIAssessment) -> Employee
         else:
             assessment.grade_manager = grade
 
-    assessment.save()
+    # Use update_fields to skip deadline validation on recalculation
+    assessment.save(
+        update_fields=[
+            "total_possible_score",
+            "total_employee_score",
+            "total_manager_score",
+            "grade_manager",
+        ]
+    )
     return assessment
 
 
@@ -202,7 +210,13 @@ def resync_assessment_apply_current(assessment: EmployeeKPIAssessment) -> int:
     assessment.total_possible_score = sum(item.component_total_score for item in new_items)
     assessment.total_manager_score = None
     assessment.grade_manager = None
-    assessment.save()
+    assessment.save(
+        update_fields=[
+            "total_possible_score",
+            "total_manager_score",
+            "grade_manager",
+        ]
+    )
 
     return len(new_items)
 

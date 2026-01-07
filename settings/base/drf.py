@@ -49,6 +49,11 @@ SPECTACULAR_SETTINGS = {
     ],
 }
 
+# drf-standardized-errors settings
+DRF_STANDARDIZED_ERRORS = {
+    "ENABLE_IN_DEBUG_FOR_UNHANDLED_EXCEPTIONS": True,
+}
+
 SIMPLE_JWT = {
     "AUTH_HEADER_TYPES": ("Bearer",),
     "ACCESS_TOKEN_LIFETIME": timedelta(

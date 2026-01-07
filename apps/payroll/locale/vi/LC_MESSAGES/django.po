@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-07 16:19+0700\n"
+"POT-Creation-Date: 2026-01-07 21:27+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1306,14 +1306,14 @@ msgid ""
 "Cannot create %(type)s proposal after salary period deadline (%(deadline)s)"
 msgstr "Không thể tạo đề xuất %(type)s sau hạn chốt kỳ lương (%(deadline)s)"
 
-#: apps/payroll/signals/deadline_validation.py:149
+#: apps/payroll/signals/deadline_validation.py:154
 #, python-format
 msgid ""
 "Cannot create overtime entry after salary period deadline (%(deadline)s)"
 msgstr ""
 "Không thể tạo đề xuất làm thêm giờ sau hạn chốt kỳ lương (%(deadline)s)"
 
-#: apps/payroll/signals/deadline_validation.py:204
+#: apps/payroll/signals/deadline_validation.py:217
 #, python-format
 msgid ""
 "Cannot submit KPI assessment after deadline (%(deadline)s). Please contact "
