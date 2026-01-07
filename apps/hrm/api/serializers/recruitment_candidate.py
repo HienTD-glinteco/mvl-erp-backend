@@ -254,6 +254,7 @@ class CandidateToEmployeeSerializer(serializers.Serializer):
             "citizen_id": self.candidate.citizen_id,
             "phone": self.candidate.phone,
             "recruitment_candidate_id": self.candidate.id,
+            "personal_email": self.candidate.email,
         }
 
         # Create employee using serializer

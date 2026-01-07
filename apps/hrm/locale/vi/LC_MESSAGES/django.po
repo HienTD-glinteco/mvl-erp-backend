@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-07 09:44+0700\n"
+"POT-Creation-Date: 2026-01-07 09:57+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -388,7 +388,7 @@ msgstr "Nhân viên với email này đã tồn tại."
 msgid "An employee with this citizen ID already exists."
 msgstr "Nhân viên với số CMND/CCCD này đã tồn tại."
 
-#: apps/hrm/api/serializers/recruitment_candidate.py:279
+#: apps/hrm/api/serializers/recruitment_candidate.py:280
 #, python-brace-format
 msgid "Converted from recruitment candidate {code}"
 msgstr "Ứng viên {code} đã được chuyển đổi thành nhân viên"
