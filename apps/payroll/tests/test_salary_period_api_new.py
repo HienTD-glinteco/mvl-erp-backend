@@ -210,6 +210,145 @@ class TestReadySlipsAPI:
         # Should return only DELIVERED slips from this period
         assert len(response_data["data"]["results"]) >= 1
 
+    def test_ready_filter_by_employee_code(self, api_client, salary_period, payroll_slip_ready):
+        """Test filtering ready slips by employee code."""
+        # Arrange
+        salary_period.status = SalaryPeriod.Status.ONGOING
+        salary_period.save()
+        employee_code = payroll_slip_ready.employee_code
+
+        # Act
+        response = api_client.get(
+            f"/api/payroll/salary-periods/{salary_period.id}/ready/?employee_code={employee_code}"
+        )
+
+        # Assert
+        response_data = get_response_data(response)
+        assert response.status_code == status.HTTP_200_OK
+        assert all(slip["employee_code"] == employee_code for slip in response_data["data"]["results"])
+
+    def test_ready_filter_by_employee_code_icontains(self, api_client, salary_period, payroll_slip_ready):
+        """Test filtering ready slips by employee code with icontains."""
+        # Arrange
+        salary_period.status = SalaryPeriod.Status.ONGOING
+        salary_period.save()
+        employee_code_part = payroll_slip_ready.employee_code[:3]
+
+        # Act
+        response = api_client.get(
+            f"/api/payroll/salary-periods/{salary_period.id}/ready/?employee_code__icontains={employee_code_part}"
+        )
+
+        # Assert
+        response_data = get_response_data(response)
+        assert response.status_code == status.HTTP_200_OK
+        assert all(
+            employee_code_part.upper() in slip["employee_code"].upper() for slip in response_data["data"]["results"]
+        )
+
+    def test_ready_filter_by_department_name(self, api_client, salary_period, payroll_slip_ready):
+        """Test filtering ready slips by department name."""
+        # Arrange
+        salary_period.status = SalaryPeriod.Status.ONGOING
+        salary_period.save()
+        department_name = payroll_slip_ready.department_name
+
+        # Act
+        response = api_client.get(
+            f"/api/payroll/salary-periods/{salary_period.id}/ready/?department_name={department_name}"
+        )
+
+        # Assert
+        response_data = get_response_data(response)
+        assert response.status_code == status.HTTP_200_OK
+        if response_data["data"]["results"]:
+            assert all(slip["department_name"] == department_name for slip in response_data["data"]["results"])
+
+    def test_ready_filter_by_position_name(self, api_client, salary_period, payroll_slip_ready):
+        """Test filtering ready slips by position name."""
+        # Arrange
+        salary_period.status = SalaryPeriod.Status.ONGOING
+        salary_period.save()
+        position_name = payroll_slip_ready.position_name
+
+        # Act
+        response = api_client.get(
+            f"/api/payroll/salary-periods/{salary_period.id}/ready/?position_name={position_name}"
+        )
+
+        # Assert
+        response_data = get_response_data(response)
+        assert response.status_code == status.HTTP_200_OK
+        if response_data["data"]["results"]:
+            assert all(slip["position_name"] == position_name for slip in response_data["data"]["results"])
+
+    def test_ready_filter_by_has_unpaid_penalty(self, api_client, salary_period, payroll_slip_ready):
+        """Test filtering ready slips by has_unpaid_penalty."""
+        # Arrange
+        salary_period.status = SalaryPeriod.Status.ONGOING
+        salary_period.save()
+
+        # Act
+        response = api_client.get(f"/api/payroll/salary-periods/{salary_period.id}/ready/?has_unpaid_penalty=true")
+
+        # Assert
+        response_data = get_response_data(response)
+        assert response.status_code == status.HTTP_200_OK
+
+    def test_ready_search_by_employee_code(self, api_client, salary_period, payroll_slip_ready):
+        """Test searching ready slips by employee code."""
+        # Arrange
+        salary_period.status = SalaryPeriod.Status.ONGOING
+        salary_period.save()
+        search_term = payroll_slip_ready.employee_code[:3]
+
+        # Act
+        response = api_client.get(f"/api/payroll/salary-periods/{salary_period.id}/ready/?search={search_term}")
+
+        # Assert
+        response_data = get_response_data(response)
+        assert response.status_code == status.HTTP_200_OK
+
+    def test_ready_search_by_employee_name(self, api_client, salary_period, payroll_slip_ready):
+        """Test searching ready slips by employee name."""
+        # Arrange
+        salary_period.status = SalaryPeriod.Status.ONGOING
+        salary_period.save()
+        search_term = payroll_slip_ready.employee_name.split()[0] if payroll_slip_ready.employee_name else "test"
+
+        # Act
+        response = api_client.get(f"/api/payroll/salary-periods/{salary_period.id}/ready/?search={search_term}")
+
+        # Assert
+        response_data = get_response_data(response)
+        assert response.status_code == status.HTTP_200_OK
+
+    def test_ready_ordering_by_employee_code(self, api_client, salary_period, payroll_slip_ready):
+        """Test ordering ready slips by employee code."""
+        # Arrange
+        salary_period.status = SalaryPeriod.Status.ONGOING
+        salary_period.save()
+
+        # Act
+        response = api_client.get(f"/api/payroll/salary-periods/{salary_period.id}/ready/?ordering=employee_code")
+
+        # Assert
+        response_data = get_response_data(response)
+        assert response.status_code == status.HTTP_200_OK
+
+    def test_ready_ordering_by_gross_income_desc(self, api_client, salary_period, payroll_slip_ready):
+        """Test ordering ready slips by gross income descending."""
+        # Arrange
+        salary_period.status = SalaryPeriod.Status.ONGOING
+        salary_period.save()
+
+        # Act
+        response = api_client.get(f"/api/payroll/salary-periods/{salary_period.id}/ready/?ordering=-gross_income")
+
+        # Assert
+        response_data = get_response_data(response)
+        assert response.status_code == status.HTTP_200_OK
+
 
 @pytest.mark.django_db
 class TestNotReadySlipsAPI:
@@ -244,3 +383,173 @@ class TestNotReadySlipsAPI:
         assert response.status_code == status.HTTP_200_OK
         # Should return only PENDING/HOLD slips from this period
         assert len(response_data["data"]["results"]) >= 1
+
+    def test_not_ready_filter_by_employee_code(self, api_client, salary_period, payroll_slip_pending):
+        """Test filtering not-ready slips by employee code."""
+        # Arrange
+        salary_period.status = SalaryPeriod.Status.ONGOING
+        salary_period.save()
+        employee_code = payroll_slip_pending.employee_code
+
+        # Act
+        response = api_client.get(
+            f"/api/payroll/salary-periods/{salary_period.id}/not-ready/?employee_code={employee_code}"
+        )
+
+        # Assert
+        response_data = get_response_data(response)
+        assert response.status_code == status.HTTP_200_OK
+        assert all(slip["employee_code"] == employee_code for slip in response_data["data"]["results"])
+
+    def test_not_ready_filter_by_employee_code_icontains(self, api_client, salary_period, payroll_slip_pending):
+        """Test filtering not-ready slips by employee code with icontains."""
+        # Arrange
+        salary_period.status = SalaryPeriod.Status.ONGOING
+        salary_period.save()
+        employee_code_part = payroll_slip_pending.employee_code[:3]
+
+        # Act
+        response = api_client.get(
+            f"/api/payroll/salary-periods/{salary_period.id}/not-ready/?employee_code__icontains={employee_code_part}"
+        )
+
+        # Assert
+        response_data = get_response_data(response)
+        assert response.status_code == status.HTTP_200_OK
+        assert all(
+            employee_code_part.upper() in slip["employee_code"].upper() for slip in response_data["data"]["results"]
+        )
+
+    def test_not_ready_filter_by_department_name(self, api_client, salary_period, payroll_slip_pending):
+        """Test filtering not-ready slips by department name."""
+        # Arrange
+        salary_period.status = SalaryPeriod.Status.ONGOING
+        salary_period.save()
+        department_name = payroll_slip_pending.department_name
+
+        # Act
+        response = api_client.get(
+            f"/api/payroll/salary-periods/{salary_period.id}/not-ready/?department_name={department_name}"
+        )
+
+        # Assert
+        response_data = get_response_data(response)
+        assert response.status_code == status.HTTP_200_OK
+        if response_data["data"]["results"]:
+            assert all(slip["department_name"] == department_name for slip in response_data["data"]["results"])
+
+    def test_not_ready_filter_by_position_name(self, api_client, salary_period, payroll_slip_pending):
+        """Test filtering not-ready slips by position name."""
+        # Arrange
+        salary_period.status = SalaryPeriod.Status.ONGOING
+        salary_period.save()
+        position_name = payroll_slip_pending.position_name
+
+        # Act
+        response = api_client.get(
+            f"/api/payroll/salary-periods/{salary_period.id}/not-ready/?position_name={position_name}"
+        )
+
+        # Assert
+        response_data = get_response_data(response)
+        assert response.status_code == status.HTTP_200_OK
+        if response_data["data"]["results"]:
+            assert all(slip["position_name"] == position_name for slip in response_data["data"]["results"])
+
+    def test_not_ready_filter_by_has_unpaid_penalty(self, api_client, salary_period, payroll_slip_pending):
+        """Test filtering not-ready slips by has_unpaid_penalty."""
+        # Arrange
+        salary_period.status = SalaryPeriod.Status.ONGOING
+        salary_period.save()
+
+        # Act
+        response = api_client.get(f"/api/payroll/salary-periods/{salary_period.id}/not-ready/?has_unpaid_penalty=true")
+
+        # Assert
+        response_data = get_response_data(response)
+        assert response.status_code == status.HTTP_200_OK
+
+    def test_not_ready_filter_by_need_resend_email(self, api_client, salary_period, payroll_slip_pending):
+        """Test filtering not-ready slips by need_resend_email."""
+        # Arrange
+        salary_period.status = SalaryPeriod.Status.ONGOING
+        salary_period.save()
+
+        # Act
+        response = api_client.get(f"/api/payroll/salary-periods/{salary_period.id}/not-ready/?need_resend_email=false")
+
+        # Assert
+        response_data = get_response_data(response)
+        assert response.status_code == status.HTTP_200_OK
+
+    def test_not_ready_search_by_employee_code(self, api_client, salary_period, payroll_slip_pending):
+        """Test searching not-ready slips by employee code."""
+        # Arrange
+        salary_period.status = SalaryPeriod.Status.ONGOING
+        salary_period.save()
+        search_term = payroll_slip_pending.employee_code[:3]
+
+        # Act
+        response = api_client.get(f"/api/payroll/salary-periods/{salary_period.id}/not-ready/?search={search_term}")
+
+        # Assert
+        response_data = get_response_data(response)
+        assert response.status_code == status.HTTP_200_OK
+
+    def test_not_ready_search_by_employee_name(self, api_client, salary_period, payroll_slip_pending):
+        """Test searching not-ready slips by employee name."""
+        # Arrange
+        salary_period.status = SalaryPeriod.Status.ONGOING
+        salary_period.save()
+        search_term = payroll_slip_pending.employee_name.split()[0] if payroll_slip_pending.employee_name else "test"
+
+        # Act
+        response = api_client.get(f"/api/payroll/salary-periods/{salary_period.id}/not-ready/?search={search_term}")
+
+        # Assert
+        response_data = get_response_data(response)
+        assert response.status_code == status.HTTP_200_OK
+
+    def test_not_ready_ordering_by_employee_code(self, api_client, salary_period, payroll_slip_pending):
+        """Test ordering not-ready slips by employee code."""
+        # Arrange
+        salary_period.status = SalaryPeriod.Status.ONGOING
+        salary_period.save()
+
+        # Act
+        response = api_client.get(f"/api/payroll/salary-periods/{salary_period.id}/not-ready/?ordering=employee_code")
+
+        # Assert
+        response_data = get_response_data(response)
+        assert response.status_code == status.HTTP_200_OK
+
+    def test_not_ready_ordering_by_net_salary_desc(self, api_client, salary_period, payroll_slip_pending):
+        """Test ordering not-ready slips by net salary descending."""
+        # Arrange
+        salary_period.status = SalaryPeriod.Status.ONGOING
+        salary_period.save()
+
+        # Act
+        response = api_client.get(f"/api/payroll/salary-periods/{salary_period.id}/not-ready/?ordering=-net_salary")
+
+        # Assert
+        response_data = get_response_data(response)
+        assert response.status_code == status.HTTP_200_OK
+
+    def test_not_ready_multiple_filters(self, api_client, salary_period, payroll_slip_pending):
+        """Test combining multiple filters on not-ready slips."""
+        # Arrange
+        salary_period.status = SalaryPeriod.Status.ONGOING
+        salary_period.save()
+        employee_code = payroll_slip_pending.employee_code
+        department_name = payroll_slip_pending.department_name
+
+        # Act
+        response = api_client.get(
+            f"/api/payroll/salary-periods/{salary_period.id}/not-ready/"
+            f"?employee_code={employee_code}&department_name={department_name}"
+        )
+
+        # Assert
+        response_data = get_response_data(response)
+        assert response.status_code == status.HTTP_200_OK

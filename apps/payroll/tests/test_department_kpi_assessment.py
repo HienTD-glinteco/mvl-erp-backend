@@ -185,6 +185,8 @@ class DepartmentKPIAssessmentAPITest(TestCase):
 
     def test_generate_assessments(self):
         """Test generating department assessments through period generation."""
+        from unittest.mock import MagicMock, patch
+
         # Create another department using same branch and block
         dept2 = Department.objects.create(
             name="HR Department",
@@ -194,17 +196,26 @@ class DepartmentKPIAssessmentAPITest(TestCase):
             is_active=True,
         )
 
-        # Department assessments are generated when generating a period
-        response = self.client.post(
-            "/api/payroll/kpi-periods/generate/",
-            {"month": "2024-01"},
-            format="json",
-        )
+        # Mock the Celery task to test endpoint without running async task
+        with patch("apps.payroll.tasks.generate_kpi_period_task") as mock_task:
+            mock_result = MagicMock()
+            mock_result.id = "test-task-id-123"
+            mock_task.delay.return_value = mock_result
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        response_data = self.get_response_data(response)
-        self.assertIn("department_assessments_created", response_data["data"])
-        self.assertGreater(response_data["data"]["department_assessments_created"], 0)
+            # Department assessments are generated when generating a period
+            response = self.client.post(
+                "/api/payroll/kpi-periods/generate/",
+                {"month": "2024-01"},
+                format="json",
+            )
+
+            # Now expects 202 Accepted with task_id (async behavior)
+            self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
+            response_data = self.get_response_data(response)
+            self.assertTrue(response_data["success"])
+            self.assertIn("task_id", response_data["data"])
+            self.assertEqual(response_data["data"]["task_id"], "test-task-id-123")
+            mock_task.delay.assert_called_once_with("2024-01")
 
     def test_finalize_assessment(self):
         """Test that department assessments are finalized through period finalization."""

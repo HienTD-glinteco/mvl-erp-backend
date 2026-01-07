@@ -404,13 +404,232 @@ class TestMyTeamKPIAssessmentViewSet(APITestMixin):
         assert assessment.manager_assessment == "Excellent performance"
 
     def test_get_current_team_assessments(self, team_assessments):
-        """Test getting current unfinalized team assessments."""
+        """Test getting current unfinalized team assessments with pagination."""
         url = reverse("payroll-mobile:my-team-kpi-assessment-current")
         response = self.client.get(url)
 
         assert response.status_code == status.HTTP_200_OK
-        data = self.get_response_data(response)
-        assert len(data) == 2
+        data = response.json()["data"]
+        # Check pagination structure
+        assert "count" in data
+        assert "results" in data
+        assert "next" in data
+        assert "previous" in data
+        # Check results
+        assert data["count"] == 2
+        assert len(data["results"]) == 2
+
+    def test_current_action_pagination(self, kpi_period, branch, block, department, position):
+        """Test pagination on current action."""
+        from apps.core.models import User
+        from apps.hrm.models import Employee
+
+        # Create multiple team members
+        for i in range(15):
+            user = User.objects.create_user(
+                username=f"team_member_{i}",
+                email=f"team{i}@test.com",
+                password="pass123",
+            )
+            employee = Employee.objects.create(
+                user=user,
+                code=f"MV{100 + i:06d}",  # MV000100, MV000101, etc.
+                fullname=f"Team Member {i}",
+                username=f"teammember{i}",
+                email=f"teammember{i}@example.com",
+                personal_email=f"teammember{i}_personal@example.com",
+                phone=f"09{i:08d}",
+                attendance_code=f"ATT{i:05d}",
+                start_date="2024-01-01",
+                branch=branch,
+                block=block,
+                department=department,
+                position=position,
+                citizen_id=f"CID{i:09d}",
+            )
+            EmployeeKPIAssessment.objects.create(
+                employee=employee,
+                manager=self.employee,
+                period=kpi_period,
+                total_possible_score=Decimal("100.00"),
+                finalized=False,
+            )
+
+        # Test first page
+        url = reverse("payroll-mobile:my-team-kpi-assessment-current")
+        response = self.client.get(url, {"page": 1, "page_size": 10})
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()["data"]
+        assert data["count"] == 15
+        assert len(data["results"]) == 10
+        assert data["next"] is not None
+
+        # Test second page
+        response = self.client.get(url, {"page": 2, "page_size": 10})
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()["data"]
+        assert len(data["results"]) == 5
+        assert data["next"] is None
+
+    def test_current_action_filter_by_employee_code(self, team_assessments):
+        """Test filtering current assessments by employee code."""
+        url = reverse("payroll-mobile:my-team-kpi-assessment-current")
+        response = self.client.get(url, {"employee_code": "MV000021"})
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()["data"]
+        assert data["count"] == 1
+        assert data["results"][0]["employee"]["code"] == "MV000021"
+
+    def test_current_action_filter_by_grade(self, team_assessments):
+        """Test filtering current assessments by grade."""
+        url = reverse("payroll-mobile:my-team-kpi-assessment-current")
+        response = self.client.get(url, {"grade_manager": "B"})
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()["data"]
+        assert data["count"] == 1
+        assert data["results"][0]["grade_manager"] == "B"
+
+    def test_current_action_search_by_employee_name(self, team_assessments):
+        """Test searching current assessments by employee name."""
+        url = reverse("payroll-mobile:my-team-kpi-assessment-current")
+        response = self.client.get(url, {"search": "Team Member 1"})
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()["data"]
+        assert data["count"] >= 1
+
+    def test_current_action_ordering(self, team_assessments):
+        """Test ordering current assessments."""
+        url = reverse("payroll-mobile:my-team-kpi-assessment-current")
+        response = self.client.get(url, {"ordering": "employee__code"})
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()["data"]
+        codes = [r["employee"]["code"] for r in data["results"]]
+        assert codes == sorted(codes)
+
+    def test_current_action_only_latest_per_employee(self, test_employee, branch, block, department, position):
+        """Test that current action returns only latest assessment per employee."""
+        from datetime import date
+
+        from apps.core.models import User
+        from apps.hrm.models import Employee
+
+        # Create a team member
+        user = User.objects.create_user(username="multi_period", email="multi@test.com", password="pass123")
+        employee = Employee.objects.create(
+            user=user,
+            code="MV000099",
+            fullname="Multi Period Employee",
+            username="multiperiod",
+            email="multiperiod@example.com",
+            personal_email="multiperiod_personal@example.com",
+            phone="0999999999",
+            attendance_code="99999",
+            start_date="2024-01-01",
+            branch=branch,
+            block=block,
+            department=department,
+            position=position,
+            citizen_id="999999999999",
+        )
+
+        # Create periods and assessments
+        period1 = KPIAssessmentPeriod.objects.create(
+            month=date(2025, 12, 1),
+            kpi_config_snapshot={},
+            finalized=False,
+        )
+        period2 = KPIAssessmentPeriod.objects.create(
+            month=date(2026, 1, 1),
+            kpi_config_snapshot={},
+            finalized=False,
+        )
+
+        EmployeeKPIAssessment.objects.create(
+            employee=employee,
+            manager=test_employee,
+            period=period1,
+            total_possible_score=Decimal("100.00"),
+            finalized=False,
+        )
+        EmployeeKPIAssessment.objects.create(
+            employee=employee,
+            manager=test_employee,
+            period=period2,
+            total_possible_score=Decimal("100.00"),
+            finalized=False,
+        )
+
+        url = reverse("payroll-mobile:my-team-kpi-assessment-current")
+        response = self.client.get(url, {"employee_code": "MV000099"})
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()["data"]
+        # Should only return 1 assessment (the latest)
+        assert data["count"] == 1
+        # Should be from period2 (latest)
+        assert data["results"][0]["period"]["month"] == "1/2026"
+
+    def test_current_action_page_size_works(self, kpi_period, branch, block, department, position):
+        """Test that page_size query parameter works correctly."""
+        from apps.core.models import User
+        from apps.hrm.models import Employee
+
+        # Create 5 team members
+        for i in range(5):
+            user = User.objects.create_user(
+                username=f"team_size_test_{i}",
+                email=f"size{i}@test.com",
+                password="pass123",
+            )
+            employee = Employee.objects.create(
+                user=user,
+                code=f"MV{200 + i:06d}",
+                fullname=f"Page Size Test {i}",
+                username=f"pagesizetest{i}",
+                email=f"pagesizetest{i}@example.com",
+                personal_email=f"pagesizetest{i}_personal@example.com",
+                phone=f"08{i:08d}",
+                attendance_code=f"PST{i:05d}",
+                start_date="2024-01-01",
+                branch=branch,
+                block=block,
+                department=department,
+                position=position,
+                citizen_id=f"PST{i:09d}",
+            )
+            EmployeeKPIAssessment.objects.create(
+                employee=employee,
+                manager=self.employee,
+                period=kpi_period,
+                total_possible_score=Decimal("100.00"),
+                finalized=False,
+            )
+
+        url = reverse("payroll-mobile:my-team-kpi-assessment-current")
+        
+        # Test page_size=1
+        response = self.client.get(url, {"page_size": 1})
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()["data"]
+        assert len(data["results"]) == 1, f"Expected 1 result with page_size=1, got {len(data['results'])}"
+        assert data["count"] == 5
+        assert data["next"] is not None
+        
+        # Test page_size=2
+        response = self.client.get(url, {"page_size": 2})
+        data = response.json()["data"]
+        assert len(data["results"]) == 2, f"Expected 2 results with page_size=2, got {len(data['results'])}"
+        
+        # Test page_size=10 (should return all 5)
+        response = self.client.get(url, {"page_size": 10})
+        data = response.json()["data"]
+        assert len(data["results"]) == 5, f"Expected 5 results with page_size=10, got {len(data['results'])}"
+        assert data["next"] is None
 
     def test_only_team_assessments(self, team_assessments, kpi_period, branch, block, department, position):
         """Test that managers can only see their team's assessments."""

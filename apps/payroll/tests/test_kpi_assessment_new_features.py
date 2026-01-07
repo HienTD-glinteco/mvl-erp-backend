@@ -126,7 +126,7 @@ def employee_with_manager(department, manager_employee):
         branch=department.branch,
         block=department.block,
         status=Employee.Status.ACTIVE,
-        start_date=date.today(),
+        start_date=date(2024, 1, 1),  # Start date before any test periods
         personal_email=f"employee{code}@example.com",
     )
     return employee

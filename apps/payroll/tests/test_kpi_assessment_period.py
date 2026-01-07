@@ -144,15 +144,23 @@ class KPIAssessmentPeriodAPITest(TestCase):
         self.assertEqual(self.get_response_data(response)["data"]["id"], self.period.id)
 
     def test_generate_period(self):
-        """Test generating assessments for a new period."""
+        """Test generating assessments for a new period - returns task ID."""
+        from unittest.mock import MagicMock, patch
+
         # Use a past month that's definitely not in the future
         data = {"month": "2024-01"}
 
-        response = self.client.post("/api/payroll/kpi-periods/generate/", data, format="json")
+        with patch("apps.payroll.tasks.generate_kpi_period_task") as mock_task:
+            mock_result = MagicMock()
+            mock_result.id = "test-task-id"
+            mock_task.delay.return_value = mock_result
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(self.get_response_data(response)["success"], True)
-        self.assertIn("period_id", self.get_response_data(response)["data"])
+            response = self.client.post("/api/payroll/kpi-periods/generate/", data, format="json")
+
+            self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
+            self.assertEqual(self.get_response_data(response)["success"], True)
+            self.assertIn("task_id", self.get_response_data(response)["data"])
+            self.assertIn("status", self.get_response_data(response)["data"])
 
     def test_generate_period_future_month_rejected(self):
         """Test that future months are rejected."""
@@ -178,39 +186,52 @@ class KPIAssessmentPeriodAPITest(TestCase):
         self.assertIn("Cannot create assessment period for future months", error_message)
 
     def test_generate_period_current_month_allowed(self):
-        """Test that current month is allowed."""
+        """Test that current month is allowed - returns task ID."""
         from datetime import date
+        from unittest.mock import MagicMock, patch
 
         today = date.today()
         current_month_str = f"{today.year}-{today.month:02d}"
 
         data = {"month": current_month_str}
 
-        response = self.client.post("/api/payroll/kpi-periods/generate/", data, format="json")
+        with patch("apps.payroll.tasks.generate_kpi_period_task") as mock_task:
+            mock_result = MagicMock()
+            mock_result.id = "test-task-id"
+            mock_task.delay.return_value = mock_result
 
-        # Should succeed (201) or fail because period already exists (400)
-        # Either is acceptable for this test
-        self.assertIn(response.status_code, [status.HTTP_201_CREATED, status.HTTP_400_BAD_REQUEST])
+            response = self.client.post("/api/payroll/kpi-periods/generate/", data, format="json")
 
-        if response.status_code == status.HTTP_400_BAD_REQUEST:
-            # If it fails, it should be because period exists, not because it's future
-            response_data = self.get_response_data(response)
-            error_message = (
-                response_data["error"]["detail"]
-                if isinstance(response_data["error"], dict)
-                else response_data["error"]
-            )
-            self.assertNotIn("future", error_message.lower())
+            # Should succeed (202) or fail because period already exists (400)
+            # Either is acceptable for this test
+            self.assertIn(response.status_code, [status.HTTP_202_ACCEPTED, status.HTTP_400_BAD_REQUEST])
+
+            if response.status_code == status.HTTP_400_BAD_REQUEST:
+                # If it fails, it should be because period exists, not because it's future
+                response_data = self.get_response_data(response)
+                error_message = (
+                    response_data["error"]["detail"]
+                    if isinstance(response_data["error"], dict)
+                    else response_data["error"]
+                )
+                self.assertNotIn("future", error_message.lower())
 
     def test_generate_period_past_month_allowed(self):
-        """Test that past months are allowed."""
+        """Test that past months are allowed - returns task ID."""
+        from unittest.mock import MagicMock, patch
+
         data = {"month": "2023-06"}
 
-        response = self.client.post("/api/payroll/kpi-periods/generate/", data, format="json")
+        with patch("apps.payroll.tasks.generate_kpi_period_task") as mock_task:
+            mock_result = MagicMock()
+            mock_result.id = "test-task-id"
+            mock_task.delay.return_value = mock_result
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(self.get_response_data(response)["success"], True)
-        self.assertIn("period_id", self.get_response_data(response)["data"])
+            response = self.client.post("/api/payroll/kpi-periods/generate/", data, format="json")
+
+            self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
+            self.assertEqual(self.get_response_data(response)["success"], True)
+            self.assertIn("task_id", self.get_response_data(response)["data"])
 
     def test_finalize_period(self):
         """Test finalizing a period."""
@@ -221,6 +242,84 @@ class KPIAssessmentPeriodAPITest(TestCase):
         # Verify period is finalized
         self.period.refresh_from_db()
         self.assertTrue(self.period.finalized)
+
+    def test_task_status_with_mock_task(self):
+        """Test task_status endpoint with mocked Celery task."""
+        from unittest.mock import MagicMock, patch
+
+        # Mock a successful task
+        with patch("celery.result.AsyncResult") as mock_async_result:
+            mock_task = MagicMock()
+            mock_task.state = "SUCCESS"
+            mock_task.result = {
+                "period_id": 123,
+                "month": "2024-01",
+                "employee_assessments_created": 50,
+                "department_assessments_created": 5,
+                "status": "completed",
+            }
+            mock_async_result.return_value = mock_task
+
+            response = self.client.get("/api/payroll/kpi-periods/task-status/fake-task-id/")
+
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            response_data = self.get_response_data(response)
+            self.assertEqual(response_data["success"], True)
+            self.assertEqual(response_data["data"]["task_id"], "fake-task-id")
+            self.assertEqual(response_data["data"]["state"], "SUCCESS")
+            self.assertIn("result", response_data["data"])
+
+    def test_task_status_pending(self):
+        """Test task_status endpoint for pending task."""
+        from unittest.mock import MagicMock, patch
+
+        with patch("celery.result.AsyncResult") as mock_async_result:
+            mock_task = MagicMock()
+            mock_task.state = "PENDING"
+            mock_task.info = None
+            mock_async_result.return_value = mock_task
+
+            response = self.client.get("/api/payroll/kpi-periods/task-status/pending-task-id/")
+
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            response_data = self.get_response_data(response)
+            self.assertEqual(response_data["data"]["state"], "PENDING")
+            self.assertIn("waiting to be executed", response_data["data"]["status"])
+
+    def test_task_status_in_progress(self):
+        """Test task_status endpoint for in-progress task."""
+        from unittest.mock import MagicMock, patch
+
+        with patch("celery.result.AsyncResult") as mock_async_result:
+            mock_task = MagicMock()
+            mock_task.state = "PROGRESS"
+            mock_task.info = {"status": "Generating employee assessments"}
+            mock_async_result.return_value = mock_task
+
+            response = self.client.get("/api/payroll/kpi-periods/task-status/progress-task-id/")
+
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            response_data = self.get_response_data(response)
+            self.assertEqual(response_data["data"]["state"], "PROGRESS")
+            self.assertIn("meta", response_data["data"])
+            self.assertEqual(response_data["data"]["meta"]["status"], "Generating employee assessments")
+
+    def test_task_status_failure(self):
+        """Test task_status endpoint for failed task."""
+        from unittest.mock import MagicMock, patch
+
+        with patch("celery.result.AsyncResult") as mock_async_result:
+            mock_task = MagicMock()
+            mock_task.state = "FAILURE"
+            mock_task.info = Exception("Something went wrong")
+            mock_async_result.return_value = mock_task
+
+            response = self.client.get("/api/payroll/kpi-periods/task-status/failed-task-id/")
+
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            response_data = self.get_response_data(response)
+            self.assertEqual(response_data["data"]["state"], "FAILURE")
+            self.assertIn("error", response_data["data"])
 
 
 @pytest.mark.django_db

@@ -207,7 +207,7 @@ def resync_assessment_apply_current(assessment: EmployeeKPIAssessment) -> int:
     return len(new_items)
 
 
-def generate_employee_assessments_for_period(
+def generate_employee_assessments_for_period(  # noqa: C901
     period,
     targets=None,
     employee_ids=None,
@@ -227,6 +227,8 @@ def generate_employee_assessments_for_period(
     Returns:
         Number of employee assessments created
     """
+    from datetime import timedelta
+
     from apps.hrm.models import Department, Employee
     from apps.payroll.models import KPICriterion
 
@@ -234,6 +236,15 @@ def generate_employee_assessments_for_period(
         targets = ["sales", "backoffice"]
 
     created_count = 0
+
+    # Calculate last day of period month
+    period_month = period.month
+    # Get first day of next month, then subtract one day
+    if period_month.month == 12:
+        first_day_next_month = period_month.replace(year=period_month.year + 1, month=1)
+    else:
+        first_day_next_month = period_month.replace(month=period_month.month + 1)
+    last_day_of_month = first_day_next_month - timedelta(days=1)
 
     for target in targets:
         # Get active criteria for target
@@ -243,7 +254,10 @@ def generate_employee_assessments_for_period(
             continue
 
         # Get employees based on target
-        employees_qs = Employee.objects.exclude(status=Employee.Status.RESIGNED)
+        # Only include employees with start_date <= last day of period month
+        employees_qs = Employee.objects.exclude(status=Employee.Status.RESIGNED).filter(
+            start_date__lte=last_day_of_month
+        )
 
         if target == "sales":
             employees_qs = employees_qs.filter(department__function=Department.DepartmentFunction.BUSINESS)

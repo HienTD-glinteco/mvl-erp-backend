@@ -58,6 +58,7 @@ markers = [
     "integration: marks tests as integration tests",
     "unit: marks tests as unit tests",
     "rbp: marks tests that explicitly test RoleBasedPermission behavior (no auto-authentication)",
+    "enable_employee_lifecycle_signal: enables the employee lifecycle signal for tests that specifically test it",
 ]
 
 [tool.bandit]

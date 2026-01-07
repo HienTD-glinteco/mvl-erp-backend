@@ -1,6 +1,5 @@
 """ViewSet for SalaryPeriod model."""
 
-from django.core.exceptions import ImproperlyConfigured
 from django.db.models import Q
 from django.utils.translation import gettext as _
 from django_filters.rest_framework import DjangoFilterBackend
@@ -12,7 +11,7 @@ from rest_framework.response import Response
 
 from apps.audit_logging.api.mixins import AuditLoggingMixin
 from apps.core.api.permissions import RoleBasedPermission
-from apps.payroll.api.filtersets import SalaryPeriodFilterSet
+from apps.payroll.api.filtersets import PayrollSlipFilterSet, SalaryPeriodFilterSet
 from apps.payroll.api.serializers import (
     PayrollSlipExportSerializer,
     PayrollSlipSerializer,
@@ -25,8 +24,7 @@ from apps.payroll.api.serializers import (
     TaskStatusSerializer,
 )
 from apps.payroll.models import PayrollSlip, SalaryPeriod
-from libs import BaseModelViewSet
-from libs.drf.base_api_view import PermissionedAPIView
+from libs import BaseModelViewSet, BaseReadOnlyModelViewSet
 from libs.drf.filtersets.search import PhraseSearchFilter
 from libs.drf.pagination import PageNumberWithSizePagination
 
@@ -743,50 +741,14 @@ class SalaryPeriodViewSet(AuditLoggingMixin, BaseModelViewSet):
         return Response(response_data, status=status.HTTP_200_OK)
 
 
-class SalaryPeriodReadySlipsView(PermissionedAPIView):
-    """View for ready payroll slips."""
-
-    permission_classes = [RoleBasedPermission]
-    module = _("Payroll")
-    submodule = _("Salary Periods")
-    permission_prefix = "salary_period"
-    permission_action_map = {"get": "list_ready"}
-    STANDARD_ACTIONS = {}
-    PERMISSION_REGISTERED_ACTIONS = {
-        "list_ready": {
-            "name_template": _("View Ready Payroll Slips"),
-            "description_template": _("View ready payroll slips"),
-        }
-    }
-
-    pagination_class = PageNumberWithSizePagination
-    filter_backends = [DjangoFilterBackend, OrderingFilter, PhraseSearchFilter]
-    filterset_fields = {
-        "employee_code": ["exact", "icontains"],
-        "employee_name": ["icontains"],
-        "department_name": ["exact", "icontains"],
-        "position_name": ["exact", "icontains"],
-        "has_unpaid_penalty": ["exact"],
-        "need_resend_email": ["exact"],
-        "calculated_at": ["gte", "lte", "isnull"],
-    }
-    ordering_fields = [
-        "code",
-        "employee_code",
-        "employee_name",
-        "gross_income",
-        "net_salary",
-        "calculated_at",
-    ]
-    ordering = ["-calculated_at"]
-    search_fields = ["employee_code", "employee_name", "code"]
-
-    @extend_schema(
+@extend_schema_view(
+    list=extend_schema(
         summary="Get ready payroll slips",
         description=(
             "Get ready payroll slips based on period status:\n"
             "- ONGOING: Returns all READY slips from this period and all previous periods\n"
-            "- COMPLETED: Returns all DELIVERED slips from this period only"
+            "- COMPLETED: Returns all DELIVERED slips from this period only\n\n"
+            "Supports filtering, searching, and ordering same as PayrollSlipViewSet."
         ),
         tags=["10.6: Salary Periods"],
         responses={
@@ -823,15 +785,50 @@ class SalaryPeriodReadySlipsView(PermissionedAPIView):
             ),
         ],
     )
-    def get(self, request, pk):
-        """Get ready payroll slips for a salary period."""
+)
+class SalaryPeriodReadySlipsViewSet(BaseReadOnlyModelViewSet):
+    """ViewSet for ready payroll slips."""
+
+    queryset = PayrollSlip.objects.none()
+    serializer_class = PayrollSlipSerializer
+    permission_classes = [RoleBasedPermission]
+    module = _("Payroll")
+    submodule = _("Salary Periods")
+    permission_prefix = "salary_period"
+    permission_action_map = {"list": "list_ready"}
+    STANDARD_ACTIONS = {}
+    PERMISSION_REGISTERED_ACTIONS = {
+        "list_ready": {
+            "name_template": _("View Ready Payroll Slips"),
+            "description_template": _("View ready payroll slips"),
+        }
+    }
+
+    pagination_class = PageNumberWithSizePagination
+    filter_backends = [DjangoFilterBackend, OrderingFilter, PhraseSearchFilter]
+    filterset_class = PayrollSlipFilterSet
+    ordering_fields = [
+        "code",
+        "employee_code",
+        "employee_name",
+        "gross_income",
+        "net_salary",
+        "calculated_at",
+    ]
+    ordering = ["-calculated_at"]
+    search_fields = ["employee_code", "employee_name", "code"]
+    http_method_names = ["get"]
+
+    def get_queryset(self):
+        """Get queryset based on salary period status."""
+        pk = self.kwargs.get("pk")
+        if not pk:
+            return PayrollSlip.objects.none()
+
         try:
             period = SalaryPeriod.objects.get(pk=pk)
         except SalaryPeriod.DoesNotExist:
-            return Response(
-                {"detail": "Salary period not found."},
-                status=status.HTTP_404_NOT_FOUND,
-            )
+            return PayrollSlip.objects.none()
 
         if period.status == SalaryPeriod.Status.ONGOING:
             # Get all READY slips from this period and all previous periods
@@ -845,85 +842,17 @@ class SalaryPeriodReadySlipsView(PermissionedAPIView):
                 salary_period=period, status=PayrollSlip.Status.DELIVERED
             ).select_related("employee", "salary_period")
 
-        # Set queryset for filtering
-        self.queryset = queryset
-
-        # Apply filters, search, and ordering
-        queryset = self.filter_queryset(queryset)
-
-        # Apply pagination
-        page = self.paginate_queryset(queryset, request)
-        if page is not None:
-            serializer = PayrollSlipSerializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
-
-        serializer = PayrollSlipSerializer(queryset, many=True)
-        return Response(serializer.data)
-
-    def filter_queryset(self, queryset):
-        """Apply filter backends to queryset."""
-        for backend in list(self.filter_backends or []):
-            queryset = backend().filter_queryset(self.request, queryset, self)
         return queryset
 
-    def paginate_queryset(self, queryset, request):
-        """Paginate a queryset if required, either returning page object or None."""
-        if self.pagination_class is None:
-            return None
-        self.paginator = self.pagination_class()
-        return self.paginator.paginate_queryset(queryset, request, view=self)
 
-    def get_paginated_response(self, data):
-        """Return a paginated response."""
-        if self.pagination_class is None:
-            raise ImproperlyConfigured("pagination_class must be set")
-        return self.paginator.get_paginated_response(data)
-
-
-class SalaryPeriodNotReadySlipsView(PermissionedAPIView):
-    """View for not-ready payroll slips."""
-
-    permission_classes = [RoleBasedPermission]
-    module = _("Payroll")
-    submodule = _("Salary Periods")
-    permission_prefix = "salary_period"
-    permission_action_map = {"get": "list_not_ready"}
-    STANDARD_ACTIONS = {}
-    PERMISSION_REGISTERED_ACTIONS = {
-        "list_not_ready": {
-            "name_template": _("View Not-Ready Payroll Slips"),
-            "description_template": _("View not-ready payroll slips"),
-        }
-    }
-
-    pagination_class = PageNumberWithSizePagination
-    filter_backends = [DjangoFilterBackend, OrderingFilter, PhraseSearchFilter]
-    filterset_fields = {
-        "employee_code": ["exact", "icontains"],
-        "employee_name": ["icontains"],
-        "department_name": ["exact", "icontains"],
-        "position_name": ["exact", "icontains"],
-        "has_unpaid_penalty": ["exact"],
-        "need_resend_email": ["exact"],
-        "calculated_at": ["gte", "lte", "isnull"],
-    }
-    ordering_fields = [
-        "code",
-        "employee_code",
-        "employee_name",
-        "gross_income",
-        "net_salary",
-        "calculated_at",
-    ]
-    ordering = ["-calculated_at"]
-    search_fields = ["employee_code", "employee_name", "code"]
-
-    @extend_schema(
+@extend_schema_view(
+    list=extend_schema(
         summary="Get not-ready payroll slips",
         description=(
             "Get not-ready payroll slips based on period status:\n"
             "- ONGOING: Returns all PENDING/HOLD slips from this period and all previous periods\n"
-            "- COMPLETED: Returns all PENDING/HOLD slips from this period only"
+            "- COMPLETED: Returns all PENDING/HOLD slips from this period only\n\n"
+            "Supports filtering, searching, and ordering same as PayrollSlipViewSet."
         ),
         tags=["10.6: Salary Periods"],
         responses={
@@ -960,15 +889,50 @@ class SalaryPeriodNotReadySlipsView(PermissionedAPIView):
             ),
         ],
     )
-    def get(self, request, pk):
-        """Get not-ready payroll slips for a salary period."""
+)
+class SalaryPeriodNotReadySlipsViewSet(BaseReadOnlyModelViewSet):
+    """ViewSet for not-ready payroll slips."""
+
+    queryset = PayrollSlip.objects.none()
+    serializer_class = PayrollSlipSerializer
+    permission_classes = [RoleBasedPermission]
+    module = _("Payroll")
+    submodule = _("Salary Periods")
+    permission_prefix = "salary_period"
+    permission_action_map = {"list": "list_not_ready"}
+    STANDARD_ACTIONS = {}
+    PERMISSION_REGISTERED_ACTIONS = {
+        "list_not_ready": {
+            "name_template": _("View Not-Ready Payroll Slips"),
+            "description_template": _("View not-ready payroll slips"),
+        }
+    }
+
+    pagination_class = PageNumberWithSizePagination
+    filter_backends = [DjangoFilterBackend, OrderingFilter, PhraseSearchFilter]
+    filterset_class = PayrollSlipFilterSet
+    ordering_fields = [
+        "code",
+        "employee_code",
+        "employee_name",
+        "gross_income",
+        "net_salary",
+        "calculated_at",
+    ]
+    ordering = ["-calculated_at"]
+    search_fields = ["employee_code", "employee_name", "code"]
+    http_method_names = ["get"]
+
+    def get_queryset(self):
+        """Get queryset based on salary period status."""
+        pk = self.kwargs.get("pk")
+        if not pk:
+            return PayrollSlip.objects.none()
+
         try:
             period = SalaryPeriod.objects.get(pk=pk)
         except SalaryPeriod.DoesNotExist:
-            return Response(
-                {"detail": "Salary period not found."},
-                status=status.HTTP_404_NOT_FOUND,
-            )
+            return PayrollSlip.objects.none()
 
         if period.status == SalaryPeriod.Status.ONGOING:
             # Get all PENDING/HOLD slips from this period and all previous periods
@@ -985,36 +949,4 @@ class SalaryPeriodNotReadySlipsView(PermissionedAPIView):
                 salary_period=period, status__in=[PayrollSlip.Status.PENDING, PayrollSlip.Status.HOLD]
             ).select_related("employee", "salary_period")
 
-        # Set queryset for filtering
-        self.queryset = queryset
-
-        # Apply filters, search, and ordering
-        queryset = self.filter_queryset(queryset)
-
-        # Apply pagination
-        page = self.paginate_queryset(queryset, request)
-        if page is not None:
-            serializer = PayrollSlipSerializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
-
-        serializer = PayrollSlipSerializer(queryset, many=True)
-        return Response(serializer.data)
-
-    def filter_queryset(self, queryset):
-        """Apply filter backends to queryset."""
-        for backend in list(self.filter_backends or []):
-            queryset = backend().filter_queryset(self.request, queryset, self)
         return queryset
-
-    def paginate_queryset(self, queryset, request):
-        """Paginate a queryset if required, either returning page object or None."""
-        if self.pagination_class is None:
-            return None
-        self.paginator = self.pagination_class()
-        return self.paginator.paginate_queryset(queryset, request, view=self)
-
-    def get_paginated_response(self, data):
-        """Return a paginated response."""
-        if self.pagination_class is None:
-            raise ImproperlyConfigured("pagination_class must be set")
-        return self.paginator.get_paginated_response(data)

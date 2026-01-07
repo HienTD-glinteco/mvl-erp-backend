@@ -269,7 +269,7 @@ class MyTeamKPIAssessmentViewSet(BaseModelViewSet):
 
     @extend_schema(
         summary="Get current team assessments",
-        description="Get latest unfinalized assessments for team members",
+        description="Get latest unfinalized assessments for team members with pagination and filters",
         tags=["8.7: Team KPI"],
         responses={200: ManagerAssessmentSerializer(many=True)},
         examples=[
@@ -277,18 +277,23 @@ class MyTeamKPIAssessmentViewSet(BaseModelViewSet):
                 "Success",
                 value={
                     "success": True,
-                    "data": [
-                        {
-                            "id": 1,
-                            "period": {"id": 3, "month": "12/2025", "finalized": False},
-                            "employee": {"id": 2, "code": "EMP002", "fullname": "Jane Smith"},
-                            "total_possible_score": "100.00",
-                            "total_employee_score": "88.00",
-                            "total_manager_score": "82.00",
-                            "grade_manager": "B",
-                            "items": [],
-                        }
-                    ],
+                    "data": {
+                        "count": 2,
+                        "next": None,
+                        "previous": None,
+                        "results": [
+                            {
+                                "id": 1,
+                                "period": {"id": 3, "month": "12/2025", "finalized": False},
+                                "employee": {"id": 2, "code": "EMP002", "fullname": "Jane Smith"},
+                                "total_possible_score": "100.00",
+                                "total_employee_score": "88.00",
+                                "total_manager_score": "82.00",
+                                "grade_manager": "B",
+                                "items": [],
+                            }
+                        ],
+                    },
                     "error": None,
                 },
                 response_only=True,
@@ -297,7 +302,7 @@ class MyTeamKPIAssessmentViewSet(BaseModelViewSet):
     )
     @action(detail=False, methods=["get"], url_path="current")
     def current(self, request):
-        """Get current unfinalized assessments for team members."""
+        """Get current unfinalized assessments for team members with pagination and filters."""
         try:
             employee = request.user.employee
         except AttributeError:
@@ -306,13 +311,15 @@ class MyTeamKPIAssessmentViewSet(BaseModelViewSet):
                 status=status.HTTP_404_NOT_FOUND,
             )
 
+        # Get all unfinalized assessments for team members
         assessments = (
             EmployeeKPIAssessment.objects.filter(manager=employee, finalized=False)
             .select_related("period", "employee", "manager")
             .prefetch_related("items")
-            .order_by("-period__month")
+            .order_by("-period__month", "employee__code")
         )
 
+        # Get only the latest assessment per employee
         from collections import OrderedDict
 
         latest_assessments = OrderedDict()
@@ -321,5 +328,23 @@ class MyTeamKPIAssessmentViewSet(BaseModelViewSet):
             if employee_id not in latest_assessments:
                 latest_assessments[employee_id] = assessment
 
-        serializer = self.get_serializer(list(latest_assessments.values()), many=True)
+        # Convert to queryset for filtering and pagination
+        assessment_ids = [a.id for a in latest_assessments.values()]
+        queryset = (
+            EmployeeKPIAssessment.objects.filter(id__in=assessment_ids)
+            .select_related("period", "employee", "manager")
+            .prefetch_related("items")
+            .order_by("-period__month", "employee__code")
+        )
+
+        # Apply filters
+        queryset = self.filter_queryset(queryset)
+
+        # Apply pagination
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)

@@ -52,6 +52,37 @@ def mock_s3_service(monkeypatch):
     return _MockS3Service()
 
 
+@pytest.fixture(autouse=True)
+def disable_employee_lifecycle_signal(request):
+    """
+    Disable the employee lifecycle signal that auto-creates assessments/slips.
+
+    This prevents test interference where the signal creates records that tests
+    also try to create, causing unique constraint violations.
+
+    Individual tests that specifically test the signal functionality can opt out
+    by using the marker: @pytest.mark.enable_employee_lifecycle_signal
+    """
+    from django.db.models.signals import post_save
+
+    from apps.hrm.models import Employee
+    from apps.payroll.signals.employee_lifecycle import create_assessments_for_new_employee
+
+    # Check if test is marked to enable the signal
+    if request.node.get_closest_marker("enable_employee_lifecycle_signal"):
+        # Don't disable the signal for this test
+        return
+
+    # Disconnect the signal
+    post_save.disconnect(create_assessments_for_new_employee, sender=Employee)
+
+    # Reconnect after test
+    def reconnect_signal():
+        post_save.connect(create_assessments_for_new_employee, sender=Employee)
+
+    request.addfinalizer(reconnect_signal)
+
+
 def pytest_addoption(parser: pytest.Parser) -> None:
     parser.addoption(
         "--db-mode",
