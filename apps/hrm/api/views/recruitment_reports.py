@@ -167,11 +167,11 @@ class RecruitmentReportsViewSet(BaseGenericViewSet):
                 {
                     "period_type": period_type,
                     "label": label,
-                    "num_introductions": item["num_introductions"] or 0,
-                    "num_returns": item["num_returns"] or 0,
-                    "num_recruitment_source": item["num_recruitment_source"] or 0,
-                    "num_transfers": item["num_transfers"] or 0,
-                    "num_resignations": item["num_resignations"] or 0,
+                    _("Introductions"): item["num_introductions"] or 0,
+                    _("Returns"): item["num_returns"] or 0,
+                    _("Recruitment Source"): item["num_recruitment_source"] or 0,
+                    _("Transfers"): item["num_transfers"] or 0,
+                    _("Resignations"): item["num_resignations"] or 0,
                 }
             )
 

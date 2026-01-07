@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-07 17:19+0700\n"
+"POT-Creation-Date: 2026-01-07 17:51+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -524,8 +524,6 @@ msgid "Cannot create/edit holidays in the past or present"
 msgstr "Không thể tạo/sửa ngày lễ trong quá khứ hoặc hiện tại"
 
 #: apps/hrm/api/serializers/holiday.py:442 apps/hrm/models/holiday.py:79
-#, fuzzy
-#| msgid "Compensatory Workday"
 msgid "Compensatory Workdays"
 msgstr "Ngày làm bù"
 
@@ -893,6 +891,27 @@ msgstr "Xem báo cáo số lượng nhân sự"
 #: apps/hrm/api/views/employee_reports.py:66
 msgid "Retrieve employee resigned reasons summary report"
 msgstr "Xem báo cáo Báo cáo Tỉ lệ lý do nghỉ việc"
+
+#: apps/hrm/api/views/employee_reports.py:78
+#: apps/hrm/api/views/recruitment_reports.py:742 apps/hrm/constants.py:68
+#: apps/hrm/constants.py:73 apps/hrm/utils/functions.py:162
+msgid "Week"
+msgstr "Tuần"
+
+#: apps/hrm/api/views/employee_reports.py:98
+#: apps/hrm/api/views/recruitment_reports.py:165
+#: apps/hrm/api/views/recruitment_reports.py:916 apps/hrm/constants.py:69
+#: apps/hrm/constants.py:74
+msgid "Month"
+msgstr "Tháng"
+
+#: apps/hrm/api/views/employee_reports.py:124 apps/hrm/constants.py:75
+msgid "Quarter"
+msgstr "Quý"
+
+#: apps/hrm/api/views/employee_reports.py:145 apps/hrm/constants.py:76
+msgid "Year"
+msgstr "Năm"
 
 #: apps/hrm/api/views/employee_reports.py:350
 msgid "Average"
@@ -2451,6 +2470,28 @@ msgstr ""
 "Thống kê chi phí giới thiệu với tóm tắt phòng ban và chi tiết nhân viên cho "
 "một tháng"
 
+#: apps/hrm/api/views/recruitment_reports.py:170
+msgid "Introductions"
+msgstr "Giới thiệu"
+
+#: apps/hrm/api/views/recruitment_reports.py:171
+msgid "Returns"
+msgstr "Quay lại"
+
+#: apps/hrm/api/views/recruitment_reports.py:172
+#: apps/hrm/api/views/recruitment_reports.py:809
+#: apps/hrm/models/recruitment_source.py:27
+msgid "Recruitment Source"
+msgstr "Nguồn tuyển dụng"
+
+#: apps/hrm/api/views/recruitment_reports.py:173
+msgid "Transfers"
+msgstr "Điều chuyển"
+
+#: apps/hrm/api/views/recruitment_reports.py:174
+msgid "Resignations"
+msgstr "Nghỉ"
+
 #: apps/hrm/api/views/recruitment_reports.py:674
 msgid "No Department"
 msgstr "Không có phòng ban"
@@ -2460,19 +2501,9 @@ msgstr "Không có phòng ban"
 msgid "Total"
 msgstr "Tổng"
 
-#: apps/hrm/api/views/recruitment_reports.py:742 apps/hrm/constants.py:68
-#: apps/hrm/constants.py:73
-msgid "Week"
-msgstr "Tuần"
-
 #: apps/hrm/api/views/recruitment_reports.py:804 apps/hrm/constants.py:52
 msgid "Referral Source"
 msgstr "Giới thiệu"
-
-#: apps/hrm/api/views/recruitment_reports.py:809
-#: apps/hrm/models/recruitment_source.py:27
-msgid "Recruitment Source"
-msgstr "Nguồn tuyển dụng"
 
 #: apps/hrm/api/views/recruitment_reports.py:814 apps/hrm/constants.py:56
 msgid "Returning Employee"
@@ -2583,18 +2614,6 @@ msgstr "Trang web việc làm"
 #: apps/hrm/constants.py:55
 msgid "Recruitment Department Source"
 msgstr "Phòng tuyển dụng"
-
-#: apps/hrm/constants.py:69 apps/hrm/constants.py:74
-msgid "Month"
-msgstr "Tháng"
-
-#: apps/hrm/constants.py:75
-msgid "Quarter"
-msgstr "Quý"
-
-#: apps/hrm/constants.py:76
-msgid "Year"
-msgstr "Năm"
 
 #: apps/hrm/constants.py:82
 msgid "All data"
