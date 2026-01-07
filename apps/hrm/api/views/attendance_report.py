@@ -1,4 +1,5 @@
 from django.db.models import Count, Q
+from django.utils import timezone
 from django.utils.translation import gettext as _
 from drf_spectacular.utils import OpenApiExample, extend_schema
 from rest_framework.decorators import action
@@ -96,6 +97,8 @@ class AttendanceReportViewSet(BaseGenericViewSet):
 
         # Get total employees from TimeSheetEntry
         # Assuming one entry per employee per day
+        if "report_date" not in filters:
+            filters["report_date"] = timezone.localdate()
         timesheet_filters = {"date": filters.get("report_date")}
         # Map report filters to timesheet filters if needed (e.g. branch, block, department)
         # TimeSheetEntry doesn't have branch/block/dept directly, it links to Employee.
@@ -106,7 +109,6 @@ class AttendanceReportViewSet(BaseGenericViewSet):
             timesheet_filters["employee__block_id"] = filters["block_id"]
         if "department_id" in filters:
             timesheet_filters["employee__department_id"] = filters["department_id"]
-
         total_employee = TimeSheetEntry.objects.filter(**timesheet_filters).count()
 
         # Get attendance stats

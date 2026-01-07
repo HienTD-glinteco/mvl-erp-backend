@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-07 21:27+0700\n"
+"POT-Creation-Date: 2026-01-08 01:13+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -665,6 +665,19 @@ msgstr ""
 msgid "Validation failed"
 msgstr ""
 
+#: apps/payroll/models/employee_kpi_assessment.py:47
+msgid "New"
+msgstr "Mới"
+
+#: apps/payroll/models/employee_kpi_assessment.py:48
+msgid "Waiting for manager assessment"
+msgstr "Chờ đánh giá"
+
+#: apps/payroll/models/employee_kpi_assessment.py:49
+#: apps/payroll/models/salary_period.py:53
+msgid "Completed"
+msgstr "Hoàn thành"
+
 #: apps/payroll/models/kpi_criterion.py:38
 msgid "Sales"
 msgstr "Nhân viên kinh doanh"
@@ -1119,10 +1132,6 @@ msgstr "Các phiếu truy thu/truy lĩnh"
 #: apps/payroll/models/salary_period.py:52
 msgid "Ongoing"
 msgstr "Đang diễn ra"
-
-#: apps/payroll/models/salary_period.py:53
-msgid "Completed"
-msgstr "Hoàn thành"
 
 #: apps/payroll/models/salary_period.py:73
 msgid "Salary Config Snapshot"
