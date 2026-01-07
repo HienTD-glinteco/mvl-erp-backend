@@ -17,7 +17,7 @@ from apps.hrm.models import (
     RecruitmentSourceReport,
     StaffGrowthReport,
 )
-from apps.hrm.utils import get_current_month_range, get_current_week_range, get_week_key_from_date
+from apps.hrm.utils import get_current_month_range, get_current_week_range
 from libs.drf.base_viewset import BaseGenericViewSet
 
 from ..serializers.recruitment_reports import (
@@ -567,9 +567,11 @@ class RecruitmentReportsViewSet(BaseGenericViewSet):
             for item in raw_stats:
                 item["key"] = item.pop("month_key")
 
-        periods, period_labels = self._get_periods_and_labels(period_type, start_date, end_date, raw_stats)
+        period_keys, periods, period_labels = self._get_periods_and_labels(
+            period_type, start_date, end_date, raw_stats
+        )
         stats, emp_stats, emp_code_to_name = self._aggregate_hired_candidate_stats(raw_stats)
-        data = self._format_hired_candidate_result(periods, stats, emp_stats, emp_code_to_name)
+        data = self._format_hired_candidate_result(period_keys, stats, emp_stats, emp_code_to_name)
 
         result = {
             "period_type": period_type,
@@ -698,6 +700,7 @@ class RecruitmentReportsViewSet(BaseGenericViewSet):
                 periods_set.add(item["key"])
 
         if period_type == ReportPeriodType.MONTH.value:
+            # Month keys are the same for lookup and display
             periods = []
             cur = start_date.replace(day=1)
             while cur <= end_date:
@@ -706,19 +709,29 @@ class RecruitmentReportsViewSet(BaseGenericViewSet):
                     cur = cur.replace(year=cur.year + 1, month=1)
                 else:
                     cur = cur.replace(month=cur.month + 1)
+            period_keys = periods  # Same for months
         else:
             # For week period, generate all weeks in the date range
-            periods = []
+            # Week key format stored in DB: "Week {iso_week} - MM/YYYY" (English)
+            period_keys = []  # English keys for lookup in stats
+            periods = []  # Translated keys for display
+            seen_week_keys = set()
             # Start from Monday of the week containing start_date
             cur = start_date - timedelta(days=start_date.weekday())
             while cur <= end_date:
-                week_key = get_week_key_from_date(cur)
-                if week_key not in periods:
-                    periods.append(week_key)
+                iso_week = cur.isocalendar()[1]
+                month_key = cur.strftime("%m/%Y")
+                week_key = f"Week {iso_week} - {month_key}"  # English, matches DB storage
+                if week_key not in seen_week_keys:
+                    seen_week_keys.add(week_key)
+                    period_keys.append(week_key)
+                    # Translate "Week" for display labels
+                    translated_key = f"{_('Week')} {iso_week} - {month_key}"
+                    periods.append(translated_key)
                 cur += timedelta(weeks=1)
 
         period_labels = periods + [_("Total")]
-        return periods, period_labels
+        return period_keys, periods, period_labels
 
     def _aggregate_hired_candidate_stats(self, raw_stats):
         """Aggregate stats into 3 main groups per SRS.

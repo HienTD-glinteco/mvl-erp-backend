@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-07 12:07+0700\n"
+"POT-Creation-Date: 2026-01-07 12:22+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -882,14 +882,15 @@ msgstr "Xem báo cáo số lượng nhân sự"
 msgid "Retrieve employee resigned reasons summary report"
 msgstr "Xem báo cáo Báo cáo Tỉ lệ lý do nghỉ việc"
 
-#: apps/hrm/api/views/employee_reports.py:78 apps/hrm/constants.py:68
+#: apps/hrm/api/views/employee_reports.py:78
+#: apps/hrm/api/views/recruitment_reports.py:729 apps/hrm/constants.py:68
 #: apps/hrm/constants.py:73 apps/hrm/utils/functions.py:162
 msgid "Week"
 msgstr "Tuần"
 
 #: apps/hrm/api/views/employee_reports.py:98
 #: apps/hrm/api/views/recruitment_reports.py:166
-#: apps/hrm/api/views/recruitment_reports.py:892 apps/hrm/constants.py:69
+#: apps/hrm/api/views/recruitment_reports.py:905 apps/hrm/constants.py:69
 #: apps/hrm/constants.py:74
 msgid "Month"
 msgstr "Tháng"
@@ -2444,25 +2445,25 @@ msgstr ""
 "Thống kê chi phí giới thiệu với tóm tắt phòng ban và chi tiết nhân viên cho "
 "một tháng"
 
-#: apps/hrm/api/views/recruitment_reports.py:665
+#: apps/hrm/api/views/recruitment_reports.py:667
 msgid "No Department"
 msgstr "Không có phòng ban"
 
-#: apps/hrm/api/views/recruitment_reports.py:691
-#: apps/hrm/api/views/recruitment_reports.py:720
+#: apps/hrm/api/views/recruitment_reports.py:693
+#: apps/hrm/api/views/recruitment_reports.py:733
 msgid "Total"
 msgstr "Tổng"
 
-#: apps/hrm/api/views/recruitment_reports.py:780 apps/hrm/constants.py:52
+#: apps/hrm/api/views/recruitment_reports.py:793 apps/hrm/constants.py:52
 msgid "Referral Source"
 msgstr "Giới thiệu"
 
-#: apps/hrm/api/views/recruitment_reports.py:785
+#: apps/hrm/api/views/recruitment_reports.py:798
 #: apps/hrm/models/recruitment_source.py:27
 msgid "Recruitment Source"
 msgstr "Nguồn tuyển dụng"
 
-#: apps/hrm/api/views/recruitment_reports.py:790 apps/hrm/constants.py:56
+#: apps/hrm/api/views/recruitment_reports.py:803 apps/hrm/constants.py:56
 msgid "Returning Employee"
 msgstr "Quay lại"
 
