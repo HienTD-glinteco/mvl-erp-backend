@@ -132,7 +132,12 @@ def validate_overtime_entry_deadline(sender, instance, **kwargs):
 
     This complements the Proposal validation which skips overtime entries
     during proposal creation (since entries are added after proposal is saved).
+
+    Only validates on creation, not on updates.
     """
+    if instance.pk:
+        return
+
     # Determine the month from the overtime entry date
     if not instance.date:
         return
@@ -154,17 +159,14 @@ def validate_overtime_entry_deadline(sender, instance, **kwargs):
 
 
 @receiver(pre_save, sender=EmployeeKPIAssessment)
-def validate_kpi_assessment_deadline(sender, instance, **kwargs):
+def validate_kpi_assessment_deadline(sender, instance, **kwargs):  # noqa: C901
     """Validate KPI assessment deadline for employee and manager scoring.
 
     Blocks employee self-assessment and manager assessment after deadline,
     but allows HRM to edit at any time.
 
-    Checks if instance is being updated with:
-    - Manager scores (manager_score in items)
-    - Manager assessment fields
-
-    HRM can always edit via hrm_assessed, grade_hrm, etc.
+    Only validates on the FIRST save when manager_assessment_date is being set,
+    not on subsequent recalculation saves.
     """
     # Check if assessment has a period with a month
     if not instance.period or not instance.period.month:
@@ -174,9 +176,18 @@ def validate_kpi_assessment_deadline(sender, instance, **kwargs):
     if not instance.pk:
         return
 
-    # Get old instance to check what changed
+    # Use update_fields to determine if this is a recalculation save
+    # If update_fields is provided and doesn't include manager_assessment_date, skip validation
+    update_fields = kwargs.get("update_fields")
+    if update_fields is not None and "manager_assessment_date" not in update_fields:
+        return
+
+    # Get old instance from database to check what changed
+    # Use only() to fetch minimal fields for performance
     try:
-        old_instance = EmployeeKPIAssessment.objects.get(pk=instance.pk)
+        old_instance = EmployeeKPIAssessment.objects.only(
+            "manager_assessment_date", "total_manager_score", "hrm_assessed", "grade_hrm"
+        ).get(pk=instance.pk)
     except EmployeeKPIAssessment.DoesNotExist:
         return
 
@@ -184,14 +195,16 @@ def validate_kpi_assessment_deadline(sender, instance, **kwargs):
     if instance.hrm_assessed or (instance.grade_hrm != old_instance.grade_hrm):
         return
 
-    # If manager_assessment_date is being set/changed, this is manager scoring
-    is_manager_scoring = (
-        instance.manager_assessment_date != old_instance.manager_assessment_date
-        or instance.total_manager_score != old_instance.total_manager_score
-    )
-
-    # If not manager scoring, allow
-    if not is_manager_scoring:
+    # Only validate if manager_assessment_date is being set/changed for the first time
+    # This prevents validation on recalculation saves
+    if old_instance.manager_assessment_date is None and instance.manager_assessment_date is not None:
+        # This is the first time manager is submitting - validate deadline
+        pass
+    elif instance.manager_assessment_date != old_instance.manager_assessment_date:
+        # Manager assessment date changed - validate deadline
+        pass
+    else:
+        # No change to manager_assessment_date - this is likely a recalculation save
         return
 
     # Check deadline for employee/manager scoring
