@@ -454,12 +454,13 @@ class EmployeeWorkHistoryIntegrationTest(TransactionTestCase):
         EmployeeWorkHistory.objects.all().delete()
 
         # Act - Call maternity_leave action
+        # Current time is 2026-01-07. Start date <= today. End date > today.
         url = reverse("hrm:employee-maternity-leave", kwargs={"pk": employee.pk})
         response = self.client.post(
             url,
             {
-                "start_date": "2024-06-01",
-                "end_date": "2024-09-01",
+                "start_date": "2026-01-01",
+                "end_date": "2027-09-01",
                 "description": "Maternity leave period",
             },
             format="json",
@@ -475,8 +476,66 @@ class EmployeeWorkHistoryIntegrationTest(TransactionTestCase):
         work_history = work_histories.first()
         self.assertEqual(work_history.name, EmployeeWorkHistory.EventType.CHANGE_STATUS)
         self.assertEqual(work_history.status, Employee.Status.MATERNITY_LEAVE)
-        self.assertEqual(work_history.from_date, date(2024, 6, 1))
-        self.assertEqual(work_history.to_date, date(2024, 9, 1))
+        self.assertEqual(work_history.from_date, date(2026, 1, 1))
+        self.assertEqual(work_history.to_date, date(2027, 9, 1))
+
+    def test_employee_maternity_leave_action_past_end_date_creates_two_histories(self):
+        """Test that maternity_leave action creates 2 work histories when end_date is in past."""
+        # Arrange - Create employee
+        employee = Employee.objects.create(
+            fullname="Jane Doe Past",
+            username="janedoe_maternity_past",
+            email="janedoe_maternity_past@example.com",
+            code_type="MV",
+            branch=self.branch,
+            block=self.block,
+            department=self.department,
+            position=self.position,
+            start_date=date(2024, 1, 1),
+            citizen_id="000000020209",
+            attendance_code="12353",
+            phone="0123456781",
+            status=Employee.Status.ACTIVE,
+            gender=Employee.Gender.FEMALE,
+            personal_email="janedoe_maternity_past.personal@example.com",
+        )
+
+        # Clear the initial work history
+        EmployeeWorkHistory.objects.all().delete()
+
+        # Act - Call maternity_leave action with past dates (current 2026)
+        # Start date <= today. End date <= today.
+        url = reverse("hrm:employee-maternity-leave", kwargs={"pk": employee.pk})
+        response = self.client.post(
+            url,
+            {
+                "start_date": "2025-06-01",
+                "end_date": "2025-09-01",
+                "description": "Past maternity leave",
+            },
+            format="json",
+        )
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # Check that work history was created
+        # Should be 2 records: One for Maternity Leave, One for Reactive (Active)
+        work_histories = EmployeeWorkHistory.objects.filter(employee=employee).order_by("date", "created_at")
+        self.assertEqual(work_histories.count(), 2)
+
+        wh1 = work_histories[0]
+        self.assertEqual(wh1.name, EmployeeWorkHistory.EventType.CHANGE_STATUS)
+        self.assertEqual(wh1.status, Employee.Status.MATERNITY_LEAVE)
+        self.assertEqual(wh1.from_date, date(2025, 6, 1))
+        self.assertEqual(wh1.to_date, date(2025, 9, 1))
+
+        wh2 = work_histories[1]
+        self.assertEqual(wh2.name, EmployeeWorkHistory.EventType.CHANGE_STATUS)
+        self.assertEqual(wh2.status, Employee.Status.ACTIVE)
+        # The reactive date is effective on end_date of maternity leave
+        self.assertEqual(wh2.date, date(2025, 9, 1))
+        self.assertIn("Maternity leave ended", wh2.note)
 
     def test_recruitment_candidate_to_employee_creates_work_history(self):
         """Test that converting a recruitment candidate to employee creates a work history record."""

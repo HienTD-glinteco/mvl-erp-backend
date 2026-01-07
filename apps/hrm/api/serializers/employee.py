@@ -646,15 +646,25 @@ class EmployeeMaternityLeaveActionSerializer(EmployeeBaseStatusActionSerializer)
 
     end_date = serializers.DateField(required=True)
 
+    def __init__(self, instance=None, data=..., **kwargs):
+        super().__init__(instance, data, **kwargs)
+        self._is_reactivated = False
+
     def validate(self, attrs):
         if self.employee.status not in [Employee.Status.ACTIVE, Employee.Status.UNPAID_LEAVE]:
             raise serializers.ValidationError(
                 {"status": _("Only active or unpaid leave employees can go on maternity leave.")}
             )
 
+        end_date = attrs["end_date"]
+        if end_date < timezone.now().date():
+            self.employee.status = Employee.Status.ACTIVE
+            self._is_reactivated = True
+        else:
+            self.employee.status = Employee.Status.MATERNITY_LEAVE
+
         self.employee.resignation_start_date = attrs["start_date"]
-        self.employee.resignation_end_date = attrs["end_date"]
-        self.employee.status = Employee.Status.MATERNITY_LEAVE
+        self.employee.resignation_end_date = end_date
         self.employee.resignation_reason = None
         self.employee_update_fields.extend(["resignation_start_date", "resignation_end_date", "status"])
         return super().validate(attrs)
@@ -666,11 +676,19 @@ class EmployeeMaternityLeaveActionSerializer(EmployeeBaseStatusActionSerializer)
             old_status=self.old_status,
             new_status=Employee.Status.MATERNITY_LEAVE,
             effective_date=self.validated_data["start_date"],
-            start_date=self.employee.resignation_start_date,
-            end_date=self.employee.resignation_end_date,
+            start_date=self.validated_data["start_date"],
+            end_date=self.validated_data["end_date"],
             note=self.validated_data.get("description", ""),
             decision=self.validated_data.get("decision_id"),
         )
+        if self._is_reactivated:
+            create_state_change_event(
+                employee=self.employee,
+                old_status=Employee.Status.MATERNITY_LEAVE,
+                new_status=Employee.Status.ACTIVE,
+                effective_date=self.validated_data["end_date"],
+                note=_("Maternity leave ended, employee returned to work."),
+            )
 
 
 class EmployeeTransferActionSerializer(EmployeeDecisionMixin, serializers.Serializer):

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-07 11:55+0700\n"
+"POT-Creation-Date: 2026-01-07 11:54+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -177,28 +177,34 @@ msgstr ""
 msgid "Status changed from {old_status} to {new_status}"
 msgstr "Trạng thái thay đổi từ {old_status} sang {new_status}"
 
-#: apps/hrm/api/serializers/employee.py:652
+#: apps/hrm/api/serializers/employee.py:656
 msgid "Only active or unpaid leave employees can go on maternity leave."
 msgstr ""
 "Chỉ những nhân viên đang hoạt động hoặc nghỉ không lương mới có thể nghỉ "
 "thai sản."
 
-#: apps/hrm/api/serializers/employee.py:762
+#: apps/hrm/api/serializers/employee.py:690
+#, fuzzy
+#| msgid "Maternity leave end date"
+msgid "Maternity leave ended, employee returned to work."
+msgstr "Ngày kết thúc nghỉ việc hưởng chế độ thai sản"
+
+#: apps/hrm/api/serializers/employee.py:780
 #: apps/hrm/import_handlers/employee.py:1203
 msgid ""
 "Effective date must be greater than or equal to the first day of the current "
 "month."
 msgstr "Ngày hiệu lực phải lớn hơn hoặc bằng ngày đầu tiên của tháng hiện tại."
 
-#: apps/hrm/api/serializers/employee.py:766
+#: apps/hrm/api/serializers/employee.py:784
 msgid "Effective date cannot be in the future."
 msgstr "Ngày hiệu lực không thể ở tương lai."
 
-#: apps/hrm/api/serializers/employee.py:772
+#: apps/hrm/api/serializers/employee.py:790
 msgid "The new employee type must be different from the current type."
 msgstr "Loại nhân viên mới phải khác loại hiện tại."
 
-#: apps/hrm/api/serializers/employee.py:789
+#: apps/hrm/api/serializers/employee.py:807
 msgid "Effective date cannot be earlier than the latest work history date."
 msgstr ""
 "Ngày hiệu lực phải lớn hơn hoặc bằng ngày hiệu lực của lần thay đổi loại "

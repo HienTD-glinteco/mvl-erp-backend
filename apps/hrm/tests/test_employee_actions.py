@@ -292,14 +292,28 @@ class EmployeeActionAPITest(TestCase):
 
     def test_maternity_leave_action(self):
         url = reverse("hrm:employee-maternity-leave", kwargs={"pk": self.active_employee.id})
-        payload = {"start_date": "2024-10-01", "end_date": "2025-04-01"}
+        payload = {"start_date": "2026-01-01", "end_date": "2027-04-01"}
         response = self.client.post(url, payload, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.active_employee.refresh_from_db()
         self.assertEqual(self.active_employee.status, Employee.Status.MATERNITY_LEAVE)
-        self.assertEqual(str(self.active_employee.resignation_start_date), "2024-10-01")
-        self.assertEqual(str(self.active_employee.resignation_end_date), "2025-04-01")
+        self.assertEqual(str(self.active_employee.resignation_start_date), "2026-01-01")
+        self.assertEqual(str(self.active_employee.resignation_end_date), "2027-04-01")
+
+    def test_maternity_leave_action_past_end_date(self):
+        """Test maternity leave with end date in the past switches to ACTIVE status."""
+        url = reverse("hrm:employee-maternity-leave", kwargs={"pk": self.active_employee.id})
+        # Current time is 2026-01-07, so 2025 is in the past
+        payload = {"start_date": "2025-10-01", "end_date": "2025-12-01"}
+        response = self.client.post(url, payload, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.active_employee.refresh_from_db()
+        self.assertEqual(self.active_employee.status, Employee.Status.ACTIVE)
+        # Resignation dates are cleared by model.clean() when status is ACTIVE
+        self.assertIsNone(self.active_employee.resignation_start_date)
+        self.assertIsNone(self.active_employee.resignation_end_date)
 
     def test_maternity_leave_action_on_onboarding_employee_fails(self):
         url = reverse("hrm:employee-maternity-leave", kwargs={"pk": self.onboarding_employee.id})
