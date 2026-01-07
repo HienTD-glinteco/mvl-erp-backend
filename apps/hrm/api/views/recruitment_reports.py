@@ -155,6 +155,15 @@ class RecruitmentReportsViewSet(BaseGenericViewSet):
             )
         )
 
+        # helper labels
+        field_labels = {
+            "num_introductions": _("Introductions"),
+            "num_returns": _("Returns"),
+            "num_recruitment_source": _("Recruitment Source"),
+            "num_transfers": _("Transfers"),
+            "num_resignations": _("Resignations"),
+        }
+
         # Build period label for each period
         results = []
         for item in aggregated:
@@ -165,13 +174,14 @@ class RecruitmentReportsViewSet(BaseGenericViewSet):
                 label = f"{_('Month')} {item[period_field]}"
             results.append(
                 {
+                    "field_labels": field_labels,
                     "period_type": period_type,
                     "label": label,
-                    _("Introductions"): item["num_introductions"] or 0,
-                    _("Returns"): item["num_returns"] or 0,
-                    _("Recruitment Source"): item["num_recruitment_source"] or 0,
-                    _("Transfers"): item["num_transfers"] or 0,
-                    _("Resignations"): item["num_resignations"] or 0,
+                    "num_introductions": item["num_introductions"] or 0,
+                    "num_returns": item["num_returns"] or 0,
+                    "num_recruitment_source": item["num_recruitment_source"] or 0,
+                    "num_transfers": item["num_transfers"] or 0,
+                    "num_resignations": item["num_resignations"] or 0,
                 }
             )
 

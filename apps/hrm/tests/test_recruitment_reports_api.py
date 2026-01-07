@@ -141,11 +141,11 @@ class TestRecruitmentReportsAPI(APITestMixin):
         # Verify aggregated values
         report = data[0]
         assert report["period_type"] == "month"
-        assert report["Introductions"] == 8  # 5 + 3
-        assert report["Returns"] == 3  # 2 + 1
-        assert report["Recruitment Source"] == 15  # 10 + 5
-        assert report["Transfers"] == 5  # 3 + 2
-        assert report["Resignations"] == 1  # 1 + 0
+        assert report["num_introductions"] == 8  # 5 + 3
+        assert report["num_returns"] == 3  # 2 + 1
+        assert report["num_recruitment_source"] == 15  # 10 + 5
+        assert report["num_transfers"] == 5  # 3 + 2
+        assert report["num_resignations"] == 1  # 1 + 0
 
     def test_recruitment_source_report_nested_structure(self):
         """Test recruitment source report returns nested organizational structure"""

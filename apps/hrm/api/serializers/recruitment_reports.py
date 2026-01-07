@@ -115,6 +115,7 @@ class StaffGrowthReportAggregatedSerializer(serializers.Serializer):
             "For month: 'Month MM/YYYY' (e.g., Month 05/2025)."
         ),
     )
+    field_labels = serializers.DictField(read_only=True)
     num_introductions = serializers.IntegerField(read_only=True)
     num_returns = serializers.IntegerField(read_only=True)
     num_recruitment_source = serializers.IntegerField(read_only=True)
