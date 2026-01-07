@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-07 22:33+0700\n"
+"POT-Creation-Date: 2026-01-07 23:28+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -302,6 +302,7 @@ msgid "Attendance Code"
 msgstr "Mã Chấm Công"
 
 #: apps/hrm/api/serializers/employee.py:999
+#: apps/hrm/api/serializers/recruitment_candidate_export.py:23
 #: apps/hrm/models/attendance_geolocation.py:77 apps/hrm/models/employee.py:227
 #: apps/hrm/models/employee_certificate.py:170
 #: apps/hrm/models/employee_work_history.py:116 apps/hrm/models/proposal.py:806
@@ -587,6 +588,24 @@ msgstr "Nhân viên với số CMND/CCCD này đã tồn tại."
 #, python-brace-format
 msgid "Converted from recruitment candidate {code}"
 msgstr "Ứng viên {code} đã được chuyển đổi thành nhân viên"
+
+#: apps/hrm/api/serializers/recruitment_candidate_export.py:15
+#: apps/hrm/api/views/interview_schedule.py:647
+#: apps/hrm/models/recruitment_request.py:95
+msgid "Recruitment Request"
+msgstr "Đề nghị tuyển dụng"
+
+#: apps/hrm/api/serializers/recruitment_candidate_export.py:18
+#: apps/hrm/api/views/recruitment_reports.py:162
+#: apps/hrm/api/views/recruitment_reports.py:819
+#: apps/hrm/models/recruitment_source.py:27
+msgid "Recruitment Source"
+msgstr "Nguồn tuyển dụng"
+
+#: apps/hrm/api/serializers/recruitment_candidate_export.py:21
+#: apps/hrm/models/recruitment_channel.py:37
+msgid "Recruitment Channel"
+msgstr "Kênh tuyển dụng"
 
 #: apps/hrm/api/serializers/recruitment_request.py:148
 #: apps/hrm/models/recruitment_request.py:120
@@ -1126,11 +1145,6 @@ msgstr "Cập nhật người phỏng vấn cho {model_name}"
 #: apps/hrm/models/interview_schedule.py:40
 msgid "Interview Schedule"
 msgstr "Lịch phỏng vấn"
-
-#: apps/hrm/api/views/interview_schedule.py:647
-#: apps/hrm/models/recruitment_request.py:95
-msgid "Recruitment Request"
-msgstr "Đề nghị tuyển dụng"
 
 #: apps/hrm/api/views/interview_schedule.py:648
 msgid "Interview Position Title"
@@ -2334,7 +2348,7 @@ msgstr "Nhập Ứng viên"
 msgid "Import candidates from an uploaded file"
 msgstr "Nhập ứng viên từ file tải lên"
 
-#: apps/hrm/api/views/recruitment_candidate.py:715
+#: apps/hrm/api/views/recruitment_candidate.py:710
 msgid "Only candidates with REJECTED status can be deleted."
 msgstr "Chỉ có thể xoá các ứng viên đã bị LOẠI"
 
@@ -2477,12 +2491,6 @@ msgstr "Giới thiệu"
 #: apps/hrm/api/views/recruitment_reports.py:161
 msgid "Returns"
 msgstr "Quay lại"
-
-#: apps/hrm/api/views/recruitment_reports.py:162
-#: apps/hrm/api/views/recruitment_reports.py:819
-#: apps/hrm/models/recruitment_source.py:27
-msgid "Recruitment Source"
-msgstr "Nguồn tuyển dụng"
 
 #: apps/hrm/api/views/recruitment_reports.py:163
 msgid "Transfers"
@@ -4747,10 +4755,6 @@ msgstr "Mã kênh"
 #: apps/hrm/models/recruitment_channel.py:31
 msgid "Belong to"
 msgstr "Thuộc về"
-
-#: apps/hrm/models/recruitment_channel.py:37
-msgid "Recruitment Channel"
-msgstr "Kênh tuyển dụng"
 
 #: apps/hrm/models/recruitment_channel.py:38
 msgid "Recruitment Channels"

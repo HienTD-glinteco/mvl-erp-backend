@@ -518,7 +518,7 @@ class TestRecruitmentCandidateAPI(APITestMixin):
 
         url = reverse("hrm:recruitment-candidate-list")
         # Filter by multiple statuses: HIRED and REJECTED
-        response = self.client.get(url, {"status": ["HIRED", "REJECTED"]})
+        response = self.client.get(url, {"status__in": "HIRED,REJECTED"})
 
         assert response.status_code == status.HTTP_200_OK
         data = self.get_response_data(response)
@@ -597,7 +597,7 @@ class TestRecruitmentCandidateAPI(APITestMixin):
         url = reverse("hrm:recruitment-candidate-list")
         # Filter by multiple recruitment requests using comma-separated values
         response = self.client.get(
-            url, {"recruitment_request": f"{self.recruitment_request.id},{recruitment_request_2.id}"}
+            url, {"recruitment_request__in": f"{self.recruitment_request.id},{recruitment_request_2.id}"}
         )
 
         assert response.status_code == status.HTTP_200_OK

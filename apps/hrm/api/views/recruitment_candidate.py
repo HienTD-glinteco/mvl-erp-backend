@@ -482,6 +482,15 @@ class RecruitmentCandidateViewSet(AsyncImportProgressMixin, ExportXLSXMixin, Aud
     # Import handler path for AsyncImportProgressMixin
     import_row_handler = "apps.hrm.import_handlers.recruitment_candidate.import_handler"
 
+    def get_serializer_class(self):
+        if self.action == "to_employee":
+            return CandidateToEmployeeSerializer
+        elif self.action == "update_referrer":
+            return UpdateReferrerSerializer
+        elif self.action == "export":
+            return RecruitmentCandidateExportSerializer
+        return super().get_serializer_class()
+
     def get_export_data(self, request):
         """Custom export data for RecruitmentCandidate.
 
@@ -495,31 +504,17 @@ class RecruitmentCandidateViewSet(AsyncImportProgressMixin, ExportXLSXMixin, Aud
         - status
         """
         queryset = self.filter_queryset(self.get_queryset())
-        serializer = RecruitmentCandidateExportSerializer(queryset, many=True)
+        serializer = self.get_serializer(queryset, many=True)
         data = serializer.data
+        headers = [str(field.label) for field in serializer.child.fields.values()]
+        field_names = list(serializer.child.fields.keys())
 
         return {
             "sheets": [
                 {
-                    "name": "Recruitment Candidates",
-                    "headers": [
-                        "Code",
-                        "Name",
-                        "Recruitment Request",
-                        "Recruitment Source",
-                        "Recruitment Channel",
-                        "Phone",
-                        "Status",
-                    ],
-                    "field_names": [
-                        "code",
-                        "name",
-                        "recruitment_request__name",
-                        "recruitment_source__name",
-                        "recruitment_channel__name",
-                        "phone",
-                        "status",
-                    ],
+                    "name": str(RecruitmentCandidate._meta.verbose_name_plural),
+                    "headers": headers,
+                    "field_names": field_names,
                     "data": data,
                 }
             ]
@@ -605,13 +600,13 @@ class RecruitmentCandidateViewSet(AsyncImportProgressMixin, ExportXLSXMixin, Aud
     def update_referrer(self, request, pk=None):
         """Custom action to update referrer field only"""
         instance = self.get_object()
-        serializer = UpdateReferrerSerializer(data=request.data)
+        serializer = self.get_serializer(data=request.data)
 
         if serializer.is_valid():
             referrer = serializer.validated_data.get("referrer_id")
             instance.referrer = referrer
             instance.save()
-            return Response(self.get_serializer(instance).data)
+            return Response(self.serializer_class(instance).data)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -695,7 +690,7 @@ class RecruitmentCandidateViewSet(AsyncImportProgressMixin, ExportXLSXMixin, Aud
         """Convert recruitment candidate to employee"""
         candidate = self.get_object()
 
-        serializer = CandidateToEmployeeSerializer(
+        serializer = self.get_serializer(
             data=request.data,
             context={"candidate": candidate},
         )
