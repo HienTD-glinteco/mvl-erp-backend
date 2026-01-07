@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-07 23:28+0700\n"
+"POT-Creation-Date: 2026-01-08 01:31+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -687,37 +687,37 @@ msgstr "Duyệt hàng loạt cho log chấm công Khác"
 msgid "Approve or reject multiple Other attendance records"
 msgstr "Duyệt hoặc từ chối hàng loạt log chấm công Khác"
 
-#: apps/hrm/api/views/attendance_report.py:26
+#: apps/hrm/api/views/attendance_report.py:27
 msgid "Report"
 msgstr "Báo Cáo"
 
-#: apps/hrm/api/views/attendance_report.py:27
+#: apps/hrm/api/views/attendance_report.py:28
 msgid "Attendance"
 msgstr "Quản lý Chấm Công"
 
-#: apps/hrm/api/views/attendance_report.py:31
+#: apps/hrm/api/views/attendance_report.py:32
 msgid "Attendance Report By Method"
 msgstr "Báo cáo tỷ lệ chấm công theo các phương thức"
 
-#: apps/hrm/api/views/attendance_report.py:32
+#: apps/hrm/api/views/attendance_report.py:33
 msgid ""
 "Get attendance statistics report by method (device, wifi, geolocation, other)"
 msgstr ""
 "Báo cáo thống kê chấm công theo phương thức (thiết bị, wifi, GPS, khác)"
 
-#: apps/hrm/api/views/attendance_report.py:35
+#: apps/hrm/api/views/attendance_report.py:36
 msgid "Attendance Report By Project"
 msgstr "Báo Cáo Chấm Công Hàng Ngày"
 
-#: apps/hrm/api/views/attendance_report.py:36
+#: apps/hrm/api/views/attendance_report.py:37
 msgid "Get attendance statistics report grouped by projects"
 msgstr "Báo cáo chấm công GPS theo dự án"
 
-#: apps/hrm/api/views/attendance_report.py:39
+#: apps/hrm/api/views/attendance_report.py:40
 msgid "Attendance Report By Project Organization"
 msgstr "Báo cáo chấm công GPS theo phòng ban"
 
-#: apps/hrm/api/views/attendance_report.py:41
+#: apps/hrm/api/views/attendance_report.py:42
 msgid ""
 "Get attendance statistics report for personnel working on projects grouped "
 "by organizational structure"

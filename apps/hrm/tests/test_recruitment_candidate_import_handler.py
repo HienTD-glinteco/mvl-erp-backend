@@ -862,4 +862,5 @@ def sample_proposer(sample_branch, sample_block, sample_department):
         branch=sample_branch,
         block=sample_block,
         department=sample_department,
+        personal_email="assdadas@gmail.com",
     )

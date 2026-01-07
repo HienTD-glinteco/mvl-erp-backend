@@ -18,6 +18,7 @@ def make_employee(branch, block, department, **overrides):
         "fullname": "John Doe",
         "username": f"johndoe{suffix}",
         "email": f"johndoe{suffix}@example.com",
+        "personal_email": f"johndoe{suffix}.personal@example.com",
         "status": Employee.Status.ACTIVE,
         "code_type": Employee.CodeType.MV,
         "branch": branch,

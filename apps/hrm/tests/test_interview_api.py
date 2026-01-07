@@ -79,6 +79,7 @@ class TestInterviewScheduleAPI(APITestMixin):
             fullname="Le Thi D",
             username="lethid",
             email="lethid@example.com",
+            personal_email="lethid.personal@example.com",
             branch=employee.branch,
             block=employee.block,
             department=employee.department,

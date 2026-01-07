@@ -36,6 +36,7 @@ def _create_employee():
         attendance_code="12345",
         username=f"u_{unique}",
         email=f"{unique}@example.com",
+        personal_email=f"{unique}.personal@example.com",
         branch=branch,
         block=block,
         department=dept,

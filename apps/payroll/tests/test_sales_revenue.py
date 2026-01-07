@@ -28,6 +28,7 @@ def inactive_employee(branch, block, department, position):
     return Employee.objects.create(
         username=f"inactive{code}",
         email=f"inactive{code}@example.com",
+        personal_email=f"inactive{code}.personal@example.com",
         phone=f"09{random_code(length=8)}",
         citizen_id=f"{random_code(length=12)}",
         status="Onboarding",

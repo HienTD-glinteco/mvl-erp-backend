@@ -71,6 +71,7 @@ class EmployeeAvatarUploadTest(TestCase):
             fullname="Test Employee",
             username="testemployee",
             email="employee@example.com",
+            personal_email="avatar.personal@example.com",
             phone="1234567890",
             attendance_code="EMP001",
             date_of_birth=date(1990, 1, 1),
