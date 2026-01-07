@@ -1,4 +1,5 @@
 from collections import defaultdict
+from datetime import timedelta
 from decimal import Decimal
 
 from django.db.models import Sum
@@ -16,7 +17,7 @@ from apps.hrm.models import (
     RecruitmentSourceReport,
     StaffGrowthReport,
 )
-from apps.hrm.utils import get_current_month_range, get_current_week_range
+from apps.hrm.utils import get_current_month_range, get_current_week_range, get_week_key_from_date
 from libs.drf.base_viewset import BaseGenericViewSet
 
 from ..serializers.recruitment_reports import (
@@ -706,15 +707,15 @@ class RecruitmentReportsViewSet(BaseGenericViewSet):
                 else:
                     cur = cur.replace(month=cur.month + 1)
         else:
-            # For week period, translate week keys from English to current language
+            # For week period, generate all weeks in the date range
             periods = []
-            for key in sorted(periods_set):
-                # Replace "Week" with translated version
-                if key.startswith("Week "):
-                    translated_key = key.replace("Week ", f"{_('Week')} ", 1)
-                    periods.append(translated_key)
-                else:
-                    periods.append(key)
+            # Start from Monday of the week containing start_date
+            cur = start_date - timedelta(days=start_date.weekday())
+            while cur <= end_date:
+                week_key = get_week_key_from_date(cur)
+                if week_key not in periods:
+                    periods.append(week_key)
+                cur += timedelta(weeks=1)
 
         period_labels = periods + [_("Total")]
         return periods, period_labels

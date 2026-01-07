@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-07 11:54+0700\n"
+"POT-Creation-Date: 2026-01-07 12:07+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -859,7 +859,7 @@ msgstr "Quản lý bằng cấp chứng chỉ"
 #: apps/hrm/api/views/employee_reports.py:52
 #: apps/hrm/api/views/employee_reports.py:675
 #: apps/hrm/api/views/employee_reports.py:795
-#: apps/hrm/api/views/recruitment_reports.py:50
+#: apps/hrm/api/views/recruitment_reports.py:51
 msgid "REPORT"
 msgstr "Báo cáo"
 
@@ -882,15 +882,14 @@ msgstr "Xem báo cáo số lượng nhân sự"
 msgid "Retrieve employee resigned reasons summary report"
 msgstr "Xem báo cáo Báo cáo Tỉ lệ lý do nghỉ việc"
 
-#: apps/hrm/api/views/employee_reports.py:78
-#: apps/hrm/api/views/recruitment_reports.py:714 apps/hrm/constants.py:68
+#: apps/hrm/api/views/employee_reports.py:78 apps/hrm/constants.py:68
 #: apps/hrm/constants.py:73 apps/hrm/utils/functions.py:162
 msgid "Week"
 msgstr "Tuần"
 
 #: apps/hrm/api/views/employee_reports.py:98
-#: apps/hrm/api/views/recruitment_reports.py:165
-#: apps/hrm/api/views/recruitment_reports.py:891 apps/hrm/constants.py:69
+#: apps/hrm/api/views/recruitment_reports.py:166
+#: apps/hrm/api/views/recruitment_reports.py:892 apps/hrm/constants.py:69
 #: apps/hrm/constants.py:74
 msgid "Month"
 msgstr "Tháng"
@@ -1092,7 +1091,7 @@ msgstr "Số lượng phiếu phạt chưa thanh toán"
 #: apps/hrm/api/views/recruitment_channel.py:59
 #: apps/hrm/api/views/recruitment_dashboard.py:42
 #: apps/hrm/api/views/recruitment_expense.py:343
-#: apps/hrm/api/views/recruitment_reports.py:51
+#: apps/hrm/api/views/recruitment_reports.py:52
 #: apps/hrm/api/views/recruitment_request.py:392
 #: apps/hrm/api/views/recruitment_source.py:58
 msgid "Recruitment"
@@ -2377,21 +2376,21 @@ msgstr "Có kinh nghiệm"
 msgid "Inexperienced"
 msgstr "Không có kinh nghiệm"
 
-#: apps/hrm/api/views/recruitment_reports.py:55
+#: apps/hrm/api/views/recruitment_reports.py:56
 #: apps/hrm/models/recruitment_reports.py:76
 msgid "Staff Growth Report"
 msgstr "Báo cáo tăng trưởng nhân sự"
 
-#: apps/hrm/api/views/recruitment_reports.py:56
+#: apps/hrm/api/views/recruitment_reports.py:57
 msgid "Aggregate staff changes by period (week/month)"
 msgstr "Báo cáo tổng hợp thay đổi nhân sự theo kỳ (tuần/tháng)"
 
-#: apps/hrm/api/views/recruitment_reports.py:59
+#: apps/hrm/api/views/recruitment_reports.py:60
 #: apps/hrm/models/recruitment_reports.py:100
 msgid "Recruitment Source Report"
 msgstr "Báo cáo nguồn tuyển dụng"
 
-#: apps/hrm/api/views/recruitment_reports.py:61
+#: apps/hrm/api/views/recruitment_reports.py:62
 msgid ""
 "Aggregate hire statistics by recruitment source in nested organizational "
 "format"
@@ -2399,33 +2398,33 @@ msgstr ""
 "Tổng hợp thống kê tuyển dụng theo nguồn tuyển dụng dưới dạng tổ chức lồng "
 "nhau"
 
-#: apps/hrm/api/views/recruitment_reports.py:65
+#: apps/hrm/api/views/recruitment_reports.py:66
 #: apps/hrm/models/recruitment_reports.py:123
 msgid "Recruitment Channel Report"
 msgstr "Báo cáo kênh tuyển dụng"
 
-#: apps/hrm/api/views/recruitment_reports.py:67
+#: apps/hrm/api/views/recruitment_reports.py:68
 msgid ""
 "Aggregate hire statistics by recruitment channel in nested organizational "
 "format"
 msgstr ""
 "Tổng hợp thống kê tuyển dụng theo kênh tuyển dụng dưới dạng tổ chức lồng nhau"
 
-#: apps/hrm/api/views/recruitment_reports.py:71
+#: apps/hrm/api/views/recruitment_reports.py:72
 #: apps/hrm/models/recruitment_reports.py:171
 msgid "Recruitment Cost Report"
 msgstr "Báo cáo chi phí tuyển dụng"
 
-#: apps/hrm/api/views/recruitment_reports.py:72
+#: apps/hrm/api/views/recruitment_reports.py:73
 msgid "Aggregate recruitment cost data by source type and months"
 msgstr "Tổng hợp dữ liệu chi phí tuyển dụng theo loại nguồn và tháng"
 
-#: apps/hrm/api/views/recruitment_reports.py:75
+#: apps/hrm/api/views/recruitment_reports.py:76
 #: apps/hrm/models/recruitment_reports.py:227
 msgid "Hired Candidate Report"
 msgstr "Báo cáo Ứng viên Đã Tuyển Dụng"
 
-#: apps/hrm/api/views/recruitment_reports.py:77
+#: apps/hrm/api/views/recruitment_reports.py:78
 msgid ""
 "Aggregate hired candidate statistics by source type with period aggregation "
 "and employee details"
@@ -2433,11 +2432,11 @@ msgstr ""
 "Thống kê tổng hợp ứng viên đã tuyển dụng theo loại nguồn với tổng hợp theo "
 "kỳ và chi tiết nhân viên"
 
-#: apps/hrm/api/views/recruitment_reports.py:81
+#: apps/hrm/api/views/recruitment_reports.py:82
 msgid "Referral Cost Report"
 msgstr "Báo cáo chi phí giới thiệu"
 
-#: apps/hrm/api/views/recruitment_reports.py:83
+#: apps/hrm/api/views/recruitment_reports.py:84
 msgid ""
 "Referral cost report with department summary and employee details for a "
 "single month"
@@ -2445,25 +2444,25 @@ msgstr ""
 "Thống kê chi phí giới thiệu với tóm tắt phòng ban và chi tiết nhân viên cho "
 "một tháng"
 
-#: apps/hrm/api/views/recruitment_reports.py:664
+#: apps/hrm/api/views/recruitment_reports.py:665
 msgid "No Department"
 msgstr "Không có phòng ban"
 
-#: apps/hrm/api/views/recruitment_reports.py:690
-#: apps/hrm/api/views/recruitment_reports.py:719
+#: apps/hrm/api/views/recruitment_reports.py:691
+#: apps/hrm/api/views/recruitment_reports.py:720
 msgid "Total"
 msgstr "Tổng"
 
-#: apps/hrm/api/views/recruitment_reports.py:779 apps/hrm/constants.py:52
+#: apps/hrm/api/views/recruitment_reports.py:780 apps/hrm/constants.py:52
 msgid "Referral Source"
 msgstr "Giới thiệu"
 
-#: apps/hrm/api/views/recruitment_reports.py:784
+#: apps/hrm/api/views/recruitment_reports.py:785
 #: apps/hrm/models/recruitment_source.py:27
 msgid "Recruitment Source"
 msgstr "Nguồn tuyển dụng"
 
-#: apps/hrm/api/views/recruitment_reports.py:789 apps/hrm/constants.py:56
+#: apps/hrm/api/views/recruitment_reports.py:790 apps/hrm/constants.py:56
 msgid "Returning Employee"
 msgstr "Quay lại"
 
