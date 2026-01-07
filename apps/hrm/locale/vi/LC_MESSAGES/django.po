@@ -3608,6 +3608,13 @@ msgstr ""
 "Ngày kết thúc nghỉ việc là bắt buộc khi trạng thái là Nghỉ việc hưởng chế độ "
 "thai sản."
 
+#: apps/hrm/models/employee.py:489
+msgid ""
+"Recruitment candidate already has an employee. Please select another "
+"recruitment candidate."
+msgstr ""
+"Ứng viên đã được liên kết với một nhân viên. Vui lòng chọn một ứng viên khác."
+
 #: apps/hrm/models/employee_certificate.py:69
 msgid "Valid"
 msgstr "Còn hiệu lực"

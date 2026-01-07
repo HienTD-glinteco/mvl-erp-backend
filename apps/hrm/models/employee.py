@@ -478,6 +478,19 @@ class Employee(ColoredValueMixin, AutoCodeMixin, BaseModel):
         self._clean_working_statuses()
         self._clean_resigned_statuses()
 
+    def _clean_recruitment_candidate(self):
+        if not self.recruitment_candidate:
+            return
+
+        if self.recruitment_candidate.employees.exclude(id=self.id).exists():
+            raise ValidationError(
+                {
+                    "recruitment_candidate": _(
+                        "Recruitment candidate already has an employee. Please select another recruitment candidate."
+                    )
+                }
+            )
+
     def clean(self):
         """Validate employee data.
 
@@ -495,6 +508,7 @@ class Employee(ColoredValueMixin, AutoCodeMixin, BaseModel):
         super().clean()
 
         self._clean_status()
+        self._clean_recruitment_candidate()
 
     @property
     def colored_code_type(self):

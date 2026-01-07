@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
 from django.test import TransactionTestCase
 
 from apps.hrm.models import Employee, RecruitmentCandidate
@@ -165,9 +166,10 @@ class EmployeeRecruitmentCandidateTest(TransactionTestCase):
         employee.refresh_from_db()
         self.assertIsNone(employee.recruitment_candidate)
 
-    def test_multiple_employees_from_same_candidate(self):
-        """Test that multiple employees can be linked to the same recruitment candidate."""
-        employee1 = Employee.objects.create(
+    def test_create_second_employee_with_same_candidate_fails(self):
+        """Test that creating a second employee with the same recruitment candidate fails."""
+        # Create first employee with candidate
+        Employee.objects.create(
             fullname="Jane Candidate 1",
             username="janecandidate1",
             email="jane1@example.com",
@@ -183,10 +185,50 @@ class EmployeeRecruitmentCandidateTest(TransactionTestCase):
             personal_email="jane1.personal@example.com",
         )
 
+        # Attempt to create second employee with same candidate
+        with self.assertRaises(ValidationError) as cm:
+            Employee.objects.create(
+                fullname="Jane Candidate 2",
+                username="janecandidate2",
+                email="jane2@example.com",
+                phone="0987654321",
+                attendance_code="54322",
+                code_type="MV",
+                branch=self.branch,
+                block=self.block,
+                department=self.department,
+                start_date="2024-02-15",
+                recruitment_candidate=self.candidate,
+                citizen_id="000000020019",
+                personal_email="jane2.personal@example.com",
+            )
+
+        self.assertIn("Recruitment candidate already has an employee", str(cm.exception))
+
+    def test_update_employee_to_use_occupied_candidate_fails(self):
+        """Test that updating an employee to use an already occupied recruitment candidate fails."""
+        # Create first employee with candidate
+        Employee.objects.create(
+            fullname="Occupier",
+            username="occupier",
+            email="occupier@example.com",
+            phone="0123456789",
+            attendance_code="54321",
+            code_type="MV",
+            branch=self.branch,
+            block=self.block,
+            department=self.department,
+            start_date="2024-02-01",
+            recruitment_candidate=self.candidate,
+            citizen_id="000000020018",
+            personal_email="occupier.personal@example.com",
+        )
+
+        # Create second employee without candidate
         employee2 = Employee.objects.create(
-            fullname="Jane Candidate 2",
-            username="janecandidate2",
-            email="jane2@example.com",
+            fullname="Second Employee",
+            username="second",
+            email="second@example.com",
             phone="0987654321",
             attendance_code="54322",
             code_type="MV",
@@ -194,11 +236,13 @@ class EmployeeRecruitmentCandidateTest(TransactionTestCase):
             block=self.block,
             department=self.department,
             start_date="2024-02-15",
-            recruitment_candidate=self.candidate,
             citizen_id="000000020019",
-            personal_email="jane2.personal@example.com",
+            personal_email="second.personal@example.com",
         )
 
-        self.assertEqual(employee1.recruitment_candidate, self.candidate)
-        self.assertEqual(employee2.recruitment_candidate, self.candidate)
-        self.assertEqual(self.candidate.employees.count(), 2)
+        # Try to assign the occupied candidate to employee2
+        employee2.recruitment_candidate = self.candidate
+        with self.assertRaises(ValidationError) as cm:
+            employee2.save()
+
+        self.assertIn("Recruitment candidate already has an employee", str(cm.exception))
