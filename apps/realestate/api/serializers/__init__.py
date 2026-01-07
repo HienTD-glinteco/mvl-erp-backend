@@ -1,3 +1,3 @@
-from .project import ProjectSerializer
+from .project import ProjectExportXLSXSerializer, ProjectSerializer
 
-__all__ = ["ProjectSerializer"]
+__all__ = ["ProjectExportXLSXSerializer", "ProjectSerializer"]

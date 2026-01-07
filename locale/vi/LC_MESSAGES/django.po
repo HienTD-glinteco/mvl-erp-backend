@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-07 00:51+0700\n"
+"POT-Creation-Date: 2026-01-08 00:11+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -185,7 +185,7 @@ msgstr "Trường thông tin không xác định"
 msgid "Imports"
 msgstr ""
 
-#: apps/imports/api/views.py:27
+#: apps/imports/api/views.py:27 apps/realestate/models/project.py:29
 msgid "Status"
 msgstr "Trạng thái"
 
@@ -330,13 +330,36 @@ msgstr "Không được phép xem job này"
 msgid "Job not found"
 msgstr "Job không tồn tại"
 
-#: apps/realestate/models/project.py:17
+#: apps/realestate/api/serializers/project.py:48
+#: apps/realestate/models/project.py:22
+msgid "Project code"
+msgstr "Mã dự án"
+
+#: apps/realestate/api/serializers/project.py:49
+#: apps/realestate/models/project.py:21
+msgid "Project name"
+msgstr "Tên dự án"
+
+#: apps/realestate/api/serializers/project.py:50
+#: apps/realestate/models/project.py:23
+msgid "Address"
+msgstr "Địa chỉ"
+
+#: apps/realestate/api/serializers/project.py:51
+msgid "Note"
+msgstr "Ghi chú"
+
+#: apps/realestate/models/project.py:17 apps/realestate/models/project.py:31
 msgid "Active"
 msgstr "Đang hoạt động"
 
 #: apps/realestate/models/project.py:18
 msgid "Inactive"
 msgstr "Không hoạt động"
+
+#: apps/realestate/models/project.py:24
+msgid "Description"
+msgstr "Mô tả"
 
 #: libs/drf/base_api_view.py:45
 #, python-brace-format

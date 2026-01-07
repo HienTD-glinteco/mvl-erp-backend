@@ -1,13 +1,15 @@
+from django.utils.translation import gettext as _
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiExample, extend_schema, extend_schema_view
 from rest_framework.filters import OrderingFilter
 
 from apps.audit_logging.api.mixins import AuditLoggingMixin
 from apps.realestate.api.filtersets import ProjectFilterSet
-from apps.realestate.api.serializers import ProjectSerializer
+from apps.realestate.api.serializers import ProjectExportXLSXSerializer, ProjectSerializer
 from apps.realestate.models import Project
 from libs import BaseModelViewSet
 from libs.drf.filtersets.search import PhraseSearchFilter
+from libs.export_xlsx import ExportXLSXMixin
 
 
 @extend_schema_view(
@@ -105,8 +107,12 @@ from libs.drf.filtersets.search import PhraseSearchFilter
             )
         ],
     ),
+    export=extend_schema(
+        description="Export list Projects",
+        tags=["6.10: Project"],
+    ),
 )
-class ProjectViewSet(AuditLoggingMixin, BaseModelViewSet):
+class ProjectViewSet(ExportXLSXMixin, AuditLoggingMixin, BaseModelViewSet):
     """ViewSet for Project model"""
 
     queryset = Project.objects.all()
@@ -121,3 +127,36 @@ class ProjectViewSet(AuditLoggingMixin, BaseModelViewSet):
     module = "Real Estate"
     submodule = "Project Management"
     permission_prefix = "project"
+
+    xlsx_template_name = "apps/realestate/fixtures/export_templates/project_export_template.xlsx"
+
+    def get_serializer_class(self):
+        """Return appropriate serializer based on action."""
+        if self.action == "export":
+            return ProjectExportXLSXSerializer
+        return ProjectSerializer
+
+    def get_export_data(self, request):
+        queryset = self.filter_queryset(self.get_queryset())
+        serializer = self.get_serializer(queryset, many=True)
+
+        headers = [str(field.label) for field in serializer.child.fields.values()]
+        data = serializer.data
+        field_names = list(serializer.child.fields.keys())
+        if self.xlsx_template_name:
+            headers = [_(self.xlsx_template_index_column_key), *headers]
+            field_names = [self.xlsx_template_index_column_key, *field_names]
+            for index, row in enumerate(data, start=1):
+                row.update({self.xlsx_template_index_column_key: index})
+
+        data = {
+            "sheets": [
+                {
+                    "name": str(Project._meta.verbose_name),
+                    "headers": headers,
+                    "field_names": field_names,
+                    "data": data,
+                }
+            ]
+        }
+        return data
