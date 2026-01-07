@@ -574,6 +574,63 @@ class TestMyTeamKPIAssessmentViewSet(APITestMixin):
         # Should be from period2 (latest)
         assert data["results"][0]["period"]["month"] == "1/2026"
 
+    def test_current_action_page_size_works(self, kpi_period, branch, block, department, position):
+        """Test that page_size query parameter works correctly."""
+        from apps.core.models import User
+        from apps.hrm.models import Employee
+
+        # Create 5 team members
+        for i in range(5):
+            user = User.objects.create_user(
+                username=f"team_size_test_{i}",
+                email=f"size{i}@test.com",
+                password="pass123",
+            )
+            employee = Employee.objects.create(
+                user=user,
+                code=f"MV{200 + i:06d}",
+                fullname=f"Page Size Test {i}",
+                username=f"pagesizetest{i}",
+                email=f"pagesizetest{i}@example.com",
+                personal_email=f"pagesizetest{i}_personal@example.com",
+                phone=f"08{i:08d}",
+                attendance_code=f"PST{i:05d}",
+                start_date="2024-01-01",
+                branch=branch,
+                block=block,
+                department=department,
+                position=position,
+                citizen_id=f"PST{i:09d}",
+            )
+            EmployeeKPIAssessment.objects.create(
+                employee=employee,
+                manager=self.employee,
+                period=kpi_period,
+                total_possible_score=Decimal("100.00"),
+                finalized=False,
+            )
+
+        url = reverse("payroll-mobile:my-team-kpi-assessment-current")
+        
+        # Test page_size=1
+        response = self.client.get(url, {"page_size": 1})
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()["data"]
+        assert len(data["results"]) == 1, f"Expected 1 result with page_size=1, got {len(data['results'])}"
+        assert data["count"] == 5
+        assert data["next"] is not None
+        
+        # Test page_size=2
+        response = self.client.get(url, {"page_size": 2})
+        data = response.json()["data"]
+        assert len(data["results"]) == 2, f"Expected 2 results with page_size=2, got {len(data['results'])}"
+        
+        # Test page_size=10 (should return all 5)
+        response = self.client.get(url, {"page_size": 10})
+        data = response.json()["data"]
+        assert len(data["results"]) == 5, f"Expected 5 results with page_size=10, got {len(data['results'])}"
+        assert data["next"] is None
+
     def test_only_team_assessments(self, team_assessments, kpi_period, branch, block, department, position):
         """Test that managers can only see their team's assessments."""
         from apps.core.models import User
