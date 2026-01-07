@@ -402,7 +402,15 @@ class RecruitmentReportsViewSet(BaseGenericViewSet):
         )
 
         months_set, months_list = self._get_months_and_labels_from_stats(month_stats)
-        source_types = sorted({item["source_type"] for item in month_stats})
+
+        # Always return 5 source types in this specific order
+        source_types = [
+            RecruitmentSourceType.REFERRAL_SOURCE.value,
+            RecruitmentSourceType.MARKETING_CHANNEL.value,
+            RecruitmentSourceType.JOB_WEBSITE_CHANNEL.value,
+            RecruitmentSourceType.RECRUITMENT_DEPARTMENT_SOURCE.value,
+            RecruitmentSourceType.RETURNING_EMPLOYEE.value,
+        ]
 
         data = []
         for source_type in source_types:
