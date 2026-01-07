@@ -75,6 +75,7 @@ class DecisionTestMixin:
             code="MV000001",
             fullname="John Doe",
             email="john.doe@example.com",
+            personal_email="john.doe.personal@example.com",
             username="johndoe",
             phone="0900000001",
             branch=self.branch,

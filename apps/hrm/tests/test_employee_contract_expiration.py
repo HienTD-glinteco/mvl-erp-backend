@@ -52,6 +52,7 @@ def employee(db, organization):
     return Employee.objects.create(
         fullname="Contract Expiration Employee",
         email="contract.expiration@test.com",
+        personal_email="contract.expiration.personal@test.com",
         username="contractexpiration",
         phone="0123456788",
         citizen_id="111222333444",

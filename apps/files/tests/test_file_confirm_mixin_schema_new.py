@@ -238,6 +238,7 @@ class TestFileConfirmMixinSchemaGenerationWithDjango(TestCase):
             block=block,
             department=department,
             start_date=date(2020, 1, 1),
+            personal_email="testemployee.personal@example.com",
         )
 
         certificate = EmployeeCertificate.objects.create(

@@ -110,6 +110,7 @@ def other_employee_penalty_ticket(branch, block, department, position):
         fullname="Other Employee",
         username=f"other{suffix}",
         email=f"other{suffix}@example.com",
+        personal_email=f"other{suffix}.personal@example.com",
         status=Employee.Status.ACTIVE,
         code_type=Employee.CodeType.MV,
         employee_type=EmployeeType.OFFICIAL,

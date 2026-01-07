@@ -60,6 +60,7 @@ class PenaltyTicketAPITest(APITestCase):
         self.employee = Employee.objects.create(
             username="emp001",
             email="emp001@test.com",
+            personal_email="emp001.personal@example.com",
             phone="0987654321",
             citizen_id="123456789012",
             start_date=date(2024, 1, 1),

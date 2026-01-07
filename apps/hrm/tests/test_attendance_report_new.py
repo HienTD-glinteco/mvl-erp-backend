@@ -59,6 +59,7 @@ def employee(db, organization_structure):
         fullname="Test Employee",
         username="test_employee",
         email="test@example.com",
+        personal_email="testemployee.personal@example.com",
         phone="0901234567",
         branch=branch,
         block=block,

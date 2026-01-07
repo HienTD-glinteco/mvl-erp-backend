@@ -70,6 +70,7 @@ class AttendanceDeviceValidationAPITest(TransactionTestCase, APITestMixin):
             start_date="2024-01-01",
             attendance_code="531",
             email="employee@example.com",
+            personal_email="attendance.personal@example.com",
             branch=self.branch,
             block=self.block,
             department=self.department,

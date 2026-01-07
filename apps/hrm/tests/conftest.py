@@ -130,6 +130,7 @@ def employee_factory(db, branch, block, department, position):
             "fullname": f"Test Employee {num}",
             "username": f"testemployee{num}",
             "email": f"test{num}@example.com",
+            "personal_email": f"testemployee{num}.personal@example.com",
             "phone": f"012345678{num}",
             "attendance_code": f"{12345 + num}",
             "start_date": "2024-01-01",

@@ -75,6 +75,7 @@ class MeUpdateAvatarTest(TestCase):
             fullname="Test User",
             username="testuser",
             email="testuser@example.com",
+            personal_email="testuser.personal@example.com",
             phone="1234567890",
             attendance_code="USR001",
             date_of_birth=date(1990, 1, 1),
