@@ -77,6 +77,7 @@ class AttendanceRecord(ColoredValueMixin, AutoCodeMixin, BaseModel):
         default=AttendanceType.BIOMETRIC_DEVICE,
         verbose_name=_("Attendance type"),
         help_text="Type of attendance method used",
+        db_index=True,
     )
 
     # Biometric device reference (for biometric device attendance)
@@ -106,11 +107,13 @@ class AttendanceRecord(ColoredValueMixin, AutoCodeMixin, BaseModel):
         blank=True,
         verbose_name=_("Attendance code"),
         help_text="User ID from device, used to match with Employee.attendance_code",
+        db_index=True,
     )
 
     timestamp = models.DateTimeField(
         verbose_name=_("Timestamp"),
         help_text="Date and time when attendance was recorded",
+        db_index=True,
     )
 
     # GeoLocation fields
@@ -175,11 +178,13 @@ class AttendanceRecord(ColoredValueMixin, AutoCodeMixin, BaseModel):
         blank=True,
         verbose_name=_("Is valid"),
         help_text="Whether this attendance record is valid",
+        db_index=True,
     )
     is_pending = models.BooleanField(
         default=False,
         verbose_name=_("Is pending"),
         help_text="Whether this attendance record is pending approval",
+        db_index=True,
     )
     approve_status = models.CharField(
         max_length=20,
@@ -187,6 +192,7 @@ class AttendanceRecord(ColoredValueMixin, AutoCodeMixin, BaseModel):
         default=ApproveStatus.APPROVED,
         verbose_name=_("Approve status"),
         help_text="Approval status of this attendance record",
+        db_index=True,
     )
     approved_at = models.DateTimeField(
         null=True,

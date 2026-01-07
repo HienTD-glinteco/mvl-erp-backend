@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-07 14:06+0700\n"
+"POT-Creation-Date: 2026-01-07 14:15+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -843,7 +843,7 @@ msgstr "Tên Đăng Nhập"
 #: apps/hrm/api/views/employee.py:679
 #: apps/hrm/models/attendance_exemption.py:38
 #: apps/hrm/models/attendance_geolocation.py:79
-#: apps/hrm/models/attendance_record.py:208
+#: apps/hrm/models/attendance_record.py:214
 #: apps/hrm/models/attendance_wifi_device.py:61
 #: apps/hrm/models/employee_certificate.py:149 apps/hrm/models/holiday.py:23
 #: apps/hrm/models/holiday.py:75
@@ -2547,7 +2547,7 @@ msgstr "Thực tập sinh"
 msgid "Probation Type 1"
 msgstr "Thử việc loại 1"
 
-#: apps/hrm/constants.py:45 apps/hrm/models/attendance_record.py:89
+#: apps/hrm/constants.py:45 apps/hrm/models/attendance_record.py:90
 msgid "Biometric Device"
 msgstr "Chấm công vân tay"
 
@@ -2909,7 +2909,7 @@ msgid "Connection successful. Firmware: %(firmware)s"
 msgstr "Kết nối thành công. Phiên bản phần mềm: %(firmware)s"
 
 #: apps/hrm/models/attendance_exemption.py:26
-#: apps/hrm/models/attendance_record.py:100
+#: apps/hrm/models/attendance_record.py:101
 #: apps/hrm/models/attendance_report.py:33 apps/hrm/models/bank_account.py:25
 #: apps/hrm/models/contract.py:98 apps/hrm/models/employee.py:393
 #: apps/hrm/models/employee_certificate.py:94
@@ -2973,12 +2973,12 @@ msgid "Address"
 msgstr "Địa chỉ"
 
 #: apps/hrm/models/attendance_geolocation.py:53
-#: apps/hrm/models/attendance_record.py:123 apps/hrm/models/proposal.py:101
+#: apps/hrm/models/attendance_record.py:126 apps/hrm/models/proposal.py:101
 msgid "Latitude"
 msgstr "Vĩ độ"
 
 #: apps/hrm/models/attendance_geolocation.py:60
-#: apps/hrm/models/attendance_record.py:132 apps/hrm/models/proposal.py:110
+#: apps/hrm/models/attendance_record.py:135 apps/hrm/models/proposal.py:110
 msgid "Longitude"
 msgstr "Kinh độ"
 
@@ -3025,47 +3025,47 @@ msgstr "các Log Chấm Công"
 msgid "Attendance type"
 msgstr "Phương thức chấm công"
 
-#: apps/hrm/models/attendance_record.py:107 apps/hrm/models/employee.py:181
+#: apps/hrm/models/attendance_record.py:108 apps/hrm/models/employee.py:181
 msgid "Attendance code"
 msgstr "Mã Chấm Công"
 
-#: apps/hrm/models/attendance_record.py:112
+#: apps/hrm/models/attendance_record.py:114
 msgid "Timestamp"
 msgstr "Thời gian Ghi nhận"
 
-#: apps/hrm/models/attendance_record.py:141
+#: apps/hrm/models/attendance_record.py:144
 msgid "Attendance geolocation"
 msgstr "chấm Công GPS"
 
-#: apps/hrm/models/attendance_record.py:150
+#: apps/hrm/models/attendance_record.py:153
 msgid "Image"
 msgstr "Ảnh"
 
-#: apps/hrm/models/attendance_record.py:161
+#: apps/hrm/models/attendance_record.py:164
 msgid "WiFi device"
 msgstr "Thiết bị WiFi"
 
-#: apps/hrm/models/attendance_record.py:176
+#: apps/hrm/models/attendance_record.py:179
 msgid "Is valid"
 msgstr "Còn hiệu lực"
 
-#: apps/hrm/models/attendance_record.py:181
+#: apps/hrm/models/attendance_record.py:185
 msgid "Is pending"
 msgstr "Đang chờ"
 
-#: apps/hrm/models/attendance_record.py:188
+#: apps/hrm/models/attendance_record.py:193
 msgid "Approve status"
 msgstr "Trạng thái duyệt"
 
-#: apps/hrm/models/attendance_record.py:194 apps/hrm/models/proposal.py:72
+#: apps/hrm/models/attendance_record.py:200 apps/hrm/models/proposal.py:72
 msgid "Approved at"
 msgstr "Đã duyệt lúc"
 
-#: apps/hrm/models/attendance_record.py:203 apps/hrm/models/proposal.py:67
+#: apps/hrm/models/attendance_record.py:209 apps/hrm/models/proposal.py:67
 msgid "Approved by"
 msgstr "Đã duyệt bởi"
 
-#: apps/hrm/models/attendance_record.py:214
+#: apps/hrm/models/attendance_record.py:220
 msgid "Raw data"
 msgstr "Đữ liệu thô"
 
