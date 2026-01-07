@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-07 17:20+0700\n"
+"POT-Creation-Date: 2026-01-07 17:19+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1103,7 +1103,30 @@ msgstr "Gửi lời mời phỏng vấn cho {model_name}"
 msgid "Update interviewers for {model_name}"
 msgstr "Cập nhật người phỏng vấn cho {model_name}"
 
-#: apps/hrm/api/views/interview_schedule.py:666
+#: apps/hrm/api/views/interview_schedule.py:646
+#: apps/hrm/models/interview_schedule.py:40
+msgid "Interview Schedule"
+msgstr "Lịch phỏng vấn"
+
+#: apps/hrm/api/views/interview_schedule.py:647
+#: apps/hrm/models/recruitment_request.py:95
+msgid "Recruitment Request"
+msgstr "Đề nghị tuyển dụng"
+
+#: apps/hrm/api/views/interview_schedule.py:648
+msgid "Interview Position Title"
+msgstr "Vị trí phỏng vấn"
+
+#: apps/hrm/api/views/interview_schedule.py:649
+#: apps/hrm/models/recruitment_request.py:92
+msgid "Number of positions"
+msgstr "Số vị trí cần tuyển"
+
+#: apps/hrm/api/views/interview_schedule.py:650
+msgid "Time interview"
+msgstr "Thời gian phỏng vấn"
+
+#: apps/hrm/api/views/interview_schedule.py:671
 msgid ""
 "This interview schedule has been sent to candidates so it cannot be deleted."
 msgstr "Lịch phỏng vấn này đã được gửi cho ứng viên, không thể xoá."
@@ -3920,10 +3943,6 @@ msgstr "Địa điểm"
 msgid "Interviewers"
 msgstr "Người phỏng vấn"
 
-#: apps/hrm/models/interview_schedule.py:40
-msgid "Interview Schedule"
-msgstr "Lịch phỏng vấn"
-
 #: apps/hrm/models/interview_schedule.py:41
 msgid "Interview Schedules"
 msgstr "Lịch phỏng vấn"
@@ -4869,14 +4888,6 @@ msgstr "Đề xuất"
 #: apps/hrm/models/recruitment_request.py:83
 msgid "Recruitment type"
 msgstr "Tuyển dụng"
-
-#: apps/hrm/models/recruitment_request.py:92
-msgid "Number of positions"
-msgstr "Số vị trí cần tuyển"
-
-#: apps/hrm/models/recruitment_request.py:95
-msgid "Recruitment Request"
-msgstr "Phiếu yêu cầu tuyển dụng"
 
 #: apps/hrm/models/recruitment_request.py:96
 msgid "Recruitment Requests"

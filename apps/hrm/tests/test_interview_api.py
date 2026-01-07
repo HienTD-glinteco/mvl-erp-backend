@@ -156,11 +156,11 @@ class TestInterviewScheduleAPI(APITestMixin):
         # Verify headers
         headers = [cell.value for cell in sheet[1]]
         expected_headers = [
-            "Title",
+            "Interview Schedule",
             "Recruitment Request",
-            "Position Title",
-            "Number of Positions",
-            "Interview Time",
+            "Interview Position Title",
+            "Number of positions",
+            "Time interview",
         ]
         assert headers == expected_headers
 

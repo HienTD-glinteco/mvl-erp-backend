@@ -451,6 +451,11 @@ class InterviewScheduleViewSet(ExportXLSXMixin, EmailTemplateActionMixin, AuditL
             on_success_callback=mark_interview_candidate_email_sent,
         )
 
+    def get_serializer_class(self):
+        if self.action == "export":
+            return InterviewScheduleExportSerializer
+        return super().get_serializer_class()
+
     def get_recipients(self, request, instance):
         """Get recipients for interview schedule email.
 
@@ -630,7 +635,7 @@ class InterviewScheduleViewSet(ExportXLSXMixin, EmailTemplateActionMixin, AuditL
         - time
         """
         queryset = self.filter_queryset(self.get_queryset())
-        serializer = InterviewScheduleExportSerializer(queryset, many=True)
+        serializer = self.get_serializer(queryset, many=True)
         data = serializer.data
 
         return {
@@ -638,11 +643,11 @@ class InterviewScheduleViewSet(ExportXLSXMixin, EmailTemplateActionMixin, AuditL
                 {
                     "name": "Interview Schedules",
                     "headers": [
-                        "Title",
-                        "Recruitment Request",
-                        "Position Title",
-                        "Number of Positions",
-                        "Interview Time",
+                        _("Interview Schedule"),
+                        _("Recruitment Request"),
+                        _("Interview Position Title"),
+                        _("Number of positions"),
+                        _("Time interview"),
                     ],
                     "field_names": [
                         "title",
