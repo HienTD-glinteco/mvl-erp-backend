@@ -3270,10 +3270,11 @@ class ProposalVerifierViewSet(AuditLoggingMixin, BaseReadOnlyModelViewSet):
 
     queryset = ProposalVerifier.objects.select_related("proposal", "employee")
     serializer_class = ProposalVerifierSerializer
-    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    filter_backends = [DjangoFilterBackend, PhraseSearchFilter, OrderingFilter]
     filterset_class = ProposalVerifierFilterSet
     ordering_fields = ["created_at", "verified_time"]
     ordering = ["-created_at"]
+    search_fields = ["proposal__code", "proposal__created_by__fullname", "proposal__created_by__code"]
 
     module = "HRM"
     submodule = _("Proposal")

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-07 10:36+0700\n"
+"POT-Creation-Date: 2026-01-07 10:58+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1301,7 +1301,7 @@ msgstr "Quản lý Phòng Ban"
 msgid "Retrieve departments that can serve as management departments"
 msgstr "Lấy các phòng ban có thể làm phòng ban quản lý"
 
-#: apps/hrm/api/views/proposal.py:138 apps/hrm/api/views/proposal.py:3279
+#: apps/hrm/api/views/proposal.py:138 apps/hrm/api/views/proposal.py:3280
 #: apps/hrm/models/proposal.py:302 apps/hrm/models/proposal.py:706
 #: apps/hrm/models/proposal.py:792 apps/hrm/models/proposal.py:897
 #: apps/hrm/models/proposal.py:942
@@ -2130,88 +2130,88 @@ msgstr "Từ chối Đề xuất Cấp tài sản"
 msgid "Allows the user to reject an asset allocation proposal"
 msgstr "Cho phép người dùng từ chối đề xuất cấp tài sản"
 
-#: apps/hrm/api/views/proposal.py:3283
+#: apps/hrm/api/views/proposal.py:3284
 msgid "Verify Proposal"
 msgstr "Xác nhận Đề xuất"
 
-#: apps/hrm/api/views/proposal.py:3284
+#: apps/hrm/api/views/proposal.py:3285
 msgid "Allows the user to verify a proposal"
 msgstr "Cho phép người dùng xác nhận đề xuất"
 
-#: apps/hrm/api/views/proposal.py:3287
+#: apps/hrm/api/views/proposal.py:3288
 msgid "Reject Proposal"
 msgstr "Từ chối Đề xuất"
 
-#: apps/hrm/api/views/proposal.py:3288
+#: apps/hrm/api/views/proposal.py:3289
 msgid "Allows the user to reject a proposal verification"
 msgstr "Cho phép người dùng từ chối xác nhận đề xuất"
 
-#: apps/hrm/api/views/proposal.py:3291
+#: apps/hrm/api/views/proposal.py:3292
 msgid "List My employee Proposal Verifiers"
 msgstr "Danh sách Người xác nhận"
 
-#: apps/hrm/api/views/proposal.py:3292
+#: apps/hrm/api/views/proposal.py:3293
 msgid "Allows the user to list their assigned proposal for verifing"
 msgstr "Cho phép người dùng xem danh sách đề xuất được giao"
 
-#: apps/hrm/api/views/proposal.py:3616
+#: apps/hrm/api/views/proposal.py:3617
 msgid "List Device Change Proposals"
 msgstr "Danh sách Đề xuất Thay đổi thiết bị đăng nhập"
 
-#: apps/hrm/api/views/proposal.py:3617
+#: apps/hrm/api/views/proposal.py:3618
 msgid "Allows the user to list device change proposals"
 msgstr "Cho phép người dùng xem danh sách đề xuất thay đổi thiết bị đăng nhập"
 
-#: apps/hrm/api/views/proposal.py:3620
+#: apps/hrm/api/views/proposal.py:3621
 msgid "Retrieve Device Change Proposal"
 msgstr "Xem chi tiết Đề xuất Thay đổi thiết bị đăng nhập"
 
-#: apps/hrm/api/views/proposal.py:3621
+#: apps/hrm/api/views/proposal.py:3622
 msgid "Allows the user to retrieve a specific device change proposal"
 msgstr ""
 "Cho phép người dùng xem chi tiết một đề xuất thay đổi thiết bị đăng nhập"
 
-#: apps/hrm/api/views/proposal.py:3640
+#: apps/hrm/api/views/proposal.py:3641
 msgid "Export Device Change Proposals"
 msgstr "Xuất Đề xuất Thay đổi thiết bị đăng nhập"
 
-#: apps/hrm/api/views/proposal.py:3641
+#: apps/hrm/api/views/proposal.py:3642
 msgid "Allows the user to export device change proposals"
 msgstr "Cho phép người dùng xuất đề xuất thay đổi thiết bị đăng nhập"
 
-#: apps/hrm/api/views/proposal.py:3644
+#: apps/hrm/api/views/proposal.py:3645
 msgid "View Device Change Proposal Histories"
 msgstr "Xem lịch sử Đề xuất Thay đổi thiết bị đăng nhập"
 
-#: apps/hrm/api/views/proposal.py:3645
+#: apps/hrm/api/views/proposal.py:3646
 msgid "Allows the user to view audit logs for device change proposals"
 msgstr ""
 "Cho phép người dùng xem nhật ký thay đổi cho đề xuất thay đổi thiết bị đăng "
 "nhập"
 
-#: apps/hrm/api/views/proposal.py:3648
+#: apps/hrm/api/views/proposal.py:3649
 msgid "View Device Change Proposal History Detail"
 msgstr "Xem chi tiết lịch sử Đề xuất Thay đổi thiết bị đăng nhập"
 
-#: apps/hrm/api/views/proposal.py:3649
+#: apps/hrm/api/views/proposal.py:3650
 msgid "Allows the user to view detailed audit log for a device change proposal"
 msgstr ""
 "Cho phép người dùng xem nhật ký thay đổi chi tiết cho đề xuất thay đổi thiết "
 "bị đăng nhập"
 
-#: apps/hrm/api/views/proposal.py:3652
+#: apps/hrm/api/views/proposal.py:3653
 msgid "Approve Device Change Proposal"
 msgstr "Phê duyệt Đề xuất Thay đổi thiết bị đăng nhập"
 
-#: apps/hrm/api/views/proposal.py:3653
+#: apps/hrm/api/views/proposal.py:3654
 msgid "Allows the user to approve a device change proposal"
 msgstr "Cho phép người dùng phê duyệt đề xuất thay đổi thiết bị đăng nhập"
 
-#: apps/hrm/api/views/proposal.py:3656
+#: apps/hrm/api/views/proposal.py:3657
 msgid "Reject Device Change Proposal"
 msgstr "Từ chối Đề xuất Thay đổi thiết bị đăng nhập"
 
-#: apps/hrm/api/views/proposal.py:3657
+#: apps/hrm/api/views/proposal.py:3658
 msgid "Allows the user to reject a device change proposal"
 msgstr "Cho phép người dùng từ chối đề xuất thay đổi thiết bị đăng nhập"
 

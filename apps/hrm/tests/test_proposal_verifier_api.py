@@ -364,6 +364,81 @@ class TestProposalVerifierAPI:
         assert data["data"]["proposal"]["id"] == proposal_verifier.proposal.id
         assert data["data"]["employee"]["id"] == proposal_verifier.employee.id
 
+    @pytest.fixture
+    def other_search_setup(self, branch, block, department):
+        """Create other data schema for search tests to ensure filtering works."""
+        other_employee = Employee.objects.create(
+            code="MV_OTHER_SEARCH",
+            fullname="Other Search Employee",
+            username="othersearch",
+            email="othersearch@example.com",
+            phone="0999888778",
+            citizen_id="999888777668",
+            start_date="2024-01-01",
+            branch=branch,
+            block=block,
+            department=department,
+            personal_email="other.search@example.com",
+        )
+        Proposal.objects.create(
+            code="DX_OTHER_001",
+            proposal_type=ProposalType.PAID_LEAVE,
+            created_by=other_employee,
+        )
+        # Note: A ProposalVerifier is auto-created for other_proposal
+        return other_employee
+
+    def test_search_proposal_verifiers_by_proposal_code(
+        self, api_client, superuser, proposal_verifier, other_search_setup
+    ):
+        """Test searching proposal verifiers by proposal code."""
+        url = reverse("hrm:proposal-verifier-list")
+        response = api_client.get(url, {"search": proposal_verifier.proposal.code})
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["data"]["count"] == 1
+        assert data["data"]["results"][0]["id"] == proposal_verifier.id
+
+    def test_search_proposal_verifiers_by_creator_fullname(
+        self, api_client, superuser, proposal_verifier, other_search_setup
+    ):
+        """Test searching proposal verifiers by creator fullname."""
+        url = reverse("hrm:proposal-verifier-list")
+        response = api_client.get(url, {"search": proposal_verifier.proposal.created_by.fullname})
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["data"]["count"] >= 1
+        found_ids = [result["id"] for result in data["data"]["results"]]
+        assert proposal_verifier.id in found_ids
+
+    def test_search_proposal_verifiers_exclude_unmatched(
+        self, api_client, superuser, proposal_verifier, other_search_setup
+    ):
+        """Test that search does not return unmatched results."""
+        url = reverse("hrm:proposal-verifier-list")
+        response = api_client.get(url, {"search": other_search_setup.fullname})
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        found_ids = [result["id"] for result in data["data"]["results"]]
+        # The primary proposal verifier should not be in results when searching for other employee
+        assert proposal_verifier.id not in found_ids
+
+    def test_search_proposal_verifiers_by_creator_code(
+        self, api_client, superuser, proposal_verifier, other_search_setup
+    ):
+        """Test searching proposal verifiers by creator code."""
+        url = reverse("hrm:proposal-verifier-list")
+        response = api_client.get(url, {"search": proposal_verifier.proposal.created_by.code})
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["data"]["count"] >= 1
+        found_ids = [result["id"] for result in data["data"]["results"]]
+        assert proposal_verifier.id in found_ids
+
     # def test_create_proposal_verifier(
     #     self, api_client, superuser, paid_leave_proposal_no_auto_verifier, department_leader
     # ):
