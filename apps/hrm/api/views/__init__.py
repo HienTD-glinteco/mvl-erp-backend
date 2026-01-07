@@ -27,6 +27,7 @@ from .hrm_dashboard import HRMDashboardViewSet
 from .interview_candidate import InterviewCandidateViewSet
 from .interview_schedule import InterviewScheduleViewSet
 from .job_description import JobDescriptionViewSet
+from .manager_dashboard import ManagerDashboardViewSet
 from .mobile import (
     MyAttendanceRecordViewSet,
     MyProposalAssetAllocationViewSet,
@@ -44,7 +45,6 @@ from .mobile import (
     MyTimesheetEntryViewSet,
     MyTimesheetViewSet,
 )
-from .manager_dashboard import ManagerDashboardViewSet
 from .organization import (
     BlockViewSet,
     BranchContactInfoViewSet,

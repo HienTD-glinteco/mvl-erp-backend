@@ -205,6 +205,58 @@ class TestRecruitmentReportsSignals:
         )
         assert report.total_cost == Decimal("1500000.00")
 
+    def test_cost_report_updated_on_expense_date_change(self, setup_data):
+        """Test that old date's report is updated when expense date changes.
+
+        This is a regression test for the bug where updating an expense's date
+        would only update the new date's report, leaving stale data in the old
+        date's report.
+        """
+        source = RecruitmentSource.objects.create(name="LinkedIn", code="LI", allow_referral=False)
+        channel = RecruitmentChannel.objects.create(
+            name="Job Website", code="JW", belong_to=RecruitmentChannel.BelongTo.JOB_WEBSITE
+        )
+
+        old_date = date(2025, 12, 10)
+        new_date = date(2025, 12, 15)
+
+        # Create expense on old_date
+        expense = RecruitmentExpense.objects.create(
+            date=old_date,
+            recruitment_source=source,
+            recruitment_channel=channel,
+            recruitment_request=setup_data["recruitment_request"],
+            total_cost=Decimal("1000000.00"),
+            num_candidates_hired=1,
+        )
+
+        # Verify report exists for old_date
+        old_report = RecruitmentCostReport.objects.get(
+            report_date=old_date,
+            branch=setup_data["branch"],
+            source_type=RecruitmentSourceType.JOB_WEBSITE_CHANNEL,
+        )
+        assert old_report.total_cost == Decimal("1000000.00")
+
+        # Update expense date to new_date
+        expense.date = new_date
+        expense.save()
+
+        # Verify report for new_date exists with correct cost
+        new_report = RecruitmentCostReport.objects.get(
+            report_date=new_date,
+            branch=setup_data["branch"],
+            source_type=RecruitmentSourceType.JOB_WEBSITE_CHANNEL,
+        )
+        assert new_report.total_cost == Decimal("1000000.00")
+
+        # Verify report for old_date is deleted (no expenses remain)
+        assert not RecruitmentCostReport.objects.filter(
+            report_date=old_date,
+            branch=setup_data["branch"],
+            source_type=RecruitmentSourceType.JOB_WEBSITE_CHANNEL,
+        ).exists()
+
     def test_cost_report_deletion(self, setup_data):
         """Test that RecruitmentCostReport is updated or deleted when RecruitmentExpense is deleted."""
         source = RecruitmentSource.objects.create(name="LinkedIn", code="LI", allow_referral=False)

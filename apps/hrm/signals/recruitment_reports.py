@@ -226,16 +226,40 @@ def _build_source_type_filter(source_type: str) -> Q:
         )
 
 
+@receiver(pre_save, sender=RecruitmentExpense)
+def track_expense_changes(sender, instance, **kwargs):  # noqa: ARG001
+    """Track RecruitmentExpense changes before save.
+
+    Store the old state in a temporary attribute so we can update
+    the old date's report in the post_save signal.
+    """
+    if instance.pk:
+        try:
+            old_instance = RecruitmentExpense.objects.select_related(
+                "recruitment_source", "recruitment_channel", "recruitment_request"
+            ).get(pk=instance.pk)
+            instance._old_expense_snapshot = {
+                "date": old_instance.date,
+                "recruitment_source": old_instance.recruitment_source,
+                "recruitment_channel": old_instance.recruitment_channel,
+                "recruitment_request": old_instance.recruitment_request,
+            }
+        except RecruitmentExpense.DoesNotExist:
+            instance._old_expense_snapshot = None
+    else:
+        instance._old_expense_snapshot = None
+
+
 @receiver(post_save, sender=RecruitmentExpense)
 def update_cost_report_on_expense_save(sender, instance, **kwargs):  # noqa: ARG001
     """Update RecruitmentCostReport when RecruitmentExpense is saved.
 
     Creates or updates the cost report to reflect the expense data,
     even when there are no hired candidates.
-    """
-    report_date = instance.date
-    source_type = _determine_source_type_from_expense(instance)
 
+    When the expense date, source, or channel changes, also updates
+    the old date's report to remove this expense from its aggregation.
+    """
     # Get org fields from recruitment_request
     request = instance.recruitment_request
     if not request:
@@ -245,6 +269,50 @@ def update_cost_report_on_expense_save(sender, instance, **kwargs):  # noqa: ARG
     block_id = request.block_id
     department_id = request.department_id
 
+    # Check if we need to update old date's report
+    old_snapshot = getattr(instance, "_old_expense_snapshot", None)
+    if old_snapshot:
+        old_date = old_snapshot["date"]
+        old_request = old_snapshot["recruitment_request"]
+
+        # Create a temporary object to determine old source_type
+        class OldExpenseProxy:
+            def __init__(self, snapshot):
+                self.recruitment_source = snapshot["recruitment_source"]
+                self.recruitment_channel = snapshot["recruitment_channel"]
+
+        old_source_type = _determine_source_type_from_expense(OldExpenseProxy(old_snapshot))
+        new_source_type = _determine_source_type_from_expense(instance)
+
+        # Check if date or source_type changed
+        if old_date != instance.date or old_source_type != new_source_type:
+            # Update the old date's report
+            if old_request:
+                _recalculate_cost_report(
+                    report_date=old_date,
+                    branch_id=old_request.branch_id,
+                    block_id=old_request.block_id,
+                    department_id=old_request.department_id,
+                    source_type=old_source_type,
+                )
+
+    # Update the current (new) date's report
+    report_date = instance.date
+    source_type = _determine_source_type_from_expense(instance)
+    _recalculate_cost_report(
+        report_date=report_date,
+        branch_id=branch_id,
+        block_id=block_id,
+        department_id=department_id,
+        source_type=source_type,
+    )
+
+
+def _recalculate_cost_report(report_date, branch_id, block_id, department_id, source_type):  # noqa: ANN001, ANN201
+    """Recalculate and update/create a RecruitmentCostReport for given parameters.
+
+    If no expenses exist for the given combination, deletes the report.
+    """
     month_key = report_date.strftime("%Y-%m")
 
     # Aggregate all expenses for this date, org unit, and source type
@@ -263,23 +331,33 @@ def update_cost_report_on_expense_save(sender, instance, **kwargs):  # noqa: ARG
     total_cost = expense_agg.get("total_cost") or Decimal("0")
     total_hires = expense_agg.get("total_hires") or 0
 
-    # Calculate average cost per hire
-    avg_cost = total_cost / total_hires if total_hires > 0 else Decimal("0")
+    if total_cost == Decimal("0") and total_hires == 0:
+        # No expenses, delete the report if it exists
+        RecruitmentCostReport.objects.filter(
+            report_date=report_date,
+            branch_id=branch_id,
+            block_id=block_id,
+            department_id=department_id,
+            source_type=source_type,
+        ).delete()
+    else:
+        # Calculate average cost per hire
+        avg_cost = total_cost / total_hires if total_hires > 0 else Decimal("0")
 
-    # Update or create the report record
-    RecruitmentCostReport.objects.update_or_create(
-        report_date=report_date,
-        branch_id=branch_id,
-        block_id=block_id,
-        department_id=department_id,
-        source_type=source_type,
-        defaults={
-            "month_key": month_key,
-            "total_cost": total_cost,
-            "num_hires": total_hires,
-            "avg_cost_per_hire": avg_cost,
-        },
-    )
+        # Update or create the report record
+        RecruitmentCostReport.objects.update_or_create(
+            report_date=report_date,
+            branch_id=branch_id,
+            block_id=block_id,
+            department_id=department_id,
+            source_type=source_type,
+            defaults={
+                "month_key": month_key,
+                "total_cost": total_cost,
+                "num_hires": total_hires,
+                "avg_cost_per_hire": avg_cost,
+            },
+        )
 
 
 @receiver(post_delete, sender=RecruitmentExpense)
@@ -297,55 +375,14 @@ def update_cost_report_on_expense_delete(sender, instance, **kwargs):  # noqa: A
     if not request:
         return
 
-    branch_id = request.branch_id
-    block_id = request.block_id
-    department_id = request.department_id
-
-    # Check if any expenses remain for this combination and source type
-    source_type_filter = _build_source_type_filter(source_type)
-    remaining_expenses = RecruitmentExpense.objects.filter(
-        source_type_filter,
-        date=report_date,
-        recruitment_request__branch_id=branch_id,
-        recruitment_request__block_id=block_id,
-        recruitment_request__department_id=department_id,
-    ).exclude(pk=instance.pk)
-
-    if not remaining_expenses.exists():
-        # No expenses remain, delete the report record
-        RecruitmentCostReport.objects.filter(
-            report_date=report_date,
-            branch_id=branch_id,
-            block_id=block_id,
-            department_id=department_id,
-            source_type=source_type,
-        ).delete()
-    else:
-        # Re-aggregate remaining expenses
-        expense_agg = remaining_expenses.aggregate(
-            total_cost=Sum("total_cost"),
-            total_hires=Sum("num_candidates_hired"),
-        )
-
-        total_cost = expense_agg.get("total_cost") or Decimal("0")
-        total_hires = expense_agg.get("total_hires") or 0
-        avg_cost = total_cost / total_hires if total_hires > 0 else Decimal("0")
-
-        month_key = report_date.strftime("%Y-%m")
-
-        RecruitmentCostReport.objects.update_or_create(
-            report_date=report_date,
-            branch_id=branch_id,
-            block_id=block_id,
-            department_id=department_id,
-            source_type=source_type,
-            defaults={
-                "month_key": month_key,
-                "total_cost": total_cost,
-                "num_hires": total_hires,
-                "avg_cost_per_hire": avg_cost,
-            },
-        )
+    # Use helper to recalculate report (will delete if no expenses remain)
+    _recalculate_cost_report(
+        report_date=report_date,
+        branch_id=request.branch_id,
+        block_id=request.block_id,
+        department_id=request.department_id,
+        source_type=source_type,
+    )
 
 
 @receiver(post_save, sender=EmployeeWorkHistory)
