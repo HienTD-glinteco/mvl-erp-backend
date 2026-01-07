@@ -888,18 +888,22 @@ class RecruitmentReportsViewSet(BaseGenericViewSet):
         params = param_serializer.validated_data
 
         period_type = params.get(period_param, ReportPeriodType.MONTH.value)
-        from_date = params.get("from_date")
-        to_date = params.get("to_date")
+        start_date = params.get("from_date")
+        end_date = params.get("to_date")
 
-        if from_date and to_date:
-            start_date, end_date = from_date, to_date
-        else:
+        if not start_date and not end_date and period_type:
             if period_type == ReportPeriodType.MONTH.value:
                 start_date, end_date = get_current_month_range()
             else:
                 start_date, end_date = get_current_week_range()
 
-        queryset = model_class.objects.filter(**{f"{date_field}__range": [start_date, end_date]})
+        filter_kwargs = {}
+        if start_date:
+            filter_kwargs[f"{date_field}__gte"] = start_date
+        if end_date:
+            filter_kwargs[f"{date_field}__lte"] = end_date
+
+        queryset = model_class.objects.filter(**filter_kwargs)
 
         # Apply organizational filters
         org_filters = {}

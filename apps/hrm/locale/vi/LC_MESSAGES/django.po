@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-07 18:03+0700\n"
+"POT-Creation-Date: 2026-01-07 22:33+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -900,7 +900,7 @@ msgstr "Tuần"
 
 #: apps/hrm/api/views/employee_reports.py:98
 #: apps/hrm/api/views/recruitment_reports.py:174
-#: apps/hrm/api/views/recruitment_reports.py:926 apps/hrm/constants.py:69
+#: apps/hrm/api/views/recruitment_reports.py:930 apps/hrm/constants.py:69
 #: apps/hrm/constants.py:74
 msgid "Month"
 msgstr "Tháng"
