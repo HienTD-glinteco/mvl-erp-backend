@@ -1,6 +1,7 @@
 from django.db import transaction
 from django.db.models import Value
 from django.db.models.functions import Concat
+from django.db.models.signals import post_save
 from django.utils import timezone
 from django.utils.translation import gettext as _
 from rest_framework import serializers
@@ -87,5 +88,9 @@ class OtherAttendanceBulkApproveSerializer(serializers.Serializer):
                 records.update(notes=Concat("notes", Value(f"\nApproval Note: {note}")), **update_fields)
             else:
                 records.update(**update_fields)
+
+            # Manually trigger post_save signals since update() doesn't fire them
+            for record in AttendanceRecord.objects.filter(id__in=ids):
+                post_save.send(sender=AttendanceRecord, instance=record, created=False)
 
         return count

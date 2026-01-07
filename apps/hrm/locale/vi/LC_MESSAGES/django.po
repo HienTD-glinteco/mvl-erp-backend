@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-07 10:58+0700\n"
+"POT-Creation-Date: 2026-01-07 11:55+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -350,7 +350,7 @@ msgstr ""
 "Nhân viên không thể vừa là trưởng phòng vừa là cấp dưới trong cùng một hệ "
 "thống phân cấp."
 
-#: apps/hrm/api/serializers/other_attendance.py:58
+#: apps/hrm/api/serializers/other_attendance.py:59
 msgid "No valid 'Other' attendance records found for the provided IDs."
 msgstr "Không tìm thấy log chấm công Khác hợp lệ cho các IDs được cung cấp."
 
