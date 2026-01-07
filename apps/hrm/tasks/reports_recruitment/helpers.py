@@ -91,13 +91,9 @@ def _process_recruitment_change(data: dict[str, Any], delta: int) -> None:
 
     # Update hired candidate report and determine source type
     source_type = _determine_source_type_from_snapshot(data)
-    # years_of_experience is an integer field
 
-    years_of_experience = data.get("years_of_experience", 0)
-    # Ensure integer type (in case it comes as string from snapshot)
-    if isinstance(years_of_experience, str):
-        years_of_experience = int(years_of_experience) if years_of_experience.isdigit() else 0
-    is_experienced = years_of_experience > 0  # 0 means no experience
+    years_of_experience = data.get("years_of_experience") or RecruitmentCandidate.YearsOfExperience.NO_EXPERIENCE
+    is_experienced = years_of_experience != RecruitmentCandidate.YearsOfExperience.NO_EXPERIENCE
     referrer_id = data.get("referrer_id")
 
     _increment_hired_candidate_report(
