@@ -12,7 +12,7 @@ from apps.hrm.utils.dashboard_cache import (
     get_manager_dashboard_cache,
     set_manager_dashboard_cache,
 )
-from apps.payroll.models import EmployeeKPIAssessment
+from apps.payroll.models import EmployeeKPIAssessment, KPIAssessmentPeriod
 from libs.drf.base_viewset import BaseGenericViewSet
 
 
@@ -30,13 +30,13 @@ class ManagerDashboardViewSet(BaseGenericViewSet):
     }
 
     @extend_schema(
-        summary="Manager realtime dashboard KPIs",
+        summary="Manager realtime dashboard stats for Manager",
         description=(
             "Get manager-specific stats with navigation info for frontend. "
             "Each item includes path and query_params for direct navigation to filtered list views. "
             "Results are cached per user for 5 minutes and invalidated when relevant data changes."
         ),
-        tags=[_("11.1.3. View statistics pending processing (Manager Dashboard)")],
+        tags=["11. HRM Dashboard"],
         responses={200: ManagerDashboardRealtimeSerializer},
         examples=[
             OpenApiExample(
@@ -118,7 +118,12 @@ class ManagerDashboardViewSet(BaseGenericViewSet):
             .distinct()
             .count()
         )
-
+        current_period = KPIAssessmentPeriod.objects.filter(finalized=False).order_by("id").first()
+        if not current_period:
+            kpi_assessments_pending_count = 0
+            current_period_id = 0
+        else:
+            current_period_id = current_period.id
         return {
             "proposals_to_verify": {
                 "key": "proposals_to_verify",
@@ -133,9 +138,9 @@ class ManagerDashboardViewSet(BaseGenericViewSet):
                 "key": "kpi_assessments_pending",
                 "label": str(_("KPI assessments pending")),
                 "count": kpi_assessments_pending_count,
-                "path": "/kpi/manager/period-evaluation",
+                "path": f"/kpi/manager/period-evaluation/{current_period_id}",
                 "query_params": {
-                    "finalized": "false",
+                    "status": EmployeeKPIAssessment.StatusChoices.WAITING_MANAGER,
                 },
             },
         }
