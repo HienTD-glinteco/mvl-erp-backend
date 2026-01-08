@@ -269,7 +269,7 @@ class MyTeamKPIAssessmentViewSet(BaseModelViewSet):
 
     @extend_schema(
         summary="Get current team assessments",
-        description="Get latest unfinalized assessments for team members with pagination and filters",
+        description="Get assessments for team members from the latest unfinalized period with pagination and filters",
         tags=["8.7: Team KPI"],
         responses={200: ManagerAssessmentSerializer(many=True)},
         examples=[
@@ -302,7 +302,9 @@ class MyTeamKPIAssessmentViewSet(BaseModelViewSet):
     )
     @action(detail=False, methods=["get"], url_path="current")
     def current(self, request):
-        """Get current unfinalized assessments for team members with pagination and filters."""
+        """Get assessments for team members from the latest unfinalized period with pagination and filters."""
+        from apps.payroll.models import KPIAssessmentPeriod
+
         try:
             employee = request.user.employee
         except AttributeError:
@@ -311,30 +313,20 @@ class MyTeamKPIAssessmentViewSet(BaseModelViewSet):
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        # Get all unfinalized assessments for team members
-        assessments = (
-            EmployeeKPIAssessment.objects.filter(manager=employee, finalized=False)
-            .select_related("period", "employee", "manager")
-            .prefetch_related("items")
-            .order_by("-period__month", "employee__code")
-        )
+        # Get the latest unfinalized period
+        latest_period = KPIAssessmentPeriod.objects.filter(finalized=False).order_by("-month").first()
 
-        # Get only the latest assessment per employee
-        from collections import OrderedDict
+        if not latest_period:
+            return Response(
+                {"success": True, "data": {"count": 0, "next": None, "previous": None, "results": []}, "error": None}
+            )
 
-        latest_assessments = OrderedDict()
-        for assessment in assessments:
-            employee_id = assessment.employee.id
-            if employee_id not in latest_assessments:
-                latest_assessments[employee_id] = assessment
-
-        # Convert to queryset for filtering and pagination
-        assessment_ids = [a.id for a in latest_assessments.values()]
+        # Get all assessments for team members in the latest unfinalized period
         queryset = (
-            EmployeeKPIAssessment.objects.filter(id__in=assessment_ids)
+            EmployeeKPIAssessment.objects.filter(manager=employee, period=latest_period)
             .select_related("period", "employee", "manager")
             .prefetch_related("items")
-            .order_by("-period__month", "employee__code")
+            .order_by("employee__code")
         )
 
         # Apply filters
