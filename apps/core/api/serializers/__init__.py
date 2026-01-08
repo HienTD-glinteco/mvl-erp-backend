@@ -1,4 +1,5 @@
 from .administrative_unit import AdministrativeUnitSerializer
+from .app_bootstrap import MobileAppConfigSerializer
 from .auth import (
     LoginSerializer,
     OTPVerificationSerializer,
@@ -41,4 +42,5 @@ __all__ = [
     "RoleSummarySerializer",
     "EmployeeSummarySerializer",
     "PermissionDetailSerializer",
+    "MobileAppConfigSerializer",
 ]

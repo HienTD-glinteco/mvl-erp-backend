@@ -1,6 +1,7 @@
 from .administrative_unit import AdministrativeUnit
 from .device import UserDevice
 from .device_change_request import DeviceChangeRequest
+from .mobile_app_config import MobileAppConfig
 from .nationality import Nationality
 from .password_reset import PasswordResetOTP
 from .permission import Permission
@@ -18,4 +19,5 @@ __all__ = [
     "Province",
     "AdministrativeUnit",
     "Nationality",
+    "MobileAppConfig",
 ]

@@ -1,4 +1,5 @@
 from .administrative_unit import AdministrativeUnitViewSet
+from .app_bootstrap import MobileBootstrapConfigView
 from .auth import (
     LoginView,
     PasswordChangeView,
@@ -30,4 +31,5 @@ __all__ = [
     "MeView",
     "MePermissionsView",
     "MeUpdateAvatarView",
+    "MobileBootstrapConfigView",
 ]
