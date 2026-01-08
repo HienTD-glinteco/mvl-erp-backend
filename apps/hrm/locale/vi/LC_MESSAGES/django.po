@@ -38,6 +38,159 @@ msgstr ""
 msgid "Employee already has an active exemption."
 msgstr "Nhân viên đã có một sự miễn trừ đang hoạt động."
 
+#: apps/hrm/api/serializers/attendance_wifi_device.py:60
+#: apps/hrm/api/serializers/employee.py:888
+#: apps/hrm/models/attendance_report.py:39
+#: apps/hrm/models/attendance_wifi_device.py:37 apps/hrm/models/employee.py:191
+#: apps/hrm/models/employee_report.py:34 apps/hrm/models/employee_report.py:101
+#: apps/hrm/models/employee_work_history.py:76
+#: apps/hrm/models/organization.py:47 apps/hrm/models/organization.py:63
+#: apps/hrm/models/organization.py:98 apps/hrm/models/organization.py:152
+#: apps/hrm/models/recruitment_candidate.py:69
+#: apps/hrm/models/recruitment_reports.py:21
+#: apps/hrm/models/recruitment_request.py:54
+msgid "Branch"
+msgstr "Chi Nhánh"
+
+#: apps/hrm/api/serializers/attendance_wifi_device.py:61
+#: apps/hrm/api/serializers/employee.py:889
+#: apps/hrm/models/attendance_device.py:54
+#: apps/hrm/models/attendance_report.py:47
+#: apps/hrm/models/attendance_wifi_device.py:46 apps/hrm/models/employee.py:197
+#: apps/hrm/models/employee_report.py:40 apps/hrm/models/employee_report.py:107
+#: apps/hrm/models/employee_work_history.py:85
+#: apps/hrm/models/organization.py:112 apps/hrm/models/organization.py:153
+#: apps/hrm/models/recruitment_candidate.py:77
+#: apps/hrm/models/recruitment_reports.py:29
+#: apps/hrm/models/recruitment_request.py:62
+msgid "Block"
+msgstr "Khối"
+
+#: apps/hrm/api/serializers/attendance_wifi_device.py:62
+#: apps/hrm/models/attendance_wifi_device.py:59
+msgid "State"
+msgstr "Trạng Thái"
+
+#: apps/hrm/api/serializers/auth/device_change.py:26
+msgid "Please enter your username."
+msgstr ""
+
+#: apps/hrm/api/serializers/auth/device_change.py:27
+msgid "Username cannot be blank."
+msgstr ""
+
+#: apps/hrm/api/serializers/auth/device_change.py:34
+msgid "Please enter your password."
+msgstr ""
+
+#: apps/hrm/api/serializers/auth/device_change.py:35
+msgid "Password cannot be blank."
+msgstr ""
+
+#: apps/hrm/api/serializers/auth/device_change.py:42
+#, fuzzy
+#| msgid "Old device ID"
+msgid "Please provide device ID."
+msgstr "Mã thiết bị cũ"
+
+#: apps/hrm/api/serializers/auth/device_change.py:43
+msgid "Device ID cannot be blank."
+msgstr ""
+
+#: apps/hrm/api/serializers/auth/device_change.py:74
+msgid "Incorrect password. Please try again."
+msgstr ""
+
+#: apps/hrm/api/serializers/auth/device_change.py:76
+msgid "Username does not exist."
+msgstr ""
+
+#: apps/hrm/api/serializers/auth/device_change.py:80
+msgid "This account is inactive. Please contact support."
+msgstr ""
+
+#: apps/hrm/api/serializers/auth/device_change.py:85
+msgid ""
+"Account is temporarily locked due to multiple failed login attempts. Please "
+"try again later."
+msgstr ""
+
+#: apps/hrm/api/serializers/auth/device_change.py:92
+msgid ""
+"This device is already registered for your account. No need to create a "
+"device change request."
+msgstr ""
+
+#: apps/hrm/api/serializers/auth/device_change.py:151
+msgid "Please provide request ID."
+msgstr ""
+
+#: apps/hrm/api/serializers/auth/device_change.py:152
+msgid "Invalid request ID format."
+msgstr ""
+
+#: apps/hrm/api/serializers/auth/device_change.py:160
+msgid "Please enter the OTP code."
+msgstr ""
+
+#: apps/hrm/api/serializers/auth/device_change.py:161
+#: apps/hrm/api/serializers/auth/device_change.py:179
+msgid "OTP code cannot be blank."
+msgstr ""
+
+#: apps/hrm/api/serializers/auth/device_change.py:162
+#: apps/hrm/api/serializers/auth/device_change.py:163
+msgid "OTP code must be 6 digits."
+msgstr ""
+
+#: apps/hrm/api/serializers/auth/device_change.py:181
+#, fuzzy
+#| msgid "Token does not contain device_id."
+msgid "OTP code can only contain digits."
+msgstr "Token không chứa device_id"
+
+#: apps/hrm/api/serializers/auth/device_change.py:194
+msgid "Invalid or expired request. Please start over."
+msgstr ""
+
+#: apps/hrm/api/serializers/auth/device_change.py:198
+#, fuzzy
+#| msgid "This candidate has already been converted to an employee."
+msgid "This request has already been verified."
+msgstr "Ứng viên này đã được chuyển đổi thành nhân viên."
+
+#: apps/hrm/api/serializers/auth/device_change.py:201
+msgid ""
+"This request has failed due to too many incorrect attempts. Please start "
+"over."
+msgstr ""
+
+#: apps/hrm/api/serializers/auth/device_change.py:204
+msgid "This request has expired. Please start over."
+msgstr ""
+
+#: apps/hrm/api/serializers/auth/device_change.py:210
+msgid "OTP code has expired. Please request a new one."
+msgstr ""
+
+#: apps/hrm/api/serializers/auth/device_change.py:217
+#: apps/hrm/api/serializers/auth/device_change.py:232
+msgid ""
+"Too many incorrect attempts. This request has been marked as failed. Please "
+"start over."
+msgstr ""
+
+#: apps/hrm/api/serializers/auth/device_change.py:226
+#, python-brace-format
+msgid "Incorrect OTP code. You have {attempts} attempt(s) remaining."
+msgstr ""
+
+#: apps/hrm/api/serializers/auth/device_change.py:241
+msgid ""
+"Your account is not linked to an employee record. Please contact HR to set "
+"up your employee profile before requesting device change."
+msgstr ""
+
 #: apps/hrm/api/serializers/contract.py:182
 msgid "Only contracts with DRAFT status can be edited."
 msgstr "Chỉnh sửa chỉ áp dụng cho hợp đồng có trạng thái BẢN NHÁP."
@@ -231,32 +384,6 @@ msgstr "Loại Hợp Đồng"
 #: apps/hrm/models/organization.py:314
 msgid "Position"
 msgstr "Chức Vụ"
-
-#: apps/hrm/api/serializers/employee.py:888
-#: apps/hrm/models/attendance_report.py:39
-#: apps/hrm/models/attendance_wifi_device.py:37 apps/hrm/models/employee.py:191
-#: apps/hrm/models/employee_report.py:34 apps/hrm/models/employee_report.py:101
-#: apps/hrm/models/employee_work_history.py:76
-#: apps/hrm/models/organization.py:47 apps/hrm/models/organization.py:63
-#: apps/hrm/models/organization.py:98 apps/hrm/models/organization.py:152
-#: apps/hrm/models/recruitment_candidate.py:69
-#: apps/hrm/models/recruitment_reports.py:21
-#: apps/hrm/models/recruitment_request.py:54
-msgid "Branch"
-msgstr "Chi Nhánh"
-
-#: apps/hrm/api/serializers/employee.py:889
-#: apps/hrm/models/attendance_device.py:54
-#: apps/hrm/models/attendance_report.py:47
-#: apps/hrm/models/attendance_wifi_device.py:46 apps/hrm/models/employee.py:197
-#: apps/hrm/models/employee_report.py:40 apps/hrm/models/employee_report.py:107
-#: apps/hrm/models/employee_work_history.py:85
-#: apps/hrm/models/organization.py:112 apps/hrm/models/organization.py:153
-#: apps/hrm/models/recruitment_candidate.py:77
-#: apps/hrm/models/recruitment_reports.py:29
-#: apps/hrm/models/recruitment_request.py:62
-msgid "Block"
-msgstr "Khối"
 
 #: apps/hrm/api/serializers/employee.py:890
 #: apps/hrm/models/attendance_report.py:55 apps/hrm/models/employee.py:203
@@ -600,7 +727,7 @@ msgid "Converted from recruitment candidate {code}"
 msgstr "Ứng viên {code} đã được chuyển đổi thành nhân viên"
 
 #: apps/hrm/api/serializers/recruitment_candidate_export.py:15
-#: apps/hrm/api/views/interview_schedule.py:647
+#: apps/hrm/api/views/interview_schedule.py:648
 #: apps/hrm/models/recruitment_request.py:95
 msgid "Recruitment Request"
 msgstr "Đề nghị tuyển dụng"
@@ -670,7 +797,7 @@ msgid "Project Geolocation Management"
 msgstr "Định vị dự án"
 
 #: apps/hrm/api/views/attendance_geolocation.py:441
-#: apps/hrm/api/views/attendance_wifi_device.py:399
+#: apps/hrm/api/views/attendance_wifi_device.py:394
 #, python-brace-format
 msgid ""
 "Cannot delete this {model_name} because it is referenced by: {relationships}"
@@ -678,7 +805,7 @@ msgstr ""
 "Không thể xóa {model_name} này vì nó được tham chiếu bởi: {relationships}"
 
 #: apps/hrm/api/views/attendance_geolocation.py:445
-#: apps/hrm/api/views/attendance_wifi_device.py:403
+#: apps/hrm/api/views/attendance_wifi_device.py:398
 #, python-brace-format
 msgid "Cannot delete this {model_name} because it has protected relationships"
 msgstr "Không thể xóa {model_name} này vì nó có các mối quan hệ được bảo vệ"
@@ -767,6 +894,17 @@ msgstr "HCNS"
 #: apps/hrm/api/views/attendance_wifi_device.py:289
 msgid "Attendance WiFiDevice Management"
 msgstr "Thiết bị chấm công WiFi"
+
+#: apps/hrm/api/views/auth/device_change.py:100
+msgid ""
+"OTP code has been sent to your email. Please verify to complete the device "
+"change request."
+msgstr ""
+
+#: apps/hrm/api/views/auth/device_change.py:158
+msgid ""
+"Device change request verified. Your request is pending approval from admin."
+msgstr ""
 
 #: apps/hrm/api/views/bank.py:103
 msgid "Bank Management"
@@ -1151,25 +1289,25 @@ msgstr "Gửi lời mời phỏng vấn cho {model_name}"
 msgid "Update interviewers for {model_name}"
 msgstr "Cập nhật người phỏng vấn cho {model_name}"
 
-#: apps/hrm/api/views/interview_schedule.py:646
+#: apps/hrm/api/views/interview_schedule.py:647
 #: apps/hrm/models/interview_schedule.py:40
 msgid "Interview Schedule"
 msgstr "Lịch phỏng vấn"
 
-#: apps/hrm/api/views/interview_schedule.py:648
+#: apps/hrm/api/views/interview_schedule.py:649
 msgid "Interview Position Title"
 msgstr "Vị trí phỏng vấn"
 
-#: apps/hrm/api/views/interview_schedule.py:649
+#: apps/hrm/api/views/interview_schedule.py:650
 #: apps/hrm/models/recruitment_request.py:92
 msgid "Number of positions"
 msgstr "Số vị trí cần tuyển"
 
-#: apps/hrm/api/views/interview_schedule.py:650
+#: apps/hrm/api/views/interview_schedule.py:651
 msgid "Time interview"
 msgstr "Thời gian phỏng vấn"
 
-#: apps/hrm/api/views/interview_schedule.py:671
+#: apps/hrm/api/views/interview_schedule.py:672
 msgid ""
 "This interview schedule has been sent to candidates so it cannot be deleted."
 msgstr "Lịch phỏng vấn này đã được gửi cho ứng viên, không thể xoá."
@@ -3162,10 +3300,6 @@ msgstr "Mã WiFi"
 #: apps/hrm/models/attendance_wifi_device.py:52
 msgid "BSSID"
 msgstr ""
-
-#: apps/hrm/models/attendance_wifi_device.py:59
-msgid "State"
-msgstr "Trạng Thái"
 
 #: apps/hrm/models/attendance_wifi_device.py:64
 msgid "Attendance WiFiDevice"
