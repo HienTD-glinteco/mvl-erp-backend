@@ -14,6 +14,7 @@ from apps.payroll.models import (
     KPIAssessmentPeriod,
     KPIConfig,
 )
+from libs.models import SafeTextField
 
 User = get_user_model()
 
@@ -95,6 +96,24 @@ class DepartmentKPIAssessmentModelTest(TestCase):
         # String format: "{department.name} - {period.month:%Y-%m} - Grade: {grade}"
         expected = f"{self.department.name} - 2025-12 - Grade: A"
         self.assertEqual(str(assessment), expected)
+
+    def test_note_field_is_safe_text_field(self):
+        """Ensure the note field uses SafeTextField."""
+        note_field = DepartmentKPIAssessment._meta.get_field("note")
+
+        self.assertIsInstance(note_field, SafeTextField)
+
+    def test_note_field_has_max_length_250(self):
+        """Ensure the note field has max_length of 250."""
+        note_field = DepartmentKPIAssessment._meta.get_field("note")
+
+        self.assertEqual(note_field.max_length, 250)
+
+    def test_note_field_is_blank(self):
+        """Ensure the note field allows blank values."""
+        note_field = DepartmentKPIAssessment._meta.get_field("note")
+
+        self.assertTrue(note_field.blank)
 
 
 @pytest.mark.django_db

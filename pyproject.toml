@@ -136,6 +136,7 @@ weasyprint = "^62.3"
 pyzk = "^0.9"
 newrelic = "^11.1.0"
 django-dbbackup = "^5.0.1"
+beautifulsoup4 = "^4.14.3"
 
 [tool.poetry.group.dev.dependencies]
 pytest = ">=8.3"

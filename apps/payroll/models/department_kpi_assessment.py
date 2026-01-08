@@ -2,7 +2,7 @@ from django.conf import settings
 from django.db import models
 
 from apps.audit_logging.decorators import audit_logging_register
-from libs.models import BaseModel
+from libs.models import BaseModel, SafeTextField
 
 
 @audit_logging_register
@@ -114,7 +114,8 @@ class DepartmentKPIAssessment(BaseModel):
         help_text="User who last updated this assessment",
     )
 
-    note = models.TextField(
+    note = SafeTextField(
+        max_length=250,
         blank=True,
         verbose_name="Note",
         help_text="Additional notes",
