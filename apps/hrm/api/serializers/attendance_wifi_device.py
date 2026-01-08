@@ -1,7 +1,9 @@
+from django.utils.translation import gettext as _
 from rest_framework import serializers
 
 from apps.hrm.api.serializers.common_nested import BlockNestedSerializer, BranchNestedSerializer
 from apps.hrm.models import AttendanceWifiDevice
+from libs.drf.serializers.mixins import FieldFilteringSerializerMixin
 
 
 class AttendanceWifiDeviceSerializer(serializers.ModelSerializer):
@@ -52,22 +54,31 @@ class AttendanceWifiDeviceSerializer(serializers.ModelSerializer):
         return normalized_bssid
 
 
-class AttendanceWifiDeviceExportSerializer(serializers.ModelSerializer):
-    """Serializer for exporting AttendanceWifiDevice data to Excel"""
+class AttendanceWifiDeviceExportSerializer(FieldFilteringSerializerMixin, serializers.ModelSerializer):
+    """Serializer for exporting AttendanceWifiDevice data to Excel with template"""
 
-    branch__name = serializers.CharField(source="branch.name", default="")
-    block__name = serializers.CharField(source="block.name", default="")
+    branch_name = serializers.CharField(source="branch.name", default="", label=_("Branch"))
+    block_name = serializers.CharField(source="block.name", default="", label=_("Block"))
+    state = serializers.CharField(source="get_state_display", label=_("State"))
+
+    default_fields = [
+        "code",
+        "name",
+        "branch_name",
+        "block_name",
+        "bssid",
+        "state",
+        "notes",
+    ]
 
     class Meta:
         model = AttendanceWifiDevice
         fields = [
             "code",
             "name",
-            "branch__name",
-            "block__name",
+            "branch_name",
+            "block_name",
             "bssid",
             "state",
             "notes",
-            "created_at",
-            "updated_at",
         ]

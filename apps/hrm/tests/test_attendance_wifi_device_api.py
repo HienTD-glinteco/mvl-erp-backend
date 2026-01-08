@@ -315,3 +315,162 @@ class TestAttendanceWifiDeviceAPI(APITestMixin):
         data = self.get_response_data(response)
         # Should be normalized to uppercase with colons
         assert data["bssid"] == "AA:BB:CC:DD:EE:00"
+
+
+@pytest.mark.django_db
+class TestAttendanceWifiDeviceExportSerializer:
+    """Test cases for AttendanceWifiDeviceExportSerializer."""
+
+    @pytest.fixture
+    def wifi_device(self, db, branch, block):
+        return AttendanceWifiDevice.objects.create(
+            name="Test WiFi",
+            branch=branch,
+            block=block,
+            bssid="00:11:22:33:44:55",
+            state=AttendanceWifiDevice.State.IN_USE,
+            notes="Test notes",
+        )
+
+    def test_serializer_fields(self, wifi_device):
+        """Test that serializer has correct default fields."""
+        from apps.hrm.api.serializers import AttendanceWifiDeviceExportSerializer
+
+        serializer = AttendanceWifiDeviceExportSerializer(instance=wifi_device)
+        data = serializer.data
+
+        assert "code" in data
+        assert "name" in data
+        assert "branch_name" in data
+        assert "block_name" in data
+        assert "bssid" in data
+        assert "state" in data
+        assert "notes" in data
+
+    def test_serializer_data_values(self, wifi_device):
+        """Test that serializer returns correct data values."""
+        from apps.hrm.api.serializers import AttendanceWifiDeviceExportSerializer
+
+        serializer = AttendanceWifiDeviceExportSerializer(instance=wifi_device)
+        data = serializer.data
+
+        assert data["name"] == "Test WiFi"
+        assert data["bssid"] == "00:11:22:33:44:55"
+        assert data["state"] == "In use"
+        assert data["notes"] == "Test notes"
+        assert wifi_device.code in data["code"]
+
+    def test_serializer_empty_branch_block(self, db):
+        """Test serialization of wifi device without branch and block."""
+        wifi_empty = AttendanceWifiDevice.objects.create(
+            name="Empty WiFi",
+            bssid="11:22:33:44:55:66",
+            state=AttendanceWifiDevice.State.NOT_IN_USE,
+            notes="",
+        )
+
+        from apps.hrm.api.serializers import AttendanceWifiDeviceExportSerializer
+
+        serializer = AttendanceWifiDeviceExportSerializer(instance=wifi_empty)
+        data = serializer.data
+
+        assert data["name"] == "Empty WiFi"
+        assert data["branch_name"] == ""
+        assert data["block_name"] == ""
+        assert data["state"] == "Not in use"
+
+    def test_many_serialization(self, wifi_device, db, branch, block):
+        """Test serialization of multiple wifi devices."""
+        AttendanceWifiDevice.objects.create(
+            name="Another WiFi",
+            branch=branch,
+            block=block,
+            bssid="AA:BB:CC:DD:EE:FF",
+            state=AttendanceWifiDevice.State.IN_USE,
+            notes="Another notes",
+        )
+
+        from apps.hrm.api.serializers import AttendanceWifiDeviceExportSerializer
+
+        devices = AttendanceWifiDevice.objects.all()
+        serializer = AttendanceWifiDeviceExportSerializer(instance=devices, many=True)
+        data = serializer.data
+
+        assert len(data) == 2
+
+
+@pytest.mark.django_db
+class TestAttendanceWifiDeviceExportAPI(APITestMixin):
+    """Test cases for Attendance WiFi Device export API endpoint."""
+
+    @pytest.fixture(autouse=True)
+    def setup_client(self, api_client, settings):
+        settings.EXPORTER_CELERY_ENABLED = False
+        self.client = api_client
+
+    @pytest.fixture
+    def wifi_device(self, db, branch, block):
+        return AttendanceWifiDevice.objects.create(
+            name="Export Test WiFi",
+            branch=branch,
+            block=block,
+            bssid="00:11:22:33:44:55",
+            state=AttendanceWifiDevice.State.IN_USE,
+            notes="Export test notes",
+        )
+
+    def test_export_endpoint_exists(self):
+        """Test that export endpoint exists."""
+        url = reverse("hrm:attendance-wifi-device-export")
+        response = self.client.get(url, {"delivery": "direct"})
+
+        assert response.status_code != status.HTTP_404_NOT_FOUND
+
+    def test_export_direct_delivery(self):
+        """Test export with direct file delivery."""
+        url = reverse("hrm:attendance-wifi-device-export")
+        response = self.client.get(url, {"delivery": "direct"})
+
+        assert response.status_code == status.HTTP_206_PARTIAL_CONTENT
+        assert response["Content-Type"] == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        assert "attachment" in response["Content-Disposition"]
+        assert ".xlsx" in response["Content-Disposition"]
+
+    def test_export_uses_template(self):
+        """Test that export uses the xlsx_template_name."""
+        url = reverse("hrm:attendance-wifi-device-export")
+        response = self.client.get(url, {"delivery": "direct"})
+
+        assert response.status_code == status.HTTP_206_PARTIAL_CONTENT
+        assert len(response.content) > 0
+
+    def test_export_includes_wifi_data(self, wifi_device):
+        """Test that exported file contains wifi device data."""
+        url = reverse("hrm:attendance-wifi-device-export")
+        response = self.client.get(url, {"delivery": "direct"})
+
+        assert response.status_code == status.HTTP_206_PARTIAL_CONTENT
+        assert len(response.content) > 100
+
+    def test_export_with_search_filter(self, wifi_device, db, branch, block):
+        """Test export with search filter applied."""
+        AttendanceWifiDevice.objects.create(
+            name="Different WiFi",
+            branch=branch,
+            block=block,
+            bssid="AA:BB:CC:DD:EE:FF",
+            state=AttendanceWifiDevice.State.NOT_IN_USE,
+            notes="Different notes",
+        )
+
+        url = reverse("hrm:attendance-wifi-device-export")
+        response = self.client.get(url, {"delivery": "direct", "search": "Export Test"})
+
+        assert response.status_code == status.HTTP_206_PARTIAL_CONTENT
+
+    def test_export_with_ordering(self):
+        """Test export with ordering applied."""
+        url = reverse("hrm:attendance-wifi-device-export")
+        response = self.client.get(url, {"delivery": "direct", "ordering": "name"})
+
+        assert response.status_code == status.HTTP_206_PARTIAL_CONTENT

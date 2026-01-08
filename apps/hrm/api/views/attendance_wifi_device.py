@@ -289,50 +289,45 @@ class AttendanceWifiDeviceViewSet(ExportXLSXMixin, AuditLoggingMixin, BaseModelV
     submodule = _("Attendance WiFiDevice Management")
     permission_prefix = "wifi_attendance_device"
 
+    xlsx_template_name = "apps/hrm/fixtures/export_templates/attendance_wifi_device_export_template.xlsx"
+
+    def get_serializer_class(self):
+        """Return appropriate serializer based on action."""
+        if self.action == "export":
+            return AttendanceWifiDeviceExportSerializer
+        return AttendanceWifiDeviceSerializer
+
     def get_export_data(self, request):
-        """Custom export data for AttendanceWifiDevice.
+        """Custom export data for AttendanceWifiDevice with template support.
 
         Exports the following fields:
-        - code
-        - name
-        - branch__name
-        - block__name
-        - bssid
-        - state
-        - notes
-        - created_at
-        - updated_at
+        - STT (index)
+        - code (WiFi Attendance Code)
+        - name (WiFi Attendance Name)
+        - branch_name (Branch)
+        - block_name (Block)
+        - bssid (BSSID)
+        - state_display (Usage State)
+        - notes (Notes)
         """
         queryset = self.filter_queryset(self.get_queryset())
-        serializer = AttendanceWifiDeviceExportSerializer(queryset, many=True)
+        serializer = self.get_serializer(queryset, many=True)
+
+        headers = [str(field.label) for field in serializer.child.fields.values()]
         data = serializer.data
+        field_names = list(serializer.child.fields.keys())
+        if self.xlsx_template_name:
+            headers = [_(self.xlsx_template_index_column_key), *headers]
+            field_names = [self.xlsx_template_index_column_key, *field_names]
+            for index, row in enumerate(data, start=1):
+                row.update({self.xlsx_template_index_column_key: index})
 
         return {
             "sheets": [
                 {
-                    "name": "Attendance WiFiDevices",
-                    "headers": [
-                        "Code",
-                        "Name",
-                        "Branch",
-                        "Block",
-                        "BSSID",
-                        "State",
-                        "Notes",
-                        "Created At",
-                        "Updated At",
-                    ],
-                    "field_names": [
-                        "code",
-                        "name",
-                        "branch__name",
-                        "block__name",
-                        "bssid",
-                        "state",
-                        "notes",
-                        "created_at",
-                        "updated_at",
-                    ],
+                    "name": str(AttendanceWifiDevice._meta.verbose_name),
+                    "headers": headers,
+                    "field_names": field_names,
                     "data": data,
                 }
             ]

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-08 01:31+0700\n"
+"POT-Creation-Date: 2026-01-08 09:40+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -33,6 +33,39 @@ msgstr ""
 #: apps/hrm/api/serializers/attendance_exemption.py:86
 msgid "Employee already has an active exemption."
 msgstr "Nhân viên đã có một sự miễn trừ đang hoạt động."
+
+#: apps/hrm/api/serializers/attendance_wifi_device.py:60
+#: apps/hrm/api/serializers/employee.py:888
+#: apps/hrm/models/attendance_report.py:39
+#: apps/hrm/models/attendance_wifi_device.py:37 apps/hrm/models/employee.py:191
+#: apps/hrm/models/employee_report.py:34 apps/hrm/models/employee_report.py:101
+#: apps/hrm/models/employee_work_history.py:76
+#: apps/hrm/models/organization.py:47 apps/hrm/models/organization.py:63
+#: apps/hrm/models/organization.py:98 apps/hrm/models/organization.py:152
+#: apps/hrm/models/recruitment_candidate.py:69
+#: apps/hrm/models/recruitment_reports.py:21
+#: apps/hrm/models/recruitment_request.py:54
+msgid "Branch"
+msgstr "Chi Nhánh"
+
+#: apps/hrm/api/serializers/attendance_wifi_device.py:61
+#: apps/hrm/api/serializers/employee.py:889
+#: apps/hrm/models/attendance_device.py:54
+#: apps/hrm/models/attendance_report.py:47
+#: apps/hrm/models/attendance_wifi_device.py:46 apps/hrm/models/employee.py:197
+#: apps/hrm/models/employee_report.py:40 apps/hrm/models/employee_report.py:107
+#: apps/hrm/models/employee_work_history.py:85
+#: apps/hrm/models/organization.py:112 apps/hrm/models/organization.py:153
+#: apps/hrm/models/recruitment_candidate.py:77
+#: apps/hrm/models/recruitment_reports.py:29
+#: apps/hrm/models/recruitment_request.py:62
+msgid "Block"
+msgstr "Khối"
+
+#: apps/hrm/api/serializers/attendance_wifi_device.py:62
+#: apps/hrm/models/attendance_wifi_device.py:59
+msgid "State"
+msgstr "Trạng Thái"
 
 #: apps/hrm/api/serializers/contract.py:182
 msgid "Only contracts with DRAFT status can be edited."
@@ -227,32 +260,6 @@ msgstr "Loại Hợp Đồng"
 #: apps/hrm/models/organization.py:314
 msgid "Position"
 msgstr "Chức Vụ"
-
-#: apps/hrm/api/serializers/employee.py:888
-#: apps/hrm/models/attendance_report.py:39
-#: apps/hrm/models/attendance_wifi_device.py:37 apps/hrm/models/employee.py:191
-#: apps/hrm/models/employee_report.py:34 apps/hrm/models/employee_report.py:101
-#: apps/hrm/models/employee_work_history.py:76
-#: apps/hrm/models/organization.py:47 apps/hrm/models/organization.py:63
-#: apps/hrm/models/organization.py:98 apps/hrm/models/organization.py:152
-#: apps/hrm/models/recruitment_candidate.py:69
-#: apps/hrm/models/recruitment_reports.py:21
-#: apps/hrm/models/recruitment_request.py:54
-msgid "Branch"
-msgstr "Chi Nhánh"
-
-#: apps/hrm/api/serializers/employee.py:889
-#: apps/hrm/models/attendance_device.py:54
-#: apps/hrm/models/attendance_report.py:47
-#: apps/hrm/models/attendance_wifi_device.py:46 apps/hrm/models/employee.py:197
-#: apps/hrm/models/employee_report.py:40 apps/hrm/models/employee_report.py:107
-#: apps/hrm/models/employee_work_history.py:85
-#: apps/hrm/models/organization.py:112 apps/hrm/models/organization.py:153
-#: apps/hrm/models/recruitment_candidate.py:77
-#: apps/hrm/models/recruitment_reports.py:29
-#: apps/hrm/models/recruitment_request.py:62
-msgid "Block"
-msgstr "Khối"
 
 #: apps/hrm/api/serializers/employee.py:890
 #: apps/hrm/models/attendance_report.py:55 apps/hrm/models/employee.py:203
@@ -660,7 +667,7 @@ msgid "Project Geolocation Management"
 msgstr "Định vị dự án"
 
 #: apps/hrm/api/views/attendance_geolocation.py:441
-#: apps/hrm/api/views/attendance_wifi_device.py:399
+#: apps/hrm/api/views/attendance_wifi_device.py:394
 #, python-brace-format
 msgid ""
 "Cannot delete this {model_name} because it is referenced by: {relationships}"
@@ -668,7 +675,7 @@ msgstr ""
 "Không thể xóa {model_name} này vì nó được tham chiếu bởi: {relationships}"
 
 #: apps/hrm/api/views/attendance_geolocation.py:445
-#: apps/hrm/api/views/attendance_wifi_device.py:403
+#: apps/hrm/api/views/attendance_wifi_device.py:398
 #, python-brace-format
 msgid "Cannot delete this {model_name} because it has protected relationships"
 msgstr "Không thể xóa {model_name} này vì nó có các mối quan hệ được bảo vệ"
@@ -3152,10 +3159,6 @@ msgstr "Mã WiFi"
 #: apps/hrm/models/attendance_wifi_device.py:52
 msgid "BSSID"
 msgstr ""
-
-#: apps/hrm/models/attendance_wifi_device.py:59
-msgid "State"
-msgstr "Trạng Thái"
 
 #: apps/hrm/models/attendance_wifi_device.py:64
 msgid "Attendance WiFiDevice"
