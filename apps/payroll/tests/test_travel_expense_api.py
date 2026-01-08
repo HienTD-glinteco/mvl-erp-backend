@@ -169,10 +169,52 @@ class TestTravelExpenseAPI:
             created_by=superuser,
         )
 
+        # Single value
         response = api_client.get("/api/payroll/travel-expenses/?expense_type=TAXABLE")
-
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
-
         assert data["data"]["count"] == 1
         assert data["data"]["results"][0]["expense_type"] == "TAXABLE"
+
+        # Multiple values (repeated param using expense_types)
+        response_multi = api_client.get(
+            "/api/payroll/travel-expenses/?expense_types=TAXABLE&expense_types=NON_TAXABLE"
+        )
+        assert response_multi.status_code == status.HTTP_200_OK
+        data_multi = response_multi.json()
+        assert data_multi["data"]["count"] == 2
+
+    def test_filter_by_status_multiple(self, api_client, superuser, employee):
+        """Test filtering by multiple statuses."""
+        # Create NOT_CALCULATED and CALCULATED expenses
+        TravelExpense.objects.create(
+            name="Not calc",
+            expense_type=TravelExpense.ExpenseType.TAXABLE,
+            employee=employee,
+            amount=1000000,
+            month=date(2025, 11, 1),
+            status=TravelExpense.TravelExpenseStatus.NOT_CALCULATED,
+            created_by=superuser,
+        )
+        TravelExpense.objects.create(
+            name="Calc",
+            expense_type=TravelExpense.ExpenseType.TAXABLE,
+            employee=employee,
+            amount=2000000,
+            month=date(2025, 11, 1),
+            status=TravelExpense.TravelExpenseStatus.CALCULATED,
+            created_by=superuser,
+        )
+
+        # Filter CALCULATED only
+        resp_calc = api_client.get("/api/payroll/travel-expenses/?status=CALCULATED")
+        assert resp_calc.status_code == status.HTTP_200_OK
+        body_calc = resp_calc.json()
+        assert body_calc["data"]["count"] == 1
+        assert body_calc["data"]["results"][0]["status"] == "CALCULATED"
+
+        # Filter multiple statuses (repeated param using statuses)
+        resp_multi = api_client.get("/api/payroll/travel-expenses/?statuses=NOT_CALCULATED&statuses=CALCULATED")
+        assert resp_multi.status_code == status.HTTP_200_OK
+        body_multi = resp_multi.json()
+        assert body_multi["data"]["count"] == 2

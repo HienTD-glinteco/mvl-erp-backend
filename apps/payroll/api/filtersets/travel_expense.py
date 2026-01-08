@@ -13,12 +13,23 @@ class TravelExpenseFilterSet(django_filters.FilterSet):
     Month filter accepts MM/YYYY format and converts to first day of month.
     """
 
+    # Single-value filters
     expense_type = django_filters.ChoiceFilter(
         field_name="expense_type",
         choices=TravelExpense.ExpenseType.choices,
     )
     month = django_filters.CharFilter(method="filter_month")
     status = django_filters.ChoiceFilter(
+        field_name="status",
+        choices=TravelExpense.TravelExpenseStatus.choices,
+    )
+
+    # Multi-value filters (pass repeated params): ?expense_types=TAXABLE&expense_types=NON_TAXABLE
+    expense_types = django_filters.MultipleChoiceFilter(
+        field_name="expense_type",
+        choices=TravelExpense.ExpenseType.choices,
+    )
+    statuses = django_filters.MultipleChoiceFilter(
         field_name="status",
         choices=TravelExpense.TravelExpenseStatus.choices,
     )
