@@ -541,11 +541,11 @@ class InterviewScheduleViewSet(ExportXLSXMixin, EmailTemplateActionMixin, AuditL
         user = request.user
         if getattr(user, "employee", None):
             employee = user.employee
-            recipient_data["contact_fullname"] = employee.fullname
+            recipient_data["data"]["contact_fullname"] = employee.fullname
             if employee.phone:
-                recipient_data["contact_phone"] = employee.phone
+                recipient_data["data"]["contact_phone"] = employee.phone
             if employee.position:
-                recipient_data["contact_position"] = employee.position.name
+                recipient_data["data"]["contact_position"] = employee.position.name
 
         return recipient_data
 

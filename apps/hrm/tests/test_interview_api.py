@@ -599,9 +599,9 @@ class TestInterviewScheduleEmailTemplate(APITestMixin):
         recipient = viewset.get_recipient_for_interview_candidate(request, ic1)
 
         # Verify contact info from employee
-        assert recipient["contact_fullname"] == "Test Employee"
-        assert recipient["contact_phone"] == "0123456789"
-        assert recipient["contact_position"] == "HR Manager"
+        assert recipient["data"]["contact_fullname"] == "Test Employee"
+        assert recipient["data"]["contact_phone"] == "0123456789"
+        assert recipient["data"]["contact_position"] == "HR Manager"
 
     def test_get_recipient_for_interview_candidate_skips_candidate_without_email(self, interview_candidates):
         """Test get_recipient_for_interview_candidate returns None for candidate without email"""

@@ -345,7 +345,17 @@
                     </tr>
                     <tr>
                         <td class="content-cell">
-                            <span class="text-bold">{{ contact_fullname}} - {{contact_position}} - {{ contact_phone }}</span>
+                            <span class="text-bold">
+                                {% if contact_fullname %}
+                                    {{ contact_fullname }}
+                                {% endif %}
+                                {% if contact_position %}
+                                    - {{ contact_position }}
+                                {% endif %}
+                                {% if contact_phone %}
+                                    - {{ contact_phone }}
+                                {% endif %}
+                            </span>
                         </td>
                     </tr>
 
