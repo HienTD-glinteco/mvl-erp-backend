@@ -7,6 +7,7 @@ class ManagerDashboardItemQueryParamsSerializer(serializers.Serializer):
     """Serializer for query params in manager dashboard items."""
 
     status = serializers.CharField(required=False, help_text="Status filter")
+    verifier_status = serializers.CharField(required=False, help_text="Verifier status filter")
     finalized = serializers.CharField(required=False, help_text="Finalized filter")
 
 

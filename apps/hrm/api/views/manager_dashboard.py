@@ -131,7 +131,7 @@ class ManagerDashboardViewSet(BaseGenericViewSet):
                 "count": proposals_to_verify_count,
                 "path": "/decisions-proposals/proposals/manage",
                 "query_params": {
-                    "status": ProposalVerifierStatus.PENDING,
+                    "verifier_status": ProposalVerifierStatus.PENDING,
                 },
             },
             "kpi_assessments_pending": {
@@ -154,7 +154,7 @@ class ManagerDashboardViewSet(BaseGenericViewSet):
                 "count": 0,
                 "path": "/decisions-proposals/proposals/manage",
                 "query_params": {
-                    "status": ProposalVerifierStatus.PENDING,
+                    "verifier_status": ProposalVerifierStatus.PENDING,
                 },
             },
             "kpi_assessments_pending": {

@@ -420,7 +420,7 @@ class TestManagerDashboardAPI(APITestMixin):
         assert proposals_to_verify["key"] == "proposals_to_verify"
         assert proposals_to_verify["count"] == 2
         assert proposals_to_verify["path"] == "/decisions-proposals/proposals/manage"
-        assert proposals_to_verify["query_params"]["status"] == ProposalVerifierStatus.PENDING
+        assert proposals_to_verify["query_params"]["verifier_status"] == ProposalVerifierStatus.PENDING
 
         # Check kpi_assessments_pending
         kpi_pending = data["kpi_assessments_pending"]
