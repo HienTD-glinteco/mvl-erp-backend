@@ -975,3 +975,272 @@ class TestRecruitmentCandidateAPI(APITestMixin):
         assert "id" in response_data["employee"]
         assert "code" in response_data["employee"]
         assert "fullname" in response_data["employee"]
+
+
+@pytest.mark.django_db
+class TestRecruitmentCandidateForceSave(APITestMixin):
+    """Test cases for force_save functionality in RecruitmentCandidate API"""
+
+    @pytest.fixture(autouse=True)
+    def setup_method(
+        self, api_client, user, employee, recruitment_request, recruitment_source, recruitment_channel, department
+    ):
+        self.client = api_client
+        self.user = user
+        self.employee = employee
+        self.recruitment_request = recruitment_request
+        self.recruitment_source = recruitment_source
+        self.recruitment_channel = recruitment_channel
+        self.department = department
+
+        self.candidate_data = {
+            "name": "Test Candidate",
+            "citizen_id": "123456789012",
+            "email": "test.candidate@example.com",
+            "phone": "0111111111",
+            "recruitment_request_id": self.recruitment_request.id,
+            "recruitment_source_id": self.recruitment_source.id,
+            "recruitment_channel_id": self.recruitment_channel.id,
+            "years_of_experience": RecruitmentCandidate.YearsOfExperience.MORE_THAN_FIVE_YEARS,
+            "submitted_date": "2025-10-15",
+            "status": "CONTACTED",
+        }
+
+    def test_create_candidate_with_duplicate_phone_fails(self):
+        """Test creating candidate with duplicate phone number returns error"""
+        # Create first candidate
+        RecruitmentCandidate.objects.create(
+            name="First Candidate",
+            citizen_id="111111111111",
+            email="first@example.com",
+            phone="0999999999",
+            recruitment_request=self.recruitment_request,
+            recruitment_source=self.recruitment_source,
+            recruitment_channel=self.recruitment_channel,
+            years_of_experience=RecruitmentCandidate.YearsOfExperience.MORE_THAN_FIVE_YEARS,
+            submitted_date=date(2025, 10, 15),
+        )
+
+        # Try to create second candidate with same phone
+        url = reverse("hrm:recruitment-candidate-list")
+        data = self.candidate_data.copy()
+        data["phone"] = "0999999999"
+
+        response = self.client.post(url, data, format="json")
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_create_candidate_with_duplicate_phone_force_save_succeeds(self):
+        """Test creating candidate with duplicate phone succeeds when force_save=True"""
+        # Create first candidate
+        RecruitmentCandidate.objects.create(
+            name="First Candidate",
+            citizen_id="111111111111",
+            email="first@example.com",
+            phone="0888888888",
+            recruitment_request=self.recruitment_request,
+            recruitment_source=self.recruitment_source,
+            recruitment_channel=self.recruitment_channel,
+            years_of_experience=RecruitmentCandidate.YearsOfExperience.MORE_THAN_FIVE_YEARS,
+            submitted_date=date(2025, 10, 15),
+        )
+
+        # Create second candidate with same phone using force_save
+        url = reverse("hrm:recruitment-candidate-list")
+        data = self.candidate_data.copy()
+        data["phone"] = "0888888888"
+        data["force_save"] = True
+
+        response = self.client.post(url, data, format="json")
+
+        assert response.status_code == status.HTTP_201_CREATED
+        response_data = self.get_response_data(response)
+        assert response_data["phone"] == "0888888888"
+        assert RecruitmentCandidate.objects.filter(phone="0888888888").count() == 2
+
+    def test_update_candidate_with_duplicate_phone_fails(self):
+        """Test updating candidate with duplicate phone number returns error"""
+        # Create first candidate
+        RecruitmentCandidate.objects.create(
+            name="First Candidate",
+            citizen_id="111111111111",
+            email="first@example.com",
+            phone="0777777777",
+            recruitment_request=self.recruitment_request,
+            recruitment_source=self.recruitment_source,
+            recruitment_channel=self.recruitment_channel,
+            years_of_experience=RecruitmentCandidate.YearsOfExperience.MORE_THAN_FIVE_YEARS,
+            submitted_date=date(2025, 10, 15),
+        )
+
+        # Create second candidate
+        candidate2 = RecruitmentCandidate.objects.create(
+            name="Second Candidate",
+            citizen_id="222222222222",
+            email="second@example.com",
+            phone="0666666666",
+            recruitment_request=self.recruitment_request,
+            recruitment_source=self.recruitment_source,
+            recruitment_channel=self.recruitment_channel,
+            years_of_experience=RecruitmentCandidate.YearsOfExperience.MORE_THAN_FIVE_YEARS,
+            submitted_date=date(2025, 10, 15),
+        )
+
+        # Try to update second candidate with first candidate's phone
+        url = reverse("hrm:recruitment-candidate-detail", kwargs={"pk": candidate2.id})
+        data = self.candidate_data.copy()
+        data["phone"] = "0777777777"
+        data["citizen_id"] = "222222222222"
+        data["email"] = "second@example.com"
+
+        response = self.client.put(url, data, format="json")
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_update_candidate_with_duplicate_phone_force_save_succeeds(self):
+        """Test updating candidate with duplicate phone succeeds when force_save=True"""
+        # Create first candidate
+        RecruitmentCandidate.objects.create(
+            name="First Candidate",
+            citizen_id="111111111111",
+            email="first@example.com",
+            phone="0555555555",
+            recruitment_request=self.recruitment_request,
+            recruitment_source=self.recruitment_source,
+            recruitment_channel=self.recruitment_channel,
+            years_of_experience=RecruitmentCandidate.YearsOfExperience.MORE_THAN_FIVE_YEARS,
+            submitted_date=date(2025, 10, 15),
+        )
+
+        # Create second candidate
+        candidate2 = RecruitmentCandidate.objects.create(
+            name="Second Candidate",
+            citizen_id="222222222222",
+            email="second@example.com",
+            phone="0444444444",
+            recruitment_request=self.recruitment_request,
+            recruitment_source=self.recruitment_source,
+            recruitment_channel=self.recruitment_channel,
+            years_of_experience=RecruitmentCandidate.YearsOfExperience.MORE_THAN_FIVE_YEARS,
+            submitted_date=date(2025, 10, 15),
+        )
+
+        # Update second candidate with first candidate's phone using force_save
+        url = reverse("hrm:recruitment-candidate-detail", kwargs={"pk": candidate2.id})
+        data = self.candidate_data.copy()
+        data["phone"] = "0555555555"
+        data["citizen_id"] = "222222222222"
+        data["email"] = "second@example.com"
+        data["force_save"] = True
+
+        response = self.client.put(url, data, format="json")
+
+        assert response.status_code == status.HTTP_200_OK
+        response_data = self.get_response_data(response)
+        assert response_data["phone"] == "0555555555"
+        assert RecruitmentCandidate.objects.filter(phone="0555555555").count() == 2
+
+    def test_partial_update_candidate_with_duplicate_phone_fails(self):
+        """Test partial updating candidate with duplicate phone number returns error"""
+        # Create first candidate
+        RecruitmentCandidate.objects.create(
+            name="First Candidate",
+            citizen_id="111111111111",
+            email="first@example.com",
+            phone="0333333333",
+            recruitment_request=self.recruitment_request,
+            recruitment_source=self.recruitment_source,
+            recruitment_channel=self.recruitment_channel,
+            years_of_experience=RecruitmentCandidate.YearsOfExperience.MORE_THAN_FIVE_YEARS,
+            submitted_date=date(2025, 10, 15),
+        )
+
+        # Create second candidate
+        candidate2 = RecruitmentCandidate.objects.create(
+            name="Second Candidate",
+            citizen_id="222222222222",
+            email="second@example.com",
+            phone="0222222222",
+            recruitment_request=self.recruitment_request,
+            recruitment_source=self.recruitment_source,
+            recruitment_channel=self.recruitment_channel,
+            years_of_experience=RecruitmentCandidate.YearsOfExperience.MORE_THAN_FIVE_YEARS,
+            submitted_date=date(2025, 10, 15),
+        )
+
+        # Try to patch second candidate with first candidate's phone
+        url = reverse("hrm:recruitment-candidate-detail", kwargs={"pk": candidate2.id})
+        data = {"phone": "0333333333"}
+
+        response = self.client.patch(url, data, format="json")
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_partial_update_candidate_with_duplicate_phone_force_save_succeeds(self):
+        """Test partial updating candidate with duplicate phone succeeds when force_save=True"""
+        # Create first candidate
+        RecruitmentCandidate.objects.create(
+            name="First Candidate",
+            citizen_id="111111111111",
+            email="first@example.com",
+            phone="0123123123",
+            recruitment_request=self.recruitment_request,
+            recruitment_source=self.recruitment_source,
+            recruitment_channel=self.recruitment_channel,
+            years_of_experience=RecruitmentCandidate.YearsOfExperience.MORE_THAN_FIVE_YEARS,
+            submitted_date=date(2025, 10, 15),
+        )
+
+        # Create second candidate
+        candidate2 = RecruitmentCandidate.objects.create(
+            name="Second Candidate",
+            citizen_id="222222222222",
+            email="second@example.com",
+            phone="0321321321",
+            recruitment_request=self.recruitment_request,
+            recruitment_source=self.recruitment_source,
+            recruitment_channel=self.recruitment_channel,
+            years_of_experience=RecruitmentCandidate.YearsOfExperience.MORE_THAN_FIVE_YEARS,
+            submitted_date=date(2025, 10, 15),
+        )
+
+        # Patch second candidate with first candidate's phone using force_save
+        url = reverse("hrm:recruitment-candidate-detail", kwargs={"pk": candidate2.id})
+        data = {"phone": "0123123123", "force_save": True}
+
+        response = self.client.patch(url, data, format="json")
+
+        assert response.status_code == status.HTTP_200_OK
+        response_data = self.get_response_data(response)
+        assert response_data["phone"] == "0123123123"
+        assert RecruitmentCandidate.objects.filter(phone="0123123123").count() == 2
+
+    def test_update_candidate_own_phone_succeeds(self):
+        """Test updating candidate with its own phone number succeeds"""
+        # Create candidate
+        candidate = RecruitmentCandidate.objects.create(
+            name="Test Candidate",
+            citizen_id="111111111111",
+            email="test@example.com",
+            phone="0111222333",
+            recruitment_request=self.recruitment_request,
+            recruitment_source=self.recruitment_source,
+            recruitment_channel=self.recruitment_channel,
+            years_of_experience=RecruitmentCandidate.YearsOfExperience.MORE_THAN_FIVE_YEARS,
+            submitted_date=date(2025, 10, 15),
+        )
+
+        # Update candidate with just a name change (same phone)
+        url = reverse("hrm:recruitment-candidate-detail", kwargs={"pk": candidate.id})
+        data = self.candidate_data.copy()
+        data["name"] = "Updated Name"
+        data["phone"] = "0111222333"
+        data["citizen_id"] = "111111111111"
+        data["email"] = "test@example.com"
+
+        response = self.client.put(url, data, format="json")
+
+        assert response.status_code == status.HTTP_200_OK
+        response_data = self.get_response_data(response)
+        assert response_data["name"] == "Updated Name"
+        assert response_data["phone"] == "0111222333"

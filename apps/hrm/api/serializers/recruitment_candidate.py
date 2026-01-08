@@ -83,6 +83,8 @@ class RecruitmentCandidateSerializer(FieldFilteringSerializerMixin, serializers.
         write_only=True,
     )
 
+    force_save = serializers.BooleanField(write_only=True, default=False)
+
     default_fields = [
         "id",
         "code",
@@ -107,6 +109,7 @@ class RecruitmentCandidateSerializer(FieldFilteringSerializerMixin, serializers.
         "note",
         "referrer",
         "employee",
+        "force_save",
     ]
 
     class Meta:
@@ -137,6 +140,7 @@ class RecruitmentCandidateSerializer(FieldFilteringSerializerMixin, serializers.
             "employee",
             "created_at",
             "updated_at",
+            "force_save",
         ]
         read_only_fields = [
             "id",
@@ -164,12 +168,27 @@ class RecruitmentCandidateSerializer(FieldFilteringSerializerMixin, serializers.
         run by DRF before this method is called, so we only need to call clean() here
         for business logic validation.
         """
+        # Validate phone unique with force_save
+        # Get phone from attrs or from existing instance for partial updates
+        phone = attrs.get("phone")
+        if phone is None and self.instance:
+            phone = self.instance.phone
+
+        force_save = attrs.get("force_save", False)
+        if phone and not force_save:
+            qs = self.Meta.model.objects.filter(phone=phone)
+            if self.instance:
+                qs = qs.exclude(id=self.instance.id)
+            if qs.exists():
+                raise serializers.ValidationError({"phone": _("Candidate with this phone number already exists.")})
+
         # Create a temporary instance with the provided data for validation
         instance = self.instance or RecruitmentCandidate()
 
-        # Apply attrs to the instance
+        # Apply attrs to the instance (excluding force_save which is not a model field)
         for attr, value in attrs.items():
-            setattr(instance, attr, value)
+            if attr != "force_save":
+                setattr(instance, attr, value)
 
         # Call model's clean() method to perform business logic validation
         try:
@@ -182,6 +201,16 @@ class RecruitmentCandidateSerializer(FieldFilteringSerializerMixin, serializers.
                 raise serializers.ValidationError({"non_field_errors": e.messages})
 
         return attrs
+
+    def create(self, validated_data):
+        """Remove force_save from validated_data before creating the model instance."""
+        validated_data.pop("force_save", None)
+        return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        """Remove force_save from validated_data before updating the model instance."""
+        validated_data.pop("force_save", None)
+        return super().update(instance, validated_data)
 
 
 class UpdateReferrerSerializer(serializers.Serializer):
