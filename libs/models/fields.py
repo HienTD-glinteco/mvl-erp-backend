@@ -1,6 +1,7 @@
 from bs4 import BeautifulSoup
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.utils.translation import ngettext_lazy
 
 from libs.strings import clean_html
 
@@ -13,15 +14,27 @@ class SafeTextField(models.TextField):
 
     def clean(self, value, model_instance):
         value = super().clean(value, model_instance)
+        # 1. Sanitize HTML
         cleaned = clean_html(value)
 
-        # Validate actual text length if max_length is set
+        # 2. Validate actual text length if max_length is set
         if self.max_length is not None:
-            soup = BeautifulSoup(cleaned, "html.parser")
-            text_content = soup.get_text()
-            if len(text_content) > self.max_length:
+            if cleaned:
+                soup = BeautifulSoup(cleaned, "html.parser")
+                text_content = soup.get_text(separator=" ", strip=True)
+                text_length = len(text_content)
+            else:
+                text_length = 0
+
+            if text_length > self.max_length:
                 raise ValidationError(
-                    f"Ensure this value has at most {self.max_length} characters (it has {len(text_content)})."
+                    ngettext_lazy(
+                        "Ensure this value has at most %(limit_value)d character (it has %(show_value)d).",
+                        "Ensure this value has at most %(limit_value)d characters (it has %(show_value)d).",
+                        self.max_length,
+                    ),
+                    code="max_length",
+                    params={"limit_value": self.max_length, "show_value": text_length},
                 )
 
         return cleaned

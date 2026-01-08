@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-08 11:42+0700\n"
+"POT-Creation-Date: 2026-01-09 01:12+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -537,6 +537,17 @@ msgstr "Địa chỉ email không hợp lệ"
 #: libs/import_xlsx/utils.py:193
 msgid "This field is required"
 msgstr "Trường này là bắt buộc"
+
+#: libs/models/fields.py:32
+#, python-format
+msgid ""
+"Ensure this value has at most %(limit_value)d character (it has "
+"%(show_value)d)."
+msgid_plural ""
+"Ensure this value has at most %(limit_value)d characters (it has "
+"%(show_value)d)."
+msgstr[0] ""
+"Đảm bảo giá trị này có tối đa %(limit_value)d ký tự (hiện có %(show_value)d)."
 
 #: libs/validators.py:6
 msgid "Citizen ID must contain from 9 to 12 digits"
