@@ -53,6 +53,7 @@ class ProposalFilterSet(filters.FilterSet):
             "proposal_date": ["exact", "gte", "lte"],
             "created_by": ["exact"],
             "approved_by": ["exact"],
+            "verifiers__status": ["exact", "in"],
         }
 
 
