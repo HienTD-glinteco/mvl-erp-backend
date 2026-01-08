@@ -17,7 +17,7 @@ def trigger_send_notifications(notifications: list[Notification], delivery_metho
 
 
 @receiver(notification_signal)
-def handle_send_notification(sender, **kwargs):
+def handle_send_notification(sender, **kwargs) -> None:
     """Handle the sending of notification. Bare function implementation; extend as needed."""
     notification: Notification | None = kwargs.get("notification")
     notifications: list[Notification] | None = kwargs.get("notifications")

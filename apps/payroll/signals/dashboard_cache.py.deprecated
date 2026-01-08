@@ -1,6 +1,10 @@
 """Signal handlers for dashboard cache invalidation in payroll app.
 
 Handles cache invalidation when PenaltyTicket and EmployeeKPIAssessment are modified.
+
+PERFORMANCE NOTE:
+All cache invalidation operations are now ASYNCHRONOUS via Celery tasks to avoid
+blocking the main request thread.
 """
 
 import logging
@@ -25,21 +29,21 @@ __all__ = [
 
 @receiver(post_save, sender=PenaltyTicket)
 def invalidate_hrm_cache_on_penalty_ticket_save(sender, instance, created, **kwargs):
-    """Invalidate HRM dashboard cache when a PenaltyTicket is created or updated."""
-    from apps.hrm.utils.dashboard_cache import invalidate_hrm_dashboard_cache
+    """Invalidate HRM dashboard cache when a PenaltyTicket is created or updated (ASYNC)."""
+    from apps.payroll.tasks import invalidate_dashboard_cache_task
 
     action = "created" if created else "updated"
     logger.debug("PenaltyTicket %s %s, invalidating HRM dashboard cache", instance.id, action)
-    invalidate_hrm_dashboard_cache()
+    invalidate_dashboard_cache_task.delay("hrm")
 
 
 @receiver(post_delete, sender=PenaltyTicket)
 def invalidate_hrm_cache_on_penalty_ticket_delete(sender, instance, **kwargs):
-    """Invalidate HRM dashboard cache when a PenaltyTicket is deleted."""
-    from apps.hrm.utils.dashboard_cache import invalidate_hrm_dashboard_cache
+    """Invalidate HRM dashboard cache when a PenaltyTicket is deleted (ASYNC)."""
+    from apps.payroll.tasks import invalidate_dashboard_cache_task
 
     logger.debug("PenaltyTicket %s deleted, invalidating HRM dashboard cache", instance.id)
-    invalidate_hrm_dashboard_cache()
+    invalidate_dashboard_cache_task.delay("hrm")
 
 
 # EmployeeKPIAssessment signals - invalidate manager dashboard cache
@@ -47,8 +51,8 @@ def invalidate_hrm_cache_on_penalty_ticket_delete(sender, instance, **kwargs):
 
 @receiver(post_save, sender=EmployeeKPIAssessment)
 def invalidate_manager_cache_on_kpi_assessment_save(sender, instance, created, **kwargs):
-    """Invalidate manager dashboard cache when an EmployeeKPIAssessment is created or updated."""
-    from apps.hrm.utils.dashboard_cache import invalidate_manager_dashboard_cache
+    """Invalidate manager dashboard cache when an EmployeeKPIAssessment is created or updated (ASYNC)."""
+    from apps.payroll.tasks import invalidate_dashboard_cache_task
 
     if instance.manager_id:
         action = "created" if created else "updated"
@@ -58,13 +62,13 @@ def invalidate_manager_cache_on_kpi_assessment_save(sender, instance, created, *
             action,
             instance.manager_id,
         )
-        invalidate_manager_dashboard_cache(instance.manager_id)
+        invalidate_dashboard_cache_task.delay("manager", str(instance.manager_id))
 
 
 @receiver(post_delete, sender=EmployeeKPIAssessment)
 def invalidate_manager_cache_on_kpi_assessment_delete(sender, instance, **kwargs):
-    """Invalidate manager dashboard cache when an EmployeeKPIAssessment is deleted."""
-    from apps.hrm.utils.dashboard_cache import invalidate_manager_dashboard_cache
+    """Invalidate manager dashboard cache when an EmployeeKPIAssessment is deleted (ASYNC)."""
+    from apps.payroll.tasks import invalidate_dashboard_cache_task
 
     if instance.manager_id:
         logger.debug(
@@ -72,4 +76,4 @@ def invalidate_manager_cache_on_kpi_assessment_delete(sender, instance, **kwargs
             instance.id,
             instance.manager_id,
         )
-        invalidate_manager_dashboard_cache(instance.manager_id)
+        invalidate_dashboard_cache_task.delay("manager", str(instance.manager_id))

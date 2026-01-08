@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-08 01:13+0700\n"
+"POT-Creation-Date: 2026-01-08 21:40+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1331,15 +1331,6 @@ msgstr ""
 "Không thể nộp đánh giá KPI sau hạn chốt (%(deadline)s). Vui lòng liên hệ với "
 "bộ phận nhân sự để được hỗ trợ."
 
-#: apps/payroll/signals/kpi_assessment.py:77
-#, python-format
-msgid ""
-"KPI Assessment for period %(period)s has been created. Please access KPI "
-"Assessment to complete."
-msgstr ""
-"Phiếu đánh giá kỳ %(period)s đã được tạo. Vui lòng truy cập Đánh giá KPI để "
-"hoàn tất."
-
 #: apps/payroll/tasks.py:188
 #, python-format
 msgid ""
@@ -1379,3 +1370,12 @@ msgstr ""
 #, python-format
 msgid "Payroll Slip %(month)s - MaiVietLand"
 msgstr "Phiếu lương %(month)s - MaiVietLand"
+
+#: apps/payroll/tasks.py:908
+#, python-format
+msgid ""
+"KPI Assessment for period %(period)s has been created. Please access KPI "
+"Assessment to complete."
+msgstr ""
+"Phiếu đánh giá kỳ %(period)s đã được tạo. Vui lòng truy cập Đánh giá KPI để "
+"hoàn tất."

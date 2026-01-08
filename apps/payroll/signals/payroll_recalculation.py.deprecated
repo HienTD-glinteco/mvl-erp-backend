@@ -111,13 +111,31 @@ def on_recovery_voucher_deleted(sender, instance, **kwargs):
 def on_penalty_ticket_saved(sender, instance, created, update_fields, **kwargs):
     """Handle penalty ticket save.
 
-    Only triggers recalculation on status changes (affects blocking status).
+    Triggers recalculation on status changes (affects blocking status).
+    Recalculates even if period is completed, as long as slip is not delivered.
     Note: Statistics are updated in statistics_update.py signals.
     """
     if not created and update_fields and "status" in update_fields:
+        from apps.payroll.models import PayrollSlip, SalaryPeriod
         from apps.payroll.tasks import recalculate_payroll_slip_task
 
-        recalculate_payroll_slip_task.delay(str(instance.employee_id), instance.month.isoformat())
+        # Check if there's a payroll slip for this employee and month
+        try:
+            month_first_day = instance.month.replace(day=1)
+            salary_period = SalaryPeriod.objects.get(month=month_first_day)
+
+            # Check if payroll slip exists and is not delivered
+            payroll_slip = PayrollSlip.objects.filter(
+                employee=instance.employee,
+                salary_period=salary_period,
+            ).exclude(status=PayrollSlip.Status.DELIVERED).first()
+
+            # Only recalculate if slip exists and is not delivered
+            if payroll_slip:
+                recalculate_payroll_slip_task.delay(str(instance.employee_id), instance.month.isoformat())
+        except SalaryPeriod.DoesNotExist:
+            # No salary period for this month, skip
+            pass
 
 
 @receiver([post_save, post_delete], sender=EmployeeDependent)
