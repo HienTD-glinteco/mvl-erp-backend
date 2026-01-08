@@ -211,6 +211,9 @@ class PayrollCalculationService:
                 business_progressive_salary = Decimal(str(tier["amount"]))
                 break
 
+        business_progressive_salary = business_progressive_salary - self.slip.base_salary - self.slip.kpi_salary
+        business_progressive_salary = max(Decimal("0"), business_progressive_salary)
+
         self.slip.sales_revenue = sales_revenue
         self.slip.sales_transaction_count = sales_transaction_count
         self.slip.business_grade = business_grade

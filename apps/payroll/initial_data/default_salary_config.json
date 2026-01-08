@@ -95,7 +95,7 @@
     "tiers": [
       {
         "code": "M0",
-        "amount": 0,
+        "amount": 5007600,
         "criteria": [
           {
             "name": "transaction_count",

@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MaiVietLand Backend Core\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-08 11:00+0700\n"
+"POT-Creation-Date: 2026-01-08 12:22+0700\n"
 "PO-Revision-Date: 2025-01-21 00:00+0000\n"
 "Last-Translator: Glinteco Developers\n"
 "Language-Team: Vietnamese\n"
@@ -40,6 +40,142 @@ msgstr "Bạn cần đăng nhập để thực hiện hành động này."
 msgid "You do not have permission to perform this action"
 msgstr "Bạn không có quyền thực hiện hành động này"
 
+#: apps/core/api/serializers/auth/device_change.py:20
+#: apps/core/api/serializers/auth/login.py:28
+#: apps/core/api/serializers/auth/otp_verification.py:28
+msgid "Please enter your username."
+msgstr "Vui lòng nhập tên đăng nhập."
+
+#: apps/core/api/serializers/auth/device_change.py:21
+#: apps/core/api/serializers/auth/login.py:29
+#: apps/core/api/serializers/auth/login.py:67
+#: apps/core/api/serializers/auth/otp_verification.py:29
+msgid "Username cannot be blank."
+msgstr "Tên đăng nhập không được để trống."
+
+#: apps/core/api/serializers/auth/device_change.py:28
+#: apps/core/api/serializers/auth/login.py:36
+msgid "Please enter your password."
+msgstr "Vui lòng nhập mật khẩu."
+
+#: apps/core/api/serializers/auth/device_change.py:29
+#: apps/core/api/serializers/auth/login.py:37
+#: apps/core/api/serializers/auth/login.py:72
+msgid "Password cannot be blank."
+msgstr "Mật khẩu không được để trống."
+
+#: apps/core/api/serializers/auth/device_change.py:36
+msgid "Please provide device ID."
+msgstr "Device ID là bắt buộc"
+
+#: apps/core/api/serializers/auth/device_change.py:37
+msgid "Device ID cannot be blank."
+msgstr "Device ID không được để trống."
+
+#: apps/core/api/serializers/auth/device_change.py:68
+msgid "Incorrect password. Please try again."
+msgstr "Mật khẩu không đúng."
+
+#: apps/core/api/serializers/auth/device_change.py:70
+#: apps/core/api/serializers/auth/login.py:92
+#: apps/core/api/serializers/auth/otp_verification.py:85
+msgid "Username does not exist."
+msgstr "Tên đăng nhập không tồn tại."
+
+#: apps/core/api/serializers/auth/device_change.py:74
+msgid "This account is inactive. Please contact support."
+msgstr "Tài khoản này không hoạt động. Vui lòng liên hệ bộ phận hỗ trợ."
+
+#: apps/core/api/serializers/auth/device_change.py:79
+msgid ""
+"Account is temporarily locked due to multiple failed login attempts. Please "
+"try again later."
+msgstr "Tài khoản đã bị khóa do đăng nhập sai nhiều lần. Vui lòng thử lại sau."
+
+#: apps/core/api/serializers/auth/device_change.py:86
+msgid ""
+"This device is already registered for your account. No need to create a "
+"device change request."
+msgstr ""
+"Thiết bị này đã được đăng ký cho tài khoản của bạn. Không cần tạo yêu cầu "
+"đổi thiết bị."
+
+#: apps/core/api/serializers/auth/device_change.py:99
+msgid "Please provide request ID."
+msgstr "Request ID là bắt buộc"
+
+#: apps/core/api/serializers/auth/device_change.py:100
+msgid "Invalid request ID format."
+msgstr "Request ID không hợp lệ"
+
+#: apps/core/api/serializers/auth/device_change.py:108
+#: apps/core/api/serializers/auth/otp_verification.py:37
+#: apps/core/api/serializers/auth/password_reset_otp_verification.py:32
+#: apps/core/api/serializers/auth/password_reset_otp_verification.py:54
+msgid "Please enter the OTP code."
+msgstr "Vui lòng nhập mã OTP."
+
+#: apps/core/api/serializers/auth/device_change.py:109
+#: apps/core/api/serializers/auth/device_change.py:127
+#: apps/core/api/serializers/auth/otp_verification.py:38
+#: apps/core/api/serializers/auth/otp_verification.py:68
+#: apps/core/api/serializers/auth/password_reset_otp_verification.py:33
+msgid "OTP code cannot be blank."
+msgstr "Mã OTP không được để trống."
+
+#: apps/core/api/serializers/auth/device_change.py:110
+#: apps/core/api/serializers/auth/device_change.py:111
+#: apps/core/api/serializers/auth/otp_verification.py:39
+#: apps/core/api/serializers/auth/otp_verification.py:40
+#: apps/core/api/serializers/auth/password_reset_otp_verification.py:34
+#: apps/core/api/serializers/auth/password_reset_otp_verification.py:35
+#: apps/core/api/serializers/auth/password_reset_otp_verification.py:61
+msgid "OTP code must be 6 digits."
+msgstr "Mã OTP phải có 6 chữ số."
+
+#: apps/core/api/serializers/auth/device_change.py:129
+#: apps/core/api/serializers/auth/otp_verification.py:70
+#: apps/core/api/serializers/auth/password_reset_otp_verification.py:58
+msgid "OTP code can only contain digits."
+msgstr "Mã OTP chỉ được chứa số."
+
+#: apps/core/api/serializers/auth/device_change.py:142
+msgid "Invalid or expired request. Please start over."
+msgstr "Yêu cầu không hợp lệ hoặc đã hết hạn. Vui lòng bắt đầu lại."
+
+#: apps/core/api/serializers/auth/device_change.py:146
+msgid "This request has already been verified."
+msgstr "Yêu cầu này đã được xác thực."
+
+#: apps/core/api/serializers/auth/device_change.py:149
+msgid ""
+"This request has failed due to too many incorrect attempts. Please start "
+"over."
+msgstr ""
+"Yêu cầu này đã thất bại do quá nhiều lần thử sai. Vui lòng bắt đầu lại."
+
+#: apps/core/api/serializers/auth/device_change.py:152
+msgid "This request has expired. Please start over."
+msgstr "Yêu cầu này đã hết hạn. Vui lòng bắt đầu lại."
+
+#: apps/core/api/serializers/auth/device_change.py:158
+msgid "OTP code has expired. Please request a new one."
+msgstr "Mã OTP đã hết hạn. Vui lòng yêu cầu OTP mới."
+
+#: apps/core/api/serializers/auth/device_change.py:165
+#: apps/core/api/serializers/auth/device_change.py:180
+msgid ""
+"Too many incorrect attempts. This request has been marked as failed. Please "
+"start over."
+msgstr ""
+"Quá nhiều lần thử sai. Yêu cầu này đã bị đánh dấu là thất bại. Vui lòng bắt "
+"đầu lại."
+
+#: apps/core/api/serializers/auth/device_change.py:174
+#, python-brace-format
+msgid "Incorrect OTP code. You have {attempts} attempt(s) remaining."
+msgstr "Mã OTP không đúng. Bạn còn {attempts} lần thử."
+
 #: apps/core/api/serializers/auth/login.py:17
 #: apps/core/api/serializers/auth/otp_verification.py:17
 msgid ""
@@ -48,31 +184,6 @@ msgid ""
 msgstr ""
 "Bạn đang cố gắng đăng nhập từ một thiết bị khác. Vui lòng sử dụng quy trình "
 "yêu cầu đổi thiết bị để thay đổi thiết bị."
-
-#: apps/core/api/serializers/auth/login.py:28
-#: apps/core/api/serializers/auth/otp_verification.py:28
-msgid "Please enter your username."
-msgstr "Vui lòng nhập tên đăng nhập."
-
-#: apps/core/api/serializers/auth/login.py:29
-#: apps/core/api/serializers/auth/login.py:67
-#: apps/core/api/serializers/auth/otp_verification.py:29
-msgid "Username cannot be blank."
-msgstr "Tên đăng nhập không được để trống."
-
-#: apps/core/api/serializers/auth/login.py:36
-msgid "Please enter your password."
-msgstr "Vui lòng nhập mật khẩu."
-
-#: apps/core/api/serializers/auth/login.py:37
-#: apps/core/api/serializers/auth/login.py:72
-msgid "Password cannot be blank."
-msgstr "Mật khẩu không được để trống."
-
-#: apps/core/api/serializers/auth/login.py:92
-#: apps/core/api/serializers/auth/otp_verification.py:85
-msgid "Username does not exist."
-msgstr "Tên đăng nhập không tồn tại."
 
 #: apps/core/api/serializers/auth/login.py:97
 #, python-format
@@ -106,31 +217,6 @@ msgstr "Yêu cầu Device ID cho đăng nhập di động."
 #: apps/core/api/serializers/auth/otp_verification.py:105
 msgid "This device is already registered to another user."
 msgstr "Thiết bị này đã được đăng ký cho người dùng khác."
-
-#: apps/core/api/serializers/auth/otp_verification.py:37
-#: apps/core/api/serializers/auth/password_reset_otp_verification.py:32
-#: apps/core/api/serializers/auth/password_reset_otp_verification.py:54
-msgid "Please enter the OTP code."
-msgstr "Vui lòng nhập mã OTP."
-
-#: apps/core/api/serializers/auth/otp_verification.py:38
-#: apps/core/api/serializers/auth/otp_verification.py:68
-#: apps/core/api/serializers/auth/password_reset_otp_verification.py:33
-msgid "OTP code cannot be blank."
-msgstr "Mã OTP không được để trống."
-
-#: apps/core/api/serializers/auth/otp_verification.py:39
-#: apps/core/api/serializers/auth/otp_verification.py:40
-#: apps/core/api/serializers/auth/password_reset_otp_verification.py:34
-#: apps/core/api/serializers/auth/password_reset_otp_verification.py:35
-#: apps/core/api/serializers/auth/password_reset_otp_verification.py:61
-msgid "OTP code must be 6 digits."
-msgstr "Mã OTP phải có 6 chữ số."
-
-#: apps/core/api/serializers/auth/otp_verification.py:70
-#: apps/core/api/serializers/auth/password_reset_otp_verification.py:58
-msgid "OTP code can only contain digits."
-msgstr "Mã OTP chỉ được chứa số."
 
 #: apps/core/api/serializers/auth/otp_verification.py:89
 msgid "OTP code is incorrect or has expired."
@@ -255,6 +341,30 @@ msgstr "Hệ thống "
 #: apps/core/api/views/administrative_unit.py:103
 msgid "Geographic Data"
 msgstr "Đơn vị hành chính"
+
+#: apps/core/api/views/auth/device_change.py:155
+msgid ""
+"OTP code has been sent to your email. Please verify to complete the device "
+"change request."
+msgstr ""
+"Mã OTP đã được gửi đến email của bạn. Vui lòng kiểm tra email và nhập mã OTP "
+"để hoàn tất đăng nhập."
+
+#: apps/core/api/views/auth/device_change.py:225
+msgid ""
+"Your account is not linked to an employee record. Please contact HR to set "
+"up your employee profile before requesting device change."
+msgstr ""
+"Tài khoản của bạn không được liên kết với hồ sơ nhân viên. Vui lòng liên hệ "
+"bộ phận nhân sự để thiết lập hồ sơ nhân viên của bạn trước khi yêu cầu đổi "
+"thiết bị."
+
+#: apps/core/api/views/auth/device_change.py:271
+msgid ""
+"Device change request verified. Your request is pending approval from admin."
+msgstr ""
+"Yêu cầu đổi thiết bị đã được xác thực. Yêu cầu của bạn đang chờ phê duyệt từ "
+"quản trị viên."
 
 #: apps/core/api/views/auth/login.py:135
 #: apps/core/api/views/auth/otp_verification.py:148
@@ -735,7 +845,7 @@ msgid "Password must contain at least one digit."
 msgstr "Mật khẩu phải chứa ít nhất một chữ số."
 
 #: apps/core/validators.py:35
-#, no-python-format, python-brace-format
+#, no-python-format
 msgid ""
 "Password must contain at least one special character (!@#$%^&*(),.?\":{}|<>)."
 msgstr "Mật khẩu phải chứa ít nhất một ký tự đặc biệt (!@#$%^&*(),.?\":{}|<>)."
