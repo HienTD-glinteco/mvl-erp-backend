@@ -147,3 +147,55 @@ class User(BaseModel, AbstractBaseUser, PermissionsMixin):
             return False
 
         return self.role.permissions.filter(code=permission_code).exists()
+
+    def get_allowed_units(self):
+        """
+        Get allowed organizational units based on role data scope.
+
+        Returns:
+            RoleAllowedUnits: Container with branches, blocks, departments
+        """
+        from apps.hrm.utils.role_data_scope import collect_role_allowed_units
+
+        return collect_role_allowed_units(self)
+
+    def has_access_to_branch(self, branch_id: int) -> bool:
+        """Check if user has access to a specific branch"""
+        allowed = self.get_allowed_units()
+        if allowed.has_all:
+            return True
+        return branch_id in allowed.branches
+
+    def has_access_to_block(self, block_id: int) -> bool:
+        """Check if user has access to a specific block"""
+        allowed = self.get_allowed_units()
+        if allowed.has_all:
+            return True
+        if block_id in allowed.blocks:
+            return True
+        # Check if block's branch is allowed
+        from apps.hrm.models import Block
+
+        try:
+            block = Block.objects.get(id=block_id)
+            return block.branch_id in allowed.branches
+        except Block.DoesNotExist:
+            return False
+
+    def has_access_to_department(self, department_id: int) -> bool:
+        """Check if user has access to a specific department"""
+        allowed = self.get_allowed_units()
+        if allowed.has_all:
+            return True
+        if department_id in allowed.departments:
+            return True
+        # Check if department's block or branch is allowed
+        from apps.hrm.models import Department
+
+        try:
+            dept = Department.objects.get(id=department_id)
+            if dept.block_id in allowed.blocks:
+                return True
+            return dept.branch_id in allowed.branches
+        except Department.DoesNotExist:
+            return False

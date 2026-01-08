@@ -7,6 +7,7 @@ from rest_framework.filters import OrderingFilter
 from rest_framework.response import Response
 
 from apps.audit_logging.api.mixins import AuditLoggingMixin
+from apps.core.api.permissions import DataScopePermission, RoleBasedPermission
 from apps.hrm.api.filtersets import (
     BlockFilterSet,
     BranchContactInfoFilterSet,
@@ -14,6 +15,7 @@ from apps.hrm.api.filtersets import (
     DepartmentFilterSet,
     PositionFilterSet,
 )
+from apps.hrm.api.mixins import DataScopeCreateValidationMixin
 from apps.hrm.api.serializers import (
     BlockSerializer,
     BranchContactInfoSerializer,
@@ -22,6 +24,7 @@ from apps.hrm.api.serializers import (
     PositionSerializer,
 )
 from apps.hrm.models import Block, Branch, BranchContactInfo, Department, Position
+from apps.hrm.utils.filters import RoleDataScopeFilterBackend
 from libs import BaseModelViewSet
 from libs.drf.filtersets.search import PhraseSearchFilter
 
@@ -220,16 +223,24 @@ from libs.drf.filtersets.search import PhraseSearchFilter
         ],
     ),
 )
-class BranchViewSet(AuditLoggingMixin, BaseModelViewSet):
+class BranchViewSet(DataScopeCreateValidationMixin, AuditLoggingMixin, BaseModelViewSet):
     """ViewSet for Branch model"""
 
     queryset = Branch.objects.select_related("province", "administrative_unit")
     serializer_class = BranchSerializer
     filterset_class = BranchFilterSet
-    filter_backends = [DjangoFilterBackend, PhraseSearchFilter, OrderingFilter]
+    filter_backends = [RoleDataScopeFilterBackend, DjangoFilterBackend, PhraseSearchFilter, OrderingFilter]
     search_fields = ["name", "code", "address"]
     ordering_fields = ["name", "code", "created_at"]
     ordering = ["code"]
+    permission_classes = [RoleBasedPermission, DataScopePermission]
+
+    # Data scope configuration - filter branches by allowed branches (self-referencing)
+    data_scope_config = {
+        "branch_field": "",  # Empty means filter by pk directly
+        "block_field": None,
+        "department_field": None,
+    }
 
     # Permission registration attributes
     module = _("HRM")
@@ -501,16 +512,24 @@ class BranchContactInfoViewSet(AuditLoggingMixin, BaseModelViewSet):
         tags=["2.2: Block"],
     ),
 )
-class BlockViewSet(AuditLoggingMixin, BaseModelViewSet):
+class BlockViewSet(DataScopeCreateValidationMixin, AuditLoggingMixin, BaseModelViewSet):
     """ViewSet for Block model"""
 
     queryset = Block.objects.select_related("branch__province", "branch__administrative_unit").all()
     serializer_class = BlockSerializer
     filterset_class = BlockFilterSet
-    filter_backends = [DjangoFilterBackend, PhraseSearchFilter, OrderingFilter]
+    filter_backends = [RoleDataScopeFilterBackend, DjangoFilterBackend, PhraseSearchFilter, OrderingFilter]
     search_fields = ["name", "code", "description"]
     ordering_fields = ["name", "code", "created_at", "block_type"]
     ordering = ["branch__code", "code"]
+    permission_classes = [RoleBasedPermission, DataScopePermission]
+
+    # Data scope configuration - filter blocks by allowed branches or blocks
+    data_scope_config = {
+        "branch_field": "branch",
+        "block_field": "",  # Empty means filter by pk directly
+        "department_field": None,
+    }
 
     # Permission registration attributes
     module = _("HRM")
@@ -550,7 +569,7 @@ class BlockViewSet(AuditLoggingMixin, BaseModelViewSet):
         tags=["2.3: Department"],
     ),
 )
-class DepartmentViewSet(AuditLoggingMixin, BaseModelViewSet):
+class DepartmentViewSet(DataScopeCreateValidationMixin, AuditLoggingMixin, BaseModelViewSet):
     """ViewSet for Department model"""
 
     queryset = Department.objects.select_related(
@@ -558,10 +577,18 @@ class DepartmentViewSet(AuditLoggingMixin, BaseModelViewSet):
     ).all()
     serializer_class = DepartmentSerializer
     filterset_class = DepartmentFilterSet
-    filter_backends = [DjangoFilterBackend, PhraseSearchFilter, OrderingFilter]
+    filter_backends = [RoleDataScopeFilterBackend, DjangoFilterBackend, PhraseSearchFilter, OrderingFilter]
     search_fields = ["name", "code", "description"]
     ordering_fields = ["name", "code", "created_at"]
     ordering = ["block__code", "code"]
+    permission_classes = [RoleBasedPermission, DataScopePermission]
+
+    # Data scope configuration - filter departments by allowed branches, blocks, or departments
+    data_scope_config = {
+        "branch_field": "branch",
+        "block_field": "block",
+        "department_field": "",  # Empty means filter by pk directly
+    }
 
     # Permission registration attributes
     module = _("HRM")

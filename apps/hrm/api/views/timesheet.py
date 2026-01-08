@@ -17,6 +17,7 @@ from rest_framework.mixins import ListModelMixin, RetrieveModelMixin, UpdateMode
 from rest_framework.response import Response
 
 from apps.audit_logging.api.mixins import AuditLoggingMixin
+from apps.core.api.permissions import DataScopePermission, RoleBasedPermission
 from apps.hrm.api.filtersets import EmployeeTimesheetFilterSet
 from apps.hrm.api.serializers import (
     EmployeeTimesheetSerializer,
@@ -27,6 +28,7 @@ from apps.hrm.constants import EmployeeSalaryType, ProposalStatus, ProposalType
 from apps.hrm.models import Employee, ProposalTimeSheetEntry
 from apps.hrm.models.monthly_timesheet import EmployeeMonthlyTimesheet
 from apps.hrm.models.timesheet import TimeSheetEntry
+from apps.hrm.utils.filters import RoleDataScopeFilterBackend
 from libs.drf.base_viewset import BaseGenericViewSet, BaseReadOnlyModelViewSet
 from libs.drf.filtersets.search import PhraseSearchFilter
 
@@ -47,12 +49,20 @@ class EmployeeTimesheetViewSet(AuditLoggingMixin, BaseReadOnlyModelViewSet):
 
     queryset = Employee.objects.select_related("branch", "block", "department", "position")
     serializer_class = EmployeeTimesheetSerializer
-    filter_backends = [DjangoFilterBackend, PhraseSearchFilter, OrderingFilter]
+    filter_backends = [RoleDataScopeFilterBackend, DjangoFilterBackend, PhraseSearchFilter, OrderingFilter]
     filterset_class = EmployeeTimesheetFilterSet
     # Search by employee code OR fullname
     search_fields = ["code", "fullname"]
     ordering_fields = ["code", "fullname"]
     ordering = "fullname"
+    permission_classes = [RoleBasedPermission, DataScopePermission]
+
+    # Data scope configuration for role-based filtering
+    data_scope_config = {
+        "branch_field": "branch",
+        "block_field": "block",
+        "department_field": "department",
+    }
 
     module = _("HRM")
     submodule = _("Timesheet")

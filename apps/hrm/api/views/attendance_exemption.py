@@ -4,9 +4,12 @@ from drf_spectacular.utils import OpenApiExample, extend_schema, extend_schema_v
 from rest_framework.filters import OrderingFilter
 
 from apps.audit_logging.api.mixins import AuditLoggingMixin
+from apps.core.api.permissions import DataScopePermission, RoleBasedPermission
 from apps.hrm.api.filtersets import AttendanceExemptionFilterSet
+from apps.hrm.api.mixins import DataScopeCreateValidationMixin
 from apps.hrm.api.serializers import AttendanceExemptionExportSerializer, AttendanceExemptionSerializer
 from apps.hrm.models import AttendanceExemption
+from apps.hrm.utils.filters import RoleDataScopeFilterBackend
 from libs import BaseModelViewSet
 from libs.drf.filtersets.search import PhraseSearchFilter
 from libs.export_xlsx import ExportXLSXMixin
@@ -149,7 +152,7 @@ from libs.export_xlsx import ExportXLSXMixin
         tags=["6.7: Attendance Exemption"],
     ),
 )
-class AttendanceExemptionViewSet(ExportXLSXMixin, AuditLoggingMixin, BaseModelViewSet):
+class AttendanceExemptionViewSet(DataScopeCreateValidationMixin, ExportXLSXMixin, AuditLoggingMixin, BaseModelViewSet):
     """ViewSet for AttendanceExemption model."""
 
     queryset = AttendanceExemption.objects.select_related(
@@ -161,10 +164,18 @@ class AttendanceExemptionViewSet(ExportXLSXMixin, AuditLoggingMixin, BaseModelVi
     ).all()
     serializer_class = AttendanceExemptionSerializer
     filterset_class = AttendanceExemptionFilterSet
-    filter_backends = [DjangoFilterBackend, PhraseSearchFilter, OrderingFilter]
+    filter_backends = [RoleDataScopeFilterBackend, DjangoFilterBackend, PhraseSearchFilter, OrderingFilter]
     search_fields = ["employee__code", "employee__fullname"]
     ordering_fields = ["employee__code", "effective_date", "created_at"]
     ordering = ["-employee__code"]
+    permission_classes = [RoleBasedPermission, DataScopePermission]
+
+    # Data scope configuration for role-based filtering
+    data_scope_config = {
+        "branch_field": "employee__branch",
+        "block_field": "employee__block",
+        "department_field": "employee__department",
+    }
 
     # Permission registration attributes
     module = "HRM"

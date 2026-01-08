@@ -9,7 +9,7 @@ from .data_scope import (
     filter_by_leadership,
     filter_queryset_by_data_scope,
 )
-from .filters import DataScopeFilterBackend, LeadershipFilterBackend
+from .filters import DataScopeFilterBackend, LeadershipFilterBackend, RoleDataScopeFilterBackend
 from .functions import (
     get_current_month_range,
     get_current_quarter_range,
@@ -19,6 +19,15 @@ from .functions import (
     get_last_6_months_range,
     get_week_key_from_date,
     get_week_label_from_date_range,
+)
+from .role_data_scope import (
+    ROLE_UNITS_CACHE_TIMEOUT,
+    RoleAllowedUnits,
+    collect_role_allowed_units,
+    filter_queryset_by_role_data_scope,
+    get_role_units_cache_key,
+    invalidate_role_units_cache,
+    invalidate_role_units_cache_for_role,
 )
 from .validators import validate_national_id, validate_phone
 from .work_schedule_cache import (
@@ -37,13 +46,22 @@ __all__ = [
     "get_last_6_months_range",
     "get_week_key_from_date",
     "get_week_label_from_date_range",
-    # Data scope utilities
+    # Data scope utilities (legacy user-based)
     "AllowedUnits",
     "collect_allowed_units",
     "filter_by_leadership",
     "filter_queryset_by_data_scope",
     "DataScopeFilterBackend",
     "LeadershipFilterBackend",
+    # Role data scope utilities (new role-based)
+    "RoleAllowedUnits",
+    "collect_role_allowed_units",
+    "filter_queryset_by_role_data_scope",
+    "invalidate_role_units_cache",
+    "invalidate_role_units_cache_for_role",
+    "get_role_units_cache_key",
+    "ROLE_UNITS_CACHE_TIMEOUT",
+    "RoleDataScopeFilterBackend",
     # Validators
     "validate_national_id",
     "validate_phone",

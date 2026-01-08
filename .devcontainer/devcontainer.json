@@ -7,18 +7,32 @@
         "vscode": {
             "extensions": [
                 "ms-python.python",
-                "ms-python.debugpy"
+                "ms-python.debugpy",
+                "ms-python.vscode-pylance",
+                "charliermarsh.ruff"
             ],
             "settings": {
-                "python.defaultInterpreterPath": "/usr/local/bin/python",
+                "python.defaultInterpreterPath": "/workspace/.venv/bin/python",
                 "python.testing.pytestEnabled": true,
-                "editor.formatOnSave": true
+                "python.testing.pytestArgs": [
+                    "-v",
+                    "--tb=short"
+                ],
+                "editor.formatOnSave": true,
+                "editor.codeActionsOnSave": {
+                    "source.organizeImports": "explicit"
+                },
+                "[python]": {
+                    "editor.defaultFormatter": "charliermarsh.ruff",
+                    "editor.formatOnSave": true
+                }
             }
         }
     },
-    "postCreateCommand": "poetry install --with=dev && pip install pre-commit && pre-commit install",
     "remoteUser": "vscode",
     "forwardPorts": [
-        8000
+        8088,
+        5432,
+        6379
     ]
 }

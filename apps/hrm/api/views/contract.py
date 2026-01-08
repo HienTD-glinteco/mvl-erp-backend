@@ -10,13 +10,16 @@ from rest_framework.filters import OrderingFilter
 from rest_framework.response import Response
 
 from apps.audit_logging.api.mixins import AuditLoggingMixin
+from apps.core.api.permissions import DataScopePermission, RoleBasedPermission
 from apps.hrm.api.filtersets.contract import ContractFilterSet
+from apps.hrm.api.mixins import DataScopeCreateValidationMixin
 from apps.hrm.api.serializers.contract import (
     ContractExportSerializer,
     ContractListSerializer,
     ContractSerializer,
 )
 from apps.hrm.models import Contract, ContractType
+from apps.hrm.utils.filters import RoleDataScopeFilterBackend
 from apps.imports.api.mixins import AsyncImportProgressMixin
 from libs import BaseModelViewSet, ExportDocumentMixin
 from libs.drf.filtersets.search import PhraseSearchFilter
@@ -267,7 +270,12 @@ from libs.export_xlsx import ExportXLSXMixin
     ),
 )
 class ContractViewSet(
-    ExportDocumentMixin, AsyncImportProgressMixin, ExportXLSXMixin, AuditLoggingMixin, BaseModelViewSet
+    DataScopeCreateValidationMixin,
+    ExportDocumentMixin,
+    AsyncImportProgressMixin,
+    ExportXLSXMixin,
+    AuditLoggingMixin,
+    BaseModelViewSet,
 ):
     """ViewSet for Contract model.
 
@@ -291,7 +299,7 @@ class ContractViewSet(
     )
     serializer_class = ContractSerializer
     filterset_class = ContractFilterSet
-    filter_backends = [DjangoFilterBackend, PhraseSearchFilter, OrderingFilter]
+    filter_backends = [RoleDataScopeFilterBackend, DjangoFilterBackend, PhraseSearchFilter, OrderingFilter]
     search_fields = ["code", "contract_number", "employee__fullname", "employee__code"]
     ordering_fields = [
         "code",
@@ -304,6 +312,14 @@ class ContractViewSet(
         "created_at",
     ]
     ordering = ["-created_at"]
+    permission_classes = [RoleBasedPermission, DataScopePermission]
+
+    # Data scope configuration for role-based filtering
+    data_scope_config = {
+        "branch_field": "employee__branch",
+        "block_field": "employee__block",
+        "department_field": "employee__department",
+    }
 
     # Permission registration attributes
     module = _("HRM")

@@ -9,13 +9,16 @@ from rest_framework.filters import OrderingFilter
 from rest_framework.response import Response
 
 from apps.audit_logging.api.mixins import AuditLoggingMixin
+from apps.core.api.permissions import DataScopePermission, RoleBasedPermission
 from apps.hrm.api.filtersets.contract_appendix import ContractAppendixFilterSet
+from apps.hrm.api.mixins import DataScopeCreateValidationMixin
 from apps.hrm.api.serializers.contract_appendix import (
     ContractAppendixExportSerializer,
     ContractAppendixListSerializer,
     ContractAppendixSerializer,
 )
 from apps.hrm.models import Contract, ContractType
+from apps.hrm.utils.filters import RoleDataScopeFilterBackend
 from apps.imports.api.mixins import AsyncImportProgressMixin
 from libs import BaseModelViewSet
 from libs.drf.filtersets.search import PhraseSearchFilter
@@ -226,7 +229,9 @@ from libs.export_xlsx import ExportXLSXMixin
         tags=["7.3: Contract Appendix"],
     ),
 )
-class ContractAppendixViewSet(AsyncImportProgressMixin, ExportXLSXMixin, AuditLoggingMixin, BaseModelViewSet):
+class ContractAppendixViewSet(
+    DataScopeCreateValidationMixin, AsyncImportProgressMixin, ExportXLSXMixin, AuditLoggingMixin, BaseModelViewSet
+):
     """ViewSet for Contract Appendix (using Contract model with category='appendix').
 
     Provides CRUD operations and XLSX export for contract appendices.
@@ -245,7 +250,7 @@ class ContractAppendixViewSet(AsyncImportProgressMixin, ExportXLSXMixin, AuditLo
     )
     serializer_class = ContractAppendixSerializer
     filterset_class = ContractAppendixFilterSet
-    filter_backends = [DjangoFilterBackend, PhraseSearchFilter, OrderingFilter]
+    filter_backends = [RoleDataScopeFilterBackend, DjangoFilterBackend, PhraseSearchFilter, OrderingFilter]
     search_fields = [
         "code",
         "contract_number",
@@ -263,6 +268,14 @@ class ContractAppendixViewSet(AsyncImportProgressMixin, ExportXLSXMixin, AuditLo
         "created_at",
     ]
     ordering = ["-created_at"]
+    permission_classes = [RoleBasedPermission, DataScopePermission]
+
+    # Data scope configuration for role-based filtering
+    data_scope_config = {
+        "branch_field": "employee__branch",
+        "block_field": "employee__block",
+        "department_field": "employee__department",
+    }
 
     # Permission registration attributes
     module = _("HRM")

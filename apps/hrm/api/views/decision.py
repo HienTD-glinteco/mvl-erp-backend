@@ -4,9 +4,12 @@ from drf_spectacular.utils import OpenApiExample, extend_schema, extend_schema_v
 from rest_framework.filters import OrderingFilter
 
 from apps.audit_logging.api.mixins import AuditLoggingMixin
+from apps.core.api.permissions import DataScopePermission, RoleBasedPermission
 from apps.hrm.api.filtersets import DecisionFilterSet
+from apps.hrm.api.mixins import DataScopeCreateValidationMixin
 from apps.hrm.api.serializers import DecisionExportSerializer, DecisionSerializer
 from apps.hrm.models import Decision
+from apps.hrm.utils.filters import RoleDataScopeFilterBackend
 from libs import BaseModelViewSet
 from libs.drf.filtersets.search import PhraseSearchFilter
 from libs.export_xlsx import ExportXLSXMixin
@@ -226,7 +229,7 @@ from libs.export_xlsx import ExportXLSXMixin
         tags=["9.1: Decision"],
     ),
 )
-class DecisionViewSet(ExportXLSXMixin, AuditLoggingMixin, BaseModelViewSet):
+class DecisionViewSet(DataScopeCreateValidationMixin, ExportXLSXMixin, AuditLoggingMixin, BaseModelViewSet):
     """ViewSet for Decision model.
 
     Provides CRUD operations and XLSX export for decisions.
@@ -236,10 +239,20 @@ class DecisionViewSet(ExportXLSXMixin, AuditLoggingMixin, BaseModelViewSet):
     queryset = Decision.objects.select_related("signer").prefetch_related("attachments")
     serializer_class = DecisionSerializer
     filterset_class = DecisionFilterSet
-    filter_backends = [DjangoFilterBackend, PhraseSearchFilter, OrderingFilter]
+    filter_backends = [RoleDataScopeFilterBackend, DjangoFilterBackend, PhraseSearchFilter, OrderingFilter]
     search_fields = ["decision_number", "name"]
     ordering_fields = ["decision_number", "signing_date", "signer__fullname", "effective_date", "created_at"]
     ordering = ["-signing_date", "-created_at"]
+    permission_classes = [RoleBasedPermission, DataScopePermission]
+
+    # Data scope configuration for role-based filtering
+    # Decision is linked to employees through decision_employees M2M
+    # For now, filter by signer's department
+    data_scope_config = {
+        "branch_field": "signer__branch",
+        "block_field": "signer__block",
+        "department_field": "signer__department",
+    }
 
     # Permission registration attributes
     module = _("HRM")

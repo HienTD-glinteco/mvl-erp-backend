@@ -7,6 +7,7 @@ from django.db.models.functions import ACos, Cos, Greatest, Least, Radians, Sin
 from rest_framework.filters import BaseFilterBackend
 
 from .data_scope import filter_by_leadership, filter_queryset_by_data_scope
+from .role_data_scope import filter_queryset_by_role_data_scope
 
 
 class DataScopeFilterBackend(BaseFilterBackend):
@@ -118,3 +119,33 @@ class DistanceOrderingFilterBackend(BaseFilterBackend):
             return queryset.order_by("-distance")
         else:
             return queryset.order_by("distance")
+
+
+class RoleDataScopeFilterBackend(BaseFilterBackend):
+    """
+    Filter backend that applies role-based data scope filtering.
+
+    This filter restricts queryset results based on the user's role data scope level
+    (ROOT/BRANCH/BLOCK/DEPARTMENT) and assigned organizational units.
+
+    Usage in ViewSet:
+        class MyViewSet(viewsets.ModelViewSet):
+            filter_backends = [RoleDataScopeFilterBackend, ...]
+
+            # Configure which field maps to organizational units
+            data_scope_config = {
+                "branch_field": "branch",           # or "employee__branch"
+                "block_field": "block",             # or "employee__block"
+                "department_field": "department",   # or "employee__department"
+            }
+    """
+
+    def filter_queryset(self, request, queryset, view):
+        """Apply role-based data scope filtering"""
+        if not request.user or not request.user.is_authenticated:
+            return queryset.none()
+
+        # Get config from view
+        config = getattr(view, "data_scope_config", {})
+
+        return filter_queryset_by_role_data_scope(queryset, request.user, config)

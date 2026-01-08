@@ -6,6 +6,15 @@ from apps.audit_logging.decorators import audit_logging_register
 from libs.models import AutoCodeMixin, BaseModel
 
 
+class DataScopeLevel(models.TextChoices):
+    """Data scope level for role-based access control"""
+
+    ROOT = "root", _("Root - Full access")
+    BRANCH = "branch", _("Branch level")
+    BLOCK = "block", _("Block level")
+    DEPARTMENT = "department", _("Department level")
+
+
 @audit_logging_register
 class Role(AutoCodeMixin, BaseModel):
     """Model representing a role that groups permissions"""
@@ -24,6 +33,15 @@ class Role(AutoCodeMixin, BaseModel):
         verbose_name="Permissions",
         blank=True,
     )  # type: ignore
+
+    # Data scope level for role-based access control
+    data_scope_level = models.CharField(
+        max_length=20,
+        choices=DataScopeLevel.choices,
+        default=DataScopeLevel.ROOT,
+        verbose_name="Data scope level",
+        help_text="Determines the organizational level this role can access",
+    )
 
     class Meta:
         verbose_name = _("Role")

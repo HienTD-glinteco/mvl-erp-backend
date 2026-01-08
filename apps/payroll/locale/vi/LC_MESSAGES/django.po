@@ -253,29 +253,29 @@ msgstr "Trường này là bắt buộc"
 msgid "Amount must be greater than 0"
 msgstr "Số tiền phải lớn hơn 0"
 
-#: apps/payroll/api/views/employee_kpi_assessment.py:411
+#: apps/payroll/api/views/employee_kpi_assessment.py:421
 msgid "View Current Assessment"
 msgstr "Xem đánh giá hiện tại"
 
-#: apps/payroll/api/views/employee_kpi_assessment.py:412
+#: apps/payroll/api/views/employee_kpi_assessment.py:422
 msgid ""
 "Permission to view current unfinalized assessment for department employees"
 msgstr ""
 "Quyền xem đánh giá chưa hoàn tất hiện tại cho nhân viên trong phòng ban"
 
-#: apps/payroll/api/views/employee_kpi_assessment.py:415
+#: apps/payroll/api/views/employee_kpi_assessment.py:425
 msgid "Update Self Assessment Item Score"
 msgstr "Cập nhật điểm tự đánh giá"
 
-#: apps/payroll/api/views/employee_kpi_assessment.py:416
+#: apps/payroll/api/views/employee_kpi_assessment.py:426
 msgid "Permission to update self-assessment item scores"
 msgstr "Quyền cập nhật điểm tự đánh giá"
 
-#: apps/payroll/api/views/employee_kpi_assessment.py:784
+#: apps/payroll/api/views/employee_kpi_assessment.py:794
 msgid "View Current Assessments"
 msgstr "Xem các đánh giá hiện tại"
 
-#: apps/payroll/api/views/employee_kpi_assessment.py:785
+#: apps/payroll/api/views/employee_kpi_assessment.py:795
 msgid ""
 "Permission to view current unfinalized assessments for department employees"
 msgstr ""
@@ -413,59 +413,59 @@ msgstr "Bạn cần đăng nhập để thực hiện hành động này"
 msgid "You do not have an associated employee record"
 msgstr "Bạn không có hồ sơ nhân viên liên kết"
 
-#: apps/payroll/api/views/payroll_slip.py:150
+#: apps/payroll/api/views/payroll_slip.py:160
 msgid "Recalculate payroll slip"
 msgstr "Tính lại phiếu lương"
 
-#: apps/payroll/api/views/payroll_slip.py:151
+#: apps/payroll/api/views/payroll_slip.py:161
 msgid "Recalculate a specific payroll slip"
 msgstr "Tính lại một phiếu lương cụ thể"
 
-#: apps/payroll/api/views/payroll_slip.py:154
+#: apps/payroll/api/views/payroll_slip.py:164
 msgid "Hold payroll slip"
 msgstr "Tạm giữ lương"
 
-#: apps/payroll/api/views/payroll_slip.py:155
+#: apps/payroll/api/views/payroll_slip.py:165
 msgid "Put a specific payroll slip on hold"
 msgstr "Đặt một phiếu lương cụ thể vào trạng thái tạm giữ"
 
-#: apps/payroll/api/views/payroll_slip.py:158
+#: apps/payroll/api/views/payroll_slip.py:168
 msgid "Mark payroll slip as ready"
 msgstr "Đánh dấu phiếu lương là đã sẵn sàng thanh toán"
 
-#: apps/payroll/api/views/payroll_slip.py:159
+#: apps/payroll/api/views/payroll_slip.py:169
 msgid "Change payroll slip status to READY"
 msgstr "Thay đổi trạng thái phiếu lương thành sẵn sàng thanh toán"
 
-#: apps/payroll/api/views/payroll_slip.py:162
+#: apps/payroll/api/views/payroll_slip.py:172
 msgid "Deliver payroll slip"
 msgstr "Giao phiếu lương đã sẵn sàng sang kế toán"
 
-#: apps/payroll/api/views/payroll_slip.py:163
+#: apps/payroll/api/views/payroll_slip.py:173
 msgid "Mark payroll slip as delivered to accounting"
 msgstr "Đánh dấu phiếu lương là đã giao cho kế toán"
 
-#: apps/payroll/api/views/payroll_slip.py:166
+#: apps/payroll/api/views/payroll_slip.py:176
 msgid "Send payroll slip email"
 msgstr "Gửi email thông báo phiếu lương"
 
-#: apps/payroll/api/views/payroll_slip.py:167
+#: apps/payroll/api/views/payroll_slip.py:177
 msgid "Send payroll slip notification email to employee"
 msgstr "Gửi email thông báo phiếu lương cho nhân viên"
 
-#: apps/payroll/api/views/payroll_slip.py:345
+#: apps/payroll/api/views/payroll_slip.py:355
 msgid "Can only mark HOLD slips as READY"
 msgstr "Chỉ có thể đánh dấu phiếu HOLD là READY"
 
-#: apps/payroll/api/views/payroll_slip.py:350
+#: apps/payroll/api/views/payroll_slip.py:360
 msgid "Cannot mark as READY - employee has unpaid penalty tickets"
 msgstr "Không thể đánh dấu là READY - nhân viên còn phiếu phạt chưa thanh toán"
 
-#: apps/payroll/api/views/payroll_slip.py:398
+#: apps/payroll/api/views/payroll_slip.py:408
 msgid "Can only deliver READY slips"
 msgstr "Chỉ có thể giao phiếu READY"
 
-#: apps/payroll/api/views/payroll_slip.py:454
+#: apps/payroll/api/views/payroll_slip.py:464
 msgid "Employee has no email address"
 msgstr "Nhân viên không có địa chỉ email"
 
