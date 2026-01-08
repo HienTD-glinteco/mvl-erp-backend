@@ -7,6 +7,7 @@ All templates must be registered here with their metadata.
 from typing import Any, TypedDict
 
 from django.conf import settings
+from django.utils.translation import gettext_lazy as _
 
 
 class TemplateVariable(TypedDict):
@@ -185,10 +186,10 @@ TEMPLATE_REGISTRY: list[TemplateMetadata] = [
     {
         "slug": "interview_invite",
         "filename": "interview_invite.html",
-        "title": "Interview Invitation",
+        "title": _("Interview Invitation"),  # type: ignore
         "description": "Invite candidates for job interviews",
         "purpose": "Send to candidates when scheduling interviews",
-        "default_subject": "Interview Invitation - MaiVietLand",
+        "default_subject": _("Interview Invitation") + " - MaiVietLand",
         "variables": [
             {
                 "name": "candidate_name",

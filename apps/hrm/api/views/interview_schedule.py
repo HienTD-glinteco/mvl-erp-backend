@@ -478,8 +478,9 @@ class InterviewScheduleViewSet(ExportXLSXMixin, EmailTemplateActionMixin, AuditL
         ).all()
 
         # Filter by candidate_ids if provided
+        # Even if the candidate is sent, send again - in case the time of the interview is changed.
         if candidate_ids is not None:
-            interview_candidates = interview_candidates.filter(id__in=candidate_ids, email_sent_at__isnull=True)
+            interview_candidates = interview_candidates.filter(id__in=candidate_ids)
 
         if not interview_candidates.exists():
             raise TemplateValidationError("No candidates found for this interview schedule")
