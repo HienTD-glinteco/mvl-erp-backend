@@ -14,6 +14,7 @@ from apps.hrm.api.serializers.common_nested import (
     PositionNestedSerializer,
 )
 from apps.hrm.models import Employee
+from apps.notifications.utils import create_notification
 from apps.payroll.models import PenaltyTicket
 
 
@@ -122,6 +123,38 @@ class PenaltyTicketSerializer(FileConfirmSerializerMixin, serializers.ModelSeria
 
         return attrs
 
+    def create(self, validated_data):
+        actor = None
+        request = self.context.get("request")
+        if request and request.user and request.user.is_authenticated:
+            actor = request.user
+        # audit fields
+        validated_data.setdefault("created_by", actor)
+        validated_data.setdefault("updated_by", actor)
+        ticket = super().create(validated_data)
+        # notify on create
+        recipient = getattr(ticket.employee, "user", None)
+        if actor and recipient:
+            create_notification(
+                actor=actor,
+                recipient=recipient,
+                verb="penalty_ticket_created",
+                target=ticket,
+                message=(
+                    _(
+                        "New penalty ticket {code} ({violation}) was created for you. Please check the ticket list for details."
+                    ).format(code=ticket.code, violation=ticket.get_violation_type_display())
+                ),
+                extra_data={
+                    "ticket_id": str(ticket.id),
+                    "code": ticket.code,
+                    "violation_type": ticket.violation_type,
+                },
+                delivery_method="firebase",
+                target_client="mobile",
+            )
+        return ticket
+
     def to_representation(self, instance):
         """Convert month field for API response."""
         ret = super().to_representation(instance)
@@ -138,6 +171,40 @@ class PenaltyTicketUpdateSerializer(PenaltyTicketSerializer):
 
     class Meta(PenaltyTicketSerializer.Meta):
         read_only_fields = PenaltyTicketSerializer.Meta.read_only_fields + ["code"]
+
+    def update(self, instance, validated_data):
+        actor = None
+        request = self.context.get("request")
+        if request and request.user and request.user.is_authenticated:
+            actor = request.user
+        old_status = instance.status
+        # ensure audit
+        if actor is not None:
+            validated_data["updated_by"] = actor
+        # if status provided and not PAID, clear payment_date
+        new_status = validated_data.get("status", instance.status)
+        if new_status != PenaltyTicket.Status.PAID:
+            validated_data["payment_date"] = None
+        ticket = super().update(instance, validated_data)
+        # notify when transitioning to PAID
+        if actor and ticket.status == PenaltyTicket.Status.PAID and old_status != PenaltyTicket.Status.PAID:
+            recipient = getattr(ticket.employee, "user", None)
+            if recipient:
+                create_notification(
+                    actor=actor,
+                    recipient=recipient,
+                    verb="penalty_ticket_paid",
+                    target=ticket,
+                    message=_("Your penalty ticket {code} has been marked as paid.").format(code=ticket.code),
+                    extra_data={
+                        "ticket_id": str(ticket.id),
+                        "code": ticket.code,
+                        "status": ticket.status,
+                    },
+                    delivery_method="firebase",
+                    target_client="mobile",
+                )
+        return ticket
 
 
 class BulkUpdateStatusSerializer(serializers.Serializer):
@@ -168,13 +235,39 @@ class BulkUpdateStatusSerializer(serializers.Serializer):
     def bulk_update_status(self):
         """Bulk update payment status for given ticket IDs."""
         ids = self.validated_data["ids"]
+        new_status = self.validated_data["status"]
+        payment_date = self.validated_data.get("payment_date")
+        actor = self.context["request"].user
+
         tickets = PenaltyTicket.objects.filter(id__in=ids)
+        updated_count = 0
         for ticket in tickets:
-            ticket.status = self.validated_data["status"]
-            ticket.updated_by = self.context["request"].user
-            if ticket.status == PenaltyTicket.Status.PAID:
-                ticket.payment_date = self.validated_data["payment_date"]
+            old_status = ticket.status
+            ticket.status = new_status
+            ticket.updated_by = actor
+            if new_status == PenaltyTicket.Status.PAID:
+                ticket.payment_date = payment_date
             else:
                 ticket.payment_date = None
             ticket.save(update_fields=["status", "payment_date", "updated_by"])
-        return len(tickets)
+            updated_count += 1
+
+            # Send notification when marked as PAID from a different status
+            if new_status == PenaltyTicket.Status.PAID and old_status != PenaltyTicket.Status.PAID:
+                recipient = getattr(ticket.employee, "user", None)
+                if recipient:
+                    create_notification(
+                        actor=actor,
+                        recipient=recipient,
+                        verb="penalty_ticket_paid",
+                        target=ticket,
+                        message=(_("Your penalty ticket {code} has been marked as paid.").format(code=ticket.code)),
+                        extra_data={
+                            "ticket_id": str(ticket.id),
+                            "code": ticket.code,
+                            "status": ticket.status,
+                        },
+                        delivery_method="firebase",
+                        target_client="mobile",
+                    )
+        return updated_count

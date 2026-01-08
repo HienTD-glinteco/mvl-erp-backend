@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-08 21:40+0700\n"
+"POT-Creation-Date: 2026-01-09 02:08+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -74,16 +74,31 @@ msgid ""
 "A criterion with this target, evaluation type, and criterion already exists"
 msgstr "Một tiêu chí với mục tiêu, loại đánh giá và tiêu chí này đã tồn tại"
 
-#: apps/payroll/api/serializers/penalty_ticket.py:107
-#: apps/payroll/api/serializers/penalty_ticket.py:158
+#: apps/payroll/api/serializers/penalty_ticket.py:108
+#: apps/payroll/api/serializers/penalty_ticket.py:225
 msgid "Payment date cannot be in the future."
 msgstr "Ngày nộp tiền không được ở tương lai."
 
-#: apps/payroll/api/serializers/penalty_ticket.py:112
+#: apps/payroll/api/serializers/penalty_ticket.py:113
 msgid "Payment date cannot be before the penalty month."
 msgstr "Ngày nộp tiền không được trước tháng phạt."
 
-#: apps/payroll/api/serializers/penalty_ticket.py:165
+#: apps/payroll/api/serializers/penalty_ticket.py:145
+#, python-brace-format
+msgid ""
+"New penalty ticket {code} ({violation}) was created for you. Please check "
+"the ticket list for details."
+msgstr ""
+"Có phiếu phạt mới {code} ({violation}) được tạo cho bạn. Vui lòng kiểm tra "
+"danh sách phiếu để biết chi tiết."
+
+#: apps/payroll/api/serializers/penalty_ticket.py:198
+#: apps/payroll/api/serializers/penalty_ticket.py:264
+#, python-brace-format
+msgid "Your penalty ticket {code} has been marked as paid."
+msgstr "Phiếu phạt {code} của bạn đã được đánh dấu là đã thanh toán."
+
+#: apps/payroll/api/serializers/penalty_ticket.py:232
 #, python-brace-format
 msgid "Tickets not found: {missing_ids}"
 msgstr "Không tìm thấy phiếu phạt: {missing_ids}"
@@ -460,13 +475,13 @@ msgstr "Quản lý phiếu phạt"
 
 #: apps/payroll/api/views/penalty_tickets.py:207
 msgid "Bulk Update Penalty Ticket Status"
-msgstr "Quyền cập nhật một phần {model_name}"
+msgstr "Quyền cập nhật một phần phiếu phạt"
 
 #: apps/payroll/api/views/penalty_tickets.py:208
 msgid "Bulk update payment status for penalty tickets"
 msgstr "Cập nhật trạng thái thanh toán cho các phiếu phạt"
 
-#: apps/payroll/api/views/penalty_tickets.py:267
+#: apps/payroll/api/views/penalty_tickets.py:265
 msgid "Authentication credentials were not provided."
 msgstr "Thông tin xác thực không được cung cấp."
 

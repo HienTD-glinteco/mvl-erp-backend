@@ -225,12 +225,10 @@ class PenaltyTicketViewSet(AuditLoggingMixin, BaseModelViewSet):
         )
 
     def perform_create(self, serializer):
-        user = self.request.user if self.request.user.is_authenticated else None
-        serializer.save(created_by=user, updated_by=user)
+        serializer.save()
 
     def perform_update(self, serializer):
-        user = self.request.user if self.request.user.is_authenticated else None
-        serializer.save(updated_by=user)
+        serializer.save()
 
     @extend_schema(
         summary="Update payment status for penalty tickets",
