@@ -239,8 +239,11 @@ class TestHRMDashboardAPI(APITestMixin):
         # Assert - cache should be invalidated
         assert cache.get(HRM_DASHBOARD_CACHE_KEY) is None
 
-    def test_hrm_cache_invalidated_on_penalty_ticket_create(self):
+    @pytest.mark.django_db(transaction=True)
+    def test_hrm_cache_invalidated_on_penalty_ticket_create(self, settings):
         """Ensure cache is invalidated when a penalty ticket is created."""
+        settings.CELERY_TASK_ALWAYS_EAGER = True
+
         # Arrange
         self.client.force_authenticate(user=self.user)
         url = reverse("hrm:hrm-common-dashboard-realtime")
@@ -495,8 +498,11 @@ class TestManagerDashboardAPI(APITestMixin):
         # Assert - cache should be invalidated
         assert cache.get(cache_key) is None
 
-    def test_manager_cache_invalidated_on_kpi_assessment_create(self):
+    @pytest.mark.django_db(transaction=True)
+    def test_manager_cache_invalidated_on_kpi_assessment_create(self, settings):
         """Ensure cache is invalidated when a KPI assessment is created."""
+        settings.CELERY_TASK_ALWAYS_EAGER = True
+
         # Arrange
         self.client.force_authenticate(user=self.user)
         url = reverse("hrm:manager-dashboard-realtime")
