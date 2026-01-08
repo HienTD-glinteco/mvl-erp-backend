@@ -837,14 +837,43 @@ class ManagerAssessmentViewSet(BaseModelViewSet):
         recalculate_assessment_scores(assessment)
 
     @extend_schema(
-        summary="Get current unfinalized assessments for department employees",
-        description="Get the latest unfinalized assessments for all employees in manager's department",
+        summary="Get current assessments for department employees",
+        description="Get assessments for all employees in manager's department from the latest unfinalized period with pagination and filters",
         tags=["8.7: Manager Assessment"],
         responses={200: ManagerAssessmentSerializer(many=True)},
+        examples=[
+            OpenApiExample(
+                "Success",
+                value={
+                    "success": True,
+                    "data": {
+                        "count": 2,
+                        "next": None,
+                        "previous": None,
+                        "results": [
+                            {
+                                "id": 1,
+                                "period": {"id": 3, "month": "12/2025", "finalized": False},
+                                "employee": {"id": 2, "code": "EMP002", "fullname": "Jane Smith"},
+                                "total_possible_score": "100.00",
+                                "total_employee_score": "88.00",
+                                "total_manager_score": "82.00",
+                                "grade_manager": "B",
+                                "finalized": False,
+                            }
+                        ],
+                    },
+                    "error": None,
+                },
+                response_only=True,
+            )
+        ],
     )
     @action(detail=False, methods=["get"], url_path="current")
     def current_assessments(self, request):
-        """Get current unfinalized assessments for department employees."""
+        """Get assessments for department employees from the latest unfinalized period with pagination and filters."""
+        from apps.payroll.models import KPIAssessmentPeriod
+
         user = request.user
 
         # Get employee record for current user
@@ -856,22 +885,30 @@ class ManagerAssessmentViewSet(BaseModelViewSet):
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        # Get latest unfinalized assessments for all department employees
-        assessments = (
-            EmployeeKPIAssessment.objects.filter(manager=employee, finalized=False)
+        # Get the latest unfinalized period
+        latest_period = KPIAssessmentPeriod.objects.filter(finalized=False).order_by("-month").first()
+
+        if not latest_period:
+            return Response(
+                {"success": True, "data": {"count": 0, "next": None, "previous": None, "results": []}, "error": None}
+            )
+
+        # Get all assessments for department employees in the latest unfinalized period
+        queryset = (
+            EmployeeKPIAssessment.objects.filter(manager=employee, period=latest_period)
             .select_related("period", "employee", "manager")
             .prefetch_related("items")
-            .order_by("-period__month")
+            .order_by("employee__code")
         )
 
-        # Group by employee and get only the latest for each
-        from collections import OrderedDict
+        # Apply filters
+        queryset = self.filter_queryset(queryset)
 
-        latest_assessments = OrderedDict()
-        for assessment in assessments:
-            employee_id = assessment.employee.id
-            if employee_id not in latest_assessments:
-                latest_assessments[employee_id] = assessment
+        # Apply pagination
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
 
-        serializer = self.get_serializer(list(latest_assessments.values()), many=True)
+        serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
