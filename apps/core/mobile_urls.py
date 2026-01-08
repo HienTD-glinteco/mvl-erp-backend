@@ -6,6 +6,7 @@ from .api.views import (
     MePermissionsView,
     MeUpdateAvatarView,
     MeView,
+    MobileBootstrapConfigView,
     PasswordChangeView,
     PasswordResetChangePasswordView,
     PasswordResetOTPVerificationView,
@@ -37,6 +38,8 @@ urlpatterns = [
     # JWT token endpoints
     path("token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
     path("token/verify/", TokenVerifyView.as_view(), name="token_verify"),
+    # Mobile bootstrap (startup config)
+    path("app/bootstrap/", MobileBootstrapConfigView.as_view(), name="app_bootstrap"),
     # User profile endpoints
     path("me/", MeView.as_view(), name="me"),
     path("me/permissions/", MePermissionsView.as_view(), name="me_permissions"),
