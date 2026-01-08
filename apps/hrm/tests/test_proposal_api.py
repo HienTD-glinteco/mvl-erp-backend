@@ -965,6 +965,153 @@ class TestProposalAPI:
         assert data["data"]["count"] == 0
         assert data["data"]["results"] == []
 
+    def test_filter_by_timesheet_entry(self, api_client, superuser, test_employee):
+        """Test filtering proposals by linked timesheet entry ID."""
+        # Create timesheet entry
+        timesheet_entry = TimeSheetEntry.objects.create(
+            employee=test_employee,
+            date=date(2025, 11, 10),
+            start_time=datetime.now().replace(hour=8, minute=0, second=0, microsecond=0),
+            end_time=datetime.now().replace(hour=17, minute=0, second=0, microsecond=0),
+            morning_hours=Decimal("4.00"),
+            afternoon_hours=Decimal("4.00"),
+            status=TimesheetStatus.ON_TIME,
+        )
+
+        # Create proposal linked to timesheet entry
+        proposal_linked = Proposal.objects.create(
+            code="DX_TS_FILTER001",
+            proposal_type=ProposalType.TIMESHEET_ENTRY_COMPLAINT,
+            timesheet_entry_complaint_complaint_reason="Linked proposal",
+            created_by=test_employee,
+        )
+        ProposalTimeSheetEntry.objects.create(
+            proposal=proposal_linked,
+            timesheet_entry=timesheet_entry,
+        )
+
+        # Create proposal not linked to any timesheet entry
+        Proposal.objects.create(
+            code="DX_TS_FILTER002",
+            proposal_type=ProposalType.PAID_LEAVE,
+            note="Unlinked proposal",
+            created_by=test_employee,
+        )
+
+        # Filter by timesheet entry ID
+        url = reverse("hrm:proposal-list")
+        response = api_client.get(url, {"timesheet_entry": timesheet_entry.id})
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["success"] is True
+        assert data["data"]["count"] == 1
+        assert data["data"]["results"][0]["id"] == proposal_linked.id
+        assert data["data"]["results"][0]["code"] == "DX_TS_FILTER001"
+
+    def test_filter_by_timesheet_entry_no_match(self, api_client, superuser, test_employee):
+        """Test filtering by timesheet entry returns empty when no proposals are linked."""
+        # Create timesheet entry (not linked to any proposal)
+        timesheet_entry = TimeSheetEntry.objects.create(
+            employee=test_employee,
+            date=date(2025, 11, 11),
+            start_time=datetime.now().replace(hour=8, minute=0, second=0, microsecond=0),
+            end_time=datetime.now().replace(hour=17, minute=0, second=0, microsecond=0),
+            morning_hours=Decimal("4.00"),
+            afternoon_hours=Decimal("4.00"),
+            status=TimesheetStatus.ON_TIME,
+        )
+
+        # Create proposal but don't link it to the timesheet entry
+        Proposal.objects.create(
+            code="DX_TS_NOLINK",
+            proposal_type=ProposalType.PAID_LEAVE,
+            note="Not linked",
+            created_by=test_employee,
+        )
+
+        url = reverse("hrm:proposal-list")
+        response = api_client.get(url, {"timesheet_entry": timesheet_entry.id})
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["success"] is True
+        assert data["data"]["count"] == 0
+        assert data["data"]["results"] == []
+
+    def test_filter_by_timesheet_entry_with_nonexistent_id(self, api_client, superuser, test_employee):
+        """Test filtering by nonexistent timesheet entry ID returns empty result."""
+        # Create a proposal
+        Proposal.objects.create(
+            code="DX_TS_NONEXIST",
+            proposal_type=ProposalType.PAID_LEAVE,
+            note="Some proposal",
+            created_by=test_employee,
+        )
+
+        url = reverse("hrm:proposal-list")
+        response = api_client.get(url, {"timesheet_entry": 999999})
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["success"] is True
+        assert data["data"]["count"] == 0
+        assert data["data"]["results"] == []
+
+    def test_filter_by_timesheet_entry_multiple_proposals(self, api_client, superuser, test_employee):
+        """Test filtering returns multiple proposals linked to the same timesheet entry."""
+        # Create timesheet entry
+        timesheet_entry = TimeSheetEntry.objects.create(
+            employee=test_employee,
+            date=date(2025, 11, 12),
+            start_time=datetime.now().replace(hour=8, minute=0, second=0, microsecond=0),
+            end_time=datetime.now().replace(hour=17, minute=0, second=0, microsecond=0),
+            morning_hours=Decimal("4.00"),
+            afternoon_hours=Decimal("4.00"),
+            status=TimesheetStatus.ON_TIME,
+        )
+
+        # Create multiple proposals linked to the same timesheet entry
+        proposal1 = Proposal.objects.create(
+            code="DX_TS_MULTI001",
+            proposal_type=ProposalType.OVERTIME_WORK,
+            note="First linked proposal",
+            created_by=test_employee,
+        )
+        proposal2 = Proposal.objects.create(
+            code="DX_TS_MULTI002",
+            proposal_type=ProposalType.PAID_LEAVE,
+            note="Second linked proposal",
+            created_by=test_employee,
+        )
+
+        ProposalTimeSheetEntry.objects.create(
+            proposal=proposal1,
+            timesheet_entry=timesheet_entry,
+        )
+        ProposalTimeSheetEntry.objects.create(
+            proposal=proposal2,
+            timesheet_entry=timesheet_entry,
+        )
+
+        # Create proposal not linked
+        Proposal.objects.create(
+            code="DX_TS_MULTI003",
+            proposal_type=ProposalType.PAID_LEAVE,
+            note="Unlinked",
+            created_by=test_employee,
+        )
+
+        url = reverse("hrm:proposal-list")
+        response = api_client.get(url, {"timesheet_entry": timesheet_entry.id})
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["success"] is True
+        assert data["data"]["count"] == 2
+        returned_ids = {result["id"] for result in data["data"]["results"]}
+        assert returned_ids == {proposal1.id, proposal2.id}
+
 
 class TestTimesheetEntryComplaintProposalAPI:
     """Tests for Timesheet Entry Complaint Proposal API."""

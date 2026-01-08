@@ -517,8 +517,8 @@ class TestInterviewScheduleEmailTemplate(APITestMixin):
         assert len(recipients) == 1
         assert recipients[0]["email"] == "nguyenvanb@example.com"
 
-    def test_get_recipients_excludes_already_sent_candidates(self, interview_schedule, interview_candidates):
-        """Test get_recipients excludes candidates who already received email"""
+    def test_get_recipients_includes_already_sent_candidates(self, interview_schedule, interview_candidates):
+        """Test get_recipients includes candidates who already received email"""
         ic1, ic2, _ = interview_candidates
         from apps.hrm.api.views.interview_schedule import InterviewScheduleViewSet
 
@@ -534,8 +534,7 @@ class TestInterviewScheduleEmailTemplate(APITestMixin):
         recipients = viewset.get_recipients(request, interview_schedule)
 
         # Should return only candidate2 (candidate1 already sent)
-        assert len(recipients) == 1
-        assert recipients[0]["email"] == "tranthic@example.com"
+        assert len(recipients) == 2
 
     def test_get_recipients_raises_error_when_no_candidates(self, recruitment_request):
         """Test get_recipients raises error when no candidates found"""

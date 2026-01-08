@@ -81,4 +81,9 @@ CELERY_BEAT_SCHEDULE: dict[str, dict] = {
         "task": "apps.hrm.tasks.timesheets.update_monthly_timesheet_async",
         "schedule": 30.0,
     },
+    # Finalize daily timesheets at 17:30
+    "finalize_daily_timesheets": {
+        "task": "apps.hrm.tasks.timesheets.finalize_daily_timesheets",
+        "schedule": crontab(hour=17, minute=30),
+    },
 }

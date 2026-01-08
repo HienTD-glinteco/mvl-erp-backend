@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-08 00:11+0700\n"
+"POT-Creation-Date: 2026-01-08 11:42+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -192,6 +192,10 @@ msgstr "Trạng thái"
 #: apps/imports/api/views.py:32 apps/imports/api/views.py:33
 msgid "Check import status"
 msgstr "Kiểm tra trạng thái nhập dữ liệu"
+
+#: apps/mailtemplates/constants.py:189 apps/mailtemplates/constants.py:192
+msgid "Interview Invitation"
+msgstr "Thư mời phỏng vấn"
 
 #: apps/mailtemplates/models.py:20 apps/mailtemplates/models.py:122
 msgid "Pending"

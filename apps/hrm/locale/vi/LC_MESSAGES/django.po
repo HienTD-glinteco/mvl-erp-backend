@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-08 13:07+0700\n"
+"POT-Creation-Date: 2026-01-08 11:18+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -722,7 +722,7 @@ msgid "Converted from recruitment candidate {code}"
 msgstr "Ứng viên {code} đã được chuyển đổi thành nhân viên"
 
 #: apps/hrm/api/serializers/recruitment_candidate_export.py:15
-#: apps/hrm/api/views/interview_schedule.py:647
+#: apps/hrm/api/views/interview_schedule.py:648
 #: apps/hrm/models/recruitment_request.py:95
 msgid "Recruitment Request"
 msgstr "Đề nghị tuyển dụng"
@@ -1284,25 +1284,25 @@ msgstr "Gửi lời mời phỏng vấn cho {model_name}"
 msgid "Update interviewers for {model_name}"
 msgstr "Cập nhật người phỏng vấn cho {model_name}"
 
-#: apps/hrm/api/views/interview_schedule.py:646
+#: apps/hrm/api/views/interview_schedule.py:647
 #: apps/hrm/models/interview_schedule.py:40
 msgid "Interview Schedule"
 msgstr "Lịch phỏng vấn"
 
-#: apps/hrm/api/views/interview_schedule.py:648
+#: apps/hrm/api/views/interview_schedule.py:649
 msgid "Interview Position Title"
 msgstr "Vị trí phỏng vấn"
 
-#: apps/hrm/api/views/interview_schedule.py:649
+#: apps/hrm/api/views/interview_schedule.py:650
 #: apps/hrm/models/recruitment_request.py:92
 msgid "Number of positions"
 msgstr "Số vị trí cần tuyển"
 
-#: apps/hrm/api/views/interview_schedule.py:650
+#: apps/hrm/api/views/interview_schedule.py:651
 msgid "Time interview"
 msgstr "Thời gian phỏng vấn"
 
-#: apps/hrm/api/views/interview_schedule.py:671
+#: apps/hrm/api/views/interview_schedule.py:672
 msgid ""
 "This interview schedule has been sent to candidates so it cannot be deleted."
 msgstr "Lịch phỏng vấn này đã được gửi cho ứng viên, không thể xoá."
