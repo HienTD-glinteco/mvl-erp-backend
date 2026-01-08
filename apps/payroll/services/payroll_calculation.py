@@ -62,18 +62,18 @@ class PayrollCalculationService:
         # Step 4: Get KPI grade and calculate bonus
         self._calculate_kpi_bonus()
 
-        # Step 5: Get sales data and calculate business progressive salary
-        self._calculate_business_progressive_salary()
-
-        # Step 6: Get timesheet data
+        # Step 5: Get timesheet data
         timesheet = self._get_timesheet()
         self._process_timesheet_data(timesheet)
 
-        # Step 7: Calculate overtime pay
-        self._calculate_overtime_pay()
-
-        # Step 8: Get travel expenses
+        # Step 6: Get travel expenses (needed for business progressive calculation)
         self._calculate_travel_expenses()
+
+        # Step 7: Get sales data and calculate business progressive salary
+        self._calculate_business_progressive_salary()
+
+        # Step 8: Calculate overtime pay (now includes business_progressive_salary in total_position_income)
+        self._calculate_overtime_pay()
 
         # Step 9: Calculate gross income
         self._calculate_gross_income()
@@ -211,7 +211,14 @@ class PayrollCalculationService:
                 business_progressive_salary = Decimal(str(tier["amount"]))
                 break
 
-        business_progressive_salary = business_progressive_salary - self.slip.base_salary - self.slip.kpi_salary
+        business_progressive_salary = (
+            business_progressive_salary
+            - self.slip.base_salary
+            - self.slip.kpi_salary
+            - self.slip.lunch_allowance
+            - self.slip.other_allowance
+            - self.slip.total_travel_expense
+        )
         business_progressive_salary = max(Decimal("0"), business_progressive_salary)
 
         self.slip.sales_revenue = sales_revenue

@@ -765,3 +765,179 @@ def check_kpi_assessment_deadline_and_finalize_task():  # noqa: C901
             "message": error_message,
             "error": str(e),
         }
+
+
+# === Phase 1: Async Statistics and Cache Tasks ===
+
+
+@shared_task
+def update_period_statistics_task(month_iso: str):
+    """Update salary period statistics asynchronously.
+
+    This task is called instead of synchronous period.update_statistics()
+    to avoid blocking the main request thread.
+
+    Args:
+        month_iso: Month in ISO format (YYYY-MM-DD), e.g., "2024-01-01"
+
+    Returns:
+        dict: Result status
+    """
+    from apps.payroll.models import SalaryPeriod
+
+    try:
+        month = date.fromisoformat(month_iso)
+        period = SalaryPeriod.objects.get(month=month)
+        period.update_statistics()
+
+        return {
+            "status": "success",
+            "message": f"Statistics updated for period {month.strftime('%Y-%m')}",
+            "month": month_iso,
+        }
+    except SalaryPeriod.DoesNotExist:
+        # Period doesn't exist yet, this is OK (might be creating it)
+        return {
+            "status": "skipped",
+            "message": f"No salary period found for {month_iso}",
+            "month": month_iso,
+        }
+    except Exception as e:
+        # Log error but don't fail - statistics will be corrected on next update
+        import logging
+
+        logger = logging.getLogger(__name__)
+        logger.error(f"Failed to update statistics for {month_iso}: {e}", exc_info=True)
+
+        return {
+            "status": "failed",
+            "message": f"Failed to update statistics: {str(e)}",
+            "month": month_iso,
+            "error": str(e),
+        }
+
+
+@shared_task
+def invalidate_dashboard_cache_task(cache_type: str, user_id: int | None = None):
+    """Invalidate dashboard cache asynchronously.
+
+    This task is called instead of synchronous cache invalidation
+    to avoid blocking the main request thread.
+
+    Args:
+        cache_type: Type of cache to invalidate ('hrm' or 'manager')
+        user_id: Manager ID for manager cache, None for HRM cache
+
+    Returns:
+        dict: Result status
+    """
+    from apps.hrm.utils.dashboard_cache import invalidate_hrm_dashboard_cache, invalidate_manager_dashboard_cache
+
+    try:
+        if cache_type == "hrm":
+            invalidate_hrm_dashboard_cache()
+            return {
+                "status": "success",
+                "message": "HRM dashboard cache invalidated",
+                "cache_type": cache_type,
+            }
+        elif cache_type == "manager" and user_id:
+            invalidate_manager_dashboard_cache(user_id)
+            return {
+                "status": "success",
+                "message": f"Manager dashboard cache invalidated for user {user_id}",
+                "cache_type": cache_type,
+                "user_id": user_id,
+            }
+        else:
+            return {
+                "status": "failed",
+                "message": f"Invalid cache_type ({cache_type}) or missing user_id",
+                "cache_type": cache_type,
+                "user_id": user_id,
+            }
+    except Exception as e:
+        # Log error but don't fail - cache will expire naturally
+        import logging
+
+        logger = logging.getLogger(__name__)
+        logger.error(f"Failed to invalidate {cache_type} cache: {e}", exc_info=True)
+
+        return {
+            "status": "failed",
+            "message": f"Failed to invalidate cache: {str(e)}",
+            "cache_type": cache_type,
+            "user_id": user_id,
+            "error": str(e),
+        }
+
+
+@shared_task
+def send_kpi_notification_task(assessment_id: str, period_month_iso: str):
+    """Send KPI assessment notification asynchronously.
+
+    This task is called to send notifications without blocking the request.
+
+    Args:
+        assessment_id: EmployeeKPIAssessment ID (UUID as string)
+        period_month_iso: Period month in ISO format
+
+    Returns:
+        dict: Result status
+    """
+    from django.utils.translation import gettext as _
+
+    from apps.core.models import UserDevice
+    from apps.notifications.utils import create_notification
+    from apps.payroll.models import EmployeeKPIAssessment
+
+    try:
+        assessment = EmployeeKPIAssessment.objects.get(id=assessment_id)
+
+        if not assessment.employee.user:
+            return {
+                "status": "skipped",
+                "message": "Employee has no user account",
+                "assessment_id": assessment_id,
+            }
+
+        recipient = assessment.employee.user
+        period_str = assessment.period.month.strftime("%m/%Y")
+
+        message = _(
+            "KPI Assessment for period %(period)s has been created. Please access KPI Assessment to complete."
+        ) % {"period": period_str}
+
+        create_notification(
+            actor=assessment.created_by if assessment.created_by else recipient,
+            recipient=recipient,
+            verb="created",
+            target=assessment,
+            message=message,
+            target_client=UserDevice.Client.MOBILE,
+        )
+
+        return {
+            "status": "success",
+            "message": f"Notification sent for KPI assessment {assessment_id}",
+            "assessment_id": assessment_id,
+            "period": period_str,
+        }
+    except EmployeeKPIAssessment.DoesNotExist:
+        return {
+            "status": "failed",
+            "message": f"KPI assessment {assessment_id} not found",
+            "assessment_id": assessment_id,
+        }
+    except Exception as e:
+        import logging
+
+        logger = logging.getLogger(__name__)
+        logger.error(f"Failed to send KPI notification for {assessment_id}: {e}", exc_info=True)
+
+        return {
+            "status": "failed",
+            "message": f"Failed to send notification: {str(e)}",
+            "assessment_id": assessment_id,
+            "error": str(e),
+        }

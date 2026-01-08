@@ -14,7 +14,15 @@ class TestBusinessProgressiveSalaryCalculation:
     def test_business_progressive_salary_subtracts_base_and_kpi(
         self, payroll_slip, contract, timesheet, employee, salary_period
     ):
-        """Test that business progressive salary = tier_amount - base_salary - kpi_salary."""
+        """Test that business progressive salary = tier_amount - base_salary - kpi_salary - allowances - travel.
+
+        New formula subtracts:
+        - base_salary
+        - kpi_salary
+        - lunch_allowance (1,000,000 from fixtures)
+        - other_allowance (500,000 from fixtures)
+        - total_travel_expense (0 in this test)
+        """
         # Arrange - Configure salary config with M1 tier
         salary_period.salary_config_snapshot["business_progressive_salary"] = {
             "apply_on": "base_salary",
@@ -60,8 +68,16 @@ class TestBusinessProgressiveSalaryCalculation:
 
         # Assert
         payroll_slip.refresh_from_db()
-        # business_progressive_salary = 30000000 - 3000000 - 2007600 = 24992400
-        expected_progressive = Decimal("30000000") - Decimal("3000000") - Decimal("2007600")
+        # New formula: business_progressive_salary = tier - base - kpi - lunch - other - travel
+        # = 30000000 - 3000000 - 2007600 - 1000000 - 500000 - 0 = 23492400
+        expected_progressive = (
+            Decimal("30000000")
+            - Decimal("3000000")  # base_salary
+            - Decimal("2007600")  # kpi_salary
+            - Decimal("1000000")  # lunch_allowance (from fixture)
+            - Decimal("500000")  # other_allowance (from fixture)
+            # - 0  # total_travel_expense (none in this test)
+        )
         assert payroll_slip.business_grade == "M1"
         assert payroll_slip.business_progressive_salary == expected_progressive
         assert payroll_slip.sales_revenue == Decimal("220000000")
@@ -267,8 +283,15 @@ class TestBusinessProgressiveSalaryCalculation:
         assert payroll_slip.sales_revenue == Decimal("250000000")
         assert payroll_slip.sales_transaction_count == 10
         assert payroll_slip.business_grade == "M2"
-        # business_progressive_salary = 35000000 - 3000000 - 2007600 = 29992400
-        expected_progressive = Decimal("35000000") - Decimal("3000000") - Decimal("2007600")
+        # New formula: business_progressive_salary = tier - base - kpi - lunch - other - travel
+        # = 35000000 - 3000000 - 2007600 - 1000000 - 500000 - 0 = 28492400
+        expected_progressive = (
+            Decimal("35000000")
+            - Decimal("3000000")  # base_salary
+            - Decimal("2007600")  # kpi_salary
+            - Decimal("1000000")  # lunch_allowance
+            - Decimal("500000")  # other_allowance
+        )
         assert payroll_slip.business_progressive_salary == expected_progressive
 
     def test_business_progressive_salary_uses_sales_revenue_data(
@@ -372,26 +395,46 @@ class TestBusinessProgressiveSalaryCalculation:
 
         # Assert
         payroll_slip.refresh_from_db()
-        # business_progressive_salary = 30000000 - 10000000 - 5000000 = 15000000
-        expected_progressive = Decimal("15000000")
-        assert payroll_slip.business_progressive_salary == expected_progressive
+        # New formula: business_progressive_salary = tier - base - kpi - lunch - other - travel
+        # = 30000000 - 10000000 - 5000000 - 1000000 - 500000 - 0 = 13500000
+        expected_progressive = (
+            Decimal("30000000")
+            - Decimal("10000000")  # base_salary
+            - Decimal("5000000")  # kpi_salary
+            - Decimal("1000000")  # lunch_allowance
+            - Decimal("500000")  # other_allowance
+        )
+        # First verify business_progressive_salary is calculated correctly
+        assert payroll_slip.business_progressive_salary == expected_progressive, (
+            f"Expected progressive={expected_progressive}, got={payroll_slip.business_progressive_salary}"
+        )
 
         # total_position_income = base + kpi + allowances + kpi_bonus + business_progressive
+        # Note: kpi_bonus will be 0 if no KPI assessment exists
         expected_total = (
             Decimal("10000000")  # base_salary
             + Decimal("5000000")  # kpi_salary
             + Decimal("1000000")  # lunch_allowance
             + Decimal("500000")  # phone_allowance
             + Decimal("500000")  # other_allowance
-            + payroll_slip.kpi_bonus  # from KPI assessment (if any)
-            + Decimal("15000000")  # business_progressive_salary
+            + payroll_slip.kpi_bonus  # from KPI assessment (will be 0 if none)
+            + expected_progressive  # business_progressive_salary (13500000)
         )
-        assert payroll_slip.total_position_income == expected_total
+        # Debug: Print actual values
+        assert payroll_slip.total_position_income == expected_total, (
+            f"Expected total={expected_total}, got={payroll_slip.total_position_income}, "
+            f"business_progressive={payroll_slip.business_progressive_salary}, "
+            f"kpi_bonus={payroll_slip.kpi_bonus}"
+        )
 
     def test_business_progressive_salary_with_different_base_kpi_values(
         self, payroll_slip, contract, timesheet, employee, salary_period
     ):
-        """Test calculation with various base_salary and kpi_salary combinations."""
+        """Test calculation with various base_salary and kpi_salary combinations.
+
+        New formula subtracts: base + kpi + lunch_allowance + other_allowance + travel
+        Fixtures have: lunch_allowance=1000000, other_allowance=500000, total=1500000
+        """
         # Arrange
         salary_period.salary_config_snapshot["business_progressive_salary"] = {
             "apply_on": "base_salary",
@@ -409,12 +452,13 @@ class TestBusinessProgressiveSalaryCalculation:
         salary_period.save()
 
         # Different salary structures
+        # New formula: tier - base - kpi - lunch(1M) - other(0.5M)
         test_cases = [
             # (base_salary, kpi_salary, expected_progressive)
-            (Decimal("8000000"), Decimal("3000000"), Decimal("9000000")),  # 20M - 8M - 3M
-            (Decimal("10000000"), Decimal("5000000"), Decimal("5000000")),  # 20M - 10M - 5M
-            (Decimal("12000000"), Decimal("8000000"), Decimal("0")),  # 20M - 12M - 8M = 0 (floor)
-            (Decimal("5000000"), Decimal("2000000"), Decimal("13000000")),  # 20M - 5M - 2M
+            (Decimal("8000000"), Decimal("3000000"), Decimal("7500000")),  # 20M - 8M - 3M - 1M - 0.5M = 7.5M
+            (Decimal("10000000"), Decimal("5000000"), Decimal("3500000")),  # 20M - 10M - 5M - 1M - 0.5M = 3.5M
+            (Decimal("12000000"), Decimal("8000000"), Decimal("0")),  # 20M - 12M - 8M - 1M + 0.5M = -1.5M -> 0 (floor)
+            (Decimal("5000000"), Decimal("2000000"), Decimal("11500000")),  # 20M - 5M - 2M - 1M - 0.5M = 11.5M
         ]
 
         from apps.payroll.models import SalesRevenue

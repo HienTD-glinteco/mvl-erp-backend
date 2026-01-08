@@ -15,11 +15,13 @@ logger = logging.getLogger(__name__)
 
 @receiver(post_save, sender="hrm.Employee")
 def create_assessments_for_new_employee(sender, instance, created, **kwargs):  # noqa: C901
-    """Create KPI assessments and payroll slips for new employee if applicable.
+    """Create KPI assessments and payroll slips when employee start_date is set.
 
-    When an employee is created with start_date within an existing period month:
+    When an employee is updated with start_date within an existing period month:
     - If KPI period exists and not finalized, create assessment
     - If Salary period exists and not completed, create payroll slip
+
+    Also updates payroll slip base info snapshot when employee info changes.
 
     Args:
         sender: Employee model class
@@ -40,10 +42,6 @@ def create_assessments_for_new_employee(sender, instance, created, **kwargs):  #
         create_assessment_items_from_criteria,
         recalculate_assessment_scores,
     )
-
-    # Only process if employee was just created
-    if not created:
-        return
 
     # Only process if employee has a start_date
     if not instance.start_date:
@@ -168,3 +166,40 @@ def create_assessments_for_new_employee(sender, instance, created, **kwargs):  #
             f"Error checking salary period for employee {instance.code}: {str(e)}",
             exc_info=True,
         )
+
+    # 3. Update employee info snapshot in non-delivered payroll slips
+    if not created:
+        try:
+            # Get all non-delivered payroll slips for this employee
+            non_delivered_slips = PayrollSlip.objects.filter(
+                employee=instance,
+            ).exclude(status=PayrollSlip.Status.DELIVERED)
+
+            # Update base employee info in each slip
+            for slip in non_delivered_slips:
+                slip.employee_code = instance.code
+                slip.employee_name = instance.fullname
+                slip.employee_email = instance.email or ""
+                slip.tax_code = instance.tax_code or ""
+                slip.department_name = instance.department.name if instance.department else ""
+                slip.position_name = instance.position.name if instance.position else ""
+                slip.save(
+                    update_fields=[
+                        "employee_code",
+                        "employee_name",
+                        "employee_email",
+                        "tax_code",
+                        "department_name",
+                        "position_name",
+                    ]
+                )
+
+            if non_delivered_slips.exists():
+                logger.info(
+                    f"Updated employee info snapshot in {non_delivered_slips.count()} non-delivered payroll slips for employee {instance.code}"
+                )
+        except Exception as e:
+            logger.error(
+                f"Error updating payroll slip snapshots for employee {instance.code}: {str(e)}",
+                exc_info=True,
+            )
