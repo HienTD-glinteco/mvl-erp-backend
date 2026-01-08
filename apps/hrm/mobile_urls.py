@@ -25,6 +25,10 @@ from apps.hrm.api.views import (
     MyTimesheetViewSet,
     PositionViewSet,
 )
+from apps.hrm.api.views.auth.device_change import (
+    DeviceChangeRequestView,
+    DeviceChangeVerifyOTPView,
+)
 
 app_name = "hrm-mobile"
 
@@ -164,5 +168,15 @@ urlpatterns += [
         "employees/dropdown/",
         EmployeeViewSet.as_view({"get": "dropdown"}),
         name="employee-dropdown",
+    ),
+    path(
+        "device-change/request/",
+        DeviceChangeRequestView.as_view(),
+        name="device_change_request",
+    ),
+    path(
+        "device-change/verify-otp/",
+        DeviceChangeVerifyOTPView.as_view(),
+        name="device_change_verify_otp",
     ),
 ]

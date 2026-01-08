@@ -1,4 +1,3 @@
-from .device_change import DeviceChangeRequestSerializer, DeviceChangeVerifyOTPSerializer
 from .login import LoginSerializer
 from .otp_verification import OTPVerificationSerializer
 from .password_change import PasswordChangeSerializer
@@ -13,6 +12,4 @@ __all__ = [
     "PasswordResetOTPVerificationSerializer",
     "PasswordResetChangePasswordSerializer",
     "PasswordChangeSerializer",
-    "DeviceChangeRequestSerializer",
-    "DeviceChangeVerifyOTPSerializer",
 ]

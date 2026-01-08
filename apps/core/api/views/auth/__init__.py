@@ -1,4 +1,3 @@
-from .device_change import DeviceChangeRequestView, DeviceChangeVerifyOTPView
 from .login import LoginView
 from .password_change import PasswordChangeView
 from .password_reset import PasswordResetView
@@ -11,6 +10,4 @@ __all__ = [
     "PasswordResetOTPVerificationView",
     "PasswordResetChangePasswordView",
     "PasswordChangeView",
-    "DeviceChangeRequestView",
-    "DeviceChangeVerifyOTPView",
 ]
