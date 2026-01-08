@@ -26,16 +26,6 @@ class DeviceChangeRequest(BaseModel):
         verbose_name="User",
     )
 
-    employee = models.ForeignKey(
-        "hrm.Employee",
-        on_delete=models.CASCADE,
-        null=True,
-        blank=True,
-        related_name="device_change_requests",
-        verbose_name="Employee",
-        help_text="Employee associated with the user (if exists)",
-    )
-
     new_device_id = models.CharField(
         max_length=255,
         verbose_name="New Device ID",

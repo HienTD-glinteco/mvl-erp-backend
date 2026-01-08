@@ -1,11 +1,17 @@
 import logging
+from datetime import timedelta
 
 from django.contrib.auth import authenticate
+from django.db import transaction
 from django.utils import timezone
 from django.utils.translation import gettext as _
 from rest_framework import serializers
 
+from apps.audit_logging import LogAction, log_audit_event
 from apps.core.models import DeviceChangeRequest, User, UserDevice
+from apps.core.tasks import send_otp_device_change_task
+from apps.hrm.constants import ProposalStatus, ProposalType
+from apps.hrm.models import Proposal
 
 logger = logging.getLogger(__name__)
 
@@ -74,7 +80,7 @@ class DeviceChangeRequestSerializer(serializers.Serializer):
             raise serializers.ValidationError(_("This account is inactive. Please contact support."))
 
         # Check if user is locked
-        if user.is_locked:
+        if getattr(user, "is_locked", False):
             raise serializers.ValidationError(
                 _("Account is temporarily locked due to multiple failed login attempts. Please try again later.")
             )
@@ -88,6 +94,52 @@ class DeviceChangeRequestSerializer(serializers.Serializer):
 
         attrs["user"] = user
         return attrs
+
+    def create_request(self):
+        user = self.validated_data["user"]
+        device_id = self.validated_data["device_id"]
+        platform = self.validated_data.get("platform", "")
+        notes = self.validated_data.get("notes", "")
+
+        # Generate OTP
+        otp_code = user.generate_otp()
+        otp_expires_at = timezone.now() + timedelta(seconds=300)  # 5 minutes
+
+        # Create device change request
+        with transaction.atomic():
+            device_request = DeviceChangeRequest.objects.create(
+                user=user,
+                new_device_id=device_id,
+                new_platform=platform,
+                notes=notes,
+                otp_code=otp_code,
+                otp_sent_at=timezone.now(),
+                otp_expires_at=otp_expires_at,
+                status=DeviceChangeRequest.Status.OTP_SENT,
+            )
+
+            # Log audit event
+            log_audit_event(
+                action=LogAction.ADD,
+                modified_object=device_request,
+                user=user,
+                request=self.context.get("request"),
+                change_message=f"Device change request created for device_id: {device_id}",
+            )
+
+        # Send OTP email asynchronously
+        try:
+            send_otp_device_change_task.delay(
+                user_id=str(user.id),
+                user_email=user.email,
+                user_full_name=user.get_full_name(),
+                username=user.username,
+                otp_code=otp_code,
+            )
+            logger.info(f"OTP sent for device change request {device_request.id} for user {user.username}")
+        except Exception as e:  # nosec B110
+            logger.error(f"Failed to queue OTP email for device change request: {e}")
+        return device_request
 
 
 class DeviceChangeVerifyOTPSerializer(serializers.Serializer):
@@ -180,5 +232,58 @@ class DeviceChangeVerifyOTPSerializer(serializers.Serializer):
                     _("Too many incorrect attempts. This request has been marked as failed. Please start over.")
                 )
 
+        # Ensure user has employee mapping (required for creating Proposal)
+        try:
+            employee = device_request.user.employee
+        except Exception:  # nosec B110
+            raise serializers.ValidationError(
+                _(
+                    "Your account is not linked to an employee record. Please contact HR to set up your employee profile before requesting device change."
+                )
+            )
+
         attrs["device_request"] = device_request
+        attrs["employee"] = employee
         return attrs
+
+    def create_proposal(self):
+        device_request = self.validated_data["device_request"]
+        user = device_request.user
+        employee = self.validated_data["employee"]
+        request = self.context.get("request")
+
+        # Get old device_id if exists
+        old_device_id = None
+        if hasattr(user, "device") and user.device is not None:
+            old_device_id = user.device.device_id
+
+        # Create Proposal with type DEVICE_CHANGE
+        with transaction.atomic():
+            # Mark device request as verified
+            device_request.mark_verified()
+
+            # Create proposal
+            proposal = Proposal.objects.create(
+                proposal_type=ProposalType.DEVICE_CHANGE,
+                proposal_status=ProposalStatus.PENDING,
+                created_by=employee,
+                device_change_new_device_id=device_request.new_device_id,
+                device_change_new_platform=device_request.new_platform,
+                device_change_old_device_id=old_device_id,
+                note=device_request.notes,
+            )
+
+            # Log audit event
+            log_audit_event(
+                action=LogAction.ADD,
+                modified_object=proposal,
+                user=user,
+                request=request,
+                change_message=f"Device change proposal created from request {device_request.id}",
+            )
+
+            logger.info(
+                f"Device change proposal {proposal.id} created for user {user.username} "
+                f"with device_id: {device_request.new_device_id}"
+            )
+        return proposal

@@ -1,7 +1,5 @@
 from .administrative_unit import AdministrativeUnitViewSet
 from .auth import (
-    DeviceChangeRequestView,
-    DeviceChangeVerifyOTPView,
     LoginView,
     PasswordChangeView,
     PasswordResetChangePasswordView,
@@ -22,8 +20,6 @@ __all__ = [
     "PasswordResetOTPVerificationView",
     "PasswordResetChangePasswordView",
     "PasswordChangeView",
-    "DeviceChangeRequestView",
-    "DeviceChangeVerifyOTPView",
     "RoleViewSet",
     "PermissionViewSet",
     "ConstantsView",

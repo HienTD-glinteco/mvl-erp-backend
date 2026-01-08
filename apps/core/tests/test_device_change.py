@@ -20,7 +20,7 @@ class DeviceChangeRequestTestCase(TestCase):
         self.client = APIClient()
 
         # Disable throttling for tests
-        from apps.core.api.views.auth.device_change import DeviceChangeRequestView, DeviceChangeVerifyOTPView
+        from apps.hrm.api.views.auth.device_change import DeviceChangeRequestView, DeviceChangeVerifyOTPView
 
         DeviceChangeRequestView.throttle_classes = []
         DeviceChangeVerifyOTPView.throttle_classes = []
@@ -77,10 +77,10 @@ class DeviceChangeRequestTestCase(TestCase):
         UserDevice.objects.create(user=self.user, device_id=self.old_device_id, platform="android")
 
         # URLs
-        self.request_url = reverse("mobile-core:device_change_request")
-        self.verify_otp_url = reverse("mobile-core:device_change_verify_otp")
+        self.request_url = reverse("hrm-mobile:device_change_request")
+        self.verify_otp_url = reverse("hrm-mobile:device_change_verify_otp")
 
-    @patch("apps.core.api.views.auth.device_change.send_otp_device_change_task.delay")
+    @patch("apps.core.tasks.send_otp_device_change_task.delay")
     def test_device_change_request_success(self, mock_email_task):
         """Test successful device change request creates DeviceChangeRequest and sends OTP."""
         mock_email_task.return_value = MagicMock()
@@ -143,7 +143,7 @@ class DeviceChangeRequestTestCase(TestCase):
         self.assertFalse(response_data["success"])
 
     @patch("apps.core.models.User.generate_otp")
-    @patch("apps.core.api.views.auth.device_change.send_otp_device_change_task.delay")
+    @patch("apps.core.tasks.send_otp_device_change_task.delay")
     def test_verify_otp_creates_proposal(self, mock_email_task, mock_generate_otp):
         """Test that verifying OTP creates a device change proposal."""
         mock_email_task.return_value = MagicMock()
@@ -211,7 +211,7 @@ class DeviceChangeRequestTestCase(TestCase):
         self.assertEqual(device_request.status, DeviceChangeRequest.Status.VERIFIED)
 
     @patch("apps.core.models.User.generate_otp")
-    @patch("apps.core.api.views.auth.device_change.send_otp_device_change_task.delay")
+    @patch("apps.core.tasks.send_otp_device_change_task.delay")
     def test_verify_otp_wrong_otp(self, mock_email_task, mock_generate_otp):
         """Test that wrong OTP is rejected and attempts are tracked."""
         mock_email_task.return_value = MagicMock()
@@ -248,7 +248,7 @@ class DeviceChangeRequestTestCase(TestCase):
         self.assertEqual(device_request.otp_attempts, 1)
 
     @patch("apps.core.models.User.generate_otp")
-    @patch("apps.core.api.views.auth.device_change.send_otp_device_change_task.delay")
+    @patch("apps.core.tasks.send_otp_device_change_task.delay")
     def test_verify_otp_expired(self, mock_email_task, mock_generate_otp):
         """Test that expired OTP is rejected."""
         mock_email_task.return_value = MagicMock()

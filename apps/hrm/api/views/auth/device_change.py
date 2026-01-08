@@ -1,8 +1,5 @@
 import logging
-from datetime import timedelta
 
-from django.db import transaction
-from django.utils import timezone
 from django.utils.translation import gettext as _
 from drf_spectacular.utils import OpenApiExample, OpenApiResponse, extend_schema
 from rest_framework import status
@@ -11,19 +8,16 @@ from rest_framework.response import Response
 from rest_framework.throttling import AnonRateThrottle
 from rest_framework.views import APIView
 
-from apps.audit_logging import LogAction, log_audit_event
-from apps.core.api.serializers.auth import DeviceChangeRequestSerializer, DeviceChangeVerifyOTPSerializer
-from apps.core.models import DeviceChangeRequest
-from apps.core.tasks import send_otp_device_change_task
-from apps.hrm.constants import ProposalStatus, ProposalType
-from apps.hrm.models import Proposal
+from apps.hrm.api.serializers.auth.device_change import (
+    DeviceChangeRequestSerializer,
+    DeviceChangeVerifyOTPSerializer,
+)
 
 logger = logging.getLogger(__name__)
 
 
 class DeviceChangeRateThrottle(AnonRateThrottle):
     scope = "device_change"
-    # rate = "3/hour"  # Allow 3 device change requests per hour
     rate = "3/minute"  # TODO: Adjust rate limit for testing purposes
 
 
@@ -54,6 +48,7 @@ class DeviceChangeRequestView(APIView):
                                 "request_id": 1,
                                 "expires_in_seconds": 300,
                             },
+                            "error": None,
                         },
                     )
                 ],
@@ -65,6 +60,7 @@ class DeviceChangeRequestView(APIView):
                         "Device already registered",
                         value={
                             "success": False,
+                            "data": None,
                             "error": {
                                 "non_field_errors": [
                                     "This device is already registered for your account. No need to create a device change request."
@@ -82,7 +78,7 @@ class DeviceChangeRequestView(APIView):
             OpenApiExample(
                 "Request device change",
                 value={
-                    "username": "ng.trang",
+                    "username": "john.doe",
                     "password": "SecurePassword123!",
                     "device_id": "fcm_token_or_device_uuid",
                     "platform": "android",
@@ -93,64 +89,13 @@ class DeviceChangeRequestView(APIView):
         ],
     )
     def post(self, request):
-        serializer = DeviceChangeRequestSerializer(data=request.data)
+        serializer = DeviceChangeRequestSerializer(data=request.data, context={"request": request})
 
         if not serializer.is_valid():
             logger.warning(f"Invalid device change request: {serializer.errors}")
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        user = serializer.validated_data["user"]
-        device_id = serializer.validated_data["device_id"]
-        platform = serializer.validated_data.get("platform", "")
-        notes = serializer.validated_data.get("notes", "")
-
-        # Generate OTP
-        otp_code = user.generate_otp()
-        otp_expires_at = timezone.now() + timedelta(seconds=300)  # 5 minutes
-
-        # Get employee if exists
-        employee = None
-        try:
-            employee = user.employee
-        except Exception:  # nosec B110
-            pass
-
-        # Create device change request
-        with transaction.atomic():
-            device_request = DeviceChangeRequest.objects.create(
-                user=user,
-                employee=employee,
-                new_device_id=device_id,
-                new_platform=platform,
-                notes=notes,
-                otp_code=otp_code,
-                otp_sent_at=timezone.now(),
-                otp_expires_at=otp_expires_at,
-                status=DeviceChangeRequest.Status.OTP_SENT,
-            )
-
-            # Log audit event
-            log_audit_event(
-                action=LogAction.ADD,
-                modified_object=device_request,
-                user=user,
-                request=request,
-                change_message=f"Device change request created for device_id: {device_id}",
-            )
-
-        # Send OTP email asynchronously
-        try:
-            send_otp_device_change_task.delay(
-                user_id=str(user.id),
-                user_email=user.email,
-                user_full_name=user.get_full_name(),
-                username=user.username,
-                otp_code=otp_code,
-            )
-            logger.info(f"OTP sent for device change request {device_request.id} for user {user.username}")
-        except Exception as e:
-            logger.error(f"Failed to queue OTP email for device change request: {e}")
-
+        device_request = serializer.create_request()
         response_data = {
             "message": _("OTP code has been sent to your email. Please verify to complete the device change request."),
             "request_id": device_request.id,
@@ -184,6 +129,7 @@ class DeviceChangeVerifyOTPView(APIView):
                                 "message": "Device change request verified. Your request is pending approval from admin.",
                                 "proposal_id": 9876,
                             },
+                            "error": None,
                         },
                     )
                 ],
@@ -202,71 +148,12 @@ class DeviceChangeVerifyOTPView(APIView):
         ],
     )
     def post(self, request):
-        serializer = DeviceChangeVerifyOTPSerializer(data=request.data)
+        serializer = DeviceChangeVerifyOTPSerializer(data=request.data, context={"request": request})
 
         if not serializer.is_valid():
             logger.warning(f"Invalid OTP verification for device change: {serializer.errors}")
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-        device_request = serializer.validated_data["device_request"]
-        user = device_request.user
-        employee = device_request.employee
-
-        # Ensure user has employee mapping (required for creating Proposal)
-        if not employee:
-            try:
-                employee = user.employee
-            except Exception:
-                logger.error(f"User {user.username} has no employee mapping, cannot create device change proposal")
-                return Response(
-                    {
-                        "non_field_errors": [
-                            _(
-                                "Your account is not linked to an employee record. "
-                                "Please contact HR to set up your employee profile before requesting device change."
-                            )
-                        ]
-                    },
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-
-        # Get old device_id if exists
-        old_device_id = None
-        if hasattr(user, "device") and user.device is not None:
-            old_device_id = user.device.device_id
-
-        # Create Proposal with type DEVICE_CHANGE
-        with transaction.atomic():
-            # Mark device request as verified
-            device_request.mark_verified()
-
-            # Create proposal
-            proposal = Proposal.objects.create(
-                proposal_type=ProposalType.DEVICE_CHANGE,
-                proposal_status=ProposalStatus.PENDING,
-                created_by=employee,
-                device_change_new_device_id=device_request.new_device_id,
-                device_change_new_platform=device_request.new_platform,
-                device_change_old_device_id=old_device_id,
-                note=device_request.notes,
-            )
-
-            # Log audit event
-            log_audit_event(
-                action=LogAction.ADD,
-                modified_object=proposal,
-                user=user,
-                request=request,
-                change_message=f"Device change proposal created from request {device_request.id}",
-            )
-
-            logger.info(
-                f"Device change proposal {proposal.id} created for user {user.username} "
-                f"with device_id: {device_request.new_device_id}"
-            )
-
-        # TODO: Send notification to admins/approvers
-
+        proposal = serializer.create_proposal()
         response_data = {
             "message": _("Device change request verified. Your request is pending approval from admin."),
             "proposal_id": proposal.id,
