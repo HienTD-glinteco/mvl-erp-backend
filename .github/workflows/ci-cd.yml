@@ -125,24 +125,18 @@ jobs:
           source .venv/bin/activate
           pre-commit run
 
-  # Test job: Runs the test suite with coverage using matrix sharding
+  # Test job: Runs the test suite with coverage
   # Depends on 'prepare' job (runs independently from django-checks)
   # Restores cached dependencies without reinstalling
-  # Uses pytest-split to distribute tests across 4 parallel jobs
   test:
-    name: Tests (Shard ${{ matrix.shard }}/4)
+    name: Tests with Coverage
     runs-on: ubuntu-latest
     if: ${{ github.event_name == 'pull_request' }}
     needs: [prepare]
 
-    strategy:
-      fail-fast: false
-      matrix:
-        shard: [1, 2, 3, 4]
-
     services:
       postgres:
-        image: postgres:17
+        image: postgres:17-alpine
         env:
           POSTGRES_PASSWORD: password
           POSTGRES_USER: backend
@@ -201,23 +195,29 @@ jobs:
           ALLOWED_HOSTS=localhost,127.0.0.1
           EOF
 
-      - name: Run tests (Shard ${{ matrix.shard }}/4)
+      - name: Restore pytest cache
+        uses: actions/cache@v4
+        with:
+          path: .pytest_cache
+          key: pytest-${{ runner.os }}-${{ hashFiles('**/*.py', '**/pytest.ini', '**/pyproject.toml') }}
+          restore-keys: |
+            pytest-${{ runner.os }}-
+
+      - name: Run tests
         run: |
           source .venv/bin/activate
-          # Run tests with matrix sharding using pytest-split
-          # --splits 4: divide tests into 4 groups
-          # --group N: run only the Nth group
-          # -n 2: use 2 workers (matches CI runner vCPUs)
-          # -x: fail fast on first error
+          # Run tests with optimized settings for CI/CD
+          # --dist=loadgroup: distribute tests by module for better caching
+          # -n auto: use all available CPU cores
+          # --maxfail=10: fail fast after 10 failures
           ENVIRONMENT=test python -m pytest apps/ \
             -v \
             --tb=short \
             --cov=apps \
             --cov-report=xml \
-            -n 2 \
-            --splits 4 \
-            --group ${{ matrix.shard }} \
-            -x
+            -n auto \
+            --dist=loadgroup \
+            --maxfail=10
 
       - name: Upload coverage to Codecov
         if: success()
@@ -225,7 +225,7 @@ jobs:
         with:
           file: ./coverage.xml
           flags: unittests
-          name: codecov-shard-${{ matrix.shard }}
+          name: codecov-umbrella
           fail_ci_if_error: false
 
   # Deploy job: Deploys to development environment
@@ -269,7 +269,7 @@ jobs:
             # Activate virtual environment and install dependencies
             export PATH="$HOME/.local/bin:$PATH"
             poetry config virtualenvs.in-project true
-            poetry install --no-interaction --no-root --without dev
+            poetry install --no-interaction --no-root --without dev --sync
 
             # Run database migrations
             poetry run python manage.py migrate --noinput
@@ -278,7 +278,6 @@ jobs:
             poetry run python manage.py collect_permissions
             poetry run python manage.py upload_import_templates
             poetry run python manage.py sync_roles_from_excel
-            poetry run python manage.py init_org_data
 
 
             # Update supervisor configuration and restart gunicorn workers
