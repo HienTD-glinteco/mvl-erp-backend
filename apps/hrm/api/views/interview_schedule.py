@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.utils import timezone
 from django.utils.translation import gettext as _
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiExample, extend_schema, extend_schema_view
@@ -505,12 +506,11 @@ class InterviewScheduleViewSet(ExportXLSXMixin, EmailTemplateActionMixin, AuditL
             return  # Skip candidates without email
 
         # Format interview time
-        interview_time_str = (
-            interview_candidate.interview_time.strftime("%H:%M") if interview_candidate.interview_time else ""
-        )
-        interview_date_str = (
-            interview_candidate.interview_time.strftime("%Y-%m-%d") if interview_candidate.interview_time else ""
-        )
+        interview_time_str = interview_date_str = ""
+        if interview_candidate.interview_time:
+            interview_datetime = timezone.localtime(interview_candidate.interview_time)
+            interview_time_str = interview_datetime.strftime("%H:%M")
+            interview_date_str = interview_datetime.strftime("%Y-%m-%d")
 
         # Get position from recruitment request
         position_name = ""

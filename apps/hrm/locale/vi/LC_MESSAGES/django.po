@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-09 11:39+0700\n"
+"POT-Creation-Date: 2026-01-09 11:54+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1259,7 +1259,7 @@ msgid "Unpaid penalty tickets"
 msgstr "Số lượng phiếu phạt chưa thanh toán"
 
 #: apps/hrm/api/views/interview_candidate.py:158
-#: apps/hrm/api/views/interview_schedule.py:311
+#: apps/hrm/api/views/interview_schedule.py:312
 #: apps/hrm/api/views/job_description.py:234
 #: apps/hrm/api/views/recruitment_candidate.py:434
 #: apps/hrm/api/views/recruitment_candidate_contact_log.py:243
@@ -1272,20 +1272,20 @@ msgstr "Số lượng phiếu phạt chưa thanh toán"
 msgid "Recruitment"
 msgstr "Tuyển dụng"
 
-#: apps/hrm/api/views/interview_schedule.py:315
 #: apps/hrm/api/views/interview_schedule.py:316
+#: apps/hrm/api/views/interview_schedule.py:317
 #, python-brace-format
 msgid "Preview interview invite for {model_name}"
 msgstr "Xem trước lời mời phỏng vấn cho {model_name}"
 
-#: apps/hrm/api/views/interview_schedule.py:319
 #: apps/hrm/api/views/interview_schedule.py:320
+#: apps/hrm/api/views/interview_schedule.py:321
 #, python-brace-format
 msgid "Send interview invite for {model_name}"
 msgstr "Gửi lời mời phỏng vấn cho {model_name}"
 
-#: apps/hrm/api/views/interview_schedule.py:323
 #: apps/hrm/api/views/interview_schedule.py:324
+#: apps/hrm/api/views/interview_schedule.py:325
 #, python-brace-format
 msgid "Update interviewers for {model_name}"
 msgstr "Cập nhật người phỏng vấn cho {model_name}"

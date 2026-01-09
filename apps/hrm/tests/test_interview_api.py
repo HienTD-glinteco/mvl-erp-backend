@@ -580,7 +580,7 @@ class TestInterviewScheduleEmailTemplate(APITestMixin):
         assert data["candidate_name"] == "Nguyen Van B"
         assert data["position"] == "Senior Python Developer"
         assert data["interview_date"] == "2025-10-25"
-        assert data["interview_time"] == "10:00"
+        assert data["interview_time"] == "17:00"  # NOTE: parsed with local timezone.
         assert data["location"] == "Office Meeting Room A"
         assert "logo_image_url" in data
 
