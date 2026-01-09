@@ -9,7 +9,7 @@ from django.urls import reverse
 from django.utils import timezone
 from rest_framework import status
 
-from apps.core.models import Nationality, Role
+from apps.core.models import AdministrativeUnit, Nationality, Province, Role
 from apps.files.models import FileModel
 from apps.hrm.models import Block, Branch, Department, Employee, Position
 
@@ -1951,3 +1951,187 @@ class TestEmployeeFilter:
         codes = {item["code"] for item in results}
         assert employees_data["os"].code not in codes
         assert employees_data["leader"].code in codes
+
+
+@pytest.mark.django_db
+class TestEmployeeOrdering:
+    """Test cases for Employee ordering"""
+
+    @pytest.fixture(autouse=True)
+    def setup_api(self, api_client, hr_report_delay_patcher, recruitment_report_delay_patcher):
+        self.client = api_client
+
+    @pytest.fixture
+    def setup_ordering_data(self, db):
+        # Create common location data
+        province = Province.objects.create(code="P01", name="Test Province")
+        admin_unit = AdministrativeUnit.objects.create(
+            parent_province=province,
+            name="Test Admin Unit",
+            code="AU01",
+            level=AdministrativeUnit.UnitLevel.DISTRICT,
+        )
+
+        # Create 3 sets of Organizational Units with distinct names for ordering
+        # Set 1: Branch A, Block A, Dept A
+        branch_a = Branch.objects.create(
+            name="Branch A", code="BRA", province=province, administrative_unit=admin_unit
+        )
+        block_a = Block.objects.create(
+            name="Block A", code="BLA", branch=branch_a, block_type=Block.BlockType.BUSINESS
+        )
+        dept_a = Department.objects.create(name="Department A", code="DPA", branch=branch_a, block=block_a)
+
+        # Set 2: Branch B, Block B, Dept B
+        branch_b = Branch.objects.create(
+            name="Branch B", code="BRB", province=province, administrative_unit=admin_unit
+        )
+        block_b = Block.objects.create(
+            name="Block B", code="BLB", branch=branch_b, block_type=Block.BlockType.BUSINESS
+        )
+        dept_b = Department.objects.create(name="Department B", code="DPB", branch=branch_b, block=block_b)
+
+        # Set 3: Branch C, Block C, Dept C
+        branch_c = Branch.objects.create(
+            name="Branch C", code="BRC", province=province, administrative_unit=admin_unit
+        )
+        block_c = Block.objects.create(
+            name="Block C", code="BLC", branch=branch_c, block_type=Block.BlockType.BUSINESS
+        )
+        dept_c = Department.objects.create(name="Department C", code="DPC", branch=branch_c, block=block_c)
+
+        # Create one employee for each set
+        # Employee 1 in Set A
+        Employee.objects.create(
+            fullname="Employee A",
+            username="empa",
+            email="empa@example.com",
+            phone="1111111111",
+            personal_email="empa.personal@example.com",
+            start_date="2024-01-01",
+            department=dept_a,  # Will auto-set branch_a and block_a
+            citizen_id="111111111",
+        )
+
+        # Employee 2 in Set B
+        Employee.objects.create(
+            fullname="Employee B",
+            username="empb",
+            email="empb@example.com",
+            phone="2222222222",
+            personal_email="empb.personal@example.com",
+            start_date="2024-01-01",
+            department=dept_b,
+            citizen_id="222222222",
+        )
+
+        # Employee 3 in Set C
+        Employee.objects.create(
+            fullname="Employee C",
+            username="empc",
+            email="empc@example.com",
+            phone="3333333333",
+            personal_email="empc.personal@example.com",
+            start_date="2024-01-01",
+            department=dept_c,
+            citizen_id="333333333",
+        )
+
+        return {
+            "branch_a": branch_a,
+            "branch_b": branch_b,
+            "branch_c": branch_c,
+            "block_a": block_a,
+            "block_b": block_b,
+            "block_c": block_c,
+            "dept_a": dept_a,
+            "dept_b": dept_b,
+            "dept_c": dept_c,
+        }
+
+    def get_response_data(self, response):
+        content = response.json()
+        if "data" in content:
+            data = content["data"]
+            if isinstance(data, dict) and "results" in data:
+                return data["results"]
+            return data
+        return content
+
+    def test_order_by_branch_name_asc(self, setup_ordering_data):
+        url = reverse("hrm:employee-list")
+        response = self.client.get(url, {"ordering": "branch__name"})
+
+        assert response.status_code == status.HTTP_200_OK
+        results = self.get_response_data(response)
+        assert len(results) == 3
+
+        # Check order: Branch A -> Branch B -> Branch C
+        assert results[0]["branch"]["name"] == "Branch A"
+        assert results[1]["branch"]["name"] == "Branch B"
+        assert results[2]["branch"]["name"] == "Branch C"
+
+    def test_order_by_branch_name_desc(self, setup_ordering_data):
+        url = reverse("hrm:employee-list")
+        response = self.client.get(url, {"ordering": "-branch__name"})
+
+        assert response.status_code == status.HTTP_200_OK
+        results = self.get_response_data(response)
+        assert len(results) == 3
+
+        # Check order: Branch C -> Branch B -> Branch A
+        assert results[0]["branch"]["name"] == "Branch C"
+        assert results[1]["branch"]["name"] == "Branch B"
+        assert results[2]["branch"]["name"] == "Branch A"
+
+    def test_order_by_block_name_asc(self, setup_ordering_data):
+        url = reverse("hrm:employee-list")
+        response = self.client.get(url, {"ordering": "block__name"})
+
+        assert response.status_code == status.HTTP_200_OK
+        results = self.get_response_data(response)
+        assert len(results) == 3
+
+        # Check order: Block A -> Block B -> Block C
+        assert results[0]["block"]["name"] == "Block A"
+        assert results[1]["block"]["name"] == "Block B"
+        assert results[2]["block"]["name"] == "Block C"
+
+    def test_order_by_block_name_desc(self, setup_ordering_data):
+        url = reverse("hrm:employee-list")
+        response = self.client.get(url, {"ordering": "-block__name"})
+
+        assert response.status_code == status.HTTP_200_OK
+        results = self.get_response_data(response)
+        assert len(results) == 3
+
+        # Check order: Block C -> Block B -> Block A
+        assert results[0]["block"]["name"] == "Block C"
+        assert results[1]["block"]["name"] == "Block B"
+        assert results[2]["block"]["name"] == "Block A"
+
+    def test_order_by_department_name_asc(self, setup_ordering_data):
+        url = reverse("hrm:employee-list")
+        response = self.client.get(url, {"ordering": "department__name"})
+
+        assert response.status_code == status.HTTP_200_OK
+        results = self.get_response_data(response)
+        assert len(results) == 3
+
+        # Check order: Department A -> Department B -> Department C
+        assert results[0]["department"]["name"] == "Department A"
+        assert results[1]["department"]["name"] == "Department B"
+        assert results[2]["department"]["name"] == "Department C"
+
+    def test_order_by_department_name_desc(self, setup_ordering_data):
+        url = reverse("hrm:employee-list")
+        response = self.client.get(url, {"ordering": "-department__name"})
+
+        assert response.status_code == status.HTTP_200_OK
+        results = self.get_response_data(response)
+        assert len(results) == 3
+
+        # Check order: Department C -> Department B -> Department A
+        assert results[0]["department"]["name"] == "Department C"
+        assert results[1]["department"]["name"] == "Department B"
+        assert results[2]["department"]["name"] == "Department A"
