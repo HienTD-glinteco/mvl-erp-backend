@@ -140,7 +140,8 @@ class SalesRevenueExportAPITest(TestCase):
 
     def test_export_endpoint_returns_success(self):
         """Test that export endpoint returns successful response."""
-        response = self.client.get("/api/payroll/sales-revenues/export/")
+        # Use delivery=direct to avoid S3 upload in tests
+        response = self.client.get("/api/payroll/sales-revenues/export/?delivery=direct")
 
         # Debug: print response details if it fails
         if response.status_code == 500:
@@ -155,5 +156,5 @@ class SalesRevenueExportAPITest(TestCase):
             500,
             f"Export returned 500 error. Content: {response.content.decode() if response.status_code == 500 else 'N/A'}",
         )
-        # Should return either 200 (direct download) or link
-        self.assertIn(response.status_code, [200, 201, 202])
+        # Should return 200 or 206 for direct download
+        self.assertIn(response.status_code, [200, 206])
