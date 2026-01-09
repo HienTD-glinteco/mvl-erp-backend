@@ -698,7 +698,7 @@ class TestRecruitmentCandidateAPI(APITestMixin):
 
         # Verify employee was created with correct data
         assert response_data["fullname"] == "Nguyen Van D"
-        assert response_data["username"] == "nguyenvand@example.com"
+        assert response_data["username"] == "0123456790"
         assert response_data["email"] == "nguyenvand@example.com"
         assert response_data["citizen_id"] == "123456789014"
         assert response_data["phone"] == "0123456790"
@@ -715,7 +715,7 @@ class TestRecruitmentCandidateAPI(APITestMixin):
         # Verify employee exists in database with correct status
         employee = Employee.objects.get(email="nguyenvand@example.com")
         assert employee.fullname == "Nguyen Van D"
-        assert employee.username == "nguyenvand@example.com"
+        assert employee.username == "0123456790"
         assert employee.citizen_id == "123456789014"
         assert employee.phone == "0123456790"
         assert employee.status == Employee.Status.ONBOARDING

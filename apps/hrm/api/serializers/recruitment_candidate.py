@@ -283,7 +283,7 @@ class CandidateToEmployeeSerializer(serializers.Serializer):
         employee_data = {
             "code_type": attrs["code_type"],
             "fullname": self.candidate.name,
-            "username": self.candidate.email,
+            "username": self.candidate.phone,
             "email": self.candidate.email,
             "department_id": self.candidate.department_id,
             "start_date": date.today(),
