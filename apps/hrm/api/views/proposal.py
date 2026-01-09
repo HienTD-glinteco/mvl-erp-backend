@@ -15,11 +15,13 @@ from rest_framework.filters import OrderingFilter
 from rest_framework.response import Response
 
 from apps.audit_logging.api.mixins import AuditLoggingMixin
+from apps.core.api.permissions import DataScopePermission, RoleBasedPermission
 from apps.hrm.api.filtersets.proposal import (
     MeProposalVerifierFilterSet,
     ProposalFilterSet,
     ProposalVerifierFilterSet,
 )
+from apps.hrm.api.mixins import DataScopeCreateValidationMixin
 from apps.hrm.api.serializers.proposal import (
     ProposalApproveSerializer,
     ProposalAssetAllocationExportXLSXSerializer,
@@ -55,6 +57,7 @@ from apps.hrm.api.serializers.proposal import (
 )
 from apps.hrm.constants import ProposalType
 from apps.hrm.models import Proposal, ProposalVerifier
+from apps.hrm.utils.filters import RoleDataScopeFilterBackend
 from libs import BaseReadOnlyModelViewSet
 from libs.drf.filtersets.search import PhraseSearchFilter
 from libs.export_xlsx.mixins import ExportXLSXMixin
@@ -125,14 +128,22 @@ def get_common_list_parameters(search_fields=None, ordering_fields=None, additio
     return params
 
 
-class ProposalMixin(AuditLoggingMixin, ExportXLSXMixin):
+class ProposalMixin(DataScopeCreateValidationMixin, AuditLoggingMixin, ExportXLSXMixin):
     queryset = Proposal.objects.select_related("created_by", "approved_by")
     serializer_class = ProposalSerializer  # Subclasses should override
-    filter_backends = [DjangoFilterBackend, PhraseSearchFilter, OrderingFilter]
+    filter_backends = [RoleDataScopeFilterBackend, DjangoFilterBackend, PhraseSearchFilter, OrderingFilter]
     filterset_class = ProposalFilterSet
     search_fields = ["code", "created_by__fullname", "created_by__code"]
     ordering_fields = ["proposal_date", "created_at"]
     ordering = ["-proposal_date"]
+    permission_classes = [RoleBasedPermission, DataScopePermission]
+
+    # Data scope configuration for role-based filtering
+    data_scope_config = {
+        "branch_field": "created_by__branch",
+        "block_field": "created_by__block",
+        "department_field": "created_by__department",
+    }
 
     module = "HRM"
     submodule = _("Proposal")
@@ -3270,11 +3281,19 @@ class ProposalVerifierViewSet(AuditLoggingMixin, BaseReadOnlyModelViewSet):
 
     queryset = ProposalVerifier.objects.select_related("proposal", "employee")
     serializer_class = ProposalVerifierSerializer
-    filter_backends = [DjangoFilterBackend, PhraseSearchFilter, OrderingFilter]
+    filter_backends = [RoleDataScopeFilterBackend, DjangoFilterBackend, PhraseSearchFilter, OrderingFilter]
     filterset_class = ProposalVerifierFilterSet
     ordering_fields = ["created_at", "verified_time"]
     ordering = ["-created_at"]
     search_fields = ["proposal__code", "proposal__created_by__fullname", "proposal__created_by__code"]
+    permission_classes = [RoleBasedPermission, DataScopePermission]
+
+    # Data scope configuration for role-based filtering (via proposal's creator)
+    data_scope_config = {
+        "branch_field": "proposal__created_by__branch",
+        "block_field": "proposal__created_by__block",
+        "department_field": "proposal__created_by__department",
+    }
 
     module = "HRM"
     submodule = _("Proposal")

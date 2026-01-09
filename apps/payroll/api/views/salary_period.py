@@ -10,7 +10,8 @@ from rest_framework.filters import OrderingFilter
 from rest_framework.response import Response
 
 from apps.audit_logging.api.mixins import AuditLoggingMixin
-from apps.core.api.permissions import RoleBasedPermission
+from apps.core.api.permissions import DataScopePermission, RoleBasedPermission
+from apps.hrm.utils.filters import RoleDataScopeFilterBackend
 from apps.payroll.api.filtersets import PayrollSlipFilterSet, SalaryPeriodFilterSet
 from apps.payroll.api.serializers import (
     PayrollSlipExportSerializer,
@@ -791,7 +792,7 @@ class SalaryPeriodReadySlipsViewSet(BaseReadOnlyModelViewSet):
 
     queryset = PayrollSlip.objects.none()
     serializer_class = PayrollSlipSerializer
-    permission_classes = [RoleBasedPermission]
+    permission_classes = [RoleBasedPermission, DataScopePermission]
     module = _("Payroll")
     submodule = _("Salary Periods")
     permission_prefix = "salary_period"
@@ -804,8 +805,15 @@ class SalaryPeriodReadySlipsViewSet(BaseReadOnlyModelViewSet):
         }
     }
 
+    # Data scope configuration for role-based filtering
+    data_scope_config = {
+        "branch_field": "employee__branch",
+        "block_field": "employee__block",
+        "department_field": "employee__department",
+    }
+
     pagination_class = PageNumberWithSizePagination
-    filter_backends = [DjangoFilterBackend, OrderingFilter, PhraseSearchFilter]
+    filter_backends = [RoleDataScopeFilterBackend, DjangoFilterBackend, OrderingFilter, PhraseSearchFilter]
     filterset_class = PayrollSlipFilterSet
     ordering_fields = [
         "code",
@@ -895,7 +903,7 @@ class SalaryPeriodNotReadySlipsViewSet(BaseReadOnlyModelViewSet):
 
     queryset = PayrollSlip.objects.none()
     serializer_class = PayrollSlipSerializer
-    permission_classes = [RoleBasedPermission]
+    permission_classes = [RoleBasedPermission, DataScopePermission]
     module = _("Payroll")
     submodule = _("Salary Periods")
     permission_prefix = "salary_period"
@@ -908,8 +916,15 @@ class SalaryPeriodNotReadySlipsViewSet(BaseReadOnlyModelViewSet):
         }
     }
 
+    # Data scope configuration for role-based filtering
+    data_scope_config = {
+        "branch_field": "employee__branch",
+        "block_field": "employee__block",
+        "department_field": "employee__department",
+    }
+
     pagination_class = PageNumberWithSizePagination
-    filter_backends = [DjangoFilterBackend, OrderingFilter, PhraseSearchFilter]
+    filter_backends = [RoleDataScopeFilterBackend, DjangoFilterBackend, OrderingFilter, PhraseSearchFilter]
     filterset_class = PayrollSlipFilterSet
     ordering_fields = [
         "code",

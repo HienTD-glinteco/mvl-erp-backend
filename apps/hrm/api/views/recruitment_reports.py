@@ -7,6 +7,7 @@ from drf_spectacular.utils import OpenApiExample, extend_schema
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
+from apps.hrm.api.mixins import DataScopeReportFilterMixin
 from apps.hrm.constants import RecruitmentSourceType, ReportPeriodType
 from apps.hrm.models import (
     HiredCandidateReport,
@@ -35,7 +36,7 @@ from ..serializers.recruitment_reports import (
 )
 
 
-class RecruitmentReportsViewSet(BaseGenericViewSet):
+class RecruitmentReportsViewSet(DataScopeReportFilterMixin, BaseGenericViewSet):
     """
     ViewSet for recruitment reports with aggregated data.
 
@@ -908,16 +909,22 @@ class RecruitmentReportsViewSet(BaseGenericViewSet):
         # Apply organizational filters
         org_filters = {}
         for field in ["branch", "block", "department"]:
-            if not params.get(field):
-                continue
-
-            if org_field_prefix:
-                org_filters[f"{org_field_prefix}__{field}_id"] = params[field]
-            else:
+            if params.get(field):
                 org_filters[f"{field}_id"] = params[field]
 
-        if org_filters:
-            queryset = queryset.filter(**org_filters)
+        # Apply data scope restrictions
+        org_filters = self._apply_data_scope_to_filters(request, org_filters)
+
+        # Build final filter kwargs with proper field prefixes
+        final_org_filters = {}
+        for key, value in org_filters.items():
+            if org_field_prefix:
+                final_org_filters[f"{org_field_prefix}__{key}"] = value
+            else:
+                final_org_filters[key] = value
+
+        if final_org_filters:
+            queryset = queryset.filter(**final_org_filters)
 
         return queryset, params, start_date, end_date, period_type
 

@@ -9,6 +9,7 @@ from rest_framework.filters import OrderingFilter
 from rest_framework.response import Response
 
 from apps.audit_logging.api.mixins import AuditLoggingMixin
+from apps.core.api.permissions import DataScopePermission, RoleBasedPermission
 from apps.hrm.api.filtersets import InterviewScheduleFilterSet
 from apps.hrm.api.serializers import (
     InterviewScheduleExportSerializer,
@@ -17,6 +18,7 @@ from apps.hrm.api.serializers import (
 )
 from apps.hrm.callbacks import mark_interview_candidate_email_sent
 from apps.hrm.models import InterviewSchedule
+from apps.hrm.utils.filters import RoleDataScopeFilterBackend
 from apps.mailtemplates.serializers import TemplatePreviewResponseSerializer
 from apps.mailtemplates.services import TemplateValidationError
 from apps.mailtemplates.view_mixins import EmailTemplateActionMixin
@@ -302,10 +304,18 @@ class InterviewScheduleViewSet(ExportXLSXMixin, EmailTemplateActionMixin, AuditL
     )
     serializer_class = InterviewScheduleSerializer
     filterset_class = InterviewScheduleFilterSet
-    filter_backends = [DjangoFilterBackend, PhraseSearchFilter, OrderingFilter]
+    filter_backends = [RoleDataScopeFilterBackend, DjangoFilterBackend, PhraseSearchFilter, OrderingFilter]
     search_fields = ["title", "location"]
     ordering_fields = ["title", "time", "created_at"]
     ordering = ["-time"]
+    permission_classes = [RoleBasedPermission, DataScopePermission]
+
+    # Data scope configuration for role-based filtering (via recruitment_request)
+    data_scope_config = {
+        "branch_field": "recruitment_request__branch",
+        "block_field": "recruitment_request__block",
+        "department_field": "recruitment_request__department",
+    }
 
     # Permission registration attributes
     module = "HRM"

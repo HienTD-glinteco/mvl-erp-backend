@@ -147,3 +147,75 @@ class DataScopeCreateValidationMixin:
             else:
                 value = getattr(value, part, None)
         return value
+
+
+class DataScopeReportFilterMixin:
+    """
+    Mixin to apply data scope filtering to report ViewSets.
+
+    Provides _apply_data_scope_to_filters method that validates and restricts
+    organizational unit filters based on user's allowed data scope.
+
+    Usage:
+        class MyReportViewSet(DataScopeReportFilterMixin, BaseGenericViewSet):
+            def my_action(self, request):
+                filters = {...}
+                filters = self._apply_data_scope_to_filters(request, filters)
+    """
+
+    def _apply_data_scope_to_filters(self, request, filters: dict) -> dict:
+        """Apply data scope restrictions to report filters.
+
+        For non-ROOT users, this method:
+        1. If user specifies org units, validates they are within allowed scope
+        2. If user doesn't specify org units, applies allowed units as filters
+
+        Args:
+            request: The HTTP request
+            filters: Dictionary of filters from parameter serializer
+
+        Returns:
+            Modified filters dict with data scope applied
+        """
+        user = request.user
+        allowed = collect_role_allowed_units(user)
+
+        if allowed.has_all:
+            return filters
+
+        # Apply restrictions for each scope level
+        filters = self._apply_branch_scope(filters, allowed)
+        filters = self._apply_block_scope(filters, allowed)
+        filters = self._apply_department_scope(filters, allowed)
+
+        return filters
+
+    def _apply_branch_scope(self, filters: dict, allowed) -> dict:
+        """Apply branch-level scope restrictions"""
+        if allowed.branches:
+            if "branch_id" in filters:
+                if filters["branch_id"] not in allowed.branches:
+                    filters["branch_id"] = -1  # Force no results
+            else:
+                filters["branch_id__in"] = list(allowed.branches)
+        return filters
+
+    def _apply_block_scope(self, filters: dict, allowed) -> dict:
+        """Apply block-level scope restrictions"""
+        if allowed.blocks:
+            if "block_id" in filters:
+                if filters["block_id"] not in allowed.blocks:
+                    filters["block_id"] = -1
+            else:
+                filters["block_id__in"] = list(allowed.blocks)
+        return filters
+
+    def _apply_department_scope(self, filters: dict, allowed) -> dict:
+        """Apply department-level scope restrictions"""
+        if allowed.departments:
+            if "department_id" in filters:
+                if filters["department_id"] not in allowed.departments:
+                    filters["department_id"] = -1
+            else:
+                filters["department_id__in"] = list(allowed.departments)
+        return filters

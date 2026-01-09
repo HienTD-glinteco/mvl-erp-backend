@@ -9,7 +9,8 @@ from rest_framework.filters import OrderingFilter
 from rest_framework.response import Response
 
 from apps.audit_logging.api.mixins import AuditLoggingMixin
-from apps.core.api.permissions import RoleBasedPermission
+from apps.core.api.permissions import DataScopePermission, RoleBasedPermission
+from apps.hrm.utils.filters import RoleDataScopeFilterBackend
 from apps.payroll.api.filtersets import PenaltyTicketFilterSet
 from apps.payroll.api.serializers import (
     BulkUpdateStatusSerializer,
@@ -192,12 +193,20 @@ class PenaltyTicketViewSet(AuditLoggingMixin, BaseModelViewSet):
 
     queryset = PenaltyTicket.objects.all()
     serializer_class = PenaltyTicketSerializer
-    permission_classes = [RoleBasedPermission]
-    filter_backends = [DjangoFilterBackend, PhraseSearchFilter, OrderingFilter]
+    permission_classes = [RoleBasedPermission, DataScopePermission]
+    filter_backends = [RoleDataScopeFilterBackend, DjangoFilterBackend, PhraseSearchFilter, OrderingFilter]
     filterset_class = PenaltyTicketFilterSet
     search_fields = ["code", "employee_code", "employee_name"]
     ordering_fields = ["created_at", "month", "amount", "status"]
     ordering = ["-created_at"]
+
+    # Data scope configuration for role-based filtering
+    data_scope_config = {
+        "branch_field": "employee__branch",
+        "block_field": "employee__block",
+        "department_field": "employee__department",
+    }
+
     module = _("Payroll")
     submodule = _("Penalty Management")
     permission_prefix = "payroll.penalty_ticket"

@@ -5,6 +5,8 @@ from drf_spectacular.utils import OpenApiExample, extend_schema, extend_schema_v
 from rest_framework.filters import OrderingFilter
 
 from apps.audit_logging.api.mixins import AuditLoggingMixin
+from apps.core.api.permissions import DataScopePermission, RoleBasedPermission
+from apps.hrm.utils.filters import RoleDataScopeFilterBackend
 from apps.payroll.api.filtersets import DepartmentKPIAssessmentFilterSet
 from apps.payroll.api.serializers import (
     DepartmentKPIAssessmentListSerializer,
@@ -112,11 +114,19 @@ class DepartmentKPIAssessmentViewSet(AuditLoggingMixin, BaseModelViewSet):
         "updated_by",
     )
     filterset_class = DepartmentKPIAssessmentFilterSet
-    filter_backends = [DjangoFilterBackend, PhraseSearchFilter, OrderingFilter]
+    filter_backends = [RoleDataScopeFilterBackend, DjangoFilterBackend, PhraseSearchFilter, OrderingFilter]
     search_fields = ["department__name", "department__code"]
     ordering_fields = ["period__month", "department__name", "grade", "created_at"]
     ordering = ["-period__month", "-created_at"]
     http_method_names = ["get", "patch"]  # Only allow GET and PATCH
+    permission_classes = [RoleBasedPermission, DataScopePermission]
+
+    # Data scope configuration for role-based filtering
+    data_scope_config = {
+        "branch_field": "department__branch",
+        "block_field": "department__block",
+        "department_field": "department",
+    }
 
     # Permission registration attributes
     module = "Payroll"

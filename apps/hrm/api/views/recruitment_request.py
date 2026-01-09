@@ -6,9 +6,12 @@ from rest_framework.filters import OrderingFilter
 from rest_framework.response import Response
 
 from apps.audit_logging.api.mixins import AuditLoggingMixin
+from apps.core.api.permissions import DataScopePermission, RoleBasedPermission
 from apps.hrm.api.filtersets import RecruitmentRequestFilterSet
+from apps.hrm.api.mixins import DataScopeCreateValidationMixin
 from apps.hrm.api.serializers import RecruitmentRequestSerializer
 from apps.hrm.models import RecruitmentRequest
+from apps.hrm.utils.filters import RoleDataScopeFilterBackend
 from libs import BaseModelViewSet, ExportDocumentMixin
 from libs.drf.filtersets.search import PhraseSearchFilter
 
@@ -374,7 +377,9 @@ from libs.drf.filtersets.search import PhraseSearchFilter
         tags=["4.4: Recruitment Request"],
     ),
 )
-class RecruitmentRequestViewSet(ExportDocumentMixin, AuditLoggingMixin, BaseModelViewSet):
+class RecruitmentRequestViewSet(
+    DataScopeCreateValidationMixin, ExportDocumentMixin, AuditLoggingMixin, BaseModelViewSet
+):
     """ViewSet for RecruitmentRequest model"""
 
     queryset = RecruitmentRequest.objects.select_related(
@@ -382,10 +387,18 @@ class RecruitmentRequestViewSet(ExportDocumentMixin, AuditLoggingMixin, BaseMode
     ).all()
     serializer_class = RecruitmentRequestSerializer
     filterset_class = RecruitmentRequestFilterSet
-    filter_backends = [DjangoFilterBackend, PhraseSearchFilter, OrderingFilter]
+    filter_backends = [RoleDataScopeFilterBackend, DjangoFilterBackend, PhraseSearchFilter, OrderingFilter]
     search_fields = ["name", "code"]
     ordering_fields = ["code", "name", "created_at", "status"]
     ordering = ["-created_at"]
+    permission_classes = [RoleBasedPermission, DataScopePermission]
+
+    # Data scope configuration for role-based filtering
+    data_scope_config = {
+        "branch_field": "branch",
+        "block_field": "block",
+        "department_field": "department",
+    }
 
     # Permission registration attributes
     module = _("HRM")

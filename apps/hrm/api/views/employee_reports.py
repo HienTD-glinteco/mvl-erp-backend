@@ -9,6 +9,7 @@ from drf_spectacular.utils import OpenApiExample, OpenApiParameter, extend_schem
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
+from apps.hrm.api.mixins import DataScopeReportFilterMixin
 from apps.hrm.api.serializers.employee_report import EmployeeTypeConversionReportSerializer
 from apps.hrm.constants import ExtendedReportPeriodType
 from apps.hrm.models import (
@@ -37,7 +38,7 @@ from ..serializers import (
 )
 
 
-class EmployeeReportsViewSet(BaseGenericViewSet):
+class EmployeeReportsViewSet(DataScopeReportFilterMixin, BaseGenericViewSet):
     """
     ViewSet for employee reports with aggregated data.
 
@@ -331,6 +332,9 @@ class EmployeeReportsViewSet(BaseGenericViewSet):
         if params.get("department"):
             org_filters["department_id"] = params["department"]
 
+        # Apply data scope restrictions
+        org_filters = self._apply_data_scope_to_filters(request, org_filters)
+
         data = self._build_breakdown_nested_structure(buckets, value_field, org_filters)
 
         count_buckets = len(buckets)
@@ -545,7 +549,7 @@ class EmployeeReportsViewSet(BaseGenericViewSet):
         ],
     )
     @action(detail=False, methods=["get"], url_path="employee-resigned-reasons-summary")
-    def employee_resigned_reasons_summary(self, request):
+    def employee_resigned_reasons_summary(self, request):  # noqa: C901
         """
         Aggregate resigned reasons by date range and organizational filters.
         Returns flat list of reasons with counts and percentages.
@@ -596,19 +600,39 @@ class EmployeeReportsViewSet(BaseGenericViewSet):
         # Apply organizational filters
         filter_info = {}
 
+        # Build initial filters dict for data scope processing
+        org_filters = {}
         branch_id = request.query_params.get("branch")
         if branch_id:
-            qs = qs.filter(branch_id=branch_id)
-            branch_obj = Branch.objects.filter(id=branch_id).first()
+            org_filters["branch_id"] = int(branch_id)
+        block_id = request.query_params.get("block")
+        if block_id:
+            org_filters["block_id"] = int(block_id)
+        department_id = request.query_params.get("department")
+        if department_id:
+            org_filters["department_id"] = int(department_id)
+
+        # Apply data scope restrictions
+        org_filters = self._apply_data_scope_to_filters(request, org_filters)
+
+        # Apply processed filters to queryset
+        if "branch_id" in org_filters:
+            qs = qs.filter(branch_id=org_filters["branch_id"])
+            branch_obj = Branch.objects.filter(id=org_filters["branch_id"]).first()
             filter_info["branch"] = branch_obj.name if branch_obj else None
+        elif "branch_id__in" in org_filters:
+            qs = qs.filter(branch_id__in=org_filters["branch_id__in"])
+            filter_info["branch"] = None
         else:
             filter_info["branch"] = None
 
-        block_id = request.query_params.get("block")
-        if block_id:
-            qs = qs.filter(block_id=block_id)
-            block_obj = Block.objects.filter(id=block_id).first()
+        if "block_id" in org_filters:
+            qs = qs.filter(block_id=org_filters["block_id"])
+            block_obj = Block.objects.filter(id=org_filters["block_id"]).first()
             filter_info["block"] = block_obj.name if block_obj else None
+        elif "block_id__in" in org_filters:
+            qs = qs.filter(block_id__in=org_filters["block_id__in"])
+            filter_info["block"] = None
         else:
             filter_info["block"] = None
 
@@ -619,11 +643,13 @@ class EmployeeReportsViewSet(BaseGenericViewSet):
         else:
             filter_info["block_type"] = None
 
-        department_id = request.query_params.get("department")
-        if department_id:
-            qs = qs.filter(department_id=department_id)
-            dept_obj = Department.objects.filter(id=department_id).first()
+        if "department_id" in org_filters:
+            qs = qs.filter(department_id=org_filters["department_id"])
+            dept_obj = Department.objects.filter(id=org_filters["department_id"]).first()
             filter_info["department"] = dept_obj.name if dept_obj else None
+        elif "department_id__in" in org_filters:
+            qs = qs.filter(department_id__in=org_filters["department_id__in"])
+            filter_info["department"] = None
         else:
             filter_info["department"] = None
 

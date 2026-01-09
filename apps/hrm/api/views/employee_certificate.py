@@ -4,9 +4,11 @@ from drf_spectacular.utils import OpenApiExample, extend_schema, extend_schema_v
 from rest_framework.filters import OrderingFilter
 
 from apps.audit_logging.api.mixins import AuditLoggingMixin
+from apps.core.api.permissions import DataScopePermission, RoleBasedPermission
 from apps.hrm.api.filtersets.employee_certificate import EmployeeCertificateFilterSet
 from apps.hrm.api.serializers.employee_certificate import EmployeeCertificateSerializer
 from apps.hrm.models import EmployeeCertificate
+from apps.hrm.utils.filters import RoleDataScopeFilterBackend
 from libs import BaseModelViewSet
 from libs.drf.filtersets.search import PhraseSearchFilter
 
@@ -283,7 +285,7 @@ class EmployeeCertificateViewSet(AuditLoggingMixin, BaseModelViewSet):
     queryset = EmployeeCertificate.objects.select_related("employee", "attachment").all()
     serializer_class = EmployeeCertificateSerializer
     filterset_class = EmployeeCertificateFilterSet
-    filter_backends = [DjangoFilterBackend, PhraseSearchFilter, OrderingFilter]
+    filter_backends = [RoleDataScopeFilterBackend, DjangoFilterBackend, PhraseSearchFilter, OrderingFilter]
     search_fields = ["employee__code", "employee__fullname", "code"]
     ordering_fields = [
         "certificate_type",
@@ -295,6 +297,14 @@ class EmployeeCertificateViewSet(AuditLoggingMixin, BaseModelViewSet):
         "created_at",
     ]
     ordering = ["certificate_type", "-created_at"]
+    permission_classes = [RoleBasedPermission, DataScopePermission]
+
+    # Data scope configuration for role-based filtering
+    data_scope_config = {
+        "branch_field": "employee__branch",
+        "block_field": "employee__block",
+        "department_field": "employee__department",
+    }
 
     # Permission registration attributes
     module = _("HRM")

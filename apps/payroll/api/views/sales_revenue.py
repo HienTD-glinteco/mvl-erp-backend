@@ -7,6 +7,8 @@ from rest_framework.filters import OrderingFilter
 from rest_framework.response import Response
 
 from apps.audit_logging.api.mixins import AuditLoggingMixin
+from apps.core.api.permissions import DataScopePermission, RoleBasedPermission
+from apps.hrm.utils.filters import RoleDataScopeFilterBackend
 from apps.imports.api.mixins import AsyncImportProgressMixin
 from apps.payroll.api.filtersets import SalesRevenueFilterSet
 from apps.payroll.api.serializers import SalesRevenueExportSerializer, SalesRevenueSerializer
@@ -436,10 +438,18 @@ class SalesRevenueViewSet(AsyncImportProgressMixin, ExportXLSXMixin, AuditLoggin
     ).all()
     serializer_class = SalesRevenueSerializer
     filterset_class = SalesRevenueFilterSet
-    filter_backends = [DjangoFilterBackend, PhraseSearchFilter, OrderingFilter]
+    filter_backends = [RoleDataScopeFilterBackend, DjangoFilterBackend, PhraseSearchFilter, OrderingFilter]
     search_fields = ["code", "employee__code", "employee__fullname"]
     ordering_fields = ["created_at", "code", "revenue", "month"]
     ordering = ["-created_at"]
+    permission_classes = [RoleBasedPermission, DataScopePermission]
+
+    # Data scope configuration for role-based filtering
+    data_scope_config = {
+        "branch_field": "employee__branch",
+        "block_field": "employee__block",
+        "department_field": "employee__department",
+    }
 
     module = _("Payroll")
     submodule = _("Sales Revenue Management")

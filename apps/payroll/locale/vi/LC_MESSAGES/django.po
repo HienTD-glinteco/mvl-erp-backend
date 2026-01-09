@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-09 14:46+0700\n"
+"POT-Creation-Date: 2026-01-09 20:24+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -337,14 +337,14 @@ msgstr "Hoàn tất kỳ đánh giá thành công"
 #: apps/payroll/api/views/kpi_config.py:20
 #: apps/payroll/api/views/mobile/penalty_ticket.py:121
 #: apps/payroll/api/views/my_penalty_tickets.py:116
-#: apps/payroll/api/views/penalty_tickets.py:201
-#: apps/payroll/api/views/recovery_voucher.py:339
+#: apps/payroll/api/views/penalty_tickets.py:210
+#: apps/payroll/api/views/recovery_voucher.py:349
 #: apps/payroll/api/views/salary_config.py:20
-#: apps/payroll/api/views/salary_period.py:795
-#: apps/payroll/api/views/salary_period.py:899
-#: apps/payroll/api/views/sales_revenue.py:444
-#: apps/payroll/api/views/sales_revenue_report.py:40
-#: apps/payroll/api/views/travel_expense.py:408
+#: apps/payroll/api/views/salary_period.py:796
+#: apps/payroll/api/views/salary_period.py:907
+#: apps/payroll/api/views/sales_revenue.py:454
+#: apps/payroll/api/views/sales_revenue_report.py:50
+#: apps/payroll/api/views/travel_expense.py:418
 msgid "Payroll"
 msgstr "Bảng lương"
 
@@ -469,27 +469,27 @@ msgstr "Chỉ có thể giao phiếu READY"
 msgid "Employee has no email address"
 msgstr "Nhân viên không có địa chỉ email"
 
-#: apps/payroll/api/views/penalty_tickets.py:202
+#: apps/payroll/api/views/penalty_tickets.py:211
 msgid "Penalty Management"
 msgstr "Quản lý phiếu phạt"
 
-#: apps/payroll/api/views/penalty_tickets.py:207
+#: apps/payroll/api/views/penalty_tickets.py:216
 msgid "Bulk Update Penalty Ticket Status"
 msgstr "Quyền cập nhật một phần phiếu phạt"
 
-#: apps/payroll/api/views/penalty_tickets.py:208
+#: apps/payroll/api/views/penalty_tickets.py:217
 msgid "Bulk update payment status for penalty tickets"
 msgstr "Cập nhật trạng thái thanh toán cho các phiếu phạt"
 
-#: apps/payroll/api/views/penalty_tickets.py:265
+#: apps/payroll/api/views/penalty_tickets.py:274
 msgid "Authentication credentials were not provided."
 msgstr "Thông tin xác thực không được cung cấp."
 
-#: apps/payroll/api/views/recovery_voucher.py:340
+#: apps/payroll/api/views/recovery_voucher.py:350
 msgid "Recovery/Back Pay"
 msgstr "Truy thu / Truy lĩnh"
 
-#: apps/payroll/api/views/recovery_voucher.py:361
+#: apps/payroll/api/views/recovery_voucher.py:371
 msgid "Cannot delete voucher for a month with existing payroll."
 msgstr "Không thể xóa phiếu cho một tháng đã có bảng lương."
 
@@ -502,113 +502,113 @@ msgstr "Cấu hình"
 msgid "View salary configuration"
 msgstr "Xem cấu hình lương"
 
-#: apps/payroll/api/views/salary_period.py:796
-#: apps/payroll/api/views/salary_period.py:900
+#: apps/payroll/api/views/salary_period.py:797
+#: apps/payroll/api/views/salary_period.py:908
 #: apps/payroll/models/salary_period.py:199
 msgid "Salary Periods"
 msgstr "Các kỳ lương"
 
-#: apps/payroll/api/views/salary_period.py:802
+#: apps/payroll/api/views/salary_period.py:803
 msgid "View Ready Payroll Slips"
 msgstr "Xem phiếu lương đã sẵn sàng"
 
-#: apps/payroll/api/views/salary_period.py:803
+#: apps/payroll/api/views/salary_period.py:804
 msgid "View ready payroll slips"
 msgstr "Xem phiếu lương đã sẵn sàng"
 
-#: apps/payroll/api/views/salary_period.py:906
+#: apps/payroll/api/views/salary_period.py:914
 msgid "View Not-Ready Payroll Slips"
 msgstr "Xem phiếu lương chưa sẵn sàng"
 
-#: apps/payroll/api/views/salary_period.py:907
+#: apps/payroll/api/views/salary_period.py:915
 msgid "View not-ready payroll slips"
 msgstr "Xem phiếu lương chưa sẵn sàng"
 
-#: apps/payroll/api/views/sales_revenue.py:445
+#: apps/payroll/api/views/sales_revenue.py:455
 msgid "Sales Revenue Management"
 msgstr "Quản lý doanh thu bán hàng"
 
-#: apps/payroll/api/views/sales_revenue.py:449
-#: apps/payroll/api/views/sales_revenue.py:450
+#: apps/payroll/api/views/sales_revenue.py:459
+#: apps/payroll/api/views/sales_revenue.py:460
 msgid "Download import template for sales revenue"
 msgstr "Tải mẫu import cho doanh thu bán hàng"
 
-#: apps/payroll/api/views/sales_revenue.py:453
+#: apps/payroll/api/views/sales_revenue.py:463
 msgid "Import sales revenue data"
 msgstr "Nhập dữ liệu doanh thu bán hàng"
 
-#: apps/payroll/api/views/sales_revenue.py:454
+#: apps/payroll/api/views/sales_revenue.py:464
 msgid "Import sales revenue data asynchronously"
 msgstr "Nhập dữ liệu doanh thu bán hàng không đồng bộ"
 
-#: apps/payroll/api/views/sales_revenue.py:477
+#: apps/payroll/api/views/sales_revenue.py:487
 msgid "Cannot delete sales revenue for a month with existing payroll."
 msgstr "Không thể xóa doanh thu bán hàng cho một tháng đã có bảng lương."
 
-#: apps/payroll/api/views/sales_revenue_report.py:41
+#: apps/payroll/api/views/sales_revenue_report.py:51
 #: apps/payroll/models/sales_revenue_report.py:116
 msgid "Sales Revenue Reports"
 msgstr "Báo cáo doanh thu bán hàng"
 
-#: apps/payroll/api/views/sales_revenue_report.py:46
+#: apps/payroll/api/views/sales_revenue_report.py:56
 msgid "View sales revenue quality reports"
 msgstr "Xem báo cáo chất lượng doanh thu bán hàng"
 
-#: apps/payroll/api/views/sales_revenue_report.py:47
+#: apps/payroll/api/views/sales_revenue_report.py:57
 msgid "View list of sales revenue quality reports"
 msgstr "Xem danh sách báo cáo chất lượng doanh thu bán hàng"
 
-#: apps/payroll/api/views/sales_revenue_report.py:50
+#: apps/payroll/api/views/sales_revenue_report.py:60
 msgid "View sales revenue chart"
 msgstr "Xem biểu đồ doanh thu bán hàng"
 
-#: apps/payroll/api/views/sales_revenue_report.py:51
+#: apps/payroll/api/views/sales_revenue_report.py:61
 msgid "View sales revenue chart data for dashboard"
 msgstr "Xem dữ liệu biểu đồ doanh thu bán hàng cho bảng điều khiển"
 
-#: apps/payroll/api/views/sales_revenue_report.py:54
+#: apps/payroll/api/views/sales_revenue_report.py:64
 msgid "Export sales revenue quality reports"
 msgstr "Xuất báo cáo chất lượng doanh thu bán hàng"
 
-#: apps/payroll/api/views/sales_revenue_report.py:55
+#: apps/payroll/api/views/sales_revenue_report.py:65
 msgid "Export sales revenue quality reports to file"
 msgstr "Xuất báo cáo chất lượng doanh thu bán hàng ra file"
 
-#: apps/payroll/api/views/sales_revenue_report.py:136
+#: apps/payroll/api/views/sales_revenue_report.py:146
 msgid "KPI Target"
 msgstr "Chỉ tiêu KPI"
 
-#: apps/payroll/api/views/sales_revenue_report.py:137
+#: apps/payroll/api/views/sales_revenue_report.py:147
 msgid "Total Revenue"
 msgstr "Tổng doanh thu"
 
-#: apps/payroll/api/views/sales_revenue_report.py:138
-#: apps/payroll/api/views/sales_revenue_report.py:198
+#: apps/payroll/api/views/sales_revenue_report.py:148
+#: apps/payroll/api/views/sales_revenue_report.py:208
 msgid "Employees with Revenue"
 msgstr "Nhân viên có doanh thu"
 
-#: apps/payroll/api/views/sales_revenue_report.py:139
+#: apps/payroll/api/views/sales_revenue_report.py:149
 msgid "Total Sales Employees"
 msgstr "Tổng số nhân viên kinh doanh"
 
-#: apps/payroll/api/views/sales_revenue_report.py:140
+#: apps/payroll/api/views/sales_revenue_report.py:150
 msgid "Revenue vs Target (%)"
 msgstr "Doanh thu so với chỉ tiêu (%)"
 
-#: apps/payroll/api/views/sales_revenue_report.py:141
+#: apps/payroll/api/views/sales_revenue_report.py:151
 msgid "Employee with Revenue (%)"
 msgstr "Tỷ lệ nhân viên có doanh thu (%)"
 
-#: apps/payroll/api/views/sales_revenue_report.py:142
+#: apps/payroll/api/views/sales_revenue_report.py:152
 msgid "Average Revenue per Employee"
 msgstr "Doanh thu trung bình mỗi nhân viên"
 
-#: apps/payroll/api/views/sales_revenue_report.py:198
+#: apps/payroll/api/views/sales_revenue_report.py:208
 #: apps/payroll/models/salary_period.py:93
 msgid "Total Employees"
 msgstr "Tổng số nhân viên"
 
-#: apps/payroll/api/views/sales_revenue_report.py:214
+#: apps/payroll/api/views/sales_revenue_report.py:224
 #: apps/payroll/models/penalty_ticket.py:56
 #: apps/payroll/models/recovery_voucher.py:65
 #: apps/payroll/models/salary_period.py:69
@@ -616,15 +616,15 @@ msgstr "Tổng số nhân viên"
 msgid "Month"
 msgstr "Tháng"
 
-#: apps/payroll/api/views/sales_revenue_report.py:222
+#: apps/payroll/api/views/sales_revenue_report.py:232
 msgid "Sales Revenue Quality Report"
 msgstr "Báo cáo chất lượng doanh thu bán hàng"
 
-#: apps/payroll/api/views/travel_expense.py:409
+#: apps/payroll/api/views/travel_expense.py:419
 msgid "Travel Expense Management"
 msgstr "Quản lý công tác phí"
 
-#: apps/payroll/api/views/travel_expense.py:434
+#: apps/payroll/api/views/travel_expense.py:444
 msgid "Cannot delete travel expense for a month with existing payroll."
 msgstr "Không thể xóa công tác phí cho một tháng đã có bảng lương."
 
