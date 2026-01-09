@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-09 20:31+0700\n"
+"POT-Creation-Date: 2026-01-09 21:23+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1241,19 +1241,19 @@ msgstr "Xem thống kê dành cho HRM chung"
 msgid "View HRM stats for handling proposals, attendance, and penalties"
 msgstr "Xem thống kê HRM về xử lý đề xuất, chấm công và phạt"
 
-#: apps/hrm/api/views/hrm_dashboard.py:204
+#: apps/hrm/api/views/hrm_dashboard.py:205
 msgid "Pending Proposals"
 msgstr "Đề xuất chờ xử lý"
 
-#: apps/hrm/api/views/hrm_dashboard.py:209
+#: apps/hrm/api/views/hrm_dashboard.py:210
 msgid "Manual attendance pending"
 msgstr "Chấm công khác chờ duyệt"
 
-#: apps/hrm/api/views/hrm_dashboard.py:218
+#: apps/hrm/api/views/hrm_dashboard.py:219
 msgid "Timesheet complaints"
 msgstr "Khiếu nại chấm công chờ duyệt"
 
-#: apps/hrm/api/views/hrm_dashboard.py:227
+#: apps/hrm/api/views/hrm_dashboard.py:228
 msgid "Unpaid penalty tickets"
 msgstr "Số lượng phiếu phạt chưa thanh toán"
 

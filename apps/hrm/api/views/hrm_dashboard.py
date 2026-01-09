@@ -139,10 +139,11 @@ class HRMDashboardViewSet(BaseGenericViewSet):
     def _build_dashboard_data(self, user, allowed_units) -> dict:
         """Build dashboard data from database with data scope filtering."""
         # Data scope configs for different models
+        # Proposal model uses `created_by` FK to Employee, not `employee`
         proposal_scope_config = {
-            "branch_field": "employee__branch",
-            "block_field": "employee__block",
-            "department_field": "employee__department",
+            "branch_field": "created_by__branch",
+            "block_field": "created_by__block",
+            "department_field": "created_by__department",
         }
         attendance_scope_config = {
             "branch_field": "employee__branch",
