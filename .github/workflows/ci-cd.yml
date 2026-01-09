@@ -248,45 +248,62 @@ jobs:
           username: ${{ secrets.DEVELOP_USERNAME }}
           key: ${{ secrets.DEVELOP_SSH_KEY }}
           script: |
-            set -Eeuo pipefail
-            trap 'echo "❌ Error at line $LINENO"; exit 1' ERR
+            (
+              set -Eeuo pipefail
+              trap 'echo "❌ Deploy failed at line $LINENO"; exit 1' ERR
 
-            # Navigate to application directory
-            cd /home/ubuntu/maivietland/backend
+              echo "🚀 [1/7] Go to project directory"
+              cd /home/ubuntu/maivietland/backend
 
-            # Pull latest changes from master
-            git fetch --all --prune
-            git pull origin master
+              echo "🔄 [2/7] Update source code"
+              git fetch --all --prune
+              git checkout master
+              git pull origin master
 
-            # Update API documentation version in .env file
-            API_DOC_VERSION=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-            if grep -q "^API_DOC_VERSION=" .env 2>/dev/null; then
-              sed -i "s/^API_DOC_VERSION=.*/API_DOC_VERSION=$API_DOC_VERSION/" .env
-            else
-              echo "API_DOC_VERSION=$API_DOC_VERSION" >> .env
-            fi
+              echo "📝 [3/7] Update API_DOC_VERSION"
+              API_DOC_VERSION=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+              if grep -q "^API_DOC_VERSION=" .env 2>/dev/null; then
+                sed -i "s/^API_DOC_VERSION=.*/API_DOC_VERSION=$API_DOC_VERSION/" .env
+              else
+                echo "API_DOC_VERSION=$API_DOC_VERSION" >> .env
+              fi
 
-            # Activate virtual environment and install dependencies
-            export PATH="$HOME/.local/bin:$PATH"
-            poetry config virtualenvs.in-project true
-            poetry install --no-interaction --no-root --without dev --sync
+              echo "📦 [4/7] Install dependencies (poetry --sync)"
+              export PATH="$HOME/.local/bin:$PATH"
+              poetry config virtualenvs.in-project true
+              poetry install --no-interaction --no-root --without dev --sync
 
-            # Run database migrations
-            poetry run python manage.py migrate --noinput
-            poetry run python manage.py collectstatic --noinput
-            poetry run python manage.py compilemessages -l vi
-            poetry run python manage.py collect_permissions
-            poetry run python manage.py upload_import_templates
-            poetry run python manage.py sync_roles_from_excel
+              echo "🗄️ [5/7] Run Django management commands"
+              poetry run python manage.py migrate --noinput
+              poetry run python manage.py collectstatic --noinput
+              poetry run python manage.py compilemessages -l vi
+              poetry run python manage.py collect_permissions
+              poetry run python manage.py upload_import_templates
+              poetry run python manage.py sync_roles_from_excel
 
+              echo "🔁 [6/7] Restart supervisor services"
+              sudo supervisorctl reread
+              sudo supervisorctl update
 
-            # Update supervisor configuration and restart gunicorn workers
-            sudo supervisorctl reread
-            sudo supervisorctl update
-            sudo supervisorctl restart maivietland-api maivietland-worker maivietland-beat maivietland-consume-audit-logs maivietland-realtime-attendance-listener
+              SERVICES=(
+                maivietland-api
+                maivietland-worker
+                maivietland-beat
+                maivietland-consume-audit-logs
+                maivietland-realtime-attendance-listener
+              )
 
-            # Reload nginx configuration
-            sudo nginx -t && sudo nginx -s reload
+              for svc in "${SERVICES[@]}"; do
+                echo "   ↻ Restarting $svc"
+                sudo supervisorctl restart "$svc"
+              done
+
+              echo "🌐 [7/7] Reload nginx"
+              sudo nginx -t
+              sudo nginx -s reload
+
+              echo "✅ Deploy completed successfully"
+            ) 2>&1 | sed '/^[[:space:]]*$/d'
 
       - name: Health Check (with retry)
         run: |
