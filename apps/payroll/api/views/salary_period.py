@@ -833,7 +833,7 @@ class SalaryPeriodReadySlipsViewSet(BaseReadOnlyModelViewSet):
         if period.status == SalaryPeriod.Status.ONGOING:
             # Get all READY slips from this period and all previous periods
             queryset = PayrollSlip.objects.filter(
-                Q(salary_period=period, status=PayrollSlip.Status.READY)
+                Q(salary_period=period, status__in=[PayrollSlip.Status.READY, PayrollSlip.Status.DELIVERED])
                 | Q(salary_period__month__lt=period.month, status=PayrollSlip.Status.READY)
             ).select_related("employee", "salary_period")
         else:  # COMPLETED

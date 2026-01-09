@@ -159,6 +159,11 @@ class TravelExpense(ColoredValueMixin, BaseModel):
 
         super().save(*args, **kwargs)
 
+        # Generate permanent code after save (when we have an id)
+        if self.code.startswith("TEMP_"):
+            self.code = generate_travel_expense_code(self)
+            super().save(update_fields=["code"])
+
     def delete(self, *args, **kwargs):
         """Prevent deletion if status is CALCULATED."""
         if self.status == self.TravelExpenseStatus.CALCULATED:
@@ -167,11 +172,6 @@ class TravelExpense(ColoredValueMixin, BaseModel):
                 % {"status": self.get_status_display()}
             )
         return super().delete(*args, **kwargs)
-
-        # Generate permanent code after save (when we have an id)
-        if self.code.startswith("TEMP_"):
-            self.code = generate_travel_expense_code(self)
-            super().save(update_fields=["code"])
 
     def reset_status_to_not_calculated(self):
         """Reset status to NOT_CALCULATED (used when editing)."""

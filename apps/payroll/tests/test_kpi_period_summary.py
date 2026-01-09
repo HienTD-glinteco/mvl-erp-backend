@@ -196,11 +196,11 @@ class TestKPIAssessmentPeriodSummaryAPI:
         # Total departments should be 3
         assert summary["total_departments"] == 3
 
-        # Only dept1 (Sales) has all employees graded, will be marked as finished by signal
-        assert summary["departments_finished"] == 1
+        # dept1 and dept2 have at least one employee with grade_manager (new logic)
+        assert summary["departments_finished"] == 2
 
-        # dept2 (IT) and dept3 (HR) are not finished
-        assert summary["departments_not_finished"] == 2
+        # Only dept3 has no employees with grade_manager
+        assert summary["departments_not_finished"] == 1
 
         # All departments are valid because is_valid_unit_control is only calculated
         # when department is finished (all employees graded)
@@ -230,14 +230,10 @@ class TestKPIAssessmentPeriodSummaryAPI:
         assert summary["departments_not_valid_control"] == 0
 
     def test_summary_all_departments_finished(self):
-        """Test summary when all departments are finished."""
-        # Grade the remaining employees
-        emp2_dept2_assessment = EmployeeKPIAssessment.objects.get(employee=self.emp2_dept2)
-        emp2_dept2_assessment.grade_manager = "C"
-        emp2_dept2_assessment.save()
-
+        """Test summary when all departments have at least one manager assessment."""
+        # Grade dept3's employee with manager grade
         emp1_dept3_assessment = EmployeeKPIAssessment.objects.get(employee=self.emp1_dept3)
-        emp1_dept3_assessment.grade_hrm = "B"
+        emp1_dept3_assessment.grade_manager = "C"
         emp1_dept3_assessment.save()
 
         url = f"/api/payroll/kpi-periods/{self.period.id}/summary/"
@@ -248,7 +244,7 @@ class TestKPIAssessmentPeriodSummaryAPI:
         data = response.json()
         summary = data["data"]
 
-        # All 3 departments should be finished
+        # All 3 departments should have at least one manager assessment
         assert summary["departments_finished"] == 3
         assert summary["departments_not_finished"] == 0
 
@@ -292,9 +288,9 @@ class TestKPIAssessmentPeriodSummaryAPI:
         data = response.json()
         summary = data["data"]
 
-        # Now we have 4 departments, 2 finished (dept1 and dept4)
+        # Now we have 4 departments, 3 finished (dept1, dept2, and dept4 all have manager assessments)
         assert summary["total_departments"] == 4
-        assert summary["departments_finished"] == 2
+        assert summary["departments_finished"] == 3
 
     def test_summary_unauthenticated_access(self):
         """Test that unauthenticated users can still access the summary (permissions may vary)."""
