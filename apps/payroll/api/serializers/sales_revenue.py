@@ -162,11 +162,27 @@ class SalesRevenueExportSerializer(serializers.ModelSerializer):
 
     employee_code = serializers.CharField(source="employee.code", read_only=True, label="Employee Code")
     employee_name = serializers.CharField(source="employee.fullname", read_only=True, label="Employee Name")
-    block_name = serializers.CharField(source="employee.block.name", read_only=True, label="Block")
-    branch_name = serializers.CharField(source="employee.branch.name", read_only=True, label="Branch")
-    department_name = serializers.CharField(source="employee.department.name", read_only=True, label="Department")
-    position_name = serializers.CharField(source="employee.position.name", read_only=True, label="Position")
+    block_name = serializers.SerializerMethodField(label="Block")
+    branch_name = serializers.SerializerMethodField(label="Branch")
+    department_name = serializers.SerializerMethodField(label="Department")
+    position_name = serializers.SerializerMethodField(label="Position")
     status_display = serializers.CharField(source="get_status_display", read_only=True, label="Status")
+
+    def get_block_name(self, obj):
+        """Get block name, handling None."""
+        return obj.employee.block.name if obj.employee.block else None
+
+    def get_branch_name(self, obj):
+        """Get branch name, handling None."""
+        return obj.employee.branch.name if obj.employee.branch else None
+
+    def get_department_name(self, obj):
+        """Get department name, handling None."""
+        return obj.employee.department.name if obj.employee.department else None
+
+    def get_position_name(self, obj):
+        """Get position name, handling None."""
+        return obj.employee.position.name if obj.employee.position else None
 
     class Meta:
         model = SalesRevenue
