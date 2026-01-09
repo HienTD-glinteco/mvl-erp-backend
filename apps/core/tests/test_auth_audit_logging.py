@@ -194,6 +194,7 @@ class AuthAuditLoggingWithEmployeeTestCase(TestCase):
         self.assertEqual(call_kwargs["object_id"], str(self.employee.pk))
         self.assertIn("logged in successfully", call_kwargs["change_message"])
 
+    @patch("apps.core.api.views.auth.password_change.PasswordChangeView.throttle_classes", new=[])
     @patch("apps.audit_logging.producer._audit_producer.log_event")
     def test_password_change_audit_log_includes_employee_code_and_object(self, mock_log_event):
         """Test that password change includes employee code and object type/id"""
