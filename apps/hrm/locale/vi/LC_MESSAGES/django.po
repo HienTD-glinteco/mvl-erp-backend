@@ -2894,7 +2894,7 @@ msgstr "Nghỉ phép có lương"
 
 #: apps/hrm/constants.py:168 apps/hrm/constants.py:195
 msgid "Unpaid leave"
-msgstr "Nghỉ không lương"
+msgstr "Nghỉ phép không lương"
 
 #: apps/hrm/constants.py:169 apps/hrm/constants.py:196
 msgid "Maternity leave"
