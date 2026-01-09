@@ -142,7 +142,7 @@ class RecruitmentCandidate(ColoredValueMixin, AutoCodeMixin, BaseModel):
         constraints = [
             models.UniqueConstraint(
                 fields=["citizen_id"],
-                condition=models.Q(citizen_id__isnull=False),
+                condition=models.Q(citizen_id__isnull=False) & ~models.Q(citizen_id=""),
                 name="unique_citizen_id_when_not_null",
             )
         ]

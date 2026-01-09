@@ -4,6 +4,7 @@ from datetime import date
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.utils.translation import gettext as _
 from rest_framework import serializers
+from rest_framework.exceptions import APIException
 
 from apps.hrm.api.serializers import EmployeeSerializer
 from apps.hrm.models import (
@@ -25,6 +26,14 @@ from .common_nested import (
     RecruitmentRequestNestedSerializer,
     RecruitmentSourceNestedSerializer,
 )
+
+
+class PhoneConflictError(APIException):
+    """Exception raised when phone number already exists in another candidate."""
+
+    status_code = 409
+    default_detail = _("Candidate with this phone number already exists.")
+    default_code = "phone_conflict"
 
 
 class RecruitmentCandidateEmployeeNestedSerializer(serializers.ModelSerializer):
@@ -180,7 +189,7 @@ class RecruitmentCandidateSerializer(FieldFilteringSerializerMixin, serializers.
             if self.instance:
                 qs = qs.exclude(id=self.instance.id)
             if qs.exists():
-                raise serializers.ValidationError({"phone": _("Candidate with this phone number already exists.")})
+                raise PhoneConflictError()
 
         # Create a temporary instance with the provided data for validation
         instance = self.instance or RecruitmentCandidate()

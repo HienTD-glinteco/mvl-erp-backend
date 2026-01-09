@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-08 17:51+0700\n"
+"POT-Creation-Date: 2026-01-09 11:39+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -695,34 +695,34 @@ msgid "Only the department leader can reject this proposal"
 msgstr ""
 "Chỉ trưởng phòng hoặc người được cấp quyền mới có thể từ chối đề xuất này"
 
-#: apps/hrm/api/serializers/recruitment_candidate.py:183
+#: apps/hrm/api/serializers/recruitment_candidate.py:35
 #, fuzzy
 #| msgid "An employee with this email already exists."
 msgid "Candidate with this phone number already exists."
 msgstr "Nhân viên với email này đã tồn tại."
 
-#: apps/hrm/api/serializers/recruitment_candidate.py:246
+#: apps/hrm/api/serializers/recruitment_candidate.py:255
 msgid "Candidate not found in context."
 msgstr "Không tim thấy ứng viên"
 
-#: apps/hrm/api/serializers/recruitment_candidate.py:251
+#: apps/hrm/api/serializers/recruitment_candidate.py:260
 msgid "Candidate must be in HIRED status to be converted to an employee."
 msgstr ""
 "Ứng viên phải ở trạng thái Đã nhận việc để được chuyển thành nhân viên."
 
-#: apps/hrm/api/serializers/recruitment_candidate.py:257
+#: apps/hrm/api/serializers/recruitment_candidate.py:266
 msgid "This candidate has already been converted to an employee."
 msgstr "Ứng viên này đã được chuyển đổi thành nhân viên."
 
-#: apps/hrm/api/serializers/recruitment_candidate.py:262
+#: apps/hrm/api/serializers/recruitment_candidate.py:271
 msgid "An employee with this email already exists."
 msgstr "Nhân viên với email này đã tồn tại."
 
-#: apps/hrm/api/serializers/recruitment_candidate.py:266
+#: apps/hrm/api/serializers/recruitment_candidate.py:275
 msgid "An employee with this citizen ID already exists."
 msgstr "Nhân viên với số CMND/CCCD này đã tồn tại."
 
-#: apps/hrm/api/serializers/recruitment_candidate.py:309
+#: apps/hrm/api/serializers/recruitment_candidate.py:318
 #, python-brace-format
 msgid "Converted from recruitment candidate {code}"
 msgstr "Ứng viên {code} đã được chuyển đổi thành nhân viên"

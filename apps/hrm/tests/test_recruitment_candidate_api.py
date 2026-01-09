@@ -1007,7 +1007,7 @@ class TestRecruitmentCandidateForceSave(APITestMixin):
         }
 
     def test_create_candidate_with_duplicate_phone_fails(self):
-        """Test creating candidate with duplicate phone number returns error"""
+        """Test creating candidate with duplicate phone number returns conflict error"""
         # Create first candidate
         RecruitmentCandidate.objects.create(
             name="First Candidate",
@@ -1028,7 +1028,15 @@ class TestRecruitmentCandidateForceSave(APITestMixin):
 
         response = self.client.post(url, data, format="json")
 
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.status_code == status.HTTP_409_CONFLICT
+        response_data = response.json()
+        # Verify error structure from drf_standardized_errors
+        assert "error" in response_data
+        error = response_data["error"]
+        assert error["type"] == "client_error"
+        assert len(error["errors"]) == 1
+        assert error["errors"][0]["code"] == "phone_conflict"
+        assert "Candidate with this phone number already exists" in error["errors"][0]["detail"]
 
     def test_create_candidate_with_duplicate_phone_force_save_succeeds(self):
         """Test creating candidate with duplicate phone succeeds when force_save=True"""
@@ -1059,7 +1067,7 @@ class TestRecruitmentCandidateForceSave(APITestMixin):
         assert RecruitmentCandidate.objects.filter(phone="0888888888").count() == 2
 
     def test_update_candidate_with_duplicate_phone_fails(self):
-        """Test updating candidate with duplicate phone number returns error"""
+        """Test updating candidate with duplicate phone number returns conflict error"""
         # Create first candidate
         RecruitmentCandidate.objects.create(
             name="First Candidate",
@@ -1095,7 +1103,11 @@ class TestRecruitmentCandidateForceSave(APITestMixin):
 
         response = self.client.put(url, data, format="json")
 
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.status_code == status.HTTP_409_CONFLICT
+        response_data = response.json()
+        assert "error" in response_data
+        assert response_data["error"]["type"] == "client_error"
+        assert response_data["error"]["errors"][0]["code"] == "phone_conflict"
 
     def test_update_candidate_with_duplicate_phone_force_save_succeeds(self):
         """Test updating candidate with duplicate phone succeeds when force_save=True"""
@@ -1174,7 +1186,11 @@ class TestRecruitmentCandidateForceSave(APITestMixin):
 
         response = self.client.patch(url, data, format="json")
 
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.status_code == status.HTTP_409_CONFLICT
+        response_data = response.json()
+        assert "error" in response_data
+        assert response_data["error"]["type"] == "client_error"
+        assert response_data["error"]["errors"][0]["code"] == "phone_conflict"
 
     def test_partial_update_candidate_with_duplicate_phone_force_save_succeeds(self):
         """Test partial updating candidate with duplicate phone succeeds when force_save=True"""
