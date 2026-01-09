@@ -279,13 +279,18 @@ def update_department_assessment_status(department_assessment) -> None:
     # Count grades (use hrm_grade if available, else manager_grade)
     # Priority: grade_hrm > grade_manager
     grade_counts = {"A": 0, "B": 0, "C": 0, "D": 0}
+    manager_grade_counts = {"A": 0, "B": 0, "C": 0, "D": 0}
     for emp_assessment in employee_assessments:
         grade = emp_assessment.grade_hrm or emp_assessment.grade_manager
         if grade in grade_counts:
             grade_counts[grade] += 1
 
+        if emp_assessment.grade_manager in manager_grade_counts:
+            manager_grade_counts[emp_assessment.grade_manager] += 1
+
     # Update grade distribution
     department_assessment.grade_distribution = grade_counts
+    department_assessment.manager_grade_distribution = manager_grade_counts
 
     # If department is finished, validate unit control
     if department_assessment.is_finished:
@@ -295,7 +300,7 @@ def update_department_assessment_status(department_assessment) -> None:
         # Validate unit control
         total_employees = employee_assessments.count()
         is_valid, violations = validate_unit_control(
-            department_assessment.grade, grade_counts, total_employees, unit_control
+            department_assessment.grade, manager_grade_counts, total_employees, unit_control
         )
 
         department_assessment.is_valid_unit_control = is_valid
@@ -303,4 +308,6 @@ def update_department_assessment_status(department_assessment) -> None:
         # If not finished, keep default valid status
         department_assessment.is_valid_unit_control = True
 
-    department_assessment.save(update_fields=["is_finished", "is_valid_unit_control", "grade_distribution"])
+    department_assessment.save(
+        update_fields=["is_finished", "is_valid_unit_control", "grade_distribution", "manager_grade_distribution"]
+    )

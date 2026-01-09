@@ -1,6 +1,7 @@
 """PenaltyTicket model for uniform violation records."""
 
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.translation import gettext_lazy as _, pgettext_lazy
 
@@ -102,3 +103,12 @@ class PenaltyTicket(AutoCodeMixin, BaseModel):
 
     def __str__(self):
         return f"{self.code} - {self.employee_code}"
+
+    def delete(self, *args, **kwargs):
+        """Prevent deletion if status is PAID (calculated into payroll)."""
+        if self.status == self.Status.PAID:
+            raise ValidationError(
+                _("Cannot delete penalty ticket that has been paid/calculated. Status: %(status)s")
+                % {"status": self.get_status_display()}
+            )
+        return super().delete(*args, **kwargs)

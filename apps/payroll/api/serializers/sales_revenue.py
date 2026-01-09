@@ -155,3 +155,43 @@ class SalesRevenueSerializer(serializers.ModelSerializer):
         """Override update to reset status to NOT_CALCULATED."""
         validated_data["status"] = SalesRevenue.SalesRevenueStatus.NOT_CALCULATED
         return super().update(instance, validated_data)
+
+
+class SalesRevenueExportSerializer(serializers.ModelSerializer):
+    """Serializer for SalesRevenue XLSX export with flattened nested objects."""
+
+    employee_code = serializers.CharField(source="employee.code", read_only=True, label="Employee Code")
+    employee_name = serializers.CharField(source="employee.fullname", read_only=True, label="Employee Name")
+    block_name = serializers.CharField(source="employee.block.name", read_only=True, label="Block")
+    branch_name = serializers.CharField(source="employee.branch.name", read_only=True, label="Branch")
+    department_name = serializers.CharField(source="employee.department.name", read_only=True, label="Department")
+    position_name = serializers.CharField(source="employee.position.name", read_only=True, label="Position")
+    status_display = serializers.CharField(source="get_status_display", read_only=True, label="Status")
+
+    class Meta:
+        model = SalesRevenue
+        fields = [
+            "code",
+            "employee_code",
+            "employee_name",
+            "block_name",
+            "branch_name",
+            "department_name",
+            "position_name",
+            "kpi_target",
+            "revenue",
+            "transaction_count",
+            "month",
+            "status_display",
+            "created_at",
+            "updated_at",
+        ]
+
+    def to_representation(self, instance):
+        """Convert date month back to MM/YYYY format for output."""
+        data = super().to_representation(instance)
+
+        if instance.month:
+            data["month"] = f"{instance.month.month:02d}/{instance.month.year}"
+
+        return data

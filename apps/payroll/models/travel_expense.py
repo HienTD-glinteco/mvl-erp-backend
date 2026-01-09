@@ -2,6 +2,7 @@ import uuid
 from datetime import date
 
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
 from django.db import models
 from django.utils.translation import gettext_lazy as _
@@ -157,6 +158,15 @@ class TravelExpense(ColoredValueMixin, BaseModel):
             self.month = date(self.month.year, self.month.month, 1)
 
         super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        """Prevent deletion if status is CALCULATED."""
+        if self.status == self.TravelExpenseStatus.CALCULATED:
+            raise ValidationError(
+                _("Cannot delete travel expense that has been calculated. Status: %(status)s")
+                % {"status": self.get_status_display()}
+            )
+        return super().delete(*args, **kwargs)
 
         # Generate permanent code after save (when we have an id)
         if self.code.startswith("TEMP_"):

@@ -94,6 +94,12 @@ class DepartmentKPIAssessment(BaseModel):
         help_text="Number of employees by grade: {'A': 2, 'B': 5, 'C': 10, 'D': 1}",
     )
 
+    manager_grade_distribution = models.JSONField(
+        default=dict,
+        verbose_name="Manager grade distribution",
+        help_text="Number of employees by manager grade: {'A': 2, 'B': 5, 'C': 10, 'D': 1}",
+    )
+
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
@@ -146,6 +152,7 @@ class DepartmentKPIAssessment(BaseModel):
 
         # Count employees by grade (priority: hrm_grade > manager_grade)
         distribution = {"A": 0, "B": 0, "C": 0, "D": 0}
+        manager_distribution = {"A": 0, "B": 0, "C": 0, "D": 0}
 
         employees = EmployeeKPIAssessment.objects.filter(period=self.period, department_snapshot=self.department)
 
@@ -154,5 +161,9 @@ class DepartmentKPIAssessment(BaseModel):
             if grade in distribution:
                 distribution[grade] += 1
 
+            if emp_assessment.grade_manager in manager_distribution:
+                manager_distribution[emp_assessment.grade_manager] += 1
+
         self.grade_distribution = distribution
-        self.save(update_fields=["grade_distribution"])
+        self.manager_grade_distribution = manager_distribution
+        self.save(update_fields=["grade_distribution", "manager_grade_distribution"])
