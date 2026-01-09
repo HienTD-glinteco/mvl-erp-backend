@@ -611,7 +611,7 @@ class TestMyTeamKPIAssessmentViewSet(APITestMixin):
             )
 
         url = reverse("payroll-mobile:my-team-kpi-assessment-current")
-        
+
         # Test page_size=1
         response = self.client.get(url, {"page_size": 1})
         assert response.status_code == status.HTTP_200_OK
@@ -619,12 +619,12 @@ class TestMyTeamKPIAssessmentViewSet(APITestMixin):
         assert len(data["results"]) == 1, f"Expected 1 result with page_size=1, got {len(data['results'])}"
         assert data["count"] == 5
         assert data["next"] is not None
-        
+
         # Test page_size=2
         response = self.client.get(url, {"page_size": 2})
         data = response.json()["data"]
         assert len(data["results"]) == 2, f"Expected 2 results with page_size=2, got {len(data['results'])}"
-        
+
         # Test page_size=10 (should return all 5)
         response = self.client.get(url, {"page_size": 10})
         data = response.json()["data"]
