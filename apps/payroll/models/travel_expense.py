@@ -2,6 +2,7 @@ import uuid
 from datetime import date
 
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
 from django.db import models
 from django.utils.translation import gettext_lazy as _
@@ -162,6 +163,15 @@ class TravelExpense(ColoredValueMixin, BaseModel):
         if self.code.startswith("TEMP_"):
             self.code = generate_travel_expense_code(self)
             super().save(update_fields=["code"])
+
+    def delete(self, *args, **kwargs):
+        """Prevent deletion if status is CALCULATED."""
+        if self.status == self.TravelExpenseStatus.CALCULATED:
+            raise ValidationError(
+                _("Cannot delete travel expense that has been calculated. Status: %(status)s")
+                % {"status": self.get_status_display()}
+            )
+        return super().delete(*args, **kwargs)
 
     def reset_status_to_not_calculated(self):
         """Reset status to NOT_CALCULATED (used when editing)."""

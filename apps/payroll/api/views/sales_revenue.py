@@ -9,7 +9,7 @@ from rest_framework.response import Response
 from apps.audit_logging.api.mixins import AuditLoggingMixin
 from apps.imports.api.mixins import AsyncImportProgressMixin
 from apps.payroll.api.filtersets import SalesRevenueFilterSet
-from apps.payroll.api.serializers import SalesRevenueSerializer
+from apps.payroll.api.serializers import SalesRevenueExportSerializer, SalesRevenueSerializer
 from apps.payroll.models import SalesRevenue
 from libs import BaseModelViewSet
 from libs.drf.filtersets.search import PhraseSearchFilter
@@ -480,14 +480,14 @@ class SalesRevenueViewSet(AsyncImportProgressMixin, ExportXLSXMixin, AuditLoggin
             )
 
     def get_export_data(self, request):
-        """Custom export data for SalesRevenue."""
+        """Custom export data for SalesRevenue with flattened nested objects."""
         queryset = self.filter_queryset(self.get_queryset())
-        serializer = self.get_serializer(queryset, many=True)
+        serializer = SalesRevenueExportSerializer(queryset, many=True)
 
         return {
             "sheets": [
                 {
-                    "name": str(queryset.model._meta.verbose_name),
+                    "name": "Sales Revenues",
                     "headers": [str(field.label) for field in serializer.child.fields.values()],
                     "field_names": [str(key) for key in serializer.child.fields.keys()],
                     "data": serializer.data,

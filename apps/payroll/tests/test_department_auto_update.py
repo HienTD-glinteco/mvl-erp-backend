@@ -188,12 +188,12 @@ class TestDepartmentAssessmentAutoUpdate:
         assert self.dept_assessment.is_valid_unit_control is True
 
     def test_prefers_hrm_grade_over_manager_grade(self):
-        """Test that HRM grade is used for validation if both exist (priority: hrm > manager)."""
+        """Test that manager_grade is used for unit control validation (not HRM grade)."""
         # Give 3 employees grade_hrm = C, but grade_manager = A
-        # HRM grade should be used (C is valid at 60%)
+        # Manager grade (A) will be used for validation, causing violation
         for i in range(3):
-            self.emp_assessments[i].grade_manager = "A"  # This should be IGNORED
-            self.emp_assessments[i].grade_hrm = "C"  # This should be USED
+            self.emp_assessments[i].grade_manager = "A"  # 60% A violates max 20%
+            self.emp_assessments[i].grade_hrm = "C"  # This is for grade_distribution only
             self.emp_assessments[i].save()
 
         # Give rest grade C
@@ -202,11 +202,12 @@ class TestDepartmentAssessmentAutoUpdate:
             self.emp_assessments[i].grade_hrm = "C"
             self.emp_assessments[i].save()
 
-        # Should be VALID based on grade_hrm (all 5 employees have C grade)
-        # grade_distribution should be: {"A": 0, "B": 0, "C": 5, "D": 0}
+        # Should be INVALID based on manager_grade_counts (60% A > 20% max)
+        # grade_distribution uses hrm priority: {"A": 0, "B": 0, "C": 5, "D": 0}
+        # manager_grade_distribution: {"A": 3, "B": 0, "C": 2, "D": 0}
         self.dept_assessment.refresh_from_db()
         assert self.dept_assessment.is_finished is True
-        assert self.dept_assessment.is_valid_unit_control is True
+        assert self.dept_assessment.is_valid_unit_control is False  # Changed from True
         assert self.dept_assessment.grade_distribution == {"A": 0, "B": 0, "C": 5, "D": 0}
 
     def test_uses_manager_grade_when_hrm_grade_not_set(self):

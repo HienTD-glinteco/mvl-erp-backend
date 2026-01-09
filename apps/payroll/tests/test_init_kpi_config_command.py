@@ -86,7 +86,7 @@ class InitKPIConfigCommandTest(TestCase):
 
         # Validate grade_thresholds
         self.assertIn("grade_thresholds", config)
-        self.assertEqual(len(config["grade_thresholds"]), 4)
+        self.assertEqual(len(config["grade_thresholds"]), 5)
 
         # Each threshold should have required fields
         for threshold in config["grade_thresholds"]:

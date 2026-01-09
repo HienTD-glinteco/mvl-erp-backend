@@ -49,6 +49,7 @@ class DepartmentKPIAssessmentSerializer(serializers.ModelSerializer):
             "finalized",
             "note",
             "grade_distribution",
+            "manager_grade_distribution",
             "created_by",
             "updated_by",
             "created_at",
@@ -63,6 +64,7 @@ class DepartmentKPIAssessmentSerializer(serializers.ModelSerializer):
             "assigned_by",
             "assigned_at",
             "grade_distribution",
+            "manager_grade_distribution",
             "created_by",
             "updated_by",
             "created_at",
@@ -74,6 +76,8 @@ class DepartmentKPIAssessmentSerializer(serializers.ModelSerializer):
         data = super().to_representation(instance)
         if not data.get("grade_distribution"):
             data["grade_distribution"] = {"A": 0, "B": 0, "C": 0, "D": 0}
+        if not data.get("manager_grade_distribution"):
+            data["manager_grade_distribution"] = {"A": 0, "B": 0, "C": 0, "D": 0}
         return data
 
     def validate(self, data):
@@ -127,6 +131,7 @@ class DepartmentKPIAssessmentListSerializer(serializers.ModelSerializer):
             "leader",
             "grade",
             "grade_distribution",
+            "manager_grade_distribution",
             "note",
             "finalized",
             "is_valid_unit_control",
@@ -140,6 +145,8 @@ class DepartmentKPIAssessmentListSerializer(serializers.ModelSerializer):
         data = super().to_representation(instance)
         if not data.get("grade_distribution"):
             data["grade_distribution"] = {"A": 0, "B": 0, "C": 0, "D": 0}
+        if not data.get("manager_grade_distribution"):
+            data["manager_grade_distribution"] = {"A": 0, "B": 0, "C": 0, "D": 0}
         return data
 
 
@@ -148,8 +155,8 @@ class DepartmentKPIAssessmentUpdateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = DepartmentKPIAssessment
-        fields = ["grade", "note", "grade_distribution"]
-        read_only_fields = ["grade_distribution"]
+        fields = ["grade", "note", "grade_distribution", "manager_grade_distribution"]
+        read_only_fields = ["grade_distribution", "manager_grade_distribution"]
 
     def validate_grade(self, value):
         """Validate grade is one of A/B/C/D."""
@@ -162,6 +169,8 @@ class DepartmentKPIAssessmentUpdateSerializer(serializers.ModelSerializer):
         data = super().to_representation(instance)
         if not data.get("grade_distribution"):
             data["grade_distribution"] = {"A": 0, "B": 0, "C": 0, "D": 0}
+        if not data.get("manager_grade_distribution"):
+            data["manager_grade_distribution"] = {"A": 0, "B": 0, "C": 0, "D": 0}
         return data
 
     def update(self, instance, validated_data):

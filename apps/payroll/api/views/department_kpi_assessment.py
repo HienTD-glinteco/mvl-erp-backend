@@ -55,6 +55,12 @@ from libs.drf.filtersets.search import PhraseSearchFilter
                                     "C": 10,
                                     "D": 1,
                                 },
+                                "manager_grade_distribution": {
+                                    "A": 1,
+                                    "B": 6,
+                                    "C": 9,
+                                    "D": 2,
+                                },
                                 "is_valid_unit_control": True,
                                 "employee_count": 18,
                                 "finalized": False,

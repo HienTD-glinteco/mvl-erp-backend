@@ -55,7 +55,7 @@ from .salary_period import (
     SalaryPeriodUpdateDeadlinesSerializer,
     TaskStatusSerializer,
 )
-from .sales_revenue import SalesRevenueSerializer
+from .sales_revenue import SalesRevenueExportSerializer, SalesRevenueSerializer
 from .sales_revenue_report import (
     SalesRevenueReportChartDataItemSerializer,
     SalesRevenueReportChartResponseSerializer,
@@ -102,6 +102,7 @@ __all__ = [
     "TravelExpenseSerializer",
     "RecoveryVoucherSerializer",
     "SalesRevenueSerializer",
+    "SalesRevenueExportSerializer",
     "SalesRevenueReportListItemSerializer",
     "SalesRevenueReportFieldValueSerializer",
     "SalesRevenueReportChartDataItemSerializer",

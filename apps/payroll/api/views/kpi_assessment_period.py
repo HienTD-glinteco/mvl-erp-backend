@@ -508,9 +508,25 @@ class KPIAssessmentPeriodViewSet(BaseReadOnlyModelViewSet):
 
         total_departments = department_assessments.count()
 
-        # Count using the new fields
-        departments_finished = department_assessments.filter(is_finished=True).count()
-        departments_not_finished = department_assessments.filter(is_finished=False).count()
+        # Count departments with at least one employee assessed by manager
+        departments_with_manager_assessment = set()
+        departments_without_manager_assessment = set()
+
+        for dept_assessment in department_assessments:
+            # Check if at least one employee in this department has grade_manager
+            has_manager_grade = EmployeeKPIAssessment.objects.filter(
+                period=period,
+                department_snapshot=dept_assessment.department,
+                grade_manager__isnull=False,
+            ).exists()
+
+            if has_manager_grade:
+                departments_with_manager_assessment.add(dept_assessment.id)
+            else:
+                departments_without_manager_assessment.add(dept_assessment.id)
+
+        departments_finished = len(departments_with_manager_assessment)
+        departments_not_finished = len(departments_without_manager_assessment)
         departments_not_valid_control = department_assessments.filter(is_valid_unit_control=False).count()
 
         return Response(

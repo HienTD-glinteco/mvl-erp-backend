@@ -155,3 +155,67 @@ class SalesRevenueSerializer(serializers.ModelSerializer):
         """Override update to reset status to NOT_CALCULATED."""
         validated_data["status"] = SalesRevenue.SalesRevenueStatus.NOT_CALCULATED
         return super().update(instance, validated_data)
+
+
+class SalesRevenueExportSerializer(serializers.ModelSerializer):
+    """Serializer for SalesRevenue XLSX export with flattened nested objects."""
+
+    employee_code = serializers.SerializerMethodField(label="Employee Code")
+    employee_name = serializers.SerializerMethodField(label="Employee Name")
+    block_name = serializers.SerializerMethodField(label="Block")
+    branch_name = serializers.SerializerMethodField(label="Branch")
+    department_name = serializers.SerializerMethodField(label="Department")
+    position_name = serializers.SerializerMethodField(label="Position")
+    status_display = serializers.CharField(source="get_status_display", read_only=True, label="Status")
+
+    def get_employee_code(self, obj):
+        """Get employee code, handling None."""
+        return obj.employee.code if obj.employee else None
+
+    def get_employee_name(self, obj):
+        """Get employee name, handling None."""
+        return obj.employee.fullname if obj.employee else None
+
+    def get_block_name(self, obj):
+        """Get block name, handling None."""
+        return obj.employee.block.name if obj.employee and obj.employee.block else None
+
+    def get_branch_name(self, obj):
+        """Get branch name, handling None."""
+        return obj.employee.branch.name if obj.employee and obj.employee.branch else None
+
+    def get_department_name(self, obj):
+        """Get department name, handling None."""
+        return obj.employee.department.name if obj.employee and obj.employee.department else None
+
+    def get_position_name(self, obj):
+        """Get position name, handling None."""
+        return obj.employee.position.name if obj.employee and obj.employee.position else None
+
+    class Meta:
+        model = SalesRevenue
+        fields = [
+            "code",
+            "employee_code",
+            "employee_name",
+            "block_name",
+            "branch_name",
+            "department_name",
+            "position_name",
+            "kpi_target",
+            "revenue",
+            "transaction_count",
+            "month",
+            "status_display",
+            "created_at",
+            "updated_at",
+        ]
+
+    def to_representation(self, instance):
+        """Convert date month back to MM/YYYY format for output."""
+        data = super().to_representation(instance)
+
+        if instance.month:
+            data["month"] = f"{instance.month.month:02d}/{instance.month.year}"
+
+        return data

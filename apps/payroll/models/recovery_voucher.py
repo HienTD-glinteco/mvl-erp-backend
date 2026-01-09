@@ -120,3 +120,12 @@ class RecoveryVoucher(ColoredValueMixin, AutoCodeMixin, BaseModel):
 
         self.clean()
         super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        """Prevent deletion if status is CALCULATED."""
+        if self.status == self.RecoveryVoucherStatus.CALCULATED:
+            raise ValidationError(
+                _("Cannot delete recovery voucher that has been calculated. Status: %(status)s")
+                % {"status": self.get_status_display()}
+            )
+        return super().delete(*args, **kwargs)

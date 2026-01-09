@@ -7,27 +7,34 @@
       "min": 0,
       "max": 60,
       "possible_codes": ["D"],
-      "label": "Poor"
+      "label": "Yếu (không hoàn thành)"
     },
     {
       "min": 60,
       "max": 70,
       "possible_codes": ["C", "D"],
       "default_code": "C",
-      "label": "Average or Poor"
+      "label": "Trung bình (cần cố gắng)"
     },
     {
       "min": 70,
       "max": 90,
       "possible_codes": ["B", "C"],
       "default_code": "B",
-      "label": "Good or Average"
+      "label": "Khá (hoàn thành)"
+    },
+    {
+      "min": 90,
+      "max": 100,
+      "possible_codes": ["A", "B"],
+      "default_code": "A",
+      "label": "Tốt"
     },
     {
       "min": 90,
       "max": 110,
       "possible_codes": ["A"],
-      "label": "Excellent"
+      "label": "Xuất sắc"
     }
   ],
   "unit_control": {

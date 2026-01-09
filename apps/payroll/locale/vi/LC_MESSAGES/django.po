@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-09 02:08+0700\n"
+"POT-Creation-Date: 2026-01-09 14:46+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,16 +18,16 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
-#: apps/payroll/api/serializers/department_kpi_assessment.py:91
+#: apps/payroll/api/serializers/department_kpi_assessment.py:95
 msgid "An assessment for this department and period already exists"
 msgstr "Một đánh giá cho phòng ban và kỳ này đã tồn tại"
 
-#: apps/payroll/api/serializers/department_kpi_assessment.py:96
-#: apps/payroll/api/serializers/department_kpi_assessment.py:157
+#: apps/payroll/api/serializers/department_kpi_assessment.py:100
+#: apps/payroll/api/serializers/department_kpi_assessment.py:164
 msgid "Grade must be one of: A, B, C, D"
 msgstr "Xếp loại phải là một trong các giá trị: A, B, C, D"
 
-#: apps/payroll/api/serializers/department_kpi_assessment.py:103
+#: apps/payroll/api/serializers/department_kpi_assessment.py:107
 msgid "Only grade and note can be updated for finalized assessments"
 msgstr "Chỉ có thể cập nhật xếp loại và ghi chú cho các đánh giá đã hoàn tất"
 
@@ -609,10 +609,10 @@ msgid "Total Employees"
 msgstr "Tổng số nhân viên"
 
 #: apps/payroll/api/views/sales_revenue_report.py:214
-#: apps/payroll/models/penalty_ticket.py:55
+#: apps/payroll/models/penalty_ticket.py:56
 #: apps/payroll/models/recovery_voucher.py:65
 #: apps/payroll/models/salary_period.py:69
-#: apps/payroll/models/travel_expense.py:104
+#: apps/payroll/models/travel_expense.py:105
 msgid "Month"
 msgstr "Tháng"
 
@@ -727,7 +727,7 @@ msgstr "Đã giao"
 
 #: apps/payroll/models/payroll_slip.py:69
 #: apps/payroll/models/salary_period.py:65
-#: apps/payroll/models/travel_expense.py:94
+#: apps/payroll/models/travel_expense.py:95
 msgid "Code"
 msgstr "Mã"
 
@@ -738,18 +738,18 @@ msgstr "Kỳ lương"
 
 #: apps/payroll/models/payroll_slip.py:76
 #: apps/payroll/models/recovery_voucher.py:60
-#: apps/payroll/models/travel_expense.py:101
+#: apps/payroll/models/travel_expense.py:102
 msgid "Employee"
 msgstr "Nhân viên"
 
 #: apps/payroll/models/payroll_slip.py:80
-#: apps/payroll/models/penalty_ticket.py:42
+#: apps/payroll/models/penalty_ticket.py:43
 #: apps/payroll/models/recovery_voucher.py:62
 msgid "Employee Code"
 msgstr "Mã nhân viên"
 
 #: apps/payroll/models/payroll_slip.py:81
-#: apps/payroll/models/penalty_ticket.py:43
+#: apps/payroll/models/penalty_ticket.py:44
 #: apps/payroll/models/recovery_voucher.py:63
 msgid "Employee Name"
 msgstr "Tên nhân viên"
@@ -988,10 +988,10 @@ msgid "Net Salary"
 msgstr "Lương thực lĩnh (NET)"
 
 #: apps/payroll/models/payroll_slip.py:289
-#: apps/payroll/models/penalty_ticket.py:60
+#: apps/payroll/models/penalty_ticket.py:61
 #: apps/payroll/models/recovery_voucher.py:70
 #: apps/payroll/models/salary_period.py:81
-#: apps/payroll/models/travel_expense.py:111
+#: apps/payroll/models/travel_expense.py:112
 msgid "Status"
 msgstr "Trạng thái"
 
@@ -1043,66 +1043,73 @@ msgstr "Phiếu lương"
 msgid "Payroll Slips"
 msgstr "Các phiếu lương"
 
-#: apps/payroll/models/penalty_ticket.py:21
+#: apps/payroll/models/penalty_ticket.py:22
 msgctxt "PenaltyTicket Status"
 msgid "Paid"
 msgstr "Đã nộp phạt"
 
-#: apps/payroll/models/penalty_ticket.py:22
+#: apps/payroll/models/penalty_ticket.py:23
 msgctxt "PenaltyTicket Status"
 msgid "Unpaid"
 msgstr "Chưa nộp phạt"
 
-#: apps/payroll/models/penalty_ticket.py:27
+#: apps/payroll/models/penalty_ticket.py:28
 msgid "Violation under 10 minutes"
 msgstr "Vi phạm dưới 10 phút"
 
-#: apps/payroll/models/penalty_ticket.py:28
+#: apps/payroll/models/penalty_ticket.py:29
 msgid "Violation over 10 minutes"
 msgstr "Vi phạm trên 10 phút"
 
-#: apps/payroll/models/penalty_ticket.py:29
+#: apps/payroll/models/penalty_ticket.py:30
 msgid "Absent without reason"
 msgstr "Vắng mặt không lý do"
 
-#: apps/payroll/models/penalty_ticket.py:30
+#: apps/payroll/models/penalty_ticket.py:31
 msgid "Uniform error"
 msgstr "Lỗi đồng phục"
 
-#: apps/payroll/models/penalty_ticket.py:31
+#: apps/payroll/models/penalty_ticket.py:32
 msgid "Other violation"
 msgstr "Vi phạm khác"
 
-#: apps/payroll/models/penalty_ticket.py:46
+#: apps/payroll/models/penalty_ticket.py:47
 msgid "Violation Count"
 msgstr "Số lần vi phạm"
 
-#: apps/payroll/models/penalty_ticket.py:51
+#: apps/payroll/models/penalty_ticket.py:52
 msgid "Violation Type"
 msgstr "Loại vi phạm"
 
-#: apps/payroll/models/penalty_ticket.py:54
-#: apps/payroll/models/travel_expense.py:103
+#: apps/payroll/models/penalty_ticket.py:55
+#: apps/payroll/models/travel_expense.py:104
 msgid "Amount"
 msgstr "Số tiền"
 
-#: apps/payroll/models/penalty_ticket.py:63
+#: apps/payroll/models/penalty_ticket.py:64
 msgid "Payment Date"
 msgstr "Ngày nộp tiền"
 
-#: apps/payroll/models/penalty_ticket.py:64
+#: apps/payroll/models/penalty_ticket.py:65
 #: apps/payroll/models/recovery_voucher.py:72
-#: apps/payroll/models/travel_expense.py:113
+#: apps/payroll/models/travel_expense.py:114
 msgid "Note"
 msgstr "Ghi chú"
 
-#: apps/payroll/models/penalty_ticket.py:92
+#: apps/payroll/models/penalty_ticket.py:93
 msgid "Penalty Ticket"
 msgstr "Phiếu phạt"
 
-#: apps/payroll/models/penalty_ticket.py:93
+#: apps/payroll/models/penalty_ticket.py:94
 msgid "Penalty Tickets"
 msgstr "Các phiếu phạt"
+
+#: apps/payroll/models/penalty_ticket.py:111
+#, python-format
+msgid ""
+"Cannot delete penalty ticket that has been paid/calculated. Status: "
+"%(status)s"
+msgstr ""
 
 #: apps/payroll/models/recovery_voucher.py:35
 msgid "Recovery"
@@ -1143,6 +1150,12 @@ msgstr "Phiếu truy thu/truy lĩnh"
 #: apps/payroll/models/recovery_voucher.py:90
 msgid "Recovery Vouchers"
 msgstr "Các phiếu truy thu/truy lĩnh"
+
+#: apps/payroll/models/recovery_voucher.py:128
+#, python-format
+msgid ""
+"Cannot delete recovery voucher that has been calculated. Status: %(status)s"
+msgstr ""
 
 #: apps/payroll/models/salary_period.py:52
 msgid "Ongoing"
@@ -1296,33 +1309,40 @@ msgstr "Tổng doanh thu / Tổng số nhân viên kinh doanh"
 msgid "Sales Revenue Report"
 msgstr "Báo cáo doanh thu bán hàng"
 
-#: apps/payroll/models/travel_expense.py:95
+#: apps/payroll/models/travel_expense.py:96
 msgid "Expense name"
 msgstr "Tên chi phí"
 
-#: apps/payroll/models/travel_expense.py:96
+#: apps/payroll/models/travel_expense.py:97
 msgid "Expense type"
 msgstr "Loại chi phí"
 
-#: apps/payroll/models/travel_expense.py:104
+#: apps/payroll/models/travel_expense.py:105
 msgid "First day of the expense month"
 msgstr "Kỳ phát sinh chi phí"
 
-#: apps/payroll/models/travel_expense.py:120
+#: apps/payroll/models/travel_expense.py:121
 msgid "Created by"
 msgstr "Người tạo"
 
-#: apps/payroll/models/travel_expense.py:128
+#: apps/payroll/models/travel_expense.py:129
 msgid "Updated by"
 msgstr "Người cập nhật"
 
-#: apps/payroll/models/travel_expense.py:132
+#: apps/payroll/models/travel_expense.py:133
 msgid "Travel Expense"
 msgstr "Công tác phí"
 
-#: apps/payroll/models/travel_expense.py:133
+#: apps/payroll/models/travel_expense.py:134
 msgid "Travel Expenses"
 msgstr "Các công tác phí"
+
+#: apps/payroll/models/travel_expense.py:171
+#, fuzzy, python-format
+#| msgid "Cannot delete travel expense for a month with existing payroll."
+msgid ""
+"Cannot delete travel expense that has been calculated. Status: %(status)s"
+msgstr "Không thể xóa công tác phí cho một tháng đã có bảng lương."
 
 #: apps/payroll/signals/deadline_validation.py:116
 #, python-format
