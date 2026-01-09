@@ -1,8 +1,8 @@
 # F-String with gettext_lazy Causes Unstable Translation Messages
 
-**Created**: 2026-01-07  
-**Priority**: Medium  
-**Status**: Open  
+**Created**: 2026-01-07
+**Priority**: Medium
+**Status**: Open
 **Affects**: `makemessages` / `pre-commit` / Translation workflow
 
 ---

@@ -56,6 +56,7 @@ class TestAuthentication:
         assert not envelope["success"]
         errors = envelope["error"].get("errors", [])
         assert any("Incorrect password" in str(err.get("detail")) for err in errors)
+        assert any(err.get("attr") == "password" for err in errors)
 
     def test_login_with_nonexistent_user(self):
         data = {"username": "NONEXISTENT", "password": "testpass123", "device_id": "web-device-1"}
@@ -66,6 +67,7 @@ class TestAuthentication:
         assert not envelope["success"]
         errors = envelope["error"].get("errors", [])
         assert any("Username does not exist" in str(err.get("detail")) for err in errors)
+        assert any(err.get("attr") == "username" for err in errors)
 
     @patch("apps.core.api.views.auth.login.LoginView.throttle_classes", new=[])
     def test_account_lockout_after_failed_attempts(self):
@@ -80,7 +82,9 @@ class TestAuthentication:
         envelope = response.json()
         assert not envelope["success"]
         errors = envelope["error"].get("errors", [])
+        # verify lockout error
         assert any("locked" in str(err.get("detail")).lower() for err in errors)
+        assert any(err.get("attr") == "username" for err in errors)
 
     @patch("apps.core.api.views.auth.password_reset.PasswordResetView.throttle_classes", new=[])
     @patch("apps.core.tasks.send_password_reset_email_task.delay")
@@ -201,6 +205,7 @@ class TestAuthentication:
         assert not envelope["success"]
         errors = envelope["error"].get("errors", [])
         assert any("deactivated" in str(err.get("detail")).lower() for err in errors)
+        assert any(err.get("attr") == "username" for err in errors)
 
     def test_empty_credentials(self):
         """Test login with empty credentials"""
@@ -495,3 +500,75 @@ class TestAuthentication:
         client.credentials(HTTP_AUTHORIZATION=f"Bearer {access}")
         resp2 = client.get(self.mobile_me_url, format="json")
         assert resp2.status_code == status.HTTP_401_UNAUTHORIZED
+
+
+@pytest.mark.django_db
+class TestPasswordChangeValidation:
+    """Test validation errors for password change endpoint"""
+
+    def setup_method(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(
+            username="testuser_pwd_val",
+            email="test_pwd_val@example.com",
+            password="OldPassword123!",
+        )
+        self.client.force_authenticate(user=self.user)
+        self.url = reverse("core:change_password")
+
+    def test_change_password_mismatch_confirm(self):
+        """Test that password mismatch error is associated with confirm_password"""
+        data = {
+            "old_password": "OldPassword123!",
+            "new_password": "NewPassword123!",
+            "confirm_password": "DifferentPassword123!",
+        }
+        response = self.client.post(self.url, data, format="json")
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        envelope = response.json()
+        assert not envelope["success"]
+
+        # View returns serializer.errors directly, wrapped by middleware in 'error'
+        # Since PasswordChangeView returns Response(serializer.errors), the structure
+        # is likely {"success": False, "error": {"confirm_password": [...]}}
+        errors = envelope["error"]
+
+        # Verify field attribution
+        assert "confirm_password" in errors
+        # Verify message content roughly
+        assert "match" in str(errors["confirm_password"])
+
+    def test_change_password_same_as_old(self):
+        """Test that new password same as old error is associated with new_password"""
+        data = {
+            "old_password": "OldPassword123!",
+            "new_password": "OldPassword123!",
+            "confirm_password": "OldPassword123!",
+        }
+        response = self.client.post(self.url, data, format="json")
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        envelope = response.json()
+        errors = envelope["error"]
+
+        # Verify field attribution
+        assert "new_password" in errors
+        assert "different" in str(errors["new_password"])
+
+    def test_change_password_incorrect_old(self):
+        """Test that incorrect old password error is associated with old_password"""
+        data = {
+            "old_password": "WrongPassword123!",
+            "new_password": "NewPassword123!",
+            "confirm_password": "NewPassword123!",
+        }
+        response = self.client.post(self.url, data, format="json")
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        envelope = response.json()
+        errors = envelope["error"]
+
+        # Verify field attribution
+        assert "old_password" in errors
+        assert "incorrect" in str(errors["old_password"]).lower()

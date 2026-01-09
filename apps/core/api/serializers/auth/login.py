@@ -89,30 +89,37 @@ class LoginSerializer(serializers.Serializer):
         try:
             user = User.objects.get(username=username)
         except User.DoesNotExist:
-            raise serializers.ValidationError(_("Username does not exist."))
+            raise serializers.ValidationError({"username": _("Username does not exist.")})
 
         if user.is_locked:
             remaining_time = (user.locked_until - timezone.now()).seconds // 60
             raise serializers.ValidationError(
-                _("Account is locked. Please try again in %(minutes)d minutes.") % {"minutes": remaining_time}
+                {
+                    "username": _("Account is locked. Please try again in %(minutes)d minutes.")
+                    % {"minutes": remaining_time}
+                }
             )
 
         if not user.is_active:
-            raise serializers.ValidationError(_("Account has been deactivated."))
+            raise serializers.ValidationError({"username": _("Account has been deactivated.")})
 
         if not user.check_password(password):
             user.increment_failed_login()
             if user.is_locked:
                 logger.warning("Account locked for user %s after failed login attempts", username)
                 raise serializers.ValidationError(
-                    _("Account has been locked due to 5 failed login attempts. Please try again in 5 minutes.")
+                    {
+                        "password": _(
+                            "Account has been locked due to 5 failed login attempts. Please try again in 5 minutes."
+                        )
+                    }
                 )
             logger.warning("Failed login attempt for user %s", username)
-            raise serializers.ValidationError(_("Incorrect password."))
+            raise serializers.ValidationError({"password": _("Incorrect password.")})
 
         if client == UserDevice.Client.MOBILE:
             if not device_id:
-                raise serializers.ValidationError(_("Device ID is required for mobile login."))
+                raise serializers.ValidationError({"device_id": _("Device ID is required for mobile login.")})
             device_taken = (
                 UserDevice.objects.filter(
                     client=UserDevice.Client.MOBILE,
@@ -123,7 +130,9 @@ class LoginSerializer(serializers.Serializer):
                 .first()
             )
             if device_taken is not None:
-                raise serializers.ValidationError(_("This device is already registered to another user."))
+                raise serializers.ValidationError(
+                    {"device_id": _("This device is already registered to another user.")}
+                )
 
             active_device = UserDevice.objects.filter(
                 user=user,

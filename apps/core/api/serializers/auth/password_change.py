@@ -67,12 +67,17 @@ class PasswordChangeSerializer(serializers.Serializer):
         confirm_password = attrs.get("confirm_password")
 
         # Check if passwords match
+        # Check if passwords match
         if new_password != confirm_password:
-            raise serializers.ValidationError(_("New password and confirmation password do not match."))
+            raise serializers.ValidationError(
+                {"confirm_password": _("New password and confirmation password do not match.")}
+            )
 
         # Check if new password is different from old password
         if old_password == new_password:
-            raise serializers.ValidationError(_("New password must be different from current password."))
+            raise serializers.ValidationError(
+                {"new_password": _("New password must be different from current password.")}
+            )
 
         # Get user from request context (must be authenticated)
         request = self.context.get("request")
@@ -83,7 +88,7 @@ class PasswordChangeSerializer(serializers.Serializer):
 
         # Verify old password
         if not user.check_password(old_password):
-            raise serializers.ValidationError(_("Current password is incorrect."))
+            raise serializers.ValidationError({"old_password": _("Current password is incorrect.")})
 
         attrs["user"] = user
         return attrs
