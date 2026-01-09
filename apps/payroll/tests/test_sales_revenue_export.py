@@ -142,7 +142,18 @@ class SalesRevenueExportAPITest(TestCase):
         """Test that export endpoint returns successful response."""
         response = self.client.get("/api/payroll/sales-revenues/export/")
 
+        # Debug: print response details if it fails
+        if response.status_code == 500:
+            print("\n=== EXPORT FAILED WITH 500 ===")
+            print(f"Response content: {response.content.decode()}")
+            if hasattr(response, "data"):
+                print(f"Response data: {response.data}")
+
         # Should not return 500 error
-        self.assertNotEqual(response.status_code, 500)
+        self.assertNotEqual(
+            response.status_code,
+            500,
+            f"Export returned 500 error. Content: {response.content.decode() if response.status_code == 500 else 'N/A'}",
+        )
         # Should return either 200 (direct download) or link
         self.assertIn(response.status_code, [200, 201, 202])
