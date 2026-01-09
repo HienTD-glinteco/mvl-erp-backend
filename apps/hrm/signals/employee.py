@@ -138,8 +138,17 @@ def create_employee_type_change_work_history(sender, instance: Employee, created
 
 @receiver(post_save, sender=Employee)
 def expire_contracts_on_employee_exit(sender, instance: Employee, created, **kwargs):
-    """Expire all contracts when an employee leaves or becomes unpaid official."""
+    """
+    Expire all contracts when an employee leaves or becomes unpaid official.
+
+    Update the status of all contracts to `EXPIRED`.
+    For the active one only, save the `expiration_date` with `resignation_start_date`.
+    """
     if instance.status != Employee.Status.RESIGNED and instance.employee_type != EmployeeType.UNPAID_OFFICIAL:
         return
 
-    Contract.objects.filter(employee=instance).update(status=Contract.ContractStatus.EXPIRED)
+    base_qs = Contract.objects.filter(employee=instance)
+    base_qs.filter(status=Contract.ContractStatus.ACTIVE).update(
+        expiration_date=instance.resignation_start_date,
+    )
+    base_qs.update(status=Contract.ContractStatus.EXPIRED)

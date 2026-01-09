@@ -127,7 +127,9 @@ def test_contracts_expire_when_employee_resigns(employee, contract_type):
     contract_two.refresh_from_db()
 
     assert contract_one.status == Contract.ContractStatus.EXPIRED
+    assert contract_one.expiration_date == today + timedelta(days=180)
     assert contract_two.status == Contract.ContractStatus.EXPIRED
+    assert contract_two.expiration_date == employee.resignation_start_date
 
 
 @pytest.mark.django_db
@@ -150,6 +152,7 @@ def test_contracts_expire_when_employee_type_becomes_unpaid_official(employee, c
     contract.refresh_from_db()
 
     assert contract.status == Contract.ContractStatus.EXPIRED
+    assert contract.expiration_date is None
 
 
 @pytest.mark.django_db
