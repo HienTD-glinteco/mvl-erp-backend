@@ -338,16 +338,12 @@ class DepartmentSerializer(serializers.ModelSerializer):
 class PositionSerializer(serializers.ModelSerializer):
     """Serializer for Position model"""
 
-    data_scope_display = serializers.CharField(source="get_data_scope_display", read_only=True)
-
     class Meta:
         model = Position
         fields = [
             "id",
             "name",
             "code",
-            "data_scope",
-            "data_scope_display",
             "is_leadership",
             "include_in_employee_report",
             "description",
@@ -355,4 +351,4 @@ class PositionSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
         ]
-        read_only_fields = ["id", "code", "data_scope_display", "is_active", "created_at", "updated_at"]
+        read_only_fields = ["id", "code", "is_active", "created_at", "updated_at"]

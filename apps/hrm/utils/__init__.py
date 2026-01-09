@@ -3,13 +3,7 @@
 # Import existing utility functions from functions module
 # Import new data scope utilities
 from .contract_code import generate_contract_code
-from .data_scope import (
-    AllowedUnits,
-    collect_allowed_units,
-    filter_by_leadership,
-    filter_queryset_by_data_scope,
-)
-from .filters import DataScopeFilterBackend, LeadershipFilterBackend, RoleDataScopeFilterBackend
+from .filters import LeadershipFilterBackend, RoleDataScopeFilterBackend
 from .functions import (
     get_current_month_range,
     get_current_quarter_range,
@@ -46,13 +40,9 @@ __all__ = [
     "get_last_6_months_range",
     "get_week_key_from_date",
     "get_week_label_from_date_range",
-    # Data scope utilities (legacy user-based)
-    "AllowedUnits",
-    "collect_allowed_units",
-    "filter_by_leadership",
-    "filter_queryset_by_data_scope",
-    "DataScopeFilterBackend",
+    # Data scope utilities
     "LeadershipFilterBackend",
+    "RoleDataScopeFilterBackend",
     # Role data scope utilities (new role-based)
     "RoleAllowedUnits",
     "collect_role_allowed_units",
@@ -61,7 +51,6 @@ __all__ = [
     "invalidate_role_units_cache_for_role",
     "get_role_units_cache_key",
     "ROLE_UNITS_CACHE_TIMEOUT",
-    "RoleDataScopeFilterBackend",
     # Validators
     "validate_national_id",
     "validate_phone",

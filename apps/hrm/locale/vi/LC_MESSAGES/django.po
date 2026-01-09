@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-10 00:38+0700\n"
+"POT-Creation-Date: 2026-01-09 11:45+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -381,7 +381,7 @@ msgstr "Loại Hợp Đồng"
 
 #: apps/hrm/api/serializers/employee.py:887 apps/hrm/models/employee.py:211
 #: apps/hrm/models/employee_work_history.py:103
-#: apps/hrm/models/organization.py:314
+#: apps/hrm/models/organization.py:308
 msgid "Position"
 msgstr "Chức Vụ"
 
@@ -655,7 +655,7 @@ msgstr "Không thể sửa ngày lễ trong quá khứ hoặc hiện tại"
 msgid "Cannot create/edit holidays in the past or present"
 msgstr "Không thể tạo/sửa ngày lễ trong quá khứ hoặc hiện tại"
 
-#: apps/hrm/api/serializers/holiday.py:428 apps/hrm/models/holiday.py:79
+#: apps/hrm/api/serializers/holiday.py:442 apps/hrm/models/holiday.py:79
 msgid "Compensatory Workdays"
 msgstr "Ngày làm bù"
 
@@ -694,34 +694,34 @@ msgid "Only the department leader can reject this proposal"
 msgstr ""
 "Chỉ trưởng phòng hoặc người được cấp quyền mới có thể từ chối đề xuất này"
 
-#: apps/hrm/api/serializers/recruitment_candidate.py:35
+#: apps/hrm/api/serializers/recruitment_candidate.py:183
 #, fuzzy
 #| msgid "An employee with this email already exists."
 msgid "Candidate with this phone number already exists."
 msgstr "Nhân viên với email này đã tồn tại."
 
-#: apps/hrm/api/serializers/recruitment_candidate.py:255
+#: apps/hrm/api/serializers/recruitment_candidate.py:246
 msgid "Candidate not found in context."
 msgstr "Không tim thấy ứng viên"
 
-#: apps/hrm/api/serializers/recruitment_candidate.py:260
+#: apps/hrm/api/serializers/recruitment_candidate.py:251
 msgid "Candidate must be in HIRED status to be converted to an employee."
 msgstr ""
 "Ứng viên phải ở trạng thái Đã nhận việc để được chuyển thành nhân viên."
 
-#: apps/hrm/api/serializers/recruitment_candidate.py:266
+#: apps/hrm/api/serializers/recruitment_candidate.py:257
 msgid "This candidate has already been converted to an employee."
 msgstr "Ứng viên này đã được chuyển đổi thành nhân viên."
 
-#: apps/hrm/api/serializers/recruitment_candidate.py:271
+#: apps/hrm/api/serializers/recruitment_candidate.py:262
 msgid "An employee with this email already exists."
 msgstr "Nhân viên với email này đã tồn tại."
 
-#: apps/hrm/api/serializers/recruitment_candidate.py:275
+#: apps/hrm/api/serializers/recruitment_candidate.py:266
 msgid "An employee with this citizen ID already exists."
 msgstr "Nhân viên với số CMND/CCCD này đã tồn tại."
 
-#: apps/hrm/api/serializers/recruitment_candidate.py:318
+#: apps/hrm/api/serializers/recruitment_candidate.py:309
 #, python-brace-format
 msgid "Converted from recruitment candidate {code}"
 msgstr "Ứng viên {code} đã được chuyển đổi thành nhân viên"
@@ -861,11 +861,11 @@ msgid ""
 msgstr "Báo cáo chấm công GPS theo phòng ban"
 
 #: apps/hrm/api/views/attendance_wifi_device.py:288
-#: apps/hrm/api/views/bank.py:102 apps/hrm/api/views/bank_account.py:60
-#: apps/hrm/api/views/contract.py:309
-#: apps/hrm/api/views/contract_appendix.py:268
-#: apps/hrm/api/views/contract_type.py:264 apps/hrm/api/views/decision.py:245
-#: apps/hrm/api/views/employee.py:107
+#: apps/hrm/api/views/bank.py:102 apps/hrm/api/views/bank_account.py:72
+#: apps/hrm/api/views/contract.py:325
+#: apps/hrm/api/views/contract_appendix.py:281
+#: apps/hrm/api/views/contract_type.py:264 apps/hrm/api/views/decision.py:258
+#: apps/hrm/api/views/employee.py:111
 #: apps/hrm/api/views/employee_certificate.py:300
 #: apps/hrm/api/views/employee_dependent.py:271
 #: apps/hrm/api/views/employee_relationship.py:238
@@ -925,27 +925,27 @@ msgstr "Quản lý Hợp Đồng"
 msgid "Publish {model_name}"
 msgstr "Ban hành {model_name}"
 
-#: apps/hrm/api/views/contract.py:318 apps/hrm/api/views/contract.py:319
-#: apps/hrm/api/views/contract_appendix.py:277
-#: apps/hrm/api/views/contract_appendix.py:278
-#: apps/hrm/api/views/employee.py:150 apps/hrm/api/views/employee.py:151
+#: apps/hrm/api/views/contract.py:334 apps/hrm/api/views/contract.py:335
+#: apps/hrm/api/views/contract_appendix.py:290
+#: apps/hrm/api/views/contract_appendix.py:291
+#: apps/hrm/api/views/employee.py:154 apps/hrm/api/views/employee.py:155
 #: apps/hrm/api/views/employee_relationship.py:243
 #: apps/hrm/api/views/employee_relationship.py:244
 #, python-brace-format
 msgid "Download import template for {model_name}"
 msgstr "Tải xuống mẫu import {model_name}"
 
-#: apps/hrm/api/views/contract.py:322
-#: apps/hrm/api/views/contract_appendix.py:281
-#: apps/hrm/api/views/employee.py:154
+#: apps/hrm/api/views/contract.py:338
+#: apps/hrm/api/views/contract_appendix.py:294
+#: apps/hrm/api/views/employee.py:158
 #: apps/hrm/api/views/employee_relationship.py:247
 #, python-brace-format
 msgid "Import {model_name} data"
 msgstr "Import {model_name}"
 
-#: apps/hrm/api/views/contract.py:323
-#: apps/hrm/api/views/contract_appendix.py:282
-#: apps/hrm/api/views/employee.py:155
+#: apps/hrm/api/views/contract.py:339
+#: apps/hrm/api/views/contract_appendix.py:295
+#: apps/hrm/api/views/employee.py:159
 #: apps/hrm/api/views/employee_relationship.py:248
 #, python-brace-format
 msgid "Import {model_name} data asynchronously"
@@ -977,55 +977,55 @@ msgstr "Quản lý Loại Hợp Đồng"
 msgid "Decision Management"
 msgstr "Quản lý Quyết Định"
 
-#: apps/hrm/api/views/employee.py:108
-#: apps/hrm/api/views/employee_dependent.py:261
+#: apps/hrm/api/views/employee.py:112
+#: apps/hrm/api/views/employee_dependent.py:272
 #: apps/hrm/api/views/employee_relationship.py:239
 #: apps/hrm/api/views/employee_role.py:109
 #: apps/hrm/api/views/employee_work_history.py:125
 msgid "Employee Management"
 msgstr "Quản lý Nhân Viên"
 
-#: apps/hrm/api/views/employee.py:114 apps/hrm/api/views/employee.py:115
+#: apps/hrm/api/views/employee.py:118 apps/hrm/api/views/employee.py:119
 msgid "Activate employee"
 msgstr "Chuyển nhân viên sang trạng thái bắt đầu làm việc"
 
-#: apps/hrm/api/views/employee.py:118 apps/hrm/api/views/employee.py:119
+#: apps/hrm/api/views/employee.py:122 apps/hrm/api/views/employee.py:123
 msgid "Reactivate employee"
 msgstr "Chuyển nhân viên quay lại làm việc"
 
-#: apps/hrm/api/views/employee.py:122 apps/hrm/api/views/employee.py:123
+#: apps/hrm/api/views/employee.py:126 apps/hrm/api/views/employee.py:127
 msgid "Resign employee"
 msgstr "Chuyển nhân viên sang trạng thái nghỉ việc"
 
-#: apps/hrm/api/views/employee.py:126 apps/hrm/api/views/employee.py:127
+#: apps/hrm/api/views/employee.py:130 apps/hrm/api/views/employee.py:131
 msgid "Set employee to Maternity Leave"
 msgstr "Chuyển nhân viên nghỉ việc hưởng chế độ thai sản"
 
-#: apps/hrm/api/views/employee.py:130 apps/hrm/api/views/employee.py:131
+#: apps/hrm/api/views/employee.py:134 apps/hrm/api/views/employee.py:135
 msgid "Transfer employee"
 msgstr "Điều chuyển nhân viên"
 
-#: apps/hrm/api/views/employee.py:134 apps/hrm/api/views/employee.py:135
+#: apps/hrm/api/views/employee.py:138 apps/hrm/api/views/employee.py:139
 msgid "Change employee Type"
 msgstr "Thay đổi loại Nhân Viên"
 
-#: apps/hrm/api/views/employee.py:138 apps/hrm/api/views/employee.py:139
+#: apps/hrm/api/views/employee.py:142 apps/hrm/api/views/employee.py:143
 msgid "Update employee Avatar"
 msgstr "Cập nhật Ảnh Đại Diện Nhân Viên"
 
-#: apps/hrm/api/views/employee.py:142 apps/hrm/api/views/employee.py:143
+#: apps/hrm/api/views/employee.py:146 apps/hrm/api/views/employee.py:147
 msgid "Preview welcome email for employee"
 msgstr "Xem trước email chào mừng cho nhân viên"
 
-#: apps/hrm/api/views/employee.py:146 apps/hrm/api/views/employee.py:147
+#: apps/hrm/api/views/employee.py:150 apps/hrm/api/views/employee.py:151
 msgid "Send welcome email to employee"
 msgstr "Gửi email chào mừng đến nhân viên"
 
-#: apps/hrm/api/views/employee.py:158
+#: apps/hrm/api/views/employee.py:162
 msgid "View employee in dropdown list"
 msgstr "Xem danh sách nhân viên cho dạng dropdown"
 
-#: apps/hrm/api/views/employee.py:159
+#: apps/hrm/api/views/employee.py:163
 msgid "List employee for dropdown selection"
 msgstr "Danh sách nhân viên cho dạng dropdown"
 
@@ -1258,7 +1258,7 @@ msgid "Unpaid penalty tickets"
 msgstr "Số lượng phiếu phạt chưa thanh toán"
 
 #: apps/hrm/api/views/interview_candidate.py:158
-#: apps/hrm/api/views/interview_schedule.py:312
+#: apps/hrm/api/views/interview_schedule.py:311
 #: apps/hrm/api/views/job_description.py:234
 #: apps/hrm/api/views/recruitment_candidate.py:434
 #: apps/hrm/api/views/recruitment_candidate_contact_log.py:243
@@ -1271,20 +1271,20 @@ msgstr "Số lượng phiếu phạt chưa thanh toán"
 msgid "Recruitment"
 msgstr "Tuyển dụng"
 
+#: apps/hrm/api/views/interview_schedule.py:315
 #: apps/hrm/api/views/interview_schedule.py:316
-#: apps/hrm/api/views/interview_schedule.py:317
 #, python-brace-format
 msgid "Preview interview invite for {model_name}"
 msgstr "Xem trước lời mời phỏng vấn cho {model_name}"
 
+#: apps/hrm/api/views/interview_schedule.py:319
 #: apps/hrm/api/views/interview_schedule.py:320
-#: apps/hrm/api/views/interview_schedule.py:321
 #, python-brace-format
 msgid "Send interview invite for {model_name}"
 msgstr "Gửi lời mời phỏng vấn cho {model_name}"
 
+#: apps/hrm/api/views/interview_schedule.py:323
 #: apps/hrm/api/views/interview_schedule.py:324
-#: apps/hrm/api/views/interview_schedule.py:325
 #, python-brace-format
 msgid "Update interviewers for {model_name}"
 msgstr "Cập nhật người phỏng vấn cho {model_name}"
@@ -4275,14 +4275,14 @@ msgid "Administrative unit"
 msgstr "Đơn vị hành chính"
 
 #: apps/hrm/models/organization.py:35 apps/hrm/models/organization.py:100
-#: apps/hrm/models/organization.py:178 apps/hrm/models/organization.py:310
+#: apps/hrm/models/organization.py:178 apps/hrm/models/organization.py:304
 #: apps/hrm/models/proposal.py:935 apps/hrm/models/recruitment_channel.py:33
 #: apps/hrm/models/recruitment_source.py:19
 msgid "Description"
 msgstr "Mô tả"
 
 #: apps/hrm/models/organization.py:36 apps/hrm/models/organization.py:101
-#: apps/hrm/models/organization.py:179 apps/hrm/models/organization.py:311
+#: apps/hrm/models/organization.py:179 apps/hrm/models/organization.py:305
 #: apps/hrm/models/recruitment_channel.py:34
 msgid "Active"
 msgstr "Hoạt động"
@@ -4446,19 +4446,15 @@ msgstr "Chức Vụ"
 msgid "Position code"
 msgstr "Mã Chức Vụ"
 
-#: apps/hrm/models/organization.py:306
-msgid "Data scope"
-msgstr "Phạm vi dữ liệu"
-
-#: apps/hrm/models/organization.py:308
+#: apps/hrm/models/organization.py:302
 msgid "Leadership position"
 msgstr "Thuộc ban lãnh đạo"
 
-#: apps/hrm/models/organization.py:309
+#: apps/hrm/models/organization.py:303
 msgid "Include in Employee report"
 msgstr "Báo cáo Nhân sự"
 
-#: apps/hrm/models/organization.py:315
+#: apps/hrm/models/organization.py:309
 msgid "Positions"
 msgstr "Chức Vụ"
 
