@@ -3,6 +3,7 @@ from django.contrib import admin
 from .models import (
     AdministrativeUnit,
     DeviceChangeRequest,
+    MobileAppConfig,
     Nationality,
     PasswordResetOTP,
     Permission,
@@ -62,6 +63,42 @@ class UserAdmin(admin.ModelAdmin):
     list_display = ["username", "email", "is_staff", "is_active"]
     search_fields = ["username", "email"]
     inlines = [UserDeviceInline]
+
+
+@admin.register(MobileAppConfig)
+class MobileAppConfigAdmin(admin.ModelAdmin):
+    """Admin configuration for MobileAppConfig singleton"""
+
+    list_display = [
+        "ios_latest_version",
+        "ios_min_supported_version",
+        "android_latest_version",
+        "android_min_supported_version",
+        "maintenance_enabled",
+        "updated_at",
+    ]
+    list_filter = ["maintenance_enabled"]
+    search_fields = [
+        "ios_latest_version",
+        "ios_min_supported_version",
+        "ios_store_url",
+        "android_latest_version",
+        "android_min_supported_version",
+        "android_store_url",
+        "links_terms_url",
+        "links_privacy_url",
+        "links_support_url",
+        "feature_flags",
+    ]
+    readonly_fields = ["updated_at"]
+    fieldsets = (
+        ("iOS", {"fields": ("ios_latest_version", "ios_min_supported_version", "ios_store_url")}),
+        ("Android", {"fields": ("android_latest_version", "android_min_supported_version", "android_store_url")}),
+        ("Maintenance", {"fields": ("maintenance_enabled", "maintenance_message")}),
+        ("Features", {"fields": ("feature_flags",)}),
+        ("Links", {"fields": ("links_terms_url", "links_privacy_url", "links_support_url")}),
+        ("Metadata", {"fields": ("updated_at",)}),
+    )
 
 
 admin.site.register(Role)
