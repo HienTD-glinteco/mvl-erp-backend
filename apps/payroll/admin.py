@@ -265,6 +265,24 @@ class DepartmentKPIAssessmentAdmin(admin.ModelAdmin):
     readonly_fields = ["id"]
 
 
+class EmployeeKPIAssessmentInline(admin.TabularInline):
+    model = EmployeeKPIAssessment
+    fk_name = "period"
+    extra = 0
+    fields = ["employee", "grade_manager", "grade_hrm", "finalized"]
+    readonly_fields = ["employee", "grade_manager", "grade_hrm", "finalized"]
+    show_change_link = True
+
+
+class DepartmentKPIAssessmentInline(admin.TabularInline):
+    model = DepartmentKPIAssessment
+    fk_name = "period"
+    extra = 0
+    fields = ["department", "grade", "finalized"]
+    readonly_fields = ["department", "grade", "finalized"]
+    show_change_link = True
+
+
 @admin.register(KPIAssessmentPeriod)
 class KPIAssessmentPeriodAdmin(admin.ModelAdmin):
     """Admin for KPIAssessmentPeriod model."""
@@ -274,6 +292,7 @@ class KPIAssessmentPeriodAdmin(admin.ModelAdmin):
     search_fields = ["note"]
     ordering = ["-month"]
     readonly_fields = ["created_at", "updated_at"]
+    inlines = [EmployeeKPIAssessmentInline, DepartmentKPIAssessmentInline]
     fieldsets = [
         (
             "Basic Information",
@@ -573,6 +592,15 @@ class PenaltyTicketAdmin(admin.ModelAdmin):
         super().save_model(request, obj, form, change)
 
 
+class PayrollSlipInline(admin.TabularInline):
+    model = PayrollSlip
+    fk_name = "salary_period"
+    extra = 0
+    fields = ["code", "employee", "status", "net_salary", "calculated_at"]
+    readonly_fields = ["code", "employee", "status", "net_salary", "calculated_at"]
+    show_change_link = True
+
+
 @admin.register(SalaryPeriod)
 class SalaryPeriodAdmin(admin.ModelAdmin):
     """Admin configuration for SalaryPeriod model."""
@@ -600,6 +628,7 @@ class SalaryPeriodAdmin(admin.ModelAdmin):
         "updated_at",
     ]
     ordering = ["-month"]
+    inlines = [PayrollSlipInline]
     fieldsets = [
         (
             "Basic Information",

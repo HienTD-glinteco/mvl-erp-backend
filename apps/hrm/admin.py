@@ -1,5 +1,7 @@
 from django.contrib import admin
 
+from apps.payroll.models import PayrollSlip, PenaltyTicket, RecoveryVoucher, SalesRevenue, TravelExpense
+
 from .models import (
     AttendanceDevice,
     AttendanceExemption,
@@ -56,6 +58,87 @@ class PositionAdmin(admin.ModelAdmin):
     ]
 
 
+class PenaltyTicketInline(admin.TabularInline):
+    model = PenaltyTicket
+    fk_name = "employee"
+    extra = 0
+    fields = ["code", "month", "amount", "status"]
+    readonly_fields = ["code", "month", "amount", "status"]
+    show_change_link = True
+
+
+class TravelExpenseInline(admin.TabularInline):
+    model = TravelExpense
+    fk_name = "employee"
+    extra = 0
+    fields = ["code", "name", "expense_type", "amount", "month", "status"]
+    readonly_fields = ["code", "name", "expense_type", "amount", "month", "status"]
+    show_change_link = True
+
+
+class PayrollSlipInline(admin.TabularInline):
+    model = PayrollSlip
+    fk_name = "employee"
+    extra = 0
+    fields = ["code", "salary_period", "status", "net_salary", "calculated_at"]
+    readonly_fields = ["code", "salary_period", "status", "net_salary", "calculated_at"]
+    show_change_link = True
+
+
+class SalesRevenueInline(admin.TabularInline):
+    model = SalesRevenue
+    fk_name = "employee"
+    extra = 0
+    fields = ["code", "revenue", "transaction_count", "month", "status"]
+    readonly_fields = ["code", "revenue", "transaction_count", "month", "status"]
+    show_change_link = True
+
+
+class RecoveryVoucherInline(admin.TabularInline):
+    model = RecoveryVoucher
+    fk_name = "employee"
+    extra = 0
+    fields = ["code", "name", "amount", "month", "status"]
+    readonly_fields = ["code", "name", "amount", "month", "status"]
+    show_change_link = True
+
+
+class BankAccountInline(admin.TabularInline):
+    model = BankAccount
+    fk_name = "employee"
+    extra = 0
+    fields = ["bank", "account_number", "account_name", "is_primary"]
+    readonly_fields = ["bank", "account_number", "account_name", "is_primary"]
+    show_change_link = True
+
+
+class EmployeeDependentInline(admin.TabularInline):
+    model = EmployeeDependent
+    fk_name = "employee"
+    extra = 0
+    fields = ["dependent_name", "relationship", "date_of_birth"]
+    readonly_fields = ["dependent_name", "relationship", "date_of_birth"]
+    show_change_link = True
+
+
+class EmployeeCertificateInline(admin.TabularInline):
+    model = EmployeeCertificate
+    fk_name = "employee"
+    extra = 0
+    fields = ["certificate_type", "certificate_name", "issue_date"]
+    readonly_fields = ["certificate_type", "certificate_name", "issue_date"]
+    show_change_link = True
+
+
+class EmployeeRelationshipInline(admin.TabularInline):
+    model = EmployeeRelationship
+    fk_name = "employee"
+    extra = 0
+    fields = ["relative_name", "relation_type"]
+    readonly_fields = ["relative_name", "relation_type"]
+    show_change_link = True
+
+
 @admin.register(Employee)
 class EmployeeAdmin(admin.ModelAdmin):
     list_display = ["code", "fullname", "username", "email", "status", "phone", "start_date"]
@@ -65,6 +148,17 @@ class EmployeeAdmin(admin.ModelAdmin):
     ]
 
     search_fields = ["code", "fullname", "email"]
+    inlines = [
+        PenaltyTicketInline,
+        TravelExpenseInline,
+        PayrollSlipInline,
+        SalesRevenueInline,
+        RecoveryVoucherInline,
+        BankAccountInline,
+        EmployeeDependentInline,
+        EmployeeCertificateInline,
+        EmployeeRelationshipInline,
+    ]
 
 
 @admin.register(EmployeeWorkHistory)
@@ -113,6 +207,15 @@ class AttendanceRecordAdmin(admin.ModelAdmin):
     raw_id_fields = ["employee", "biometric_device"]
 
 
+class DepartmentInlineForBlock(admin.TabularInline):
+    model = Department
+    fk_name = "block"
+    extra = 0
+    fields = ["code", "name", "function", "is_active"]
+    readonly_fields = ["code", "name", "function", "is_active"]
+    show_change_link = True
+
+
 @admin.register(Block)
 class BlockAdmin(admin.ModelAdmin):
     """Admin configuration for Block model"""
@@ -122,6 +225,7 @@ class BlockAdmin(admin.ModelAdmin):
     search_fields = ["code", "name"]
     readonly_fields = ["code", "created_at", "updated_at"]
     raw_id_fields = ["director"]
+    inlines = [DepartmentInlineForBlock]
 
 
 @admin.register(Bank)
@@ -142,6 +246,24 @@ class BankAccountAdmin(admin.ModelAdmin):
     raw_id_fields = ["employee", "bank"]
 
 
+class BlockInline(admin.TabularInline):
+    model = Block
+    fk_name = "branch"
+    extra = 0
+    fields = ["code", "name", "block_type", "is_active"]
+    readonly_fields = ["code", "name", "block_type", "is_active"]
+    show_change_link = True
+
+
+class DepartmentInline(admin.TabularInline):
+    model = Department
+    fk_name = "branch"
+    extra = 0
+    fields = ["code", "name", "function", "is_active"]
+    readonly_fields = ["code", "name", "function", "is_active"]
+    show_change_link = True
+
+
 @admin.register(Branch)
 class BranchAdmin(admin.ModelAdmin):
     """Admin configuration for Branch model"""
@@ -151,6 +273,7 @@ class BranchAdmin(admin.ModelAdmin):
     search_fields = ["code", "name", "address"]
     readonly_fields = ["code", "created_at", "updated_at"]
     raw_id_fields = ["director"]
+    inlines = [BlockInline, DepartmentInline]
 
 
 @admin.register(BranchContactInfo)
@@ -163,6 +286,15 @@ class BranchContactInfoAdmin(admin.ModelAdmin):
     raw_id_fields = ["branch"]
 
 
+class EmployeeInline(admin.TabularInline):
+    model = Employee
+    fk_name = "department"
+    extra = 0
+    fields = ["code", "fullname", "status", "start_date"]
+    readonly_fields = ["code", "fullname", "status", "start_date"]
+    show_change_link = True
+
+
 @admin.register(Department)
 class DepartmentAdmin(admin.ModelAdmin):
     """Admin configuration for Department model"""
@@ -172,6 +304,7 @@ class DepartmentAdmin(admin.ModelAdmin):
     search_fields = ["code", "name"]
     readonly_fields = ["code", "created_at", "updated_at"]
     raw_id_fields = ["leader", "parent_department", "management_department"]
+    inlines = [EmployeeInline]
 
 
 @admin.register(RecruitmentChannel)
