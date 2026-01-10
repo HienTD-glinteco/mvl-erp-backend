@@ -242,39 +242,52 @@ jobs:
 
     steps:
       - name: Deploy to EC2 Develop Server
-        run: |
-          set -Eeuo pipefail
+        uses: appleboy/ssh-action@v0.1.5
+        with:
+          host: ${{ secrets.DEVELOP_HOST }}
+          username: ${{ secrets.DEVELOP_USERNAME }}
+          key: ${{ secrets.DEVELOP_SSH_KEY }}
+          script: |
+            set -Eeuo pipefail
+            trap 'echo "❌ Error at line $LINENO"; exit 1' ERR
 
-          echo "🔐 Setup SSH key"
-          mkdir -p ~/.ssh
-          echo "${{ secrets.DEVELOP_SSH_KEY }}" > ~/.ssh/deploy_key
-          chmod 600 ~/.ssh/deploy_key
+            # Navigate to application directory
+            cd /home/ubuntu/maivietland/backend
 
-          ssh-keyscan -H ${{ secrets.DEVELOP_HOST }} >> ~/.ssh/known_hosts
+            # Pull latest changes from master
+            git fetch --all --prune
+            git pull origin master
 
-          echo "🚀 Deploying..."
-          ssh -i ~/.ssh/deploy_key \
-              ${{ secrets.DEVELOP_USERNAME }}@${{ secrets.DEVELOP_HOST }} << 'EOF'
+            # Update API documentation version in .env file
+            API_DOC_VERSION=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+            if grep -q "^API_DOC_VERSION=" .env 2>/dev/null; then
+              sed -i "s/^API_DOC_VERSION=.*/API_DOC_VERSION=$API_DOC_VERSION/" .env
+            else
+              echo "API_DOC_VERSION=$API_DOC_VERSION" >> .env
+            fi
 
-          set -Eeuo pipefail
-          trap 'echo "❌ Deploy failed at line $LINENO"; exit 1' ERR
+            # Activate virtual environment and install dependencies
+            export PATH="$HOME/.local/bin:$PATH"
+            poetry config virtualenvs.in-project true
+            poetry install --no-interaction --no-root --without dev
 
-          cd /home/ubuntu/maivietland/backend
+            # Run database migrations
+            poetry run python manage.py migrate --noinput
+            poetry run python manage.py collectstatic --noinput
+            poetry run python manage.py compilemessages -l vi
+            poetry run python manage.py collect_permissions
+            poetry run python manage.py upload_import_templates
+            poetry run python manage.py sync_roles_from_excel
+            poetry run python manage.py init_org_data
 
-          git fetch --all --prune
-          git checkout master
-          git pull origin master
 
-          export PATH="$HOME/.local/bin:$PATH"
-          poetry install --no-interaction --no-root --without dev --sync
+            # Update supervisor configuration and restart gunicorn workers
+            sudo supervisorctl reread
+            sudo supervisorctl update
+            sudo supervisorctl restart maivietland-api maivietland-worker maivietland-beat maivietland-consume-audit-logs maivietland-realtime-attendance-listener
 
-          poetry run python manage.py migrate --noinput
-          poetry run python manage.py collectstatic --noinput
-
-          sudo supervisorctl restart maivietland-api
-          sudo nginx -t && sudo nginx -s reload
-
-          EOF
+            # Reload nginx configuration
+            sudo nginx -t && sudo nginx -s reload
 
       - name: Health Check (with retry)
         run: |
