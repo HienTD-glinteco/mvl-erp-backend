@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-09 20:24+0700\n"
+"POT-Creation-Date: 2026-01-10 10:59+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -253,29 +253,29 @@ msgstr "Trường này là bắt buộc"
 msgid "Amount must be greater than 0"
 msgstr "Số tiền phải lớn hơn 0"
 
-#: apps/payroll/api/views/employee_kpi_assessment.py:421
+#: apps/payroll/api/views/employee_kpi_assessment.py:430
 msgid "View Current Assessment"
 msgstr "Xem đánh giá hiện tại"
 
-#: apps/payroll/api/views/employee_kpi_assessment.py:422
+#: apps/payroll/api/views/employee_kpi_assessment.py:431
 msgid ""
 "Permission to view current unfinalized assessment for department employees"
 msgstr ""
 "Quyền xem đánh giá chưa hoàn tất hiện tại cho nhân viên trong phòng ban"
 
-#: apps/payroll/api/views/employee_kpi_assessment.py:425
+#: apps/payroll/api/views/employee_kpi_assessment.py:434
 msgid "Update Self Assessment Item Score"
 msgstr "Cập nhật điểm tự đánh giá"
 
-#: apps/payroll/api/views/employee_kpi_assessment.py:426
+#: apps/payroll/api/views/employee_kpi_assessment.py:435
 msgid "Permission to update self-assessment item scores"
 msgstr "Quyền cập nhật điểm tự đánh giá"
 
-#: apps/payroll/api/views/employee_kpi_assessment.py:794
+#: apps/payroll/api/views/employee_kpi_assessment.py:803
 msgid "View Current Assessments"
 msgstr "Xem các đánh giá hiện tại"
 
-#: apps/payroll/api/views/employee_kpi_assessment.py:795
+#: apps/payroll/api/views/employee_kpi_assessment.py:804
 msgid ""
 "Permission to view current unfinalized assessments for department employees"
 msgstr ""

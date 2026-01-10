@@ -178,7 +178,16 @@ class EmployeeKPIAssessmentViewSet(ExportXLSXMixin, AuditLoggingMixin, BaseModel
     filterset_class = EmployeeKPIAssessmentFilterSet
     filter_backends = [RoleDataScopeFilterBackend, DjangoFilterBackend, PhraseSearchFilter, OrderingFilter]
     search_fields = ["employee__username", "employee__fullname", "employee__code"]
-    ordering_fields = ["period__month", "employee__username", "grade_manager", "total_manager_score", "created_at"]
+    ordering_fields = [
+        "period__month",
+        "employee__username",
+        "grade_manager",
+        "total_manager_score",
+        "created_at",
+        "employee__branch__name",
+        "employee__block__name",
+        "employee__department__name",
+    ]
     ordering = ["-period__month", "-created_at"]
     http_method_names = ["get", "patch"]
     permission_classes = [RoleBasedPermission, DataScopePermission]
