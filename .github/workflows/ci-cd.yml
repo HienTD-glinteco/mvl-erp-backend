@@ -242,68 +242,31 @@ jobs:
 
     steps:
       - name: Deploy to EC2 Develop Server
-        uses: appleboy/ssh-action@v0.1.5
-        with:
-          host: ${{ secrets.DEVELOP_HOST }}
-          username: ${{ secrets.DEVELOP_USERNAME }}
-          key: ${{ secrets.DEVELOP_SSH_KEY }}
-          script: |
-            (
-              set -Eeuo pipefail
-              trap 'echo "❌ Deploy failed at line $LINENO"; exit 1' ERR
+        run: |
+          set -Eeuo pipefail
 
-              echo "🚀 [1/7] Go to project directory"
-              cd /home/ubuntu/maivietland/backend
+          ssh -o StrictHostKeyChecking=no \
+              -i <(echo "${{ secrets.DEVELOP_SSH_KEY }}") \
+              ${{ secrets.DEVELOP_USERNAME }}@${{ secrets.DEVELOP_HOST }} << 'EOF'
 
-              echo "🔄 [2/7] Update source code"
-              git fetch --all --prune
-              git checkout master
-              git pull origin master
+          set -Eeuo pipefail
+          trap 'echo "❌ Deploy failed at line $LINENO"; exit 1' ERR
 
-              echo "📝 [3/7] Update API_DOC_VERSION"
-              API_DOC_VERSION=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-              if grep -q "^API_DOC_VERSION=" .env 2>/dev/null; then
-                sed -i "s/^API_DOC_VERSION=.*/API_DOC_VERSION=$API_DOC_VERSION/" .env
-              else
-                echo "API_DOC_VERSION=$API_DOC_VERSION" >> .env
-              fi
+          cd /home/ubuntu/maivietland/backend
 
-              echo "📦 [4/7] Install dependencies (poetry --sync)"
-              export PATH="$HOME/.local/bin:$PATH"
-              poetry config virtualenvs.in-project true
-              poetry install --no-interaction --no-root --without dev --sync
+          git fetch --all --prune
+          git checkout master
+          git pull origin master
 
-              echo "🗄️ [5/7] Run Django management commands"
-              poetry run python manage.py migrate --noinput
-              poetry run python manage.py collectstatic --noinput
-              poetry run python manage.py compilemessages -l vi
-              poetry run python manage.py collect_permissions
-              poetry run python manage.py upload_import_templates
-              poetry run python manage.py sync_roles_from_excel
+          export PATH="$HOME/.local/bin:$PATH"
+          poetry install --no-interaction --no-root --without dev --sync
 
-              echo "🔁 [6/7] Restart supervisor services"
-              sudo supervisorctl reread
-              sudo supervisorctl update
+          poetry run python manage.py migrate --noinput
+          poetry run python manage.py collectstatic --noinput
 
-              SERVICES=(
-                maivietland-api
-                maivietland-worker
-                maivietland-beat
-                maivietland-consume-audit-logs
-                maivietland-realtime-attendance-listener
-              )
-
-              for svc in "${SERVICES[@]}"; do
-                echo "   ↻ Restarting $svc"
-                sudo supervisorctl restart "$svc"
-              done
-
-              echo "🌐 [7/7] Reload nginx"
-              sudo nginx -t
-              sudo nginx -s reload
-
-              echo "✅ Deploy completed successfully"
-            ) 2>&1 | sed '/^[[:space:]]*$/d'
+          sudo supervisorctl restart maivietland-api
+          sudo nginx -t && sudo nginx -s reload
+          EOF
 
       - name: Health Check (with retry)
         run: |

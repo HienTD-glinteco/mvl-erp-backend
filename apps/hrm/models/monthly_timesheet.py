@@ -36,7 +36,7 @@ class EmployeeMonthlyTimesheet(BaseReportModel):
     # Report date is the first day of the month for which this row summarizes data.
     report_date = models.DateField(verbose_name=_("Report date"))
     # Month key in YYYYMM format to ease reporting and indexing
-    month_key = models.CharField(max_length=6, verbose_name=_("Month key"))
+    month_key = models.CharField(max_length=6, verbose_name=_("Month key"), db_index=True)
 
     # Working day counts (use Decimal to allow partial days)
     probation_working_days = models.DecimalField(
