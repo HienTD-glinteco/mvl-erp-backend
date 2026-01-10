@@ -1,4 +1,6 @@
+from django.conf import settings
 from django.contrib import admin
+from django.core.cache import cache
 
 from .models import (
     AdministrativeUnit,
@@ -99,6 +101,14 @@ class MobileAppConfigAdmin(admin.ModelAdmin):
         ("Links", {"fields": ("links_terms_url", "links_privacy_url", "links_support_url")}),
         ("Metadata", {"fields": ("updated_at",)}),
     )
+
+    def save_model(self, request, obj, form, change):
+        super().save_model(request, obj, form, change)
+        cache.delete(settings.MOBILE_APP_CONFIG_CACHE_KEY)
+
+    def delete_model(self, request, obj):
+        super().delete_model(request, obj)
+        cache.delete(settings.MOBILE_APP_CONFIG_CACHE_KEY)
 
 
 admin.site.register(Role)
