@@ -245,8 +245,15 @@ jobs:
         run: |
           set -Eeuo pipefail
 
-          ssh -o StrictHostKeyChecking=no \
-              -i <(echo "${{ secrets.DEVELOP_SSH_KEY }}") \
+          echo "🔐 Setup SSH key"
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DEVELOP_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+
+          ssh-keyscan -H ${{ secrets.DEVELOP_HOST }} >> ~/.ssh/known_hosts
+
+          echo "🚀 Deploying..."
+          ssh -i ~/.ssh/deploy_key \
               ${{ secrets.DEVELOP_USERNAME }}@${{ secrets.DEVELOP_HOST }} << 'EOF'
 
           set -Eeuo pipefail
@@ -266,6 +273,7 @@ jobs:
 
           sudo supervisorctl restart maivietland-api
           sudo nginx -t && sudo nginx -s reload
+
           EOF
 
       - name: Health Check (with retry)
