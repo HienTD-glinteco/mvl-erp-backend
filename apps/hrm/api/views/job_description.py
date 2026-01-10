@@ -4,9 +4,11 @@ from drf_spectacular.utils import OpenApiExample, extend_schema, extend_schema_v
 from rest_framework.filters import OrderingFilter
 
 from apps.audit_logging.api.mixins import AuditLoggingMixin
+from apps.core.api.permissions import DataScopePermission, RoleBasedPermission
 from apps.hrm.api.filtersets import JobDescriptionFilterSet
 from apps.hrm.api.serializers import JobDescriptionExportSerializer, JobDescriptionSerializer
 from apps.hrm.models import JobDescription
+from apps.hrm.utils.filters import RoleDataScopeFilterBackend
 from libs import BaseModelViewSet
 from libs.drf.filtersets.search import PhraseSearchFilter
 from libs.export_xlsx.mixins import ExportXLSXMixin
@@ -224,10 +226,18 @@ class JobDescriptionViewSet(ExportXLSXMixin, AuditLoggingMixin, BaseModelViewSet
     queryset = JobDescription.objects.all()
     serializer_class = JobDescriptionSerializer
     filterset_class = JobDescriptionFilterSet
-    filter_backends = [DjangoFilterBackend, PhraseSearchFilter, OrderingFilter]
+    filter_backends = [RoleDataScopeFilterBackend, DjangoFilterBackend, PhraseSearchFilter, OrderingFilter]
     search_fields = ["title", "code", "responsibility", "requirement"]
     ordering_fields = ["title", "code", "created_at"]
     ordering = ["-created_at"]
+    permission_classes = [RoleBasedPermission, DataScopePermission]
+
+    # Data scope configuration for role-based filtering
+    data_scope_config = {
+        "branch_field": "branch",
+        "block_field": "block",
+        "department_field": "department",
+    }
 
     # Permission registration attributes
     module = _("HRM")

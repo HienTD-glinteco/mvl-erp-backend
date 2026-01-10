@@ -4,10 +4,12 @@ from datetime import date, timedelta
 
 from django.db.models import Sum
 from django.utils.translation import gettext as _
+from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
+from apps.hrm.utils.filters import RoleDataScopeFilterBackend
 from apps.payroll.api.filtersets import SalesRevenueReportFilterSet
 from apps.payroll.api.serializers import (
     SalesRevenueReportChartResponseSerializer,
@@ -36,6 +38,14 @@ class SalesRevenueReportViewSet(ExportXLSXMixin, BaseGenericViewSet):
     queryset = SalesRevenueReportFlatModel.objects.select_related("branch", "block", "department").all()
     filterset_class = SalesRevenueReportFilterSet
     serializer_class = SalesRevenueReportListItemSerializer
+    filter_backends = [RoleDataScopeFilterBackend, DjangoFilterBackend]
+
+    # Data scope configuration for role-based filtering
+    data_scope_config = {
+        "branch_field": "branch",
+        "block_field": "block",
+        "department_field": "department",
+    }
 
     module = _("Payroll")
     submodule = _("Sales Revenue Reports")

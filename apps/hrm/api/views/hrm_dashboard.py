@@ -13,6 +13,7 @@ from apps.hrm.utils.dashboard_cache import (
     get_hrm_dashboard_cache,
     set_hrm_dashboard_cache,
 )
+from apps.hrm.utils.role_data_scope import filter_queryset_by_role_data_scope
 from apps.payroll.models import PenaltyTicket
 from libs.drf.base_viewset import BaseGenericViewSet
 
@@ -109,29 +110,56 @@ class HRMDashboardViewSet(BaseGenericViewSet):
     @action(detail=False, methods=["get"])
     def realtime(self, request):
         """Get HRM realtime KPIs with navigation info."""
-        # Try to get cached data
-        cached_data = get_hrm_dashboard_cache()
-        if cached_data is not None:
-            serializer = HRMDashboardRealtimeSerializer(cached_data)
-            return Response(serializer.data)
+        user = request.user
 
-        # Build fresh data
-        data = self._build_dashboard_data()
+        # Check if user has ROOT scope (can use global cache)
+        from apps.hrm.utils.role_data_scope import collect_role_allowed_units
 
-        # Cache the data
-        set_hrm_dashboard_cache(data)
+        allowed_units = collect_role_allowed_units(user)
+
+        if allowed_units.has_all:
+            # ROOT scope users can use global cache
+            cached_data = get_hrm_dashboard_cache()
+            if cached_data is not None:
+                serializer = HRMDashboardRealtimeSerializer(cached_data)
+                return Response(serializer.data)
+
+            # Build fresh data
+            data = self._build_dashboard_data(user, allowed_units)
+
+            # Cache the data for ROOT users only
+            set_hrm_dashboard_cache(data)
+        else:
+            # Non-ROOT users get filtered data without caching
+            data = self._build_dashboard_data(user, allowed_units)
 
         serializer = HRMDashboardRealtimeSerializer(data)
         return Response(serializer.data)
 
-    def _build_dashboard_data(self) -> dict:
-        """Build dashboard data from database."""
-        # Get pending proposals by type
-        pending_proposals = (
-            Proposal.objects.filter(proposal_status=ProposalStatus.PENDING)
-            .values("proposal_type")
-            .annotate(count=Count("id"))
-        )
+    def _build_dashboard_data(self, user, allowed_units) -> dict:
+        """Build dashboard data from database with data scope filtering."""
+        # Data scope configs for different models
+        # Proposal model uses `created_by` FK to Employee, not `employee`
+        proposal_scope_config = {
+            "branch_field": "created_by__branch",
+            "block_field": "created_by__block",
+            "department_field": "created_by__department",
+        }
+        attendance_scope_config = {
+            "branch_field": "employee__branch",
+            "block_field": "employee__block",
+            "department_field": "employee__department",
+        }
+        penalty_scope_config = {
+            "branch_field": "employee__branch",
+            "block_field": "employee__block",
+            "department_field": "employee__department",
+        }
+
+        # Get pending proposals by type with data scope filter
+        base_proposal_qs = Proposal.objects.filter(proposal_status=ProposalStatus.PENDING)
+        filtered_proposal_qs = filter_queryset_by_role_data_scope(base_proposal_qs, user, proposal_scope_config)
+        pending_proposals = filtered_proposal_qs.values("proposal_type").annotate(count=Count("id"))
 
         # Build lookup dict
         proposal_counts = {}
@@ -157,14 +185,19 @@ class HRMDashboardViewSet(BaseGenericViewSet):
                 }
             )
 
-        # Get other statistics
-        attendance_other_pending_count = AttendanceRecord.objects.filter(
+        # Get other statistics with data scope filter
+        base_attendance_qs = AttendanceRecord.objects.filter(
             attendance_type=AttendanceType.OTHER,
             is_pending=True,
-        ).count()
+        )
+        filtered_attendance_qs = filter_queryset_by_role_data_scope(base_attendance_qs, user, attendance_scope_config)
+        attendance_other_pending_count = filtered_attendance_qs.count()
 
         timesheet_complaints_count = proposal_counts.get(ProposalType.TIMESHEET_ENTRY_COMPLAINT, 0)
-        penalty_tickets_unpaid_count = PenaltyTicket.objects.filter(status=PenaltyTicket.Status.UNPAID).count()
+
+        base_penalty_qs = PenaltyTicket.objects.filter(status=PenaltyTicket.Status.UNPAID)
+        filtered_penalty_qs = filter_queryset_by_role_data_scope(base_penalty_qs, user, penalty_scope_config)
+        penalty_tickets_unpaid_count = filtered_penalty_qs.count()
 
         return {
             "proposals_pending": {

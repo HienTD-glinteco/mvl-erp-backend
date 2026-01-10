@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-10 00:38+0700\n"
+"POT-Creation-Date: 2026-01-10 10:13+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,6 +17,10 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
+
+#: apps/hrm/api/mixins.py:49
+msgid "You cannot create objects outside your assigned organizational scope."
+msgstr ""
 
 #: apps/hrm/api/serializers/attendance_device.py:98
 #, python-brace-format
@@ -69,105 +73,105 @@ msgstr "Trạng Thái"
 
 #: apps/hrm/api/serializers/auth/device_change.py:26
 msgid "Please enter your username."
-msgstr "Tên đăng nhập không được để trống."
+msgstr ""
 
 #: apps/hrm/api/serializers/auth/device_change.py:27
 msgid "Username cannot be blank."
-msgstr "Tên đăng nhập không được để trống."
+msgstr ""
 
 #: apps/hrm/api/serializers/auth/device_change.py:34
 msgid "Please enter your password."
-msgstr "Mật khẩu không được để trống."
+msgstr ""
 
 #: apps/hrm/api/serializers/auth/device_change.py:35
 msgid "Password cannot be blank."
-msgstr "Mật khẩu không được để trống."
+msgstr ""
 
 #: apps/hrm/api/serializers/auth/device_change.py:42
+#, fuzzy
+#| msgid "Old device ID"
 msgid "Please provide device ID."
-msgstr "Vui lòng cung cấp ID thiết bị."
+msgstr "Mã thiết bị cũ"
 
 #: apps/hrm/api/serializers/auth/device_change.py:43
 msgid "Device ID cannot be blank."
-msgstr "ID thiết bị không được để trống."
+msgstr ""
 
 #: apps/hrm/api/serializers/auth/device_change.py:74
 msgid "Incorrect password. Please try again."
-msgstr "Sai mật khẩu. Vui lòng thử lại."
+msgstr ""
 
 #: apps/hrm/api/serializers/auth/device_change.py:76
 msgid "Username does not exist."
-msgstr "Tên đăng nhập không tồn tại."
+msgstr ""
 
 #: apps/hrm/api/serializers/auth/device_change.py:80
 msgid "This account is inactive. Please contact support."
-msgstr "Tài khoản này không hoạt động. Vui lòng liên hệ bộ phận hỗ trợ."
+msgstr ""
 
 #: apps/hrm/api/serializers/auth/device_change.py:85
 msgid ""
 "Account is temporarily locked due to multiple failed login attempts. Please "
 "try again later."
 msgstr ""
-"Tài khoản tạm thời bị khóa do nhiều lần đăng nhập thất bại. Vui lòng thử lại "
 
 #: apps/hrm/api/serializers/auth/device_change.py:92
 msgid ""
 "This device is already registered for your account. No need to create a "
 "device change request."
 msgstr ""
-"Thiết bị này đã được đăng ký cho tài khoản của bạn. Không cần tạo yêu cầu "
-"thay đổi thiết bị."
 
 #: apps/hrm/api/serializers/auth/device_change.py:151
 msgid "Please provide request ID."
-msgstr "Vui lòng cung cấp ID yêu cầu."
+msgstr ""
 
 #: apps/hrm/api/serializers/auth/device_change.py:152
 msgid "Invalid request ID format."
-msgstr "Định dạng ID yêu cầu không hợp lệ."
+msgstr ""
 
 #: apps/hrm/api/serializers/auth/device_change.py:160
 msgid "Please enter the OTP code."
-msgstr "Vui lòng nhập mã OTP."
+msgstr ""
 
 #: apps/hrm/api/serializers/auth/device_change.py:161
 #: apps/hrm/api/serializers/auth/device_change.py:179
 msgid "OTP code cannot be blank."
-msgstr "Mã OTP không được để trống."
+msgstr ""
 
 #: apps/hrm/api/serializers/auth/device_change.py:162
 #: apps/hrm/api/serializers/auth/device_change.py:163
 msgid "OTP code must be 6 digits."
-msgstr "Mã OTP phải gồm 6 chữ số."
+msgstr ""
 
 #: apps/hrm/api/serializers/auth/device_change.py:181
+#, fuzzy
+#| msgid "Token does not contain device_id."
 msgid "OTP code can only contain digits."
-msgstr "Mã OTP chỉ được chứa các chữ số."
+msgstr "Token không chứa device_id"
 
 #: apps/hrm/api/serializers/auth/device_change.py:194
 msgid "Invalid or expired request. Please start over."
 msgstr ""
-"Yêu cầu đổi thiết bị không hợp lệ hoặc đã hết hạn. Vui lòng bắt đầu lại."
 
 #: apps/hrm/api/serializers/auth/device_change.py:198
+#, fuzzy
+#| msgid "This candidate has already been converted to an employee."
 msgid "This request has already been verified."
-msgstr "Yêu cầu thay đổi thiết bị đã được xác minh."
+msgstr "Ứng viên này đã được chuyển đổi thành nhân viên."
 
 #: apps/hrm/api/serializers/auth/device_change.py:201
 msgid ""
 "This request has failed due to too many incorrect attempts. Please start "
 "over."
 msgstr ""
-"Yêu cầu này đã thất bại do quá nhiều lần thử không chính xác. Vui lòng bắt "
-"đầu lại."
 
 #: apps/hrm/api/serializers/auth/device_change.py:204
 msgid "This request has expired. Please start over."
-msgstr "Yêu cầu này đã hết hạn. Vui lòng bắt đầu lại."
+msgstr ""
 
 #: apps/hrm/api/serializers/auth/device_change.py:210
 msgid "OTP code has expired. Please request a new one."
-msgstr "Mã OTP đã hết hạn. Vui lòng yêu cầu mã mới."
+msgstr ""
 
 #: apps/hrm/api/serializers/auth/device_change.py:217
 #: apps/hrm/api/serializers/auth/device_change.py:232
@@ -175,22 +179,17 @@ msgid ""
 "Too many incorrect attempts. This request has been marked as failed. Please "
 "start over."
 msgstr ""
-"Quá nhiều lần thử không chính xác. Yêu cầu này đã được đánh dấu là thất bại. "
-"Vui lòng bắt đầu lại."
 
 #: apps/hrm/api/serializers/auth/device_change.py:226
 #, python-brace-format
 msgid "Incorrect OTP code. You have {attempts} attempt(s) remaining."
-msgstr "Mã OTP không chính xác. Bạn còn {attempts} lần thử."
+msgstr ""
 
 #: apps/hrm/api/serializers/auth/device_change.py:241
 msgid ""
 "Your account is not linked to an employee record. Please contact HR to set "
 "up your employee profile before requesting device change."
 msgstr ""
-"Tài khoản của bạn chưa được liên kết với hồ sơ nhân viên. Vui lòng liên hệ "
-"bộ phận nhân sự để thiết lập hồ sơ nhân viên trước khi yêu cầu thay đổi "
-"thiết bị."
 
 #: apps/hrm/api/serializers/contract.py:182
 msgid "Only contracts with DRAFT status can be edited."
@@ -382,7 +381,7 @@ msgstr "Loại Hợp Đồng"
 
 #: apps/hrm/api/serializers/employee.py:887 apps/hrm/models/employee.py:211
 #: apps/hrm/models/employee_work_history.py:103
-#: apps/hrm/models/organization.py:314
+#: apps/hrm/models/organization.py:308
 msgid "Position"
 msgstr "Chức Vụ"
 
@@ -728,14 +727,14 @@ msgid "Converted from recruitment candidate {code}"
 msgstr "Ứng viên {code} đã được chuyển đổi thành nhân viên"
 
 #: apps/hrm/api/serializers/recruitment_candidate_export.py:15
-#: apps/hrm/api/views/interview_schedule.py:648
+#: apps/hrm/api/views/interview_schedule.py:658
 #: apps/hrm/models/recruitment_request.py:95
 msgid "Recruitment Request"
 msgstr "Đề nghị tuyển dụng"
 
 #: apps/hrm/api/serializers/recruitment_candidate_export.py:18
-#: apps/hrm/api/views/recruitment_reports.py:162
-#: apps/hrm/api/views/recruitment_reports.py:819
+#: apps/hrm/api/views/recruitment_reports.py:163
+#: apps/hrm/api/views/recruitment_reports.py:820
 #: apps/hrm/models/recruitment_source.py:27
 msgid "Recruitment Source"
 msgstr "Nguồn tuyển dụng"
@@ -789,7 +788,7 @@ msgstr ""
 msgid "Failed to connect to device: %(message)s"
 msgstr "Lỗi kết nối đến thiết bị: %(message)s"
 
-#: apps/hrm/api/views/attendance_exemption.py:171
+#: apps/hrm/api/views/attendance_exemption.py:182
 msgid "Attendance Management"
 msgstr "Quản lý Chấm Công"
 
@@ -811,84 +810,84 @@ msgstr ""
 msgid "Cannot delete this {model_name} because it has protected relationships"
 msgstr "Không thể xóa {model_name} này vì nó có các mối quan hệ được bảo vệ"
 
-#: apps/hrm/api/views/attendance_record.py:114
+#: apps/hrm/api/views/attendance_record.py:124
 msgid "Attendance Record Management"
 msgstr "Log chấm công"
 
-#: apps/hrm/api/views/attendance_record.py:130
+#: apps/hrm/api/views/attendance_record.py:140
 #: apps/hrm/api/views/mobile/attendance.py:83
 msgid "Bulk approve for Other attendance records"
 msgstr "Duyệt hàng loạt cho log chấm công Khác"
 
-#: apps/hrm/api/views/attendance_record.py:131
+#: apps/hrm/api/views/attendance_record.py:141
 #: apps/hrm/api/views/mobile/attendance.py:84
 msgid "Approve or reject multiple Other attendance records"
 msgstr "Duyệt hoặc từ chối hàng loạt log chấm công Khác"
 
-#: apps/hrm/api/views/attendance_report.py:27
+#: apps/hrm/api/views/attendance_report.py:28
 msgid "Report"
 msgstr "Báo Cáo"
 
-#: apps/hrm/api/views/attendance_report.py:28
+#: apps/hrm/api/views/attendance_report.py:29
 msgid "Attendance"
 msgstr "Quản lý Chấm Công"
 
-#: apps/hrm/api/views/attendance_report.py:32
+#: apps/hrm/api/views/attendance_report.py:33
 msgid "Attendance Report By Method"
 msgstr "Báo cáo tỷ lệ chấm công theo các phương thức"
 
-#: apps/hrm/api/views/attendance_report.py:33
+#: apps/hrm/api/views/attendance_report.py:34
 msgid ""
 "Get attendance statistics report by method (device, wifi, geolocation, other)"
 msgstr ""
 "Báo cáo thống kê chấm công theo phương thức (thiết bị, wifi, GPS, khác)"
 
-#: apps/hrm/api/views/attendance_report.py:36
+#: apps/hrm/api/views/attendance_report.py:37
 msgid "Attendance Report By Project"
 msgstr "Báo Cáo Chấm Công Hàng Ngày"
 
-#: apps/hrm/api/views/attendance_report.py:37
+#: apps/hrm/api/views/attendance_report.py:38
 msgid "Get attendance statistics report grouped by projects"
 msgstr "Báo cáo chấm công GPS theo dự án"
 
-#: apps/hrm/api/views/attendance_report.py:40
+#: apps/hrm/api/views/attendance_report.py:41
 msgid "Attendance Report By Project Organization"
 msgstr "Báo cáo chấm công GPS theo phòng ban"
 
-#: apps/hrm/api/views/attendance_report.py:42
+#: apps/hrm/api/views/attendance_report.py:43
 msgid ""
 "Get attendance statistics report for personnel working on projects grouped "
 "by organizational structure"
 msgstr "Báo cáo chấm công GPS theo phòng ban"
 
 #: apps/hrm/api/views/attendance_wifi_device.py:288
-#: apps/hrm/api/views/bank.py:102 apps/hrm/api/views/bank_account.py:60
-#: apps/hrm/api/views/contract.py:309
-#: apps/hrm/api/views/contract_appendix.py:268
-#: apps/hrm/api/views/contract_type.py:264 apps/hrm/api/views/decision.py:245
-#: apps/hrm/api/views/employee.py:107
-#: apps/hrm/api/views/employee_certificate.py:300
-#: apps/hrm/api/views/employee_dependent.py:260
+#: apps/hrm/api/views/bank.py:102 apps/hrm/api/views/bank_account.py:72
+#: apps/hrm/api/views/contract.py:325
+#: apps/hrm/api/views/contract_appendix.py:281
+#: apps/hrm/api/views/contract_type.py:264 apps/hrm/api/views/decision.py:258
+#: apps/hrm/api/views/employee.py:119
+#: apps/hrm/api/views/employee_certificate.py:310
+#: apps/hrm/api/views/employee_dependent.py:271
 #: apps/hrm/api/views/employee_relationship.py:238
 #: apps/hrm/api/views/employee_role.py:108
-#: apps/hrm/api/views/employee_work_history.py:124
-#: apps/hrm/api/views/holiday.py:220 apps/hrm/api/views/hrm_dashboard.py:23
-#: apps/hrm/api/views/interview_candidate.py:157
-#: apps/hrm/api/views/job_description.py:233
+#: apps/hrm/api/views/employee_work_history.py:134
+#: apps/hrm/api/views/holiday.py:220 apps/hrm/api/views/hrm_dashboard.py:24
+#: apps/hrm/api/views/interview_candidate.py:167
+#: apps/hrm/api/views/job_description.py:243
 #: apps/hrm/api/views/manager_dashboard.py:22
-#: apps/hrm/api/views/organization.py:235
-#: apps/hrm/api/views/organization.py:467
-#: apps/hrm/api/views/organization.py:516
-#: apps/hrm/api/views/organization.py:567
-#: apps/hrm/api/views/organization.py:747
-#: apps/hrm/api/views/recruitment_candidate.py:433
+#: apps/hrm/api/views/organization.py:246
+#: apps/hrm/api/views/organization.py:478
+#: apps/hrm/api/views/organization.py:535
+#: apps/hrm/api/views/organization.py:594
+#: apps/hrm/api/views/organization.py:774
+#: apps/hrm/api/views/recruitment_candidate.py:446
 #: apps/hrm/api/views/recruitment_candidate_contact_log.py:242
 #: apps/hrm/api/views/recruitment_channel.py:58
 #: apps/hrm/api/views/recruitment_dashboard.py:41
-#: apps/hrm/api/views/recruitment_expense.py:342
-#: apps/hrm/api/views/recruitment_request.py:391
+#: apps/hrm/api/views/recruitment_expense.py:352
+#: apps/hrm/api/views/recruitment_request.py:404
 #: apps/hrm/api/views/recruitment_source.py:57
-#: apps/hrm/api/views/timesheet.py:57 apps/hrm/api/views/timesheet.py:412
+#: apps/hrm/api/views/timesheet.py:67 apps/hrm/api/views/timesheet.py:422
 msgid "HRM"
 msgstr "HCNS"
 
@@ -911,62 +910,62 @@ msgstr ""
 msgid "Bank Management"
 msgstr "Quản lý Ngân Hàng"
 
-#: apps/hrm/api/views/bank_account.py:61
+#: apps/hrm/api/views/bank_account.py:73
 msgid "Bank Account Management"
 msgstr "Quản lý Tài Khoản Ngân Hàng"
 
-#: apps/hrm/api/views/contract.py:310
+#: apps/hrm/api/views/contract.py:326
 msgid "Contract Management"
 msgstr "Quản lý Hợp Đồng"
 
-#: apps/hrm/api/views/contract.py:314 apps/hrm/api/views/contract.py:315
-#: apps/hrm/api/views/contract_appendix.py:273
-#: apps/hrm/api/views/contract_appendix.py:274
+#: apps/hrm/api/views/contract.py:330 apps/hrm/api/views/contract.py:331
+#: apps/hrm/api/views/contract_appendix.py:286
+#: apps/hrm/api/views/contract_appendix.py:287
 #, python-brace-format
 msgid "Publish {model_name}"
 msgstr "Ban hành {model_name}"
 
-#: apps/hrm/api/views/contract.py:318 apps/hrm/api/views/contract.py:319
-#: apps/hrm/api/views/contract_appendix.py:277
-#: apps/hrm/api/views/contract_appendix.py:278
-#: apps/hrm/api/views/employee.py:150 apps/hrm/api/views/employee.py:151
+#: apps/hrm/api/views/contract.py:334 apps/hrm/api/views/contract.py:335
+#: apps/hrm/api/views/contract_appendix.py:290
+#: apps/hrm/api/views/contract_appendix.py:291
+#: apps/hrm/api/views/employee.py:162 apps/hrm/api/views/employee.py:163
 #: apps/hrm/api/views/employee_relationship.py:243
 #: apps/hrm/api/views/employee_relationship.py:244
 #, python-brace-format
 msgid "Download import template for {model_name}"
 msgstr "Tải xuống mẫu import {model_name}"
 
-#: apps/hrm/api/views/contract.py:322
-#: apps/hrm/api/views/contract_appendix.py:281
-#: apps/hrm/api/views/employee.py:154
+#: apps/hrm/api/views/contract.py:338
+#: apps/hrm/api/views/contract_appendix.py:294
+#: apps/hrm/api/views/employee.py:166
 #: apps/hrm/api/views/employee_relationship.py:247
 #, python-brace-format
 msgid "Import {model_name} data"
 msgstr "Import {model_name}"
 
-#: apps/hrm/api/views/contract.py:323
-#: apps/hrm/api/views/contract_appendix.py:282
-#: apps/hrm/api/views/employee.py:155
+#: apps/hrm/api/views/contract.py:339
+#: apps/hrm/api/views/contract_appendix.py:295
+#: apps/hrm/api/views/employee.py:167
 #: apps/hrm/api/views/employee_relationship.py:248
 #, python-brace-format
 msgid "Import {model_name} data asynchronously"
 msgstr ""
 
-#: apps/hrm/api/views/contract.py:326
+#: apps/hrm/api/views/contract.py:342
 #, python-brace-format
 msgid "Export {model_name} document"
 msgstr "Export {model_name} document"
 
-#: apps/hrm/api/views/contract.py:327
+#: apps/hrm/api/views/contract.py:343
 #, python-brace-format
 msgid "Export {model_name} as document (PDF/DOCX)"
 msgstr "Export {model_name} as document (PDF/DOCX)"
 
-#: apps/hrm/api/views/contract.py:361
+#: apps/hrm/api/views/contract.py:377
 msgid "Import mode must be either 'create' or 'update'"
 msgstr "Vui lòng chọn đúng chế độ import: 'Tạo mới' hoặc 'Cập nhật'."
 
-#: apps/hrm/api/views/contract_appendix.py:269
+#: apps/hrm/api/views/contract_appendix.py:282
 msgid "Contract Appendix Management"
 msgstr "Quản lý Phụ lục Hợp Đồng"
 
@@ -974,173 +973,173 @@ msgstr "Quản lý Phụ lục Hợp Đồng"
 msgid "Contract Type Management"
 msgstr "Quản lý Loại Hợp Đồng"
 
-#: apps/hrm/api/views/decision.py:246
+#: apps/hrm/api/views/decision.py:259
 msgid "Decision Management"
 msgstr "Quản lý Quyết Định"
 
-#: apps/hrm/api/views/employee.py:108
-#: apps/hrm/api/views/employee_dependent.py:261
+#: apps/hrm/api/views/employee.py:120
+#: apps/hrm/api/views/employee_dependent.py:272
 #: apps/hrm/api/views/employee_relationship.py:239
 #: apps/hrm/api/views/employee_role.py:109
-#: apps/hrm/api/views/employee_work_history.py:125
+#: apps/hrm/api/views/employee_work_history.py:135
 msgid "Employee Management"
 msgstr "Quản lý Nhân Viên"
 
-#: apps/hrm/api/views/employee.py:114 apps/hrm/api/views/employee.py:115
+#: apps/hrm/api/views/employee.py:126 apps/hrm/api/views/employee.py:127
 msgid "Activate employee"
 msgstr "Chuyển nhân viên sang trạng thái bắt đầu làm việc"
 
-#: apps/hrm/api/views/employee.py:118 apps/hrm/api/views/employee.py:119
+#: apps/hrm/api/views/employee.py:130 apps/hrm/api/views/employee.py:131
 msgid "Reactivate employee"
 msgstr "Chuyển nhân viên quay lại làm việc"
 
-#: apps/hrm/api/views/employee.py:122 apps/hrm/api/views/employee.py:123
+#: apps/hrm/api/views/employee.py:134 apps/hrm/api/views/employee.py:135
 msgid "Resign employee"
 msgstr "Chuyển nhân viên sang trạng thái nghỉ việc"
 
-#: apps/hrm/api/views/employee.py:126 apps/hrm/api/views/employee.py:127
+#: apps/hrm/api/views/employee.py:138 apps/hrm/api/views/employee.py:139
 msgid "Set employee to Maternity Leave"
 msgstr "Chuyển nhân viên nghỉ việc hưởng chế độ thai sản"
 
-#: apps/hrm/api/views/employee.py:130 apps/hrm/api/views/employee.py:131
+#: apps/hrm/api/views/employee.py:142 apps/hrm/api/views/employee.py:143
 msgid "Transfer employee"
 msgstr "Điều chuyển nhân viên"
 
-#: apps/hrm/api/views/employee.py:134 apps/hrm/api/views/employee.py:135
+#: apps/hrm/api/views/employee.py:146 apps/hrm/api/views/employee.py:147
 msgid "Change employee Type"
 msgstr "Thay đổi loại Nhân Viên"
 
-#: apps/hrm/api/views/employee.py:138 apps/hrm/api/views/employee.py:139
+#: apps/hrm/api/views/employee.py:150 apps/hrm/api/views/employee.py:151
 msgid "Update employee Avatar"
 msgstr "Cập nhật Ảnh Đại Diện Nhân Viên"
 
-#: apps/hrm/api/views/employee.py:142 apps/hrm/api/views/employee.py:143
+#: apps/hrm/api/views/employee.py:154 apps/hrm/api/views/employee.py:155
 msgid "Preview welcome email for employee"
 msgstr "Xem trước email chào mừng cho nhân viên"
 
-#: apps/hrm/api/views/employee.py:146 apps/hrm/api/views/employee.py:147
+#: apps/hrm/api/views/employee.py:158 apps/hrm/api/views/employee.py:159
 msgid "Send welcome email to employee"
 msgstr "Gửi email chào mừng đến nhân viên"
 
-#: apps/hrm/api/views/employee.py:158
+#: apps/hrm/api/views/employee.py:170
 msgid "View employee in dropdown list"
 msgstr "Xem danh sách nhân viên cho dạng dropdown"
 
-#: apps/hrm/api/views/employee.py:159
+#: apps/hrm/api/views/employee.py:171
 msgid "List employee for dropdown selection"
 msgstr "Danh sách nhân viên cho dạng dropdown"
 
-#: apps/hrm/api/views/employee_certificate.py:301
+#: apps/hrm/api/views/employee_certificate.py:311
 msgid "Employee Certificate Management"
 msgstr "Quản lý bằng cấp chứng chỉ"
 
-#: apps/hrm/api/views/employee_reports.py:52
-#: apps/hrm/api/views/employee_reports.py:675
-#: apps/hrm/api/views/employee_reports.py:795
-#: apps/hrm/api/views/recruitment_reports.py:50
+#: apps/hrm/api/views/employee_reports.py:53
+#: apps/hrm/api/views/employee_reports.py:701
+#: apps/hrm/api/views/employee_reports.py:821
+#: apps/hrm/api/views/recruitment_reports.py:51
 msgid "REPORT"
 msgstr "Báo cáo"
 
-#: apps/hrm/api/views/employee_reports.py:53
+#: apps/hrm/api/views/employee_reports.py:54
 msgid "Employee Reports"
 msgstr "Báo cáo Nhân sự"
 
-#: apps/hrm/api/views/employee_reports.py:57
 #: apps/hrm/api/views/employee_reports.py:58
+#: apps/hrm/api/views/employee_reports.py:59
 msgid "Retrieve employee resigned breakdown report"
 msgstr "Xem Báo cáo số lượng nghỉ việc"
 
-#: apps/hrm/api/views/employee_reports.py:61
 #: apps/hrm/api/views/employee_reports.py:62
+#: apps/hrm/api/views/employee_reports.py:63
 msgid "Retrieve employee status breakdown report"
 msgstr "Xem báo cáo số lượng nhân sự"
 
-#: apps/hrm/api/views/employee_reports.py:65
 #: apps/hrm/api/views/employee_reports.py:66
+#: apps/hrm/api/views/employee_reports.py:67
 msgid "Retrieve employee resigned reasons summary report"
 msgstr "Xem báo cáo Báo cáo Tỉ lệ lý do nghỉ việc"
 
-#: apps/hrm/api/views/employee_reports.py:78
-#: apps/hrm/api/views/recruitment_reports.py:752 apps/hrm/constants.py:68
+#: apps/hrm/api/views/employee_reports.py:79
+#: apps/hrm/api/views/recruitment_reports.py:753 apps/hrm/constants.py:68
 #: apps/hrm/constants.py:73 apps/hrm/utils/functions.py:162
 msgid "Week"
 msgstr "Tuần"
 
-#: apps/hrm/api/views/employee_reports.py:98
-#: apps/hrm/api/views/recruitment_reports.py:174
-#: apps/hrm/api/views/recruitment_reports.py:930 apps/hrm/constants.py:69
+#: apps/hrm/api/views/employee_reports.py:99
+#: apps/hrm/api/views/recruitment_reports.py:175
+#: apps/hrm/api/views/recruitment_reports.py:937 apps/hrm/constants.py:69
 #: apps/hrm/constants.py:74
 msgid "Month"
 msgstr "Tháng"
 
-#: apps/hrm/api/views/employee_reports.py:124 apps/hrm/constants.py:75
+#: apps/hrm/api/views/employee_reports.py:125 apps/hrm/constants.py:75
 msgid "Quarter"
 msgstr "Quý"
 
-#: apps/hrm/api/views/employee_reports.py:145 apps/hrm/constants.py:76
+#: apps/hrm/api/views/employee_reports.py:146 apps/hrm/constants.py:76
 msgid "Year"
 msgstr "Năm"
 
-#: apps/hrm/api/views/employee_reports.py:350
+#: apps/hrm/api/views/employee_reports.py:354
 msgid "Average"
 msgstr "Trung Bình"
 
-#: apps/hrm/api/views/employee_reports.py:556 apps/hrm/models/employee.py:130
+#: apps/hrm/api/views/employee_reports.py:560 apps/hrm/models/employee.py:130
 #: apps/hrm/models/employee_report.py:120
 msgid "Agreement Termination"
 msgstr "Thỏa thuận chấm dứt Hợp đồng lao động trước thời hạn"
 
-#: apps/hrm/api/views/employee_reports.py:557 apps/hrm/models/employee.py:131
+#: apps/hrm/api/views/employee_reports.py:561 apps/hrm/models/employee.py:131
 #: apps/hrm/models/employee_report.py:121
 msgid "Probation Fail"
 msgstr "Thử việc không đạt"
 
-#: apps/hrm/api/views/employee_reports.py:558 apps/hrm/models/employee.py:132
+#: apps/hrm/api/views/employee_reports.py:562 apps/hrm/models/employee.py:132
 #: apps/hrm/models/employee_report.py:122
 msgid "Job Abandonment"
 msgstr "Bỏ việc"
 
-#: apps/hrm/api/views/employee_reports.py:562 apps/hrm/models/employee.py:133
+#: apps/hrm/api/views/employee_reports.py:566 apps/hrm/models/employee.py:133
 #: apps/hrm/models/employee_report.py:123
 msgid "Disciplinary Termination"
 msgstr "Sa thải do kỷ luật"
 
-#: apps/hrm/api/views/employee_reports.py:564 apps/hrm/models/employee.py:134
+#: apps/hrm/api/views/employee_reports.py:568 apps/hrm/models/employee.py:134
 #: apps/hrm/models/employee_report.py:124
 msgid "Workforce Reduction"
 msgstr "Thanh lọc"
 
-#: apps/hrm/api/views/employee_reports.py:565 apps/hrm/models/employee.py:135
+#: apps/hrm/api/views/employee_reports.py:569 apps/hrm/models/employee.py:135
 #: apps/hrm/models/employee_report.py:125
 msgid "Underperforming"
 msgstr "Thành tích kém trong công việc"
 
-#: apps/hrm/api/views/employee_reports.py:566 apps/hrm/models/employee.py:136
+#: apps/hrm/api/views/employee_reports.py:570 apps/hrm/models/employee.py:136
 #: apps/hrm/models/employee_report.py:126
 msgid "Contract Expired"
 msgstr "Hết hợp đồng"
 
-#: apps/hrm/api/views/employee_reports.py:567 apps/hrm/models/employee.py:137
+#: apps/hrm/api/views/employee_reports.py:571 apps/hrm/models/employee.py:137
 #: apps/hrm/models/employee_report.py:127
 msgid "Voluntary - Health Reasons"
 msgstr "Nguyện vọng theo đơn - Không đảm bảo sức khỏe"
 
-#: apps/hrm/api/views/employee_reports.py:568 apps/hrm/models/employee.py:138
+#: apps/hrm/api/views/employee_reports.py:572 apps/hrm/models/employee.py:138
 #: apps/hrm/models/employee_report.py:128
 msgid "Voluntary - Personal Reasons"
 msgstr "Nguyện vọng theo đơn - Bận việc cá nhân"
 
-#: apps/hrm/api/views/employee_reports.py:572 apps/hrm/models/employee.py:139
+#: apps/hrm/api/views/employee_reports.py:576 apps/hrm/models/employee.py:139
 #: apps/hrm/models/employee_report.py:129
 msgid "Voluntary - Career Change"
 msgstr "Nguyện vọng theo đơn - Thay đổi định hướng công việc"
 
-#: apps/hrm/api/views/employee_reports.py:574 apps/hrm/models/employee.py:140
+#: apps/hrm/api/views/employee_reports.py:578 apps/hrm/models/employee.py:140
 #: apps/hrm/models/employee_report.py:130
 msgid "Voluntary - Other"
 msgstr "Nguyện vọng theo đơn - Khác"
 
-#: apps/hrm/api/views/employee_reports.py:575 apps/hrm/constants.py:48
+#: apps/hrm/api/views/employee_reports.py:579 apps/hrm/constants.py:48
 #: apps/hrm/constants.py:102 apps/hrm/constants.py:119
 #: apps/hrm/models/contract_type.py:70 apps/hrm/models/employee.py:141
 #: apps/hrm/models/employee_report.py:131
@@ -1148,49 +1147,49 @@ msgstr "Nguyện vọng theo đơn - Khác"
 msgid "Other"
 msgstr "Khác"
 
-#: apps/hrm/api/views/employee_reports.py:676
-#: apps/hrm/api/views/employee_reports.py:680
+#: apps/hrm/api/views/employee_reports.py:702
+#: apps/hrm/api/views/employee_reports.py:706
 msgid "Employee Seniority Report"
 msgstr "Báo cáo Thâm niên Nhân viên"
 
-#: apps/hrm/api/views/employee_reports.py:681
+#: apps/hrm/api/views/employee_reports.py:707
 msgid "Retrieve employee seniority report with filtering and sorting"
 msgstr "Xem báo cáo Thâm niên Nhân viên với các bộ lọc và sắp xếp"
 
-#: apps/hrm/api/views/employee_reports.py:684
+#: apps/hrm/api/views/employee_reports.py:710
 msgid "Export Employee Seniority Report"
 msgstr "Báo cáo Thâm niên Nhân viên"
 
-#: apps/hrm/api/views/employee_reports.py:685
+#: apps/hrm/api/views/employee_reports.py:711
 msgid "Export employee seniority report to XLSX format"
 msgstr "Xuất báo cáo Thâm niên Nhân viên"
 
-#: apps/hrm/api/views/employee_reports.py:796
-#: apps/hrm/api/views/employee_reports.py:800
+#: apps/hrm/api/views/employee_reports.py:822
+#: apps/hrm/api/views/employee_reports.py:826
 msgid "Employee Type Conversion Report"
 msgstr "Báo cáo chuyển đổi loại nhân viên"
 
-#: apps/hrm/api/views/employee_reports.py:801
+#: apps/hrm/api/views/employee_reports.py:827
 msgid "Retrieve employee type conversion report"
 msgstr "Xem Báo cáo chuyển đổi loại nhân viên"
 
-#: apps/hrm/api/views/employee_reports.py:804
+#: apps/hrm/api/views/employee_reports.py:830
 msgid "Export Employee Type Conversion Report"
 msgstr "Xuất báo cáo chuyển đổi loại nhân viên"
 
-#: apps/hrm/api/views/employee_reports.py:805
+#: apps/hrm/api/views/employee_reports.py:831
 msgid "Export employee type conversion report"
 msgstr "Xuất báo cáo chuyển đổi loại nhân viên"
 
-#: apps/hrm/api/views/employee_reports.py:842
+#: apps/hrm/api/views/employee_reports.py:868
 msgid "Unknown Branch"
 msgstr "Không có chi nhánh"
 
-#: apps/hrm/api/views/employee_reports.py:845
+#: apps/hrm/api/views/employee_reports.py:871
 msgid "Unknown Block"
 msgstr "Không có khối"
 
-#: apps/hrm/api/views/employee_reports.py:848
+#: apps/hrm/api/views/employee_reports.py:874
 msgid "Unknown Department"
 msgstr "Không có phòng ban"
 
@@ -1206,7 +1205,7 @@ msgstr "Không thể cập nhật hơn 25 nhân viên cùng một lúc."
 msgid "Update successful"
 msgstr "Chỉnh sửa thành công"
 
-#: apps/hrm/api/views/employee_work_history.py:145
+#: apps/hrm/api/views/employee_work_history.py:155
 msgid ""
 "Cannot delete employee type change record with effective date in previous "
 "months."
@@ -1230,85 +1229,85 @@ msgstr "Không tìm thấy ngày nghỉ lễ"
 msgid "Cannot delete compensatory workdays that are in the past or present"
 msgstr "Không thể xóa ngày làm bù trong quá khứ hoặc hiện tại"
 
-#: apps/hrm/api/views/hrm_dashboard.py:24
+#: apps/hrm/api/views/hrm_dashboard.py:25
 msgid "HRM Dashboard"
 msgstr ""
 
-#: apps/hrm/api/views/hrm_dashboard.py:28
+#: apps/hrm/api/views/hrm_dashboard.py:29
 msgid "View Common HRM realtime dashboard"
 msgstr "Xem thống kê dành cho HRM chung"
 
-#: apps/hrm/api/views/hrm_dashboard.py:29
+#: apps/hrm/api/views/hrm_dashboard.py:30
 msgid "View HRM stats for handling proposals, attendance, and penalties"
 msgstr "Xem thống kê HRM về xử lý đề xuất, chấm công và phạt"
 
-#: apps/hrm/api/views/hrm_dashboard.py:172
+#: apps/hrm/api/views/hrm_dashboard.py:205
 msgid "Pending Proposals"
 msgstr "Đề xuất chờ xử lý"
 
-#: apps/hrm/api/views/hrm_dashboard.py:177
+#: apps/hrm/api/views/hrm_dashboard.py:210
 msgid "Manual attendance pending"
 msgstr "Chấm công khác chờ duyệt"
 
-#: apps/hrm/api/views/hrm_dashboard.py:186
+#: apps/hrm/api/views/hrm_dashboard.py:219
 msgid "Timesheet complaints"
 msgstr "Khiếu nại chấm công chờ duyệt"
 
-#: apps/hrm/api/views/hrm_dashboard.py:195
+#: apps/hrm/api/views/hrm_dashboard.py:228
 msgid "Unpaid penalty tickets"
 msgstr "Số lượng phiếu phạt chưa thanh toán"
 
-#: apps/hrm/api/views/interview_candidate.py:158
-#: apps/hrm/api/views/interview_schedule.py:312
-#: apps/hrm/api/views/job_description.py:234
-#: apps/hrm/api/views/recruitment_candidate.py:434
+#: apps/hrm/api/views/interview_candidate.py:168
+#: apps/hrm/api/views/interview_schedule.py:322
+#: apps/hrm/api/views/job_description.py:244
+#: apps/hrm/api/views/recruitment_candidate.py:447
 #: apps/hrm/api/views/recruitment_candidate_contact_log.py:243
 #: apps/hrm/api/views/recruitment_channel.py:59
 #: apps/hrm/api/views/recruitment_dashboard.py:42
-#: apps/hrm/api/views/recruitment_expense.py:343
-#: apps/hrm/api/views/recruitment_reports.py:51
-#: apps/hrm/api/views/recruitment_request.py:392
+#: apps/hrm/api/views/recruitment_expense.py:353
+#: apps/hrm/api/views/recruitment_reports.py:52
+#: apps/hrm/api/views/recruitment_request.py:405
 #: apps/hrm/api/views/recruitment_source.py:58
 msgid "Recruitment"
 msgstr "Tuyển dụng"
 
-#: apps/hrm/api/views/interview_schedule.py:316
-#: apps/hrm/api/views/interview_schedule.py:317
+#: apps/hrm/api/views/interview_schedule.py:326
+#: apps/hrm/api/views/interview_schedule.py:327
 #, python-brace-format
 msgid "Preview interview invite for {model_name}"
 msgstr "Xem trước lời mời phỏng vấn cho {model_name}"
 
-#: apps/hrm/api/views/interview_schedule.py:320
-#: apps/hrm/api/views/interview_schedule.py:321
+#: apps/hrm/api/views/interview_schedule.py:330
+#: apps/hrm/api/views/interview_schedule.py:331
 #, python-brace-format
 msgid "Send interview invite for {model_name}"
 msgstr "Gửi lời mời phỏng vấn cho {model_name}"
 
-#: apps/hrm/api/views/interview_schedule.py:324
-#: apps/hrm/api/views/interview_schedule.py:325
+#: apps/hrm/api/views/interview_schedule.py:334
+#: apps/hrm/api/views/interview_schedule.py:335
 #, python-brace-format
 msgid "Update interviewers for {model_name}"
 msgstr "Cập nhật người phỏng vấn cho {model_name}"
 
-#: apps/hrm/api/views/interview_schedule.py:647
+#: apps/hrm/api/views/interview_schedule.py:657
 #: apps/hrm/models/interview_schedule.py:40
 msgid "Interview Schedule"
 msgstr "Lịch phỏng vấn"
 
-#: apps/hrm/api/views/interview_schedule.py:649
+#: apps/hrm/api/views/interview_schedule.py:659
 msgid "Interview Position Title"
 msgstr "Vị trí phỏng vấn"
 
-#: apps/hrm/api/views/interview_schedule.py:650
+#: apps/hrm/api/views/interview_schedule.py:660
 #: apps/hrm/models/recruitment_request.py:92
 msgid "Number of positions"
 msgstr "Số vị trí cần tuyển"
 
-#: apps/hrm/api/views/interview_schedule.py:651
+#: apps/hrm/api/views/interview_schedule.py:661
 msgid "Time interview"
 msgstr "Thời gian phỏng vấn"
 
-#: apps/hrm/api/views/interview_schedule.py:672
+#: apps/hrm/api/views/interview_schedule.py:682
 msgid ""
 "This interview schedule has been sent to candidates so it cannot be deleted."
 msgstr "Lịch phỏng vấn này đã được gửi cho ứng viên, không thể xoá."
@@ -1407,7 +1406,7 @@ msgid "The current user is not associated with any employee."
 msgstr "Người dùng hiện tại không liên kết với bất kỳ nhân viên nào."
 
 #: apps/hrm/api/views/mobile/timesheet.py:210
-#: apps/hrm/api/views/timesheet.py:231
+#: apps/hrm/api/views/timesheet.py:241
 msgid "Month filter cannot be in the future."
 msgstr "Bộ lọc tháng không thể ở tương lai."
 
@@ -1415,182 +1414,182 @@ msgstr "Bộ lọc tháng không thể ở tương lai."
 msgid "My Timesheet Entry"
 msgstr "Ngày công của tôi"
 
-#: apps/hrm/api/views/organization.py:236
-#: apps/hrm/api/views/organization.py:468
-#: apps/hrm/api/views/organization.py:517
-#: apps/hrm/api/views/organization.py:568
-#: apps/hrm/api/views/organization.py:748
+#: apps/hrm/api/views/organization.py:247
+#: apps/hrm/api/views/organization.py:479
+#: apps/hrm/api/views/organization.py:536
+#: apps/hrm/api/views/organization.py:595
+#: apps/hrm/api/views/organization.py:775
 msgid "Organization"
 msgstr "Sơ đồ tổ chức"
 
-#: apps/hrm/api/views/organization.py:572
+#: apps/hrm/api/views/organization.py:599
 msgid "Department List"
 msgstr "Danh sách Phòng Ban"
 
-#: apps/hrm/api/views/organization.py:573
+#: apps/hrm/api/views/organization.py:600
 msgid "Retrieve a list of departments with filtering and sorting"
 msgstr "Xem danh sách phòng ban với các bộ lọc và sắp xếp"
 
-#: apps/hrm/api/views/organization.py:576
+#: apps/hrm/api/views/organization.py:603
 msgid "Department Detail"
 msgstr "Chi Tiết Phòng Ban"
 
-#: apps/hrm/api/views/organization.py:577
+#: apps/hrm/api/views/organization.py:604
 msgid "Retrieve detailed information about a specific department"
 msgstr "Xem thông tin chi tiết về một phòng ban cụ thể"
 
-#: apps/hrm/api/views/organization.py:580
+#: apps/hrm/api/views/organization.py:607
 msgid "Create Department"
 msgstr "Tạo Phòng Ban"
 
-#: apps/hrm/api/views/organization.py:581
+#: apps/hrm/api/views/organization.py:608
 msgid "Create a new department in the system"
 msgstr "Tạo phòng ban mới"
 
-#: apps/hrm/api/views/organization.py:584
+#: apps/hrm/api/views/organization.py:611
 msgid "Update Department"
 msgstr "Cập nhật Phòng Ban"
 
-#: apps/hrm/api/views/organization.py:585
+#: apps/hrm/api/views/organization.py:612
 msgid "Update department information"
 msgstr "Cập nhật thông tin phòng ban"
 
-#: apps/hrm/api/views/organization.py:588
+#: apps/hrm/api/views/organization.py:615
 msgid "Partial Update Department"
 msgstr "Cập nhật một phần Phòng Ban"
 
-#: apps/hrm/api/views/organization.py:589
+#: apps/hrm/api/views/organization.py:616
 msgid "Partially update department information"
 msgstr "Cập nhật một phần thông tin phòng ban"
 
-#: apps/hrm/api/views/organization.py:592
+#: apps/hrm/api/views/organization.py:619
 msgid "Delete Department"
 msgstr "Xóa Phòng Ban"
 
-#: apps/hrm/api/views/organization.py:593
+#: apps/hrm/api/views/organization.py:620
 msgid "Remove a department from the system"
 msgstr "Xóa một phòng ban khỏi hệ thống"
 
-#: apps/hrm/api/views/organization.py:596
+#: apps/hrm/api/views/organization.py:623
 msgid "Department Tree Structure"
 msgstr "Sơ đồ phòng ban"
 
-#: apps/hrm/api/views/organization.py:597
+#: apps/hrm/api/views/organization.py:624
 msgid "Retrieve department tree structure by block"
 msgstr "Lấy sơ đồ phòng ban theo khối"
 
-#: apps/hrm/api/views/organization.py:600
+#: apps/hrm/api/views/organization.py:627
 msgid "Department Function Choices"
 msgstr "Lựa chọn chức năng phòng ban"
 
-#: apps/hrm/api/views/organization.py:601
+#: apps/hrm/api/views/organization.py:628
 msgid "Retrieve available department functions based on block type"
 msgstr "Lọc các chức năng phòng ban có sẵn dựa trên loại khối"
 
-#: apps/hrm/api/views/organization.py:604
+#: apps/hrm/api/views/organization.py:631
 msgid "Management Department Choices"
 msgstr "Quản lý Phòng Ban"
 
-#: apps/hrm/api/views/organization.py:605
+#: apps/hrm/api/views/organization.py:632
 msgid "Retrieve departments that can serve as management departments"
 msgstr "Lấy các phòng ban có thể làm phòng ban quản lý"
 
-#: apps/hrm/api/views/proposal.py:138 apps/hrm/api/views/proposal.py:3280
+#: apps/hrm/api/views/proposal.py:149 apps/hrm/api/views/proposal.py:3299
 #: apps/hrm/models/proposal.py:302 apps/hrm/models/proposal.py:706
 #: apps/hrm/models/proposal.py:792 apps/hrm/models/proposal.py:897
 #: apps/hrm/models/proposal.py:942
 msgid "Proposal"
 msgstr "Đề xuất"
 
-#: apps/hrm/api/views/proposal.py:142 apps/hrm/api/views/proposal.py:143
+#: apps/hrm/api/views/proposal.py:153 apps/hrm/api/views/proposal.py:154
 #, python-brace-format
 msgid "Approve {model_name}"
 msgstr "Phê duyệt {model_name}"
 
-#: apps/hrm/api/views/proposal.py:146 apps/hrm/api/views/proposal.py:147
+#: apps/hrm/api/views/proposal.py:157 apps/hrm/api/views/proposal.py:158
 #, python-brace-format
 msgid "Reject {model_name}"
 msgstr "Từ chối {model_name}"
 
-#: apps/hrm/api/views/proposal.py:154 apps/hrm/api/views/proposal.py:155
+#: apps/hrm/api/views/proposal.py:165 apps/hrm/api/views/proposal.py:166
 msgid "View the list of requests pending my verification"
 msgstr "Xem danh sách các yêu cầu đang chờ tôi xác nhận"
 
-#: apps/hrm/api/views/proposal.py:639
+#: apps/hrm/api/views/proposal.py:650
 msgid "List Timesheet Entry Complaint Proposals"
 msgstr "Xem danh sách Đề xuất Khiếu nại Chấm công"
 
-#: apps/hrm/api/views/proposal.py:640
+#: apps/hrm/api/views/proposal.py:651
 msgid "Allows the user to list timesheet entry complaint proposals"
 msgstr "Cho phép người dùng xem danh sách đề xuất khiếu nại chấm công"
 
-#: apps/hrm/api/views/proposal.py:643
+#: apps/hrm/api/views/proposal.py:654
 msgid "Retrieve Timesheet Entry Complaint Proposal"
 msgstr "Xem chi tiết Đề xuất Khiếu nại Chấm công"
 
-#: apps/hrm/api/views/proposal.py:644
+#: apps/hrm/api/views/proposal.py:655
 msgid ""
 "Allows the user to retrieve a specific timesheet entry complaint proposal"
 msgstr "Cho phép người dùng xem chi tiết một đề xuất khiếu nại chấm công"
 
-#: apps/hrm/api/views/proposal.py:647
+#: apps/hrm/api/views/proposal.py:658
 msgid "Create Timesheet Entry Complaint Proposal"
 msgstr "Tạo Đề xuất Khiếu nại Chấm công"
 
-#: apps/hrm/api/views/proposal.py:648
+#: apps/hrm/api/views/proposal.py:659
 msgid "Allows the user to create a new timesheet entry complaint proposal"
 msgstr "Cho phép người dùng tạo mới đề xuất khiếu nại chấm công"
 
-#: apps/hrm/api/views/proposal.py:651
+#: apps/hrm/api/views/proposal.py:662
 msgid "Update Timesheet Entry Complaint Proposal"
 msgstr "Cập nhật Đề xuất Khiếu nại Chấm công"
 
-#: apps/hrm/api/views/proposal.py:652
+#: apps/hrm/api/views/proposal.py:663
 msgid ""
 "Allows the user to update an existing timesheet entry complaint proposal"
 msgstr "Cho phép người dùng cập nhật một đề xuất khiếu nại chấm công hiện có"
 
-#: apps/hrm/api/views/proposal.py:655
+#: apps/hrm/api/views/proposal.py:666
 msgid "Partially Update Timesheet Entry Complaint Proposal"
 msgstr "Cập nhật một phần Đề xuất Khiếu nại Chấm công"
 
-#: apps/hrm/api/views/proposal.py:657
+#: apps/hrm/api/views/proposal.py:668
 msgid ""
 "Allows the user to partially update an existing timesheet entry complaint "
 "proposal"
 msgstr ""
 "Cho phép người dùng cập nhật một phần đề xuất khiếu nại chấm công hiện có"
 
-#: apps/hrm/api/views/proposal.py:661
+#: apps/hrm/api/views/proposal.py:672
 msgid "Delete Timesheet Entry Complaint Proposal"
 msgstr "Xóa Đề xuất Khiếu nại Chấm công"
 
-#: apps/hrm/api/views/proposal.py:662
+#: apps/hrm/api/views/proposal.py:673
 msgid "Allows the user to delete a timesheet entry complaint proposal"
 msgstr "Cho phép người dùng xóa đề xuất khiếu nại chấm công"
 
-#: apps/hrm/api/views/proposal.py:665
+#: apps/hrm/api/views/proposal.py:676
 msgid "Export Timesheet Entry Complaint Proposals"
 msgstr "Xuất Đề xuất Khiếu nại Chấm công"
 
-#: apps/hrm/api/views/proposal.py:666
+#: apps/hrm/api/views/proposal.py:677
 msgid "Allows the user to export timesheet entry complaint proposals"
 msgstr "Cho phép người dùng xuất đề xuất khiếu nại chấm công"
 
-#: apps/hrm/api/views/proposal.py:669
+#: apps/hrm/api/views/proposal.py:680
 msgid "View Timesheet Entry Complaint Proposal Histories"
 msgstr "Xem lịch sử thay đổi Đề xuất Khiếu nại Chấm công"
 
-#: apps/hrm/api/views/proposal.py:670
+#: apps/hrm/api/views/proposal.py:681
 msgid ""
 "Allows the user to view audit logs for timesheet entry complaint proposals"
 msgstr "Cho phép người dùng xem nhật ký thay đổi đề xuất khiếu nại chấm công"
 
-#: apps/hrm/api/views/proposal.py:673
+#: apps/hrm/api/views/proposal.py:684
 msgid "View Timesheet Entry Complaint Proposal History Detail"
 msgstr "Xem chi tiết lịch sử thay đổi Đề xuất Khiếu nại Chấm công"
 
-#: apps/hrm/api/views/proposal.py:675
+#: apps/hrm/api/views/proposal.py:686
 msgid ""
 "Allows the user to view detailed audit log for a timesheet entry complaint "
 "proposal"
@@ -1598,97 +1597,97 @@ msgstr ""
 "Cho phép người dùng xem nhật ký thay đổi chi tiết cho một đề xuất khiếu nại "
 "chấm công"
 
-#: apps/hrm/api/views/proposal.py:679
+#: apps/hrm/api/views/proposal.py:690
 msgid "Approve Timesheet Entry Complaint Proposal"
 msgstr "Phê duyệt Đề xuất Khiếu nại Chấm công"
 
-#: apps/hrm/api/views/proposal.py:680
+#: apps/hrm/api/views/proposal.py:691
 msgid "Allows the user to approve a timesheet entry complaint proposal"
 msgstr "Cho phép người dùng phê duyệt đề xuất khiếu nại chấm công"
 
-#: apps/hrm/api/views/proposal.py:683
+#: apps/hrm/api/views/proposal.py:694
 msgid "Reject Timesheet Entry Complaint Proposal"
 msgstr "Từ chối Đề xuất Khiếu nại Chấm công"
 
-#: apps/hrm/api/views/proposal.py:684
+#: apps/hrm/api/views/proposal.py:695
 msgid "Allows the user to reject a timesheet entry complaint proposal"
 msgstr "Cho phép người dùng từ chối đề xuất khiếu nại chấm công"
 
-#: apps/hrm/api/views/proposal.py:931
+#: apps/hrm/api/views/proposal.py:942
 msgid "List Post-Maternity Benefits Proposals"
 msgstr "Xem danh sách Đề xuất Chế độ làm việc hậu thai sản"
 
-#: apps/hrm/api/views/proposal.py:932
+#: apps/hrm/api/views/proposal.py:943
 msgid "Allows the user to list post-maternity benefits proposals"
 msgstr "Cho phép người dùng xem danh sách đề xuất chế độ làm việc hậu thai sản"
 
-#: apps/hrm/api/views/proposal.py:935
+#: apps/hrm/api/views/proposal.py:946
 msgid "Retrieve Post-Maternity Benefits Proposal"
 msgstr "Xem chi tiết Đề xuất Chế độ làm việc hậu thai sản"
 
-#: apps/hrm/api/views/proposal.py:936
+#: apps/hrm/api/views/proposal.py:947
 msgid "Allows the user to retrieve a specific post-maternity benefits proposal"
 msgstr ""
 "Cho phép người dùng xem chi tiết một đề xuất chế độ làm việc hậu thai sản"
 
-#: apps/hrm/api/views/proposal.py:939
+#: apps/hrm/api/views/proposal.py:950
 msgid "Create Post-Maternity Benefits Proposal"
 msgstr "Tạo Đề xuất Chế độ làm việc hậu thai sản"
 
-#: apps/hrm/api/views/proposal.py:940
+#: apps/hrm/api/views/proposal.py:951
 msgid "Allows the user to create a new post-maternity benefits proposal"
 msgstr "Cho phép người dùng tạo mới đề xuất chế độ làm việc hậu thai sản"
 
-#: apps/hrm/api/views/proposal.py:943
+#: apps/hrm/api/views/proposal.py:954
 msgid "Update Post-Maternity Benefits Proposal"
 msgstr "Cập nhật Đề xuất Chế độ làm việc hậu thai sản"
 
-#: apps/hrm/api/views/proposal.py:944
+#: apps/hrm/api/views/proposal.py:955
 msgid "Allows the user to update an existing post-maternity benefits proposal"
 msgstr "Cho phép người dùng cập nhật đề xuất chế độ làm việc hậu thai sản"
 
-#: apps/hrm/api/views/proposal.py:947
+#: apps/hrm/api/views/proposal.py:958
 msgid "Partially Update Post-Maternity Benefits Proposal"
 msgstr "Cập nhật một phần Đề xuất Chế độ làm việc hậu thai sản"
 
-#: apps/hrm/api/views/proposal.py:949
+#: apps/hrm/api/views/proposal.py:960
 msgid ""
 "Allows the user to partially update an existing post-maternity benefits "
 "proposal"
 msgstr ""
 "Cho phép người dùng cập nhật một phần đề xuất chế độ làm việc hậu thai sản"
 
-#: apps/hrm/api/views/proposal.py:953
+#: apps/hrm/api/views/proposal.py:964
 msgid "Delete Post-Maternity Benefits Proposal"
 msgstr "Xóa Đề xuất Chế độ làm việc hậu thai sản"
 
-#: apps/hrm/api/views/proposal.py:954
+#: apps/hrm/api/views/proposal.py:965
 msgid "Allows the user to delete a post-maternity benefits proposal"
 msgstr "Cho phép người dùng xóa đề xuất chế độ làm việc hậu thai sản"
 
-#: apps/hrm/api/views/proposal.py:957
+#: apps/hrm/api/views/proposal.py:968
 msgid "Export Post-Maternity Benefits Proposals"
 msgstr "Xuất Đề xuất Chế độ làm việc hậu thai sản"
 
-#: apps/hrm/api/views/proposal.py:958
+#: apps/hrm/api/views/proposal.py:969
 msgid "Allows the user to export post-maternity benefits proposals"
 msgstr "Cho phép người dùng xuất đề xuất chế độ làm việc hậu thai sản"
 
-#: apps/hrm/api/views/proposal.py:961
+#: apps/hrm/api/views/proposal.py:972
 msgid "View Post-Maternity Benefits Proposal Histories"
 msgstr "Xem nhật ký thay đổi Đề xuất Chế độ làm việc hậu thai sản"
 
-#: apps/hrm/api/views/proposal.py:962
+#: apps/hrm/api/views/proposal.py:973
 msgid ""
 "Allows the user to view audit logs for post-maternity benefits proposals"
 msgstr ""
 "Cho phép người dùng xem nhật ký thay đổi đề xuất chế độ làm việc hậu thai sản"
 
-#: apps/hrm/api/views/proposal.py:965
+#: apps/hrm/api/views/proposal.py:976
 msgid "View Post-Maternity Benefits Proposal History Detail"
 msgstr "Xem chi tiết nhật ký thay đổi Đề xuất Chế độ làm việc hậu thai sản"
 
-#: apps/hrm/api/views/proposal.py:967
+#: apps/hrm/api/views/proposal.py:978
 msgid ""
 "Allows the user to view detailed audit log for a post-maternity benefits "
 "proposal"
@@ -1696,808 +1695,808 @@ msgstr ""
 "Cho phép người dùng xem nhật ký thay đổi chi tiết cho một đề xuất chế độ làm "
 "việc hậu thai sản"
 
-#: apps/hrm/api/views/proposal.py:971
+#: apps/hrm/api/views/proposal.py:982
 msgid "Approve Post-Maternity Benefits Proposal"
 msgstr "Phê duyệt Đề xuất Chế độ làm việc hậu thai sản"
 
-#: apps/hrm/api/views/proposal.py:972
+#: apps/hrm/api/views/proposal.py:983
 msgid "Allows the user to approve a post-maternity benefits proposal"
 msgstr "Cho phép người dùng phê duyệt đề xuất chế độ làm việc hậu thai sản"
 
-#: apps/hrm/api/views/proposal.py:975
+#: apps/hrm/api/views/proposal.py:986
 msgid "Reject Post-Maternity Benefits Proposal"
 msgstr "Từ chối Đề xuất Chế độ làm việc hậu thai sản"
 
-#: apps/hrm/api/views/proposal.py:976
+#: apps/hrm/api/views/proposal.py:987
 msgid "Allows the user to reject a post-maternity benefits proposal"
 msgstr "Cho phép người dùng từ chối đề xuất chế độ làm việc hậu thai sản"
 
-#: apps/hrm/api/views/proposal.py:1211
+#: apps/hrm/api/views/proposal.py:1222
 msgid "List Late Exemption Proposals"
 msgstr "Xem danh sách Đề xuất Miễn trừ trễ"
 
-#: apps/hrm/api/views/proposal.py:1212
+#: apps/hrm/api/views/proposal.py:1223
 msgid "Allows the user to list late exemption proposals"
 msgstr "Cho phép người dùng xem danh sách đề xuất miễn trừ trễ"
 
-#: apps/hrm/api/views/proposal.py:1215
+#: apps/hrm/api/views/proposal.py:1226
 msgid "Retrieve Late Exemption Proposal"
 msgstr "Xem chi tiết Đề xuất Miễn trừ trễ"
 
-#: apps/hrm/api/views/proposal.py:1216
+#: apps/hrm/api/views/proposal.py:1227
 msgid "Allows the user to retrieve a specific late exemption proposal"
 msgstr "Cho phép người dùng xem chi tiết một đề xuất miễn trừ trễ"
 
-#: apps/hrm/api/views/proposal.py:1219
+#: apps/hrm/api/views/proposal.py:1230
 msgid "Create Late Exemption Proposal"
 msgstr "Tạo Đề xuất Miễn trừ trễ"
 
-#: apps/hrm/api/views/proposal.py:1220
+#: apps/hrm/api/views/proposal.py:1231
 msgid "Allows the user to create a new late exemption proposal"
 msgstr "Cho phép người dùng tạo mới đề xuất miễn trừ trễ"
 
-#: apps/hrm/api/views/proposal.py:1223
+#: apps/hrm/api/views/proposal.py:1234
 msgid "Update Late Exemption Proposal"
 msgstr "Cập nhật Đề xuất Miễn trừ trễ"
 
-#: apps/hrm/api/views/proposal.py:1224
+#: apps/hrm/api/views/proposal.py:1235
 msgid "Allows the user to update an existing late exemption proposal"
 msgstr "Cho phép người dùng cập nhật đề xuất miễn trừ trễ"
 
-#: apps/hrm/api/views/proposal.py:1227
+#: apps/hrm/api/views/proposal.py:1238
 msgid "Partially Update Late Exemption Proposal"
 msgstr "Cập nhật một phần Đề xuất Miễn trừ trễ"
 
-#: apps/hrm/api/views/proposal.py:1228
+#: apps/hrm/api/views/proposal.py:1239
 msgid "Allows the user to partially update an existing late exemption proposal"
 msgstr "Cho phép người dùng cập nhật một phần đề xuất miễn trừ trễ"
 
-#: apps/hrm/api/views/proposal.py:1231
+#: apps/hrm/api/views/proposal.py:1242
 msgid "Delete Late Exemption Proposal"
 msgstr "Xóa Đề xuất Miễn trừ trễ"
 
-#: apps/hrm/api/views/proposal.py:1232
+#: apps/hrm/api/views/proposal.py:1243
 msgid "Allows the user to delete a late exemption proposal"
 msgstr "Cho phép người dùng xóa đề xuất miễn trừ trễ"
 
-#: apps/hrm/api/views/proposal.py:1235
+#: apps/hrm/api/views/proposal.py:1246
 msgid "Export Late Exemption Proposals"
 msgstr "Xuất Đề xuất Miễn trừ trễ"
 
-#: apps/hrm/api/views/proposal.py:1236
+#: apps/hrm/api/views/proposal.py:1247
 msgid "Allows the user to export late exemption proposals"
 msgstr "Cho phép người dùng xuất đề xuất miễn trừ trễ"
 
-#: apps/hrm/api/views/proposal.py:1239
+#: apps/hrm/api/views/proposal.py:1250
 msgid "View Late Exemption Proposal Histories"
 msgstr "Xem lịch sử Đề xuất Miễn trừ trễ"
 
-#: apps/hrm/api/views/proposal.py:1240
+#: apps/hrm/api/views/proposal.py:1251
 msgid "Allows the user to view audit logs for late exemption proposals"
 msgstr "Cho phép người dùng xem nhật ký thay đổi cho đề xuất miễn trừ trễ"
 
-#: apps/hrm/api/views/proposal.py:1243
+#: apps/hrm/api/views/proposal.py:1254
 msgid "View Late Exemption Proposal History Detail"
 msgstr "Xem chi tiết lịch sử Đề xuất Miễn trừ trễ"
 
-#: apps/hrm/api/views/proposal.py:1244
+#: apps/hrm/api/views/proposal.py:1255
 msgid ""
 "Allows the user to view detailed audit log for a late exemption proposal"
 msgstr ""
 "Cho phép người dùng xem nhật ký thay đổi chi tiết cho một đề xuất miễn trừ "
 "trễ"
 
-#: apps/hrm/api/views/proposal.py:1247
+#: apps/hrm/api/views/proposal.py:1258
 msgid "Approve Late Exemption Proposal"
 msgstr "Phê duyệt Đề xuất Miễn trừ trễ"
 
-#: apps/hrm/api/views/proposal.py:1248
+#: apps/hrm/api/views/proposal.py:1259
 msgid "Allows the user to approve a late exemption proposal"
 msgstr "Cho phép người dùng phê duyệt đề xuất miễn trừ trễ"
 
-#: apps/hrm/api/views/proposal.py:1251
+#: apps/hrm/api/views/proposal.py:1262
 msgid "Reject Late Exemption Proposal"
 msgstr "Từ chối Đề xuất Miễn trừ trễ"
 
-#: apps/hrm/api/views/proposal.py:1252
+#: apps/hrm/api/views/proposal.py:1263
 msgid "Allows the user to reject a late exemption proposal"
 msgstr "Cho phép người dùng từ chối đề xuất miễn trừ trễ"
 
-#: apps/hrm/api/views/proposal.py:1539
+#: apps/hrm/api/views/proposal.py:1550
 msgid "List Overtime Work Proposals"
 msgstr "Danh sách Đề xuất Làm việc ngoài giờ (OT)"
 
-#: apps/hrm/api/views/proposal.py:1540
+#: apps/hrm/api/views/proposal.py:1551
 msgid "Allows the user to list overtime work proposals"
 msgstr "Cho phép người dùng xem danh sách đề xuất làm việc ngoài giờ"
 
-#: apps/hrm/api/views/proposal.py:1543
+#: apps/hrm/api/views/proposal.py:1554
 msgid "Retrieve Overtime Work Proposal"
 msgstr "Xem chi tiết Đề xuất Làm việc ngoài giờ"
 
-#: apps/hrm/api/views/proposal.py:1544
+#: apps/hrm/api/views/proposal.py:1555
 msgid "Allows the user to retrieve a specific overtime work proposal"
 msgstr "Cho phép người dùng xem chi tiết một đề xuất làm việc ngoài giờ"
 
-#: apps/hrm/api/views/proposal.py:1547
+#: apps/hrm/api/views/proposal.py:1558
 msgid "Create Overtime Work Proposal"
 msgstr "Tạo Đề xuất Làm việc ngoài giờ"
 
-#: apps/hrm/api/views/proposal.py:1548
+#: apps/hrm/api/views/proposal.py:1559
 msgid "Allows the user to create a new overtime work proposal"
 msgstr "Cho phép người dùng tạo mới đề xuất làm việc ngoài giờ"
 
-#: apps/hrm/api/views/proposal.py:1551
+#: apps/hrm/api/views/proposal.py:1562
 msgid "Update Overtime Work Proposal"
 msgstr "Cập nhật Đề xuất Làm việc ngoài giờ"
 
-#: apps/hrm/api/views/proposal.py:1552
+#: apps/hrm/api/views/proposal.py:1563
 msgid "Allows the user to update an existing overtime work proposal"
 msgstr "Cho phép người dùng cập nhật đề xuất làm việc ngoài giờ"
 
-#: apps/hrm/api/views/proposal.py:1555
+#: apps/hrm/api/views/proposal.py:1566
 msgid "Partially Update Overtime Work Proposal"
 msgstr "Cập nhật một phần Đề xuất Làm việc ngoài giờ"
 
-#: apps/hrm/api/views/proposal.py:1556
+#: apps/hrm/api/views/proposal.py:1567
 msgid "Allows the user to partially update an existing overtime work proposal"
 msgstr "Cho phép người dùng cập nhật một phần đề xuất làm việc ngoài giờ"
 
-#: apps/hrm/api/views/proposal.py:1559
+#: apps/hrm/api/views/proposal.py:1570
 msgid "Delete Overtime Work Proposal"
 msgstr "Xóa Đề xuất Làm việc ngoài giờ"
 
-#: apps/hrm/api/views/proposal.py:1560
+#: apps/hrm/api/views/proposal.py:1571
 msgid "Allows the user to delete an overtime work proposal"
 msgstr "Cho phép người dùng xóa đề xuất làm việc ngoài giờ"
 
-#: apps/hrm/api/views/proposal.py:1563
+#: apps/hrm/api/views/proposal.py:1574
 msgid "Export Overtime Work Proposals"
 msgstr "Xuất Đề xuất Làm việc ngoài giờ"
 
-#: apps/hrm/api/views/proposal.py:1564
+#: apps/hrm/api/views/proposal.py:1575
 msgid "Allows the user to export overtime work proposals"
 msgstr "Cho phép người dùng xuất đề xuất làm việc ngoài giờ"
 
-#: apps/hrm/api/views/proposal.py:1567
+#: apps/hrm/api/views/proposal.py:1578
 msgid "View Overtime Work Proposal Histories"
 msgstr "Xem lịch sử Đề xuất Làm việc ngoài giờ"
 
-#: apps/hrm/api/views/proposal.py:1568
+#: apps/hrm/api/views/proposal.py:1579
 msgid "Allows the user to view audit logs for overtime work proposals"
 msgstr ""
 "Cho phép người dùng xem nhật ký thay đổi cho đề xuất làm việc ngoài giờ"
 
-#: apps/hrm/api/views/proposal.py:1571
+#: apps/hrm/api/views/proposal.py:1582
 msgid "View Overtime Work Proposal History Detail"
 msgstr "Xem chi tiết lịch sử Đề xuất Làm việc ngoài giờ"
 
-#: apps/hrm/api/views/proposal.py:1572
+#: apps/hrm/api/views/proposal.py:1583
 msgid ""
 "Allows the user to view detailed audit log for an overtime work proposal"
 msgstr ""
 "Cho phép người dùng xem nhật ký thay đổi chi tiết cho một đề xuất làm việc "
 "ngoài giờ"
 
-#: apps/hrm/api/views/proposal.py:1575
+#: apps/hrm/api/views/proposal.py:1586
 msgid "Approve Overtime Work Proposal"
 msgstr "Phê duyệt Đề xuất Làm việc ngoài giờ"
 
-#: apps/hrm/api/views/proposal.py:1576
+#: apps/hrm/api/views/proposal.py:1587
 msgid "Allows the user to approve an overtime work proposal"
 msgstr "Cho phép người dùng phê duyệt đề xuất làm việc ngoài giờ"
 
-#: apps/hrm/api/views/proposal.py:1579
+#: apps/hrm/api/views/proposal.py:1590
 msgid "Reject Overtime Work Proposal"
 msgstr "Từ chối Đề xuất Làm việc ngoài giờ"
 
-#: apps/hrm/api/views/proposal.py:1580
+#: apps/hrm/api/views/proposal.py:1591
 msgid "Allows the user to reject an overtime work proposal"
 msgstr "Cho phép người dùng từ chối đề xuất làm việc ngoài giờ"
 
-#: apps/hrm/api/views/proposal.py:1836
+#: apps/hrm/api/views/proposal.py:1847
 msgid "List Paid Leave Proposals"
 msgstr "Danh sách Đề xuất Nghỉ phép có lương"
 
-#: apps/hrm/api/views/proposal.py:1837
+#: apps/hrm/api/views/proposal.py:1848
 msgid "Allows the user to list paid leave proposals"
 msgstr "Cho phép người dùng xem danh sách đề xuất nghỉ phép có lương"
 
-#: apps/hrm/api/views/proposal.py:1840
+#: apps/hrm/api/views/proposal.py:1851
 msgid "Retrieve Paid Leave Proposal"
 msgstr "Xem chi tiết Đề xuất Nghỉ phép có lương"
 
-#: apps/hrm/api/views/proposal.py:1841
+#: apps/hrm/api/views/proposal.py:1852
 msgid "Allows the user to retrieve a specific paid leave proposal"
 msgstr "Cho phép người dùng xem chi tiết một đề xuất nghỉ phép có lương"
 
-#: apps/hrm/api/views/proposal.py:1844
+#: apps/hrm/api/views/proposal.py:1855
 msgid "Export Paid Leave Proposals"
 msgstr "Xuất Đề xuất Nghỉ phép có lương"
 
-#: apps/hrm/api/views/proposal.py:1845
+#: apps/hrm/api/views/proposal.py:1856
 msgid "Allows the user to export paid leave proposals"
 msgstr "Cho phép người dùng xuất đề xuất nghỉ phép có lương"
 
-#: apps/hrm/api/views/proposal.py:1848
+#: apps/hrm/api/views/proposal.py:1859
 msgid "View Paid Leave Proposal Histories"
 msgstr "Xem lịch sử Đề xuất Nghỉ phép có lương"
 
-#: apps/hrm/api/views/proposal.py:1849
+#: apps/hrm/api/views/proposal.py:1860
 msgid "Allows the user to view audit logs for paid leave proposals"
 msgstr ""
 "Cho phép người dùng xem nhật ký thay đổi cho đề xuất nghỉ phép có lương"
 
-#: apps/hrm/api/views/proposal.py:1852
+#: apps/hrm/api/views/proposal.py:1863
 msgid "View Paid Leave Proposal History Detail"
 msgstr "Xem chi tiết lịch sử Đề xuất Nghỉ phép có lương"
 
-#: apps/hrm/api/views/proposal.py:1853
+#: apps/hrm/api/views/proposal.py:1864
 msgid "Allows the user to view detailed audit log for a paid leave proposal"
 msgstr ""
 "Cho phép người dùng xem nhật ký thay đổi chi tiết cho đề xuất nghỉ phép có "
 "lương"
 
-#: apps/hrm/api/views/proposal.py:1856
+#: apps/hrm/api/views/proposal.py:1867
 msgid "Approve Paid Leave Proposal"
 msgstr "Phê duyệt Đề xuất Nghỉ phép có lương"
 
-#: apps/hrm/api/views/proposal.py:1857
+#: apps/hrm/api/views/proposal.py:1868
 msgid "Allows the user to approve a paid leave proposal"
 msgstr "Cho phép người dùng phê duyệt đề xuất nghỉ phép có lương"
 
-#: apps/hrm/api/views/proposal.py:1860
+#: apps/hrm/api/views/proposal.py:1871
 msgid "Reject Paid Leave Proposal"
 msgstr "Từ chối Đề xuất Nghỉ phép có lương"
 
-#: apps/hrm/api/views/proposal.py:1861
+#: apps/hrm/api/views/proposal.py:1872
 msgid "Allows the user to reject a paid leave proposal"
 msgstr "Cho phép người dùng từ chối đề xuất nghỉ phép có lương"
 
-#: apps/hrm/api/views/proposal.py:2102
+#: apps/hrm/api/views/proposal.py:2113
 msgid "List Unpaid Leave Proposals"
 msgstr "Xem danh sách Đề xuất Nghỉ không lương"
 
-#: apps/hrm/api/views/proposal.py:2103
+#: apps/hrm/api/views/proposal.py:2114
 msgid "Allows the user to list unpaid leave proposals"
 msgstr "Cho phép người dùng xem danh sách đề xuất nghỉ không lương"
 
-#: apps/hrm/api/views/proposal.py:2106
+#: apps/hrm/api/views/proposal.py:2117
 msgid "Retrieve Unpaid Leave Proposal"
 msgstr "Xem chi tiết Đề xuất Nghỉ không lương"
 
-#: apps/hrm/api/views/proposal.py:2107
+#: apps/hrm/api/views/proposal.py:2118
 msgid "Allows the user to retrieve a specific unpaid leave proposal"
 msgstr "Cho phép người dùng xem chi tiết một đề xuất nghỉ không lương"
 
-#: apps/hrm/api/views/proposal.py:2110
+#: apps/hrm/api/views/proposal.py:2121
 msgid "Create Unpaid Leave Proposal"
 msgstr "Tạo Đề xuất Nghỉ không lương"
 
-#: apps/hrm/api/views/proposal.py:2111
+#: apps/hrm/api/views/proposal.py:2122
 msgid "Allows the user to create a new unpaid leave proposal"
 msgstr "Cho phép người dùng tạo mới đề xuất nghỉ không lương"
 
-#: apps/hrm/api/views/proposal.py:2114
+#: apps/hrm/api/views/proposal.py:2125
 msgid "Update Unpaid Leave Proposal"
 msgstr "Cập nhật Đề xuất Nghỉ không lương"
 
-#: apps/hrm/api/views/proposal.py:2115
+#: apps/hrm/api/views/proposal.py:2126
 msgid "Allows the user to update an existing unpaid leave proposal"
 msgstr "Cho phép người dùng cập nhật đề xuất nghỉ không lương"
 
-#: apps/hrm/api/views/proposal.py:2118
+#: apps/hrm/api/views/proposal.py:2129
 msgid "Partially Update Unpaid Leave Proposal"
 msgstr "Cập nhật một phần Đề xuất Nghỉ không lương"
 
-#: apps/hrm/api/views/proposal.py:2119
+#: apps/hrm/api/views/proposal.py:2130
 msgid "Allows the user to partially update an existing unpaid leave proposal"
 msgstr "Cho phép người dùng cập nhật một phần đề xuất nghỉ không lương"
 
-#: apps/hrm/api/views/proposal.py:2122
+#: apps/hrm/api/views/proposal.py:2133
 msgid "Delete Unpaid Leave Proposal"
 msgstr "Xóa Đề xuất Nghỉ không lương"
 
-#: apps/hrm/api/views/proposal.py:2123
+#: apps/hrm/api/views/proposal.py:2134
 msgid "Allows the user to delete an unpaid leave proposal"
 msgstr "Cho phép người dùng xóa đề xuất nghỉ không lương"
 
-#: apps/hrm/api/views/proposal.py:2126
+#: apps/hrm/api/views/proposal.py:2137
 msgid "Export Unpaid Leave Proposals"
 msgstr "Xuất Đề xuất Nghỉ không lương"
 
-#: apps/hrm/api/views/proposal.py:2127
+#: apps/hrm/api/views/proposal.py:2138
 msgid "Allows the user to export unpaid leave proposals"
 msgstr "Cho phép người dùng xuất đề xuất nghỉ không lương"
 
-#: apps/hrm/api/views/proposal.py:2130
+#: apps/hrm/api/views/proposal.py:2141
 msgid "View Unpaid Leave Proposal Histories"
 msgstr "Xem lịch sử Đề xuất Nghỉ không lương"
 
-#: apps/hrm/api/views/proposal.py:2131
+#: apps/hrm/api/views/proposal.py:2142
 msgid "Allows the user to view audit logs for unpaid leave proposals"
 msgstr "Cho phép người dùng xem nhật ký thay đổi cho đề xuất nghỉ không lương"
 
-#: apps/hrm/api/views/proposal.py:2134
+#: apps/hrm/api/views/proposal.py:2145
 msgid "View Unpaid Leave Proposal History Detail"
 msgstr "Xem chi tiết lịch sử Đề xuất Nghỉ không lương"
 
-#: apps/hrm/api/views/proposal.py:2135
+#: apps/hrm/api/views/proposal.py:2146
 msgid "Allows the user to view detailed audit log for an unpaid leave proposal"
 msgstr ""
 "Cho phép người dùng xem nhật ký thay đổi chi tiết cho đề xuất nghỉ không "
 "lương"
 
-#: apps/hrm/api/views/proposal.py:2138
+#: apps/hrm/api/views/proposal.py:2149
 msgid "Approve Unpaid Leave Proposal"
 msgstr "Phê duyệt Đề xuất Nghỉ không lương"
 
-#: apps/hrm/api/views/proposal.py:2139
+#: apps/hrm/api/views/proposal.py:2150
 msgid "Allows the user to approve an unpaid leave proposal"
 msgstr "Cho phép người dùng phê duyệt đề xuất nghỉ không lương"
 
-#: apps/hrm/api/views/proposal.py:2142
+#: apps/hrm/api/views/proposal.py:2153
 msgid "Reject Unpaid Leave Proposal"
 msgstr "Từ chối Đề xuất Nghỉ không lương"
 
-#: apps/hrm/api/views/proposal.py:2143
+#: apps/hrm/api/views/proposal.py:2154
 msgid "Allows the user to reject an unpaid leave proposal"
 msgstr "Cho phép người dùng từ chối đề xuất nghỉ không lương"
 
-#: apps/hrm/api/views/proposal.py:2381
+#: apps/hrm/api/views/proposal.py:2392
 msgid "List Maternity Leave Proposals"
 msgstr "Xem danh sách Đề xuất Nghỉ việc hưởng chế độ thai sản"
 
-#: apps/hrm/api/views/proposal.py:2382
+#: apps/hrm/api/views/proposal.py:2393
 msgid "Allows the user to list maternity leave proposals"
 msgstr ""
 "Cho phép người dùng xem danh sách đề xuất nghỉ việc hưởng chế độ thai sản"
 
-#: apps/hrm/api/views/proposal.py:2385
+#: apps/hrm/api/views/proposal.py:2396
 msgid "Retrieve Maternity Leave Proposal"
 msgstr "Xem chi tiết Đề xuất Nghỉ việc hưởng chế độ thai sản"
 
-#: apps/hrm/api/views/proposal.py:2386
+#: apps/hrm/api/views/proposal.py:2397
 msgid "Allows the user to retrieve a specific maternity leave proposal"
 msgstr ""
 "Cho phép người dùng xem chi tiết một đề xuất nghỉ việc hưởng chế độ thai sản"
 
-#: apps/hrm/api/views/proposal.py:2389
+#: apps/hrm/api/views/proposal.py:2400
 msgid "Create Maternity Leave Proposal"
 msgstr "Tạo Đề xuất Nghỉ việc hưởng chế độ thai sản"
 
-#: apps/hrm/api/views/proposal.py:2390
+#: apps/hrm/api/views/proposal.py:2401
 msgid "Allows the user to create a new maternity leave proposal"
 msgstr "Cho phép người dùng tạo mới đề xuất nghỉ việc hưởng chế độ thai sản"
 
-#: apps/hrm/api/views/proposal.py:2393
+#: apps/hrm/api/views/proposal.py:2404
 msgid "Update Maternity Leave Proposal"
 msgstr "Cập nhật Đề xuất Nghỉ việc hưởng chế độ thai sản"
 
-#: apps/hrm/api/views/proposal.py:2394
+#: apps/hrm/api/views/proposal.py:2405
 msgid "Allows the user to update an existing maternity leave proposal"
 msgstr "Cho phép người dùng cập nhật đề xuất nghỉ việc hưởng chế độ thai sản"
 
-#: apps/hrm/api/views/proposal.py:2397
+#: apps/hrm/api/views/proposal.py:2408
 msgid "Partially Update Maternity Leave Proposal"
 msgstr "Cập nhật một phần Đề xuất Nghỉ việc hưởng chế độ thai sản"
 
-#: apps/hrm/api/views/proposal.py:2398
+#: apps/hrm/api/views/proposal.py:2409
 msgid ""
 "Allows the user to partially update an existing maternity leave proposal"
 msgstr ""
 "Cho phép người dùng cập nhật một phần đề xuất nghỉ việc hưởng chế độ thai "
 "sản hiện có"
 
-#: apps/hrm/api/views/proposal.py:2401
+#: apps/hrm/api/views/proposal.py:2412
 msgid "Delete Maternity Leave Proposal"
 msgstr "Xóa Đề xuất Nghỉ việc hưởng chế độ thai sản"
 
-#: apps/hrm/api/views/proposal.py:2402
+#: apps/hrm/api/views/proposal.py:2413
 msgid "Allows the user to delete a maternity leave proposal"
 msgstr "Cho phép người dùng xóa đề xuất nghỉ việc hưởng chế độ thai sản"
 
-#: apps/hrm/api/views/proposal.py:2405
+#: apps/hrm/api/views/proposal.py:2416
 msgid "Export Maternity Leave Proposals"
 msgstr "Xuất Đề xuất Nghỉ việc hưởng chế độ thai sản"
 
-#: apps/hrm/api/views/proposal.py:2406
+#: apps/hrm/api/views/proposal.py:2417
 msgid "Allows the user to export maternity leave proposals"
 msgstr "Cho phép người dùng xuất đề xuất nghỉ việc hưởng chế độ thai sản"
 
-#: apps/hrm/api/views/proposal.py:2409
+#: apps/hrm/api/views/proposal.py:2420
 msgid "View Maternity Leave Proposal Histories"
 msgstr "Xem lịch sử Đề xuất Nghỉ việc hưởng chế độ thai sản"
 
-#: apps/hrm/api/views/proposal.py:2410
+#: apps/hrm/api/views/proposal.py:2421
 msgid "Allows the user to view audit logs for maternity leave proposals"
 msgstr ""
 "Cho phép người dùng xem nhật ký thay đổi cho đề xuất nghỉ việc hưởng chế độ "
 "thai sản"
 
-#: apps/hrm/api/views/proposal.py:2413
+#: apps/hrm/api/views/proposal.py:2424
 msgid "View Maternity Leave Proposal History Detail"
 msgstr "Xem chi tiết lịch sử Đề xuất Nghỉ việc hưởng chế độ thai sản"
 
-#: apps/hrm/api/views/proposal.py:2414
+#: apps/hrm/api/views/proposal.py:2425
 msgid ""
 "Allows the user to view detailed audit log for a maternity leave proposal"
 msgstr ""
 "Cho phép người dùng xem nhật ký thay đổi chi tiết cho một đề xuất nghỉ việc "
 "hưởng chế độ thai sản."
 
-#: apps/hrm/api/views/proposal.py:2417
+#: apps/hrm/api/views/proposal.py:2428
 msgid "Approve Maternity Leave Proposal"
 msgstr "Phê duyệt Đề xuất Nghỉ việc hưởng chế độ thai sản"
 
-#: apps/hrm/api/views/proposal.py:2418
+#: apps/hrm/api/views/proposal.py:2429
 msgid "Allows the user to approve a maternity leave proposal"
 msgstr "Cho phép người dùng phê duyệt đề xuất nghỉ việc hưởng chế độ thai sản"
 
-#: apps/hrm/api/views/proposal.py:2421
+#: apps/hrm/api/views/proposal.py:2432
 msgid "Reject Maternity Leave Proposal"
 msgstr "Từ chối Đề xuất Nghỉ việc hưởng chế độ thai sản"
 
-#: apps/hrm/api/views/proposal.py:2422
+#: apps/hrm/api/views/proposal.py:2433
 msgid "Allows the user to reject a maternity leave proposal"
 msgstr "Cho phép người dùng từ chối đề xuất nghỉ việc hưởng chế độ thai sản"
 
-#: apps/hrm/api/views/proposal.py:2686
+#: apps/hrm/api/views/proposal.py:2697
 msgid "List Job Transfer Proposals"
 msgstr "Danh sách Đề xuất Điều chuyển công tác"
 
-#: apps/hrm/api/views/proposal.py:2687
+#: apps/hrm/api/views/proposal.py:2698
 msgid "Allows the user to list job transfer proposals"
 msgstr "Cho phép người dùng xem danh sách đề xuất điều chuyển công tác"
 
-#: apps/hrm/api/views/proposal.py:2690
+#: apps/hrm/api/views/proposal.py:2701
 msgid "Retrieve Job Transfer Proposal"
 msgstr "Xem chi tiết Đề xuất Điều chuyển công tác"
 
-#: apps/hrm/api/views/proposal.py:2691
+#: apps/hrm/api/views/proposal.py:2702
 msgid "Allows the user to retrieve a specific job transfer proposal"
 msgstr "Cho phép người dùng xem chi tiết một đề xuất điều chuyển công tác"
 
-#: apps/hrm/api/views/proposal.py:2694
+#: apps/hrm/api/views/proposal.py:2705
 msgid "Create Job Transfer Proposal"
 msgstr "Tạo Đề xuất Điều chuyển công tác"
 
-#: apps/hrm/api/views/proposal.py:2695
+#: apps/hrm/api/views/proposal.py:2706
 msgid "Allows the user to create a new job transfer proposal"
 msgstr "Cho phép người dùng tạo mới đề xuất điều chuyển công tác"
 
-#: apps/hrm/api/views/proposal.py:2698
+#: apps/hrm/api/views/proposal.py:2709
 msgid "Update Job Transfer Proposal"
 msgstr "Cập nhật Đề xuất Điều chuyển công tác"
 
-#: apps/hrm/api/views/proposal.py:2699
+#: apps/hrm/api/views/proposal.py:2710
 msgid "Allows the user to update an existing job transfer proposal"
 msgstr "Cho phép người dùng cập nhật đề xuất điều chuyển công tác"
 
-#: apps/hrm/api/views/proposal.py:2702
+#: apps/hrm/api/views/proposal.py:2713
 msgid "Partially Update Job Transfer Proposal"
 msgstr "Cập nhật một phần Đề xuất Điều chuyển công tác"
 
-#: apps/hrm/api/views/proposal.py:2703
+#: apps/hrm/api/views/proposal.py:2714
 msgid "Allows the user to partially update an existing job transfer proposal"
 msgstr "Cho phép người dùng cập nhật một phần đề xuất điều chuyển công tác"
 
-#: apps/hrm/api/views/proposal.py:2706
+#: apps/hrm/api/views/proposal.py:2717
 msgid "Delete Job Transfer Proposal"
 msgstr "Xóa Đề xuất Điều chuyển công tác"
 
-#: apps/hrm/api/views/proposal.py:2707
+#: apps/hrm/api/views/proposal.py:2718
 msgid "Allows the user to delete a job transfer proposal"
 msgstr "Cho phép người dùng xóa đề xuất điều chuyển công tác"
 
-#: apps/hrm/api/views/proposal.py:2710
+#: apps/hrm/api/views/proposal.py:2721
 msgid "Export Job Transfer Proposals"
 msgstr "Xuất Đề xuất Điều chuyển công tác"
 
-#: apps/hrm/api/views/proposal.py:2711
+#: apps/hrm/api/views/proposal.py:2722
 msgid "Allows the user to export job transfer proposals"
 msgstr "Cho phép người dùng xuất đề xuất điều chuyển công tác"
 
-#: apps/hrm/api/views/proposal.py:2714
+#: apps/hrm/api/views/proposal.py:2725
 msgid "View Job Transfer Proposal Histories"
 msgstr "Xem lịch sử Đề xuất Điều chuyển công tác"
 
-#: apps/hrm/api/views/proposal.py:2715
+#: apps/hrm/api/views/proposal.py:2726
 msgid "Allows the user to view audit logs for job transfer proposals"
 msgstr ""
 "Cho phép người dùng xem nhật ký thay đổi cho đề xuất điều chuyển công tác"
 
-#: apps/hrm/api/views/proposal.py:2718
+#: apps/hrm/api/views/proposal.py:2729
 msgid "View Job Transfer Proposal History Detail"
 msgstr "Xem chi tiết lịch sử Đề xuất Điều chuyển công tác"
 
-#: apps/hrm/api/views/proposal.py:2719
+#: apps/hrm/api/views/proposal.py:2730
 msgid "Allows the user to view detailed audit log for a job transfer proposal"
 msgstr ""
 "Cho phép người dùng xem nhật ký thay đổi chi tiết cho đề xuất điều chuyển "
 "công tác"
 
-#: apps/hrm/api/views/proposal.py:2722
+#: apps/hrm/api/views/proposal.py:2733
 msgid "Approve Job Transfer Proposal"
 msgstr "Phê duyệt Đề xuất Điều chuyển công tác"
 
-#: apps/hrm/api/views/proposal.py:2723
+#: apps/hrm/api/views/proposal.py:2734
 msgid "Allows the user to approve a job transfer proposal"
 msgstr "Cho phép người dùng phê duyệt đề xuất điều chuyển công tác"
 
-#: apps/hrm/api/views/proposal.py:2726
+#: apps/hrm/api/views/proposal.py:2737
 msgid "Reject Job Transfer Proposal"
 msgstr "Từ chối Đề xuất Điều chuyển công tác"
 
-#: apps/hrm/api/views/proposal.py:2727
+#: apps/hrm/api/views/proposal.py:2738
 msgid "Allows the user to reject a job transfer proposal"
 msgstr "Cho phép người dùng từ chối đề xuất điều chuyển công tác"
 
-#: apps/hrm/api/views/proposal.py:3011
+#: apps/hrm/api/views/proposal.py:3022
 msgid "List Asset Allocation Proposals"
 msgstr "Danh sách Đề xuất Cấp tài sản"
 
-#: apps/hrm/api/views/proposal.py:3012
+#: apps/hrm/api/views/proposal.py:3023
 msgid "Allows the user to list asset allocation proposals"
 msgstr "Cho phép người dùng xem danh sách đề xuất cấp tài sản"
 
-#: apps/hrm/api/views/proposal.py:3015
+#: apps/hrm/api/views/proposal.py:3026
 msgid "Retrieve Asset Allocation Proposal"
 msgstr "Xem chi tiết Đề xuất Cấp tài sản"
 
-#: apps/hrm/api/views/proposal.py:3016
+#: apps/hrm/api/views/proposal.py:3027
 msgid "Allows the user to retrieve a specific asset allocation proposal"
 msgstr "Cho phép người dùng xem chi tiết một đề xuất cấp tài sản"
 
-#: apps/hrm/api/views/proposal.py:3019
+#: apps/hrm/api/views/proposal.py:3030
 msgid "Create Asset Allocation Proposal"
 msgstr "Tạo Đề xuất Cấp tài sản"
 
-#: apps/hrm/api/views/proposal.py:3020
+#: apps/hrm/api/views/proposal.py:3031
 msgid "Allows the user to create a new asset allocation proposal"
 msgstr "Cho phép người dùng tạo mới đề xuất cấp tài sản"
 
-#: apps/hrm/api/views/proposal.py:3023
+#: apps/hrm/api/views/proposal.py:3034
 msgid "Update Asset Allocation Proposal"
 msgstr "Cập nhật Đề xuất Cấp tài sản"
 
-#: apps/hrm/api/views/proposal.py:3024
+#: apps/hrm/api/views/proposal.py:3035
 msgid "Allows the user to update an existing asset allocation proposal"
 msgstr "Cho phép người dùng cập nhật đề xuất cấp tài sản"
 
-#: apps/hrm/api/views/proposal.py:3027
+#: apps/hrm/api/views/proposal.py:3038
 msgid "Partially Update Asset Allocation Proposal"
 msgstr "Cập nhật một phần Đề xuất Cấp tài sản"
 
-#: apps/hrm/api/views/proposal.py:3028
+#: apps/hrm/api/views/proposal.py:3039
 msgid ""
 "Allows the user to partially update an existing asset allocation proposal"
 msgstr "Cho phép người dùng cập nhật một phần đề xuất cấp tài sản"
 
-#: apps/hrm/api/views/proposal.py:3031
+#: apps/hrm/api/views/proposal.py:3042
 msgid "Delete Asset Allocation Proposal"
 msgstr "Xóa Đề xuất Cấp tài sản"
 
-#: apps/hrm/api/views/proposal.py:3032
+#: apps/hrm/api/views/proposal.py:3043
 msgid "Allows the user to delete an asset allocation proposal"
 msgstr "Cho phép người dùng xóa đề xuất cấp tài sản"
 
-#: apps/hrm/api/views/proposal.py:3035
+#: apps/hrm/api/views/proposal.py:3046
 msgid "Export Asset Allocation Proposals"
 msgstr "Xuất Đề xuất Cấp tài sản"
 
-#: apps/hrm/api/views/proposal.py:3036
+#: apps/hrm/api/views/proposal.py:3047
 msgid "Allows the user to export asset allocation proposals"
 msgstr "Cho phép người dùng xuất đề xuất cấp tài sản"
 
-#: apps/hrm/api/views/proposal.py:3039
+#: apps/hrm/api/views/proposal.py:3050
 msgid "View Asset Allocation Proposal Histories"
 msgstr "Xem lịch sử Đề xuất Cấp tài sản"
 
-#: apps/hrm/api/views/proposal.py:3040
+#: apps/hrm/api/views/proposal.py:3051
 msgid "Allows the user to view audit logs for asset allocation proposals"
 msgstr "Cho phép người dùng xem nhật ký thay đổi cho đề xuất cấp tài sản"
 
-#: apps/hrm/api/views/proposal.py:3043
+#: apps/hrm/api/views/proposal.py:3054
 msgid "View Asset Allocation Proposal History Detail"
 msgstr "Xem chi tiết lịch sử Đề xuất Cấp tài sản"
 
-#: apps/hrm/api/views/proposal.py:3044
+#: apps/hrm/api/views/proposal.py:3055
 msgid ""
 "Allows the user to view detailed audit log for an asset allocation proposal"
 msgstr ""
 "Cho phép người dùng xem nhật ký thay đổi chi tiết cho một đề xuất cấp tài sản"
 
-#: apps/hrm/api/views/proposal.py:3047
+#: apps/hrm/api/views/proposal.py:3058
 msgid "Approve Asset Allocation Proposal"
 msgstr "Phê duyệt Đề xuất Cấp tài sản"
 
-#: apps/hrm/api/views/proposal.py:3048
+#: apps/hrm/api/views/proposal.py:3059
 msgid "Allows the user to approve an asset allocation proposal"
 msgstr "Cho phép người dùng phê duyệt đề xuất cấp tài sản"
 
-#: apps/hrm/api/views/proposal.py:3051
+#: apps/hrm/api/views/proposal.py:3062
 msgid "Reject Asset Allocation Proposal"
 msgstr "Từ chối Đề xuất Cấp tài sản"
 
-#: apps/hrm/api/views/proposal.py:3052
+#: apps/hrm/api/views/proposal.py:3063
 msgid "Allows the user to reject an asset allocation proposal"
 msgstr "Cho phép người dùng từ chối đề xuất cấp tài sản"
 
-#: apps/hrm/api/views/proposal.py:3284
+#: apps/hrm/api/views/proposal.py:3303
 msgid "Verify Proposal"
 msgstr "Xác nhận Đề xuất"
 
-#: apps/hrm/api/views/proposal.py:3285
+#: apps/hrm/api/views/proposal.py:3304
 msgid "Allows the user to verify a proposal"
 msgstr "Cho phép người dùng xác nhận đề xuất"
 
-#: apps/hrm/api/views/proposal.py:3288
+#: apps/hrm/api/views/proposal.py:3307
 msgid "Reject Proposal"
 msgstr "Từ chối Đề xuất"
 
-#: apps/hrm/api/views/proposal.py:3289
+#: apps/hrm/api/views/proposal.py:3308
 msgid "Allows the user to reject a proposal verification"
 msgstr "Cho phép người dùng từ chối xác nhận đề xuất"
 
-#: apps/hrm/api/views/proposal.py:3292
+#: apps/hrm/api/views/proposal.py:3311
 msgid "List My employee Proposal Verifiers"
 msgstr "Danh sách Người xác nhận"
 
-#: apps/hrm/api/views/proposal.py:3293
+#: apps/hrm/api/views/proposal.py:3312
 msgid "Allows the user to list their assigned proposal for verifing"
 msgstr "Cho phép người dùng xem danh sách đề xuất được giao"
 
-#: apps/hrm/api/views/proposal.py:3617
+#: apps/hrm/api/views/proposal.py:3636
 msgid "List Device Change Proposals"
 msgstr "Danh sách Đề xuất Thay đổi thiết bị đăng nhập"
 
-#: apps/hrm/api/views/proposal.py:3618
+#: apps/hrm/api/views/proposal.py:3637
 msgid "Allows the user to list device change proposals"
 msgstr "Cho phép người dùng xem danh sách đề xuất thay đổi thiết bị đăng nhập"
 
-#: apps/hrm/api/views/proposal.py:3621
+#: apps/hrm/api/views/proposal.py:3640
 msgid "Retrieve Device Change Proposal"
 msgstr "Xem chi tiết Đề xuất Thay đổi thiết bị đăng nhập"
 
-#: apps/hrm/api/views/proposal.py:3622
+#: apps/hrm/api/views/proposal.py:3641
 msgid "Allows the user to retrieve a specific device change proposal"
 msgstr ""
 "Cho phép người dùng xem chi tiết một đề xuất thay đổi thiết bị đăng nhập"
 
-#: apps/hrm/api/views/proposal.py:3641
+#: apps/hrm/api/views/proposal.py:3660
 msgid "Export Device Change Proposals"
 msgstr "Xuất Đề xuất Thay đổi thiết bị đăng nhập"
 
-#: apps/hrm/api/views/proposal.py:3642
+#: apps/hrm/api/views/proposal.py:3661
 msgid "Allows the user to export device change proposals"
 msgstr "Cho phép người dùng xuất đề xuất thay đổi thiết bị đăng nhập"
 
-#: apps/hrm/api/views/proposal.py:3645
+#: apps/hrm/api/views/proposal.py:3664
 msgid "View Device Change Proposal Histories"
 msgstr "Xem lịch sử Đề xuất Thay đổi thiết bị đăng nhập"
 
-#: apps/hrm/api/views/proposal.py:3646
+#: apps/hrm/api/views/proposal.py:3665
 msgid "Allows the user to view audit logs for device change proposals"
 msgstr ""
 "Cho phép người dùng xem nhật ký thay đổi cho đề xuất thay đổi thiết bị đăng "
 "nhập"
 
-#: apps/hrm/api/views/proposal.py:3649
+#: apps/hrm/api/views/proposal.py:3668
 msgid "View Device Change Proposal History Detail"
 msgstr "Xem chi tiết lịch sử Đề xuất Thay đổi thiết bị đăng nhập"
 
-#: apps/hrm/api/views/proposal.py:3650
+#: apps/hrm/api/views/proposal.py:3669
 msgid "Allows the user to view detailed audit log for a device change proposal"
 msgstr ""
 "Cho phép người dùng xem nhật ký thay đổi chi tiết cho đề xuất thay đổi thiết "
 "bị đăng nhập"
 
-#: apps/hrm/api/views/proposal.py:3653
+#: apps/hrm/api/views/proposal.py:3672
 msgid "Approve Device Change Proposal"
 msgstr "Phê duyệt Đề xuất Thay đổi thiết bị đăng nhập"
 
-#: apps/hrm/api/views/proposal.py:3654
+#: apps/hrm/api/views/proposal.py:3673
 msgid "Allows the user to approve a device change proposal"
 msgstr "Cho phép người dùng phê duyệt đề xuất thay đổi thiết bị đăng nhập"
 
-#: apps/hrm/api/views/proposal.py:3657
+#: apps/hrm/api/views/proposal.py:3676
 msgid "Reject Device Change Proposal"
 msgstr "Từ chối Đề xuất Thay đổi thiết bị đăng nhập"
 
-#: apps/hrm/api/views/proposal.py:3658
+#: apps/hrm/api/views/proposal.py:3677
 msgid "Allows the user to reject a device change proposal"
 msgstr "Cho phép người dùng từ chối đề xuất thay đổi thiết bị đăng nhập"
 
-#: apps/hrm/api/views/recruitment_candidate.py:438
+#: apps/hrm/api/views/recruitment_candidate.py:451
 msgid "View Candidates"
 msgstr "Xem danh sách Ứng viên"
 
-#: apps/hrm/api/views/recruitment_candidate.py:439
+#: apps/hrm/api/views/recruitment_candidate.py:452
 msgid "View all candidates in the system"
 msgstr "Xem tất cả ứng viên trong hệ thống"
 
-#: apps/hrm/api/views/recruitment_candidate.py:442
+#: apps/hrm/api/views/recruitment_candidate.py:455
 msgid "Create Candidate"
 msgstr "Tạo Ứng viên"
 
-#: apps/hrm/api/views/recruitment_candidate.py:443
+#: apps/hrm/api/views/recruitment_candidate.py:456
 msgid "Create a new candidate"
 msgstr "Tạo ứng viên"
 
-#: apps/hrm/api/views/recruitment_candidate.py:446
+#: apps/hrm/api/views/recruitment_candidate.py:459
 msgid "View Candidate Detail"
 msgstr "Xem chi tiết Ứng viên"
 
-#: apps/hrm/api/views/recruitment_candidate.py:447
+#: apps/hrm/api/views/recruitment_candidate.py:460
 msgid "View details of a specific candidate"
 msgstr "Xem chi tiết của một ứng viên cụ thể"
 
-#: apps/hrm/api/views/recruitment_candidate.py:450
+#: apps/hrm/api/views/recruitment_candidate.py:463
 msgid "Update Candidate"
 msgstr "Cập nhật Ứng viên"
 
-#: apps/hrm/api/views/recruitment_candidate.py:451
+#: apps/hrm/api/views/recruitment_candidate.py:464
 msgid "Update information for a specific candidate"
 msgstr "Cập nhật thông tin cho một ứng viên cụ thể"
 
-#: apps/hrm/api/views/recruitment_candidate.py:454
+#: apps/hrm/api/views/recruitment_candidate.py:467
 msgid "Partially Update Candidate"
 msgstr "Cập nhật một phần Ứng viên"
 
-#: apps/hrm/api/views/recruitment_candidate.py:455
+#: apps/hrm/api/views/recruitment_candidate.py:468
 msgid "Partially update information for a specific candidate"
 msgstr "Cập nhật một phần thông tin cho một ứng viên cụ thể"
 
-#: apps/hrm/api/views/recruitment_candidate.py:458
+#: apps/hrm/api/views/recruitment_candidate.py:471
 msgid "Delete Candidate"
 msgstr "Xóa Ứng viên"
 
-#: apps/hrm/api/views/recruitment_candidate.py:459
+#: apps/hrm/api/views/recruitment_candidate.py:472
 msgid "Delete a specific candidate from the system"
 msgstr "Xóa một ứng viên cụ thể khỏi hệ thống"
 
-#: apps/hrm/api/views/recruitment_candidate.py:462
+#: apps/hrm/api/views/recruitment_candidate.py:475
 msgid "Export Candidates"
 msgstr "Xuất Ứng viên"
 
-#: apps/hrm/api/views/recruitment_candidate.py:463
+#: apps/hrm/api/views/recruitment_candidate.py:476
 msgid "Export candidates to a file"
 msgstr "Xuất ứng viên ra file"
 
-#: apps/hrm/api/views/recruitment_candidate.py:466
+#: apps/hrm/api/views/recruitment_candidate.py:479
 msgid "Update Candidate Referrer"
 msgstr "Cập nhật Người Giới Thiệu Ứng Viên"
 
-#: apps/hrm/api/views/recruitment_candidate.py:467
+#: apps/hrm/api/views/recruitment_candidate.py:480
 msgid "Update the referrer for a specific candidate"
 msgstr "Cập nhật người giới thiệu cho một ứng viên cụ thể"
 
-#: apps/hrm/api/views/recruitment_candidate.py:470
+#: apps/hrm/api/views/recruitment_candidate.py:483
 msgid "Convert Candidate to Employee"
 msgstr "Chuyển Ứng viên thành Nhân viên"
 
-#: apps/hrm/api/views/recruitment_candidate.py:471
+#: apps/hrm/api/views/recruitment_candidate.py:484
 msgid "Convert a candidate into an employee record"
 msgstr "Chuyển một ứng viên thành nhân viên"
 
-#: apps/hrm/api/views/recruitment_candidate.py:474
+#: apps/hrm/api/views/recruitment_candidate.py:487
 msgid "Download Candidate Import Template"
 msgstr "Tải về mẫu import cho ứng viên"
 
-#: apps/hrm/api/views/recruitment_candidate.py:475
+#: apps/hrm/api/views/recruitment_candidate.py:488
 msgid "Download the import template for candidates"
 msgstr "Tải về mẫu import cho ứng viên"
 
-#: apps/hrm/api/views/recruitment_candidate.py:478
+#: apps/hrm/api/views/recruitment_candidate.py:491
 msgid "Import Candidates"
 msgstr "Nhập Ứng viên"
 
-#: apps/hrm/api/views/recruitment_candidate.py:479
+#: apps/hrm/api/views/recruitment_candidate.py:492
 msgid "Import candidates from an uploaded file"
 msgstr "Nhập ứng viên từ file tải lên"
 
-#: apps/hrm/api/views/recruitment_candidate.py:710
+#: apps/hrm/api/views/recruitment_candidate.py:723
 msgid "Only candidates with REJECTED status can be deleted."
 msgstr "Chỉ có thể xoá các ứng viên đã bị LOẠI"
 
@@ -2565,21 +2564,21 @@ msgstr "Có kinh nghiệm"
 msgid "Inexperienced"
 msgstr "Không có kinh nghiệm"
 
-#: apps/hrm/api/views/recruitment_reports.py:55
+#: apps/hrm/api/views/recruitment_reports.py:56
 #: apps/hrm/models/recruitment_reports.py:76
 msgid "Staff Growth Report"
 msgstr "Báo cáo tăng trưởng nhân sự"
 
-#: apps/hrm/api/views/recruitment_reports.py:56
+#: apps/hrm/api/views/recruitment_reports.py:57
 msgid "Aggregate staff changes by period (week/month)"
 msgstr "Báo cáo tổng hợp thay đổi nhân sự theo kỳ (tuần/tháng)"
 
-#: apps/hrm/api/views/recruitment_reports.py:59
+#: apps/hrm/api/views/recruitment_reports.py:60
 #: apps/hrm/models/recruitment_reports.py:100
 msgid "Recruitment Source Report"
 msgstr "Báo cáo nguồn tuyển dụng"
 
-#: apps/hrm/api/views/recruitment_reports.py:61
+#: apps/hrm/api/views/recruitment_reports.py:62
 msgid ""
 "Aggregate hire statistics by recruitment source in nested organizational "
 "format"
@@ -2587,33 +2586,33 @@ msgstr ""
 "Tổng hợp thống kê tuyển dụng theo nguồn tuyển dụng dưới dạng tổ chức lồng "
 "nhau"
 
-#: apps/hrm/api/views/recruitment_reports.py:65
+#: apps/hrm/api/views/recruitment_reports.py:66
 #: apps/hrm/models/recruitment_reports.py:123
 msgid "Recruitment Channel Report"
 msgstr "Báo cáo kênh tuyển dụng"
 
-#: apps/hrm/api/views/recruitment_reports.py:67
+#: apps/hrm/api/views/recruitment_reports.py:68
 msgid ""
 "Aggregate hire statistics by recruitment channel in nested organizational "
 "format"
 msgstr ""
 "Tổng hợp thống kê tuyển dụng theo kênh tuyển dụng dưới dạng tổ chức lồng nhau"
 
-#: apps/hrm/api/views/recruitment_reports.py:71
+#: apps/hrm/api/views/recruitment_reports.py:72
 #: apps/hrm/models/recruitment_reports.py:171
 msgid "Recruitment Cost Report"
 msgstr "Báo cáo chi phí tuyển dụng"
 
-#: apps/hrm/api/views/recruitment_reports.py:72
+#: apps/hrm/api/views/recruitment_reports.py:73
 msgid "Aggregate recruitment cost data by source type and months"
 msgstr "Tổng hợp dữ liệu chi phí tuyển dụng theo loại nguồn và tháng"
 
-#: apps/hrm/api/views/recruitment_reports.py:75
+#: apps/hrm/api/views/recruitment_reports.py:76
 #: apps/hrm/models/recruitment_reports.py:227
 msgid "Hired Candidate Report"
 msgstr "Báo cáo Ứng viên Đã Tuyển Dụng"
 
-#: apps/hrm/api/views/recruitment_reports.py:77
+#: apps/hrm/api/views/recruitment_reports.py:78
 msgid ""
 "Aggregate hired candidate statistics by source type with period aggregation "
 "and employee details"
@@ -2621,11 +2620,11 @@ msgstr ""
 "Thống kê tổng hợp ứng viên đã tuyển dụng theo loại nguồn với tổng hợp theo "
 "kỳ và chi tiết nhân viên"
 
-#: apps/hrm/api/views/recruitment_reports.py:81
+#: apps/hrm/api/views/recruitment_reports.py:82
 msgid "Referral Cost Report"
 msgstr "Báo cáo chi phí giới thiệu"
 
-#: apps/hrm/api/views/recruitment_reports.py:83
+#: apps/hrm/api/views/recruitment_reports.py:84
 msgid ""
 "Referral cost report with department summary and employee details for a "
 "single month"
@@ -2633,45 +2632,45 @@ msgstr ""
 "Thống kê chi phí giới thiệu với tóm tắt phòng ban và chi tiết nhân viên cho "
 "một tháng"
 
-#: apps/hrm/api/views/recruitment_reports.py:160
+#: apps/hrm/api/views/recruitment_reports.py:161
 msgid "Introductions"
 msgstr "Giới thiệu"
 
-#: apps/hrm/api/views/recruitment_reports.py:161
+#: apps/hrm/api/views/recruitment_reports.py:162
 msgid "Returns"
 msgstr "Quay lại"
 
-#: apps/hrm/api/views/recruitment_reports.py:163
+#: apps/hrm/api/views/recruitment_reports.py:164
 msgid "Transfers"
 msgstr "Điều chuyển"
 
-#: apps/hrm/api/views/recruitment_reports.py:164
+#: apps/hrm/api/views/recruitment_reports.py:165
 msgid "Resignations"
 msgstr "Nghỉ"
 
-#: apps/hrm/api/views/recruitment_reports.py:684
+#: apps/hrm/api/views/recruitment_reports.py:685
 msgid "No Department"
 msgstr "Không có phòng ban"
 
-#: apps/hrm/api/views/recruitment_reports.py:710
-#: apps/hrm/api/views/recruitment_reports.py:754
+#: apps/hrm/api/views/recruitment_reports.py:711
+#: apps/hrm/api/views/recruitment_reports.py:755
 msgid "Total"
 msgstr "Tổng"
 
-#: apps/hrm/api/views/recruitment_reports.py:814 apps/hrm/constants.py:52
+#: apps/hrm/api/views/recruitment_reports.py:815 apps/hrm/constants.py:52
 msgid "Referral Source"
 msgstr "Giới thiệu"
 
-#: apps/hrm/api/views/recruitment_reports.py:824 apps/hrm/constants.py:56
+#: apps/hrm/api/views/recruitment_reports.py:825 apps/hrm/constants.py:56
 msgid "Returning Employee"
 msgstr "Quay lại"
 
-#: apps/hrm/api/views/recruitment_request.py:396
-#: apps/hrm/api/views/recruitment_request.py:397
+#: apps/hrm/api/views/recruitment_request.py:409
+#: apps/hrm/api/views/recruitment_request.py:410
 msgid "Export recruitment request detail as a document"
 msgstr ""
 
-#: apps/hrm/api/views/recruitment_request.py:418
+#: apps/hrm/api/views/recruitment_request.py:431
 msgid ""
 "Cannot delete recruitment request. Only requests with DRAFT status can be "
 "deleted."
@@ -2679,44 +2678,44 @@ msgstr ""
 "Không thể xóa yêu cầu tuyển dụng. Chỉ những yêu cầu có trạng thái BẢN NHÁP "
 "mới có thể bị xóa."
 
-#: apps/hrm/api/views/timesheet.py:58 apps/hrm/api/views/timesheet.py:413
+#: apps/hrm/api/views/timesheet.py:68 apps/hrm/api/views/timesheet.py:423
 #: apps/hrm/models/timesheet.py:173
 msgid "Timesheet"
 msgstr "Bảng chấm công"
 
-#: apps/hrm/api/views/timesheet.py:62 apps/hrm/api/views/timesheet.py:63
+#: apps/hrm/api/views/timesheet.py:72 apps/hrm/api/views/timesheet.py:73
 msgid "List employee timesheets"
 msgstr "Bảng công"
 
-#: apps/hrm/api/views/timesheet.py:66 apps/hrm/api/views/timesheet.py:67
+#: apps/hrm/api/views/timesheet.py:76 apps/hrm/api/views/timesheet.py:77
 msgid "Get employee timesheet details"
 msgstr "Chi tiết bảng công nhân viên"
 
-#: apps/hrm/api/views/timesheet.py:70
+#: apps/hrm/api/views/timesheet.py:80
 msgid "History timesheets"
 msgstr "Lịch sử bảng công"
 
-#: apps/hrm/api/views/timesheet.py:71
+#: apps/hrm/api/views/timesheet.py:81
 msgid "View history of timesheets"
 msgstr "Xem lịch sử thay đổi bảng công"
 
-#: apps/hrm/api/views/timesheet.py:74
+#: apps/hrm/api/views/timesheet.py:84
 msgid "History detail of timesheets"
 msgstr "Xem chi tiết lịch sử bảng công"
 
-#: apps/hrm/api/views/timesheet.py:75
+#: apps/hrm/api/views/timesheet.py:85
 msgid "View history detail of timesheets"
 msgstr "Xem chi tiết lịch sử bảng công"
 
-#: apps/hrm/api/views/timesheet.py:417 apps/hrm/api/views/timesheet.py:418
+#: apps/hrm/api/views/timesheet.py:427 apps/hrm/api/views/timesheet.py:428
 msgid "List employee timesheet entries"
 msgstr "Danh sách ngày công nhân viên"
 
-#: apps/hrm/api/views/timesheet.py:421 apps/hrm/api/views/timesheet.py:422
+#: apps/hrm/api/views/timesheet.py:431 apps/hrm/api/views/timesheet.py:432
 msgid "Get employee timesheet entry"
 msgstr "Xem chi tiết ngày công của nhân viên"
 
-#: apps/hrm/api/views/timesheet.py:425 apps/hrm/api/views/timesheet.py:426
+#: apps/hrm/api/views/timesheet.py:435 apps/hrm/api/views/timesheet.py:436
 msgid "Update an employee timesheet entry"
 msgstr "Cập nhật ngày công của nhân viên"
 
@@ -4276,14 +4275,14 @@ msgid "Administrative unit"
 msgstr "Đơn vị hành chính"
 
 #: apps/hrm/models/organization.py:35 apps/hrm/models/organization.py:100
-#: apps/hrm/models/organization.py:178 apps/hrm/models/organization.py:310
+#: apps/hrm/models/organization.py:178 apps/hrm/models/organization.py:304
 #: apps/hrm/models/proposal.py:935 apps/hrm/models/recruitment_channel.py:33
 #: apps/hrm/models/recruitment_source.py:19
 msgid "Description"
 msgstr "Mô tả"
 
 #: apps/hrm/models/organization.py:36 apps/hrm/models/organization.py:101
-#: apps/hrm/models/organization.py:179 apps/hrm/models/organization.py:311
+#: apps/hrm/models/organization.py:179 apps/hrm/models/organization.py:305
 #: apps/hrm/models/recruitment_channel.py:34
 msgid "Active"
 msgstr "Hoạt động"
@@ -4447,19 +4446,15 @@ msgstr "Chức Vụ"
 msgid "Position code"
 msgstr "Mã Chức Vụ"
 
-#: apps/hrm/models/organization.py:306
-msgid "Data scope"
-msgstr "Phạm vi dữ liệu"
-
-#: apps/hrm/models/organization.py:308
+#: apps/hrm/models/organization.py:302
 msgid "Leadership position"
 msgstr "Thuộc ban lãnh đạo"
 
-#: apps/hrm/models/organization.py:309
+#: apps/hrm/models/organization.py:303
 msgid "Include in Employee report"
 msgstr "Báo cáo Nhân sự"
 
-#: apps/hrm/models/organization.py:315
+#: apps/hrm/models/organization.py:309
 msgid "Positions"
 msgstr "Chức Vụ"
 

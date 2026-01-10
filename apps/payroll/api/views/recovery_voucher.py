@@ -6,6 +6,8 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.filters import OrderingFilter
 
 from apps.audit_logging.api.mixins import AuditLoggingMixin
+from apps.core.api.permissions import DataScopePermission, RoleBasedPermission
+from apps.hrm.utils.filters import RoleDataScopeFilterBackend
 from apps.payroll.api.filtersets import RecoveryVoucherFilterSet
 from apps.payroll.api.serializers import RecoveryVoucherSerializer
 from apps.payroll.models import RecoveryVoucher
@@ -329,11 +331,19 @@ class RecoveryVoucherViewSet(ExportXLSXMixin, AuditLoggingMixin, BaseModelViewSe
     queryset = RecoveryVoucher.objects.select_related("employee", "created_by", "updated_by").all()
     serializer_class = RecoveryVoucherSerializer
     filterset_class = RecoveryVoucherFilterSet
-    filter_backends = [DjangoFilterBackend, PhraseSearchFilter, OrderingFilter]
+    filter_backends = [RoleDataScopeFilterBackend, DjangoFilterBackend, PhraseSearchFilter, OrderingFilter]
     search_fields = ["code", "name", "employee_code", "employee_name"]
     ordering_fields = ["created_at", "updated_at", "month", "amount"]
     ordering = ["-updated_at"]
     pagination_class = PageNumberWithSizePagination
+    permission_classes = [RoleBasedPermission, DataScopePermission]
+
+    # Data scope configuration for role-based filtering
+    data_scope_config = {
+        "branch_field": "employee__branch",
+        "block_field": "employee__block",
+        "department_field": "employee__department",
+    }
 
     # Permission configuration
     module = _("Payroll")

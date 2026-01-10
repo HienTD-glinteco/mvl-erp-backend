@@ -4,9 +4,12 @@ from drf_spectacular.utils import OpenApiExample, extend_schema, extend_schema_v
 from rest_framework.filters import OrderingFilter
 
 from apps.audit_logging.api.mixins import AuditLoggingMixin
+from apps.core.api.permissions import DataScopePermission, RoleBasedPermission
 from apps.hrm.api.filtersets import EmployeeDependentFilterSet
+from apps.hrm.api.mixins import DataScopeCreateValidationMixin
 from apps.hrm.api.serializers import EmployeeDependentSerializer
 from apps.hrm.models import EmployeeDependent
+from apps.hrm.utils.filters import RoleDataScopeFilterBackend
 from libs import BaseModelViewSet
 from libs.drf.filtersets.search import PhraseSearchFilter
 
@@ -226,7 +229,7 @@ from libs.drf.filtersets.search import PhraseSearchFilter
         ],
     ),
 )
-class EmployeeDependentViewSet(AuditLoggingMixin, BaseModelViewSet):
+class EmployeeDependentViewSet(DataScopeCreateValidationMixin, AuditLoggingMixin, BaseModelViewSet):
     """
     ViewSet for EmployeeDependent model.
 
@@ -251,10 +254,18 @@ class EmployeeDependentViewSet(AuditLoggingMixin, BaseModelViewSet):
     queryset = EmployeeDependent.objects.select_related("employee", "attachment", "created_by").filter(is_active=True)
     serializer_class = EmployeeDependentSerializer
     filterset_class = EmployeeDependentFilterSet
-    filter_backends = [DjangoFilterBackend, PhraseSearchFilter, OrderingFilter]
+    filter_backends = [RoleDataScopeFilterBackend, DjangoFilterBackend, PhraseSearchFilter, OrderingFilter]
     search_fields = ["dependent_name", "relationship", "employee__code", "employee__fullname"]
     ordering_fields = ["created_at", "dependent_name", "relationship"]
     ordering = ["-created_at"]
+    permission_classes = [RoleBasedPermission, DataScopePermission]
+
+    # Data scope configuration for role-based filtering
+    data_scope_config = {
+        "branch_field": "employee__branch",
+        "block_field": "employee__block",
+        "department_field": "employee__department",
+    }
 
     # Permission registration attributes
     module = _("HRM")

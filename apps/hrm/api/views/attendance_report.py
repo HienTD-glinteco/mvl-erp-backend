@@ -5,6 +5,7 @@ from drf_spectacular.utils import OpenApiExample, extend_schema
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
+from apps.hrm.api.mixins import DataScopeReportFilterMixin
 from apps.hrm.constants import AttendanceType
 from apps.hrm.models import AttendanceDailyReport, Block, Branch, Department, TimeSheetEntry
 from apps.hrm.utils.functions import calculate_percentage
@@ -21,7 +22,7 @@ from ..serializers import (
 )
 
 
-class AttendanceReportViewSet(BaseGenericViewSet):
+class AttendanceReportViewSet(DataScopeReportFilterMixin, BaseGenericViewSet):
     pagination_class = None
 
     module = _("Report")
@@ -95,6 +96,9 @@ class AttendanceReportViewSet(BaseGenericViewSet):
         params.is_valid(raise_exception=True)
         filters = params.get_filters()
 
+        # Apply data scope restrictions
+        filters = self._apply_data_scope_to_filters(request, filters)
+
         # Get total employees from TimeSheetEntry
         # Assuming one entry per employee per day
         if "report_date" not in filters:
@@ -109,6 +113,13 @@ class AttendanceReportViewSet(BaseGenericViewSet):
             timesheet_filters["employee__block_id"] = filters["block_id"]
         if "department_id" in filters:
             timesheet_filters["employee__department_id"] = filters["department_id"]
+        # Handle __in filters for data scope
+        if "branch_id__in" in filters:
+            timesheet_filters["employee__branch_id__in"] = filters["branch_id__in"]
+        if "block_id__in" in filters:
+            timesheet_filters["employee__block_id__in"] = filters["block_id__in"]
+        if "department_id__in" in filters:
+            timesheet_filters["employee__department_id__in"] = filters["department_id__in"]
         total_employee = TimeSheetEntry.objects.filter(**timesheet_filters).count()
 
         # Get attendance stats
@@ -196,6 +207,10 @@ class AttendanceReportViewSet(BaseGenericViewSet):
         params = AttendanceProjectReportParameterSerializer(data=request.query_params)
         params.is_valid(raise_exception=True)
         filters = params.get_filters()
+
+        # Apply data scope restrictions
+        filters = self._apply_data_scope_to_filters(request, filters)
+
         filters["project__isnull"] = False
 
         # Aggregate by project
@@ -322,6 +337,10 @@ class AttendanceReportViewSet(BaseGenericViewSet):
         params = AttendanceProjectOrgReportParameterSerializer(data=request.query_params)
         params.is_valid(raise_exception=True)
         filters = params.get_filters()
+
+        # Apply data scope restrictions
+        filters = self._apply_data_scope_to_filters(request, filters)
+
         filters.update(
             {
                 "branch__isnull": False,

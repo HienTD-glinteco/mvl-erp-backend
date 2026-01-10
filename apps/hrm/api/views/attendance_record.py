@@ -8,10 +8,12 @@ from rest_framework.mixins import ListModelMixin, RetrieveModelMixin
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
+from apps.core.api.permissions import DataScopePermission, RoleBasedPermission
 from apps.hrm.api.filtersets import AttendanceRecordFilterSet
 from apps.hrm.api.serializers import AttendanceRecordSerializer
 from apps.hrm.api.serializers.other_attendance import OtherAttendanceBulkApproveSerializer
 from apps.hrm.models import AttendanceRecord
+from apps.hrm.utils.filters import RoleDataScopeFilterBackend
 from libs.drf.filtersets.search import PhraseSearchFilter
 from libs.drf.mixin.permission import PermissionRegistrationMixin
 
@@ -103,11 +105,19 @@ class AttendanceRecordViewSet(
     )
     serializer_class = AttendanceRecordSerializer
     filterset_class = AttendanceRecordFilterSet
-    filter_backends = [DjangoFilterBackend, PhraseSearchFilter, OrderingFilter]
+    filter_backends = [RoleDataScopeFilterBackend, DjangoFilterBackend, PhraseSearchFilter, OrderingFilter]
     search_fields = ["attendance_code", "employee__code", "employee__fullname"]
     ordering_fields = ["timestamp", "created_at"]
     ordering = ["-timestamp"]
     http_method_names = ["get", "put", "patch", "head", "options", "post"]
+    permission_classes = [RoleBasedPermission, DataScopePermission]
+
+    # Data scope configuration for role-based filtering
+    data_scope_config = {
+        "branch_field": "employee__branch",
+        "block_field": "employee__block",
+        "department_field": "employee__department",
+    }
 
     # Permission registration attributes
     module = "HRM"

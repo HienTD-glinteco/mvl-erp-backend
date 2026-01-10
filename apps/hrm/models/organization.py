@@ -5,7 +5,7 @@ from django.utils.translation import gettext_lazy as _
 from apps.audit_logging.decorators import audit_logging_register
 from libs.models import AutoCodeMixin, BaseModel, SafeTextField
 
-from ..constants import TEMP_CODE_PREFIX, DataScope
+from ..constants import TEMP_CODE_PREFIX
 
 
 @audit_logging_register
@@ -299,12 +299,6 @@ class Position(AutoCodeMixin, BaseModel):
 
     name = models.CharField(max_length=200, verbose_name=_("Position name"))
     code = models.CharField(max_length=50, unique=True, verbose_name=_("Position code"))
-    data_scope = models.CharField(
-        max_length=20,
-        choices=DataScope.choices,
-        default=DataScope.DEPARTMENT,
-        verbose_name=_("Data scope"),
-    )
     is_leadership = models.BooleanField(default=False, verbose_name=_("Leadership position"))
     include_in_employee_report = models.BooleanField(default=True, verbose_name=_("Include in Employee report"))
     description = SafeTextField(blank=True, verbose_name=_("Description"))

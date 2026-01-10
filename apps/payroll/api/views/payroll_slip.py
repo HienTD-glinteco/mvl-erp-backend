@@ -9,6 +9,8 @@ from rest_framework.filters import OrderingFilter
 from rest_framework.response import Response
 
 from apps.audit_logging.api.mixins import AuditLoggingMixin
+from apps.core.api.permissions import DataScopePermission, RoleBasedPermission
+from apps.hrm.utils.filters import RoleDataScopeFilterBackend
 from apps.payroll.api.filtersets import PayrollSlipFilterSet
 from apps.payroll.api.serializers import (
     PayrollSlipExportSerializer,
@@ -127,7 +129,7 @@ class PayrollSlipViewSet(ExportDocumentMixin, ExportXLSXMixin, AuditLoggingMixin
         "employee", "salary_period", "delivered_by", "created_by", "updated_by"
     ).all()
     serializer_class = PayrollSlipSerializer
-    filter_backends = [DjangoFilterBackend, OrderingFilter, PhraseSearchFilter]
+    filter_backends = [RoleDataScopeFilterBackend, DjangoFilterBackend, OrderingFilter, PhraseSearchFilter]
     filterset_class = PayrollSlipFilterSet
     ordering_fields = [
         "code",
@@ -140,6 +142,14 @@ class PayrollSlipViewSet(ExportDocumentMixin, ExportXLSXMixin, AuditLoggingMixin
     ]
     ordering = ["-calculated_at"]
     search_fields = ["employee_code", "employee_name", "code"]
+    permission_classes = [RoleBasedPermission, DataScopePermission]
+
+    # Data scope configuration for role-based filtering
+    data_scope_config = {
+        "branch_field": "employee__branch",
+        "block_field": "employee__block",
+        "department_field": "employee__department",
+    }
 
     # Permission registration attributes
     module = "Payroll"

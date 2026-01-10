@@ -7,6 +7,8 @@ from rest_framework.filters import OrderingFilter
 from rest_framework.response import Response
 
 from apps.audit_logging.api.mixins import AuditLoggingMixin
+from apps.core.api.permissions import DataScopePermission, RoleBasedPermission
+from apps.hrm.utils.filters import RoleDataScopeFilterBackend
 from apps.payroll.api.filtersets import EmployeeKPIAssessmentFilterSet, ManagerAssessmentFilterSet
 from apps.payroll.api.serializers import (
     EmployeeKPIAssessmentExportSerializer,
@@ -174,11 +176,19 @@ class EmployeeKPIAssessmentViewSet(ExportXLSXMixin, AuditLoggingMixin, BaseModel
         "updated_by",
     ).prefetch_related("items")
     filterset_class = EmployeeKPIAssessmentFilterSet
-    filter_backends = [DjangoFilterBackend, PhraseSearchFilter, OrderingFilter]
+    filter_backends = [RoleDataScopeFilterBackend, DjangoFilterBackend, PhraseSearchFilter, OrderingFilter]
     search_fields = ["employee__username", "employee__fullname", "employee__code"]
     ordering_fields = ["period__month", "employee__username", "grade_manager", "total_manager_score", "created_at"]
     ordering = ["-period__month", "-created_at"]
     http_method_names = ["get", "patch"]
+    permission_classes = [RoleBasedPermission, DataScopePermission]
+
+    # Data scope configuration for role-based filtering
+    data_scope_config = {
+        "branch_field": "employee__branch",
+        "block_field": "employee__block",
+        "department_field": "employee__department",
+    }
 
     # Permission registration attributes
     module = "Payroll"

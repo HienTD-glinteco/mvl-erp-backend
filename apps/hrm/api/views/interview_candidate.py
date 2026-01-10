@@ -4,9 +4,11 @@ from drf_spectacular.utils import OpenApiExample, extend_schema, extend_schema_v
 from rest_framework.filters import OrderingFilter
 
 from apps.audit_logging.api.mixins import AuditLoggingMixin
+from apps.core.api.permissions import DataScopePermission, RoleBasedPermission
 from apps.hrm.api.filtersets import InterviewCandidateFilterSet
 from apps.hrm.api.serializers import InterviewCandidateSerializer
 from apps.hrm.models import InterviewCandidate
+from apps.hrm.utils.filters import RoleDataScopeFilterBackend
 from libs import BaseModelViewSet
 
 
@@ -149,9 +151,17 @@ class InterviewCandidateViewSet(AuditLoggingMixin, BaseModelViewSet):
     )
     serializer_class = InterviewCandidateSerializer
     filterset_class = InterviewCandidateFilterSet
-    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    filter_backends = [RoleDataScopeFilterBackend, DjangoFilterBackend, OrderingFilter]
     ordering_fields = ["interview_time", "created_at"]
     ordering = ["interview_time"]
+    permission_classes = [RoleBasedPermission, DataScopePermission]
+
+    # Data scope configuration for role-based filtering (via recruitment_candidate)
+    data_scope_config = {
+        "branch_field": "recruitment_candidate__branch",
+        "block_field": "recruitment_candidate__block",
+        "department_field": "recruitment_candidate__department",
+    }
 
     # Permission registration attributes
     module = _("HRM")

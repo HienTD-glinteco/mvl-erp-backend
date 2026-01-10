@@ -7,7 +7,9 @@ from rest_framework.filters import OrderingFilter
 from rest_framework.response import Response
 
 from apps.audit_logging.api.mixins import AuditLoggingMixin
+from apps.core.api.permissions import DataScopePermission, RoleBasedPermission
 from apps.hrm.api.filtersets import RecruitmentCandidateFilterSet
+from apps.hrm.api.mixins import DataScopeCreateValidationMixin
 from apps.hrm.api.serializers import (
     CandidateToEmployeeSerializer,
     EmployeeSerializer,
@@ -16,6 +18,7 @@ from apps.hrm.api.serializers import (
     UpdateReferrerSerializer,
 )
 from apps.hrm.models import RecruitmentCandidate
+from apps.hrm.utils.filters import RoleDataScopeFilterBackend
 from apps.imports.api.mixins import AsyncImportProgressMixin
 from libs import BaseModelViewSet
 from libs.drf.filtersets.search import PhraseSearchFilter
@@ -409,7 +412,9 @@ from libs.export_xlsx import ExportXLSXMixin
         tags=["4.6: Recruitment Candidate"],
     ),
 )
-class RecruitmentCandidateViewSet(AsyncImportProgressMixin, ExportXLSXMixin, AuditLoggingMixin, BaseModelViewSet):
+class RecruitmentCandidateViewSet(
+    DataScopeCreateValidationMixin, AsyncImportProgressMixin, ExportXLSXMixin, AuditLoggingMixin, BaseModelViewSet
+):
     """ViewSet for RecruitmentCandidate model"""
 
     queryset = RecruitmentCandidate.objects.select_related(
@@ -424,10 +429,18 @@ class RecruitmentCandidateViewSet(AsyncImportProgressMixin, ExportXLSXMixin, Aud
     ).all()
     serializer_class = RecruitmentCandidateSerializer
     filterset_class = RecruitmentCandidateFilterSet
-    filter_backends = [DjangoFilterBackend, PhraseSearchFilter, OrderingFilter]
+    filter_backends = [RoleDataScopeFilterBackend, DjangoFilterBackend, PhraseSearchFilter, OrderingFilter]
     search_fields = ["name", "code", "email", "phone", "citizen_id"]
     ordering_fields = ["code", "name", "submitted_date", "status", "created_at"]
     ordering = ["-created_at"]
+    permission_classes = [RoleBasedPermission, DataScopePermission]
+
+    # Data scope configuration for role-based filtering
+    data_scope_config = {
+        "branch_field": "branch",
+        "block_field": "block",
+        "department_field": "department",
+    }
 
     # Permission registration attributes
     module = _("HRM")

@@ -7,6 +7,8 @@ from rest_framework.filters import OrderingFilter
 from rest_framework.response import Response
 
 from apps.audit_logging.api.mixins import AuditLoggingMixin
+from apps.core.api.permissions import DataScopePermission, RoleBasedPermission
+from apps.hrm.utils.filters import RoleDataScopeFilterBackend
 from apps.payroll.api.filtersets import TravelExpenseFilterSet
 from apps.payroll.api.serializers import TravelExpenseSerializer
 from apps.payroll.models import TravelExpense
@@ -399,10 +401,18 @@ class TravelExpenseViewSet(ExportXLSXMixin, AuditLoggingMixin, BaseModelViewSet)
     queryset = TravelExpense.objects.all()
     serializer_class = TravelExpenseSerializer
     filterset_class = TravelExpenseFilterSet
-    filter_backends = [DjangoFilterBackend, PhraseSearchFilter, OrderingFilter]
+    filter_backends = [RoleDataScopeFilterBackend, DjangoFilterBackend, PhraseSearchFilter, OrderingFilter]
     search_fields = ["code", "name", "employee__code", "employee__fullname"]
     ordering_fields = ["created_at", "code", "name", "amount", "month"]
     ordering = ["-created_at"]
+    permission_classes = [RoleBasedPermission, DataScopePermission]
+
+    # Data scope configuration for role-based filtering
+    data_scope_config = {
+        "branch_field": "employee__branch",
+        "block_field": "employee__block",
+        "department_field": "employee__department",
+    }
 
     # Permission registration attributes
     module = _("Payroll")

@@ -10,7 +10,9 @@ from rest_framework.filters import OrderingFilter
 from rest_framework.response import Response
 
 from apps.audit_logging.api.mixins import AuditLoggingMixin
+from apps.core.api.permissions import DataScopePermission, RoleBasedPermission
 from apps.hrm.api.filtersets import EmployeeDropdownFilterSet, EmployeeFilterSet
+from apps.hrm.api.mixins import DataScopeCreateValidationMixin
 from apps.hrm.api.serializers import (
     EmployeeActiveActionSerializer,
     EmployeeAvatarSerializer,
@@ -25,6 +27,7 @@ from apps.hrm.api.serializers import (
 )
 from apps.hrm.callbacks import mark_employee_onboarding_email_sent
 from apps.hrm.models import Employee
+from apps.hrm.utils.filters import RoleDataScopeFilterBackend
 from apps.imports.api.mixins import AsyncImportProgressMixin
 from apps.mailtemplates.serializers import TemplatePreviewResponseSerializer
 from apps.mailtemplates.view_mixins import EmailTemplateActionMixin
@@ -76,6 +79,7 @@ from libs.strings import generate_valid_password
     ),
 )
 class EmployeeViewSet(
+    DataScopeCreateValidationMixin,
     AsyncImportProgressMixin,
     ExportXLSXMixin,
     EmailTemplateActionMixin,
@@ -91,7 +95,7 @@ class EmployeeViewSet(
     )
     serializer_class = EmployeeSerializer
     filterset_class = EmployeeFilterSet
-    filter_backends = [DjangoFilterBackend, PhraseSearchFilter, OrderingFilter]
+    filter_backends = [RoleDataScopeFilterBackend, DjangoFilterBackend, PhraseSearchFilter, OrderingFilter]
     search_fields = ["code", "fullname", "username", "email", "attendance_code", "phone", "citizen_id"]
     ordering_fields = [
         "code",
@@ -102,6 +106,14 @@ class EmployeeViewSet(
         "block__name",
         "department__name",
     ]
+    permission_classes = [RoleBasedPermission, DataScopePermission]
+
+    # Data scope configuration for role-based filtering
+    data_scope_config = {
+        "branch_field": "branch",
+        "block_field": "block",
+        "department_field": "department",
+    }
 
     # Permission registration attributes
     module = _("HRM")

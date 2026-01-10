@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MaiVietLand Backend Core\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-09 23:45+0700\n"
+"POT-Creation-Date: 2026-01-10 10:13+0700\n"
 "PO-Revision-Date: 2025-01-21 00:00+0000\n"
 "Last-Translator: Glinteco Developers\n"
 "Language-Team: Vietnamese\n"
@@ -38,6 +38,12 @@ msgstr "Bạn cần đăng nhập để thực hiện hành động này."
 
 #: apps/core/api/permissions.py:40
 msgid "You do not have permission to perform this action"
+msgstr "Bạn không có quyền thực hiện hành động này"
+
+#: apps/core/api/permissions.py:68
+#, fuzzy
+#| msgid "You do not have permission to perform this action"
+msgid "You do not have permission to access this data."
 msgstr "Bạn không có quyền thực hiện hành động này"
 
 #: apps/core/api/serializers/auth/login.py:17
@@ -234,21 +240,55 @@ msgstr "Đã vượt quá số lần thử tối đa. Vui lòng yêu cầu OTP m
 msgid "OTP code is incorrect."
 msgstr "Mã OTP không đúng."
 
-#: apps/core/api/serializers/role.py:49
+#: apps/core/api/serializers/role.py:115
 msgid "At least one permission must be selected"
 msgstr "Cần chọn ít nhất 1 Quyền"
 
-#: apps/core/api/serializers/role.py:59 apps/core/api/serializers/role.py:63
+#: apps/core/api/serializers/role.py:145
+msgid "ROOT level should not have any scope assignments."
+msgstr ""
+
+#: apps/core/api/serializers/role.py:153
+#, python-format
+msgid "Cannot assign branch scopes for %(level)s-level role."
+msgstr ""
+
+#: apps/core/api/serializers/role.py:160
+#, python-format
+msgid "Cannot assign block scopes for %(level)s-level role."
+msgstr ""
+
+#: apps/core/api/serializers/role.py:167
+#, python-format
+msgid "Cannot assign department scopes for %(level)s-level role."
+msgstr ""
+
+#: apps/core/api/serializers/role.py:178 apps/core/api/serializers/role.py:182
 msgid "Role name already exists"
 msgstr "Tên vai trò đã tồn tại"
 
-#: apps/core/api/serializers/role.py:81
+#: apps/core/api/serializers/role.py:194
+#, python-format
+msgid "Invalid branch IDs: %(ids)s"
+msgstr ""
+
+#: apps/core/api/serializers/role.py:207
+#, python-format
+msgid "Invalid block IDs: %(ids)s"
+msgstr ""
+
+#: apps/core/api/serializers/role.py:220
+#, python-format
+msgid "Invalid department IDs: %(ids)s"
+msgstr ""
+
+#: apps/core/api/serializers/role.py:254
 msgid "System roles can only update permissions, not other fields"
 msgstr ""
 "Vai trò hệ thống chỉ có thể cập nhật quyền, không thể sửa các thông tin khác"
 
 #: apps/core/api/views/administrative_unit.py:102
-#: apps/core/api/views/export_status.py:24 apps/core/api/views/role.py:320
+#: apps/core/api/views/export_status.py:24 apps/core/api/views/role.py:348
 msgid "Core"
 msgstr "Hệ thống "
 
@@ -401,15 +441,15 @@ msgstr "Quyền xem cấu trúc permission"
 msgid "View permission module and submodule structure"
 msgstr "Quyền xem cấu trúc module và submodule permission"
 
-#: apps/core/api/views/role.py:321
+#: apps/core/api/views/role.py:349
 msgid "Role Management"
 msgstr "Quản lý vai trò"
 
-#: apps/core/api/views/role.py:325
+#: apps/core/api/views/role.py:353
 msgid "Clone role"
 msgstr "Nhân bản vai trò"
 
-#: apps/core/api/views/role.py:326
+#: apps/core/api/views/role.py:354
 msgid "Clone an existing role"
 msgstr "Nhân bản một vai trò hiện có"
 
@@ -473,31 +513,47 @@ msgstr "Thành phố trung tâm"
 msgid "Province"
 msgstr "Tỉnh/Thành phố"
 
-#: apps/core/models/role.py:29
+#: apps/core/models/role.py:12
+msgid "Root - Full access"
+msgstr ""
+
+#: apps/core/models/role.py:13
+msgid "Branch level"
+msgstr ""
+
+#: apps/core/models/role.py:14
+msgid "Block level"
+msgstr ""
+
+#: apps/core/models/role.py:15
+msgid "Department level"
+msgstr ""
+
+#: apps/core/models/role.py:47
 msgid "Role"
 msgstr "Vai trò"
 
-#: apps/core/models/role.py:30
+#: apps/core/models/role.py:48
 msgid "Roles"
 msgstr "các Vai trò"
 
-#: apps/core/models/role.py:39
+#: apps/core/models/role.py:57
 msgid "Only one role can be set as default."
 msgstr ""
 
-#: apps/core/models/role.py:51
+#: apps/core/models/role.py:69
 msgid "System"
 msgstr "Hệ thống"
 
-#: apps/core/models/role.py:51
+#: apps/core/models/role.py:69
 msgid "User"
 msgstr "Người dùng"
 
-#: apps/core/models/role.py:57
+#: apps/core/models/role.py:75
 msgid "Cannot delete system role"
 msgstr "Không thể xóa vai trò hệ thống"
 
-#: apps/core/models/role.py:61
+#: apps/core/models/role.py:79
 msgid "Role is currently being used by employees"
 msgstr "Vai trò đang được sử dụng bởi nhân viên"
 
@@ -735,7 +791,7 @@ msgid "Password must contain at least one digit."
 msgstr "Mật khẩu phải chứa ít nhất một chữ số."
 
 #: apps/core/validators.py:35
-#, no-python-format, python-brace-format
+#, no-python-format
 msgid ""
 "Password must contain at least one special character (!@#$%^&*(),.?\":{}|<>)."
 msgstr "Mật khẩu phải chứa ít nhất một ký tự đặc biệt (!@#$%^&*(),.?\":{}|<>)."
