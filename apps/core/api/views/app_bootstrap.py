@@ -1,5 +1,6 @@
 import json
 
+from django.conf import settings
 from django.core.cache import cache
 from drf_spectacular.utils import OpenApiExample, extend_schema
 from rest_framework import status
@@ -8,8 +9,6 @@ from rest_framework.views import APIView
 
 from apps.core.api.serializers import MobileAppConfigSerializer
 from apps.core.models import MobileAppConfig
-
-_CACHE_KEY = "mobile_bootstrap_config_v1"
 
 
 class MobileBootstrapConfigView(APIView):
@@ -52,7 +51,7 @@ class MobileBootstrapConfigView(APIView):
         ],
     )
     def get(self, request):
-        cached = cache.get(_CACHE_KEY)
+        cached = cache.get(settings.MOBILE_APP_CONFIG_CACHE_KEY)
         if isinstance(cached, dict):
             return Response(MobileAppConfigSerializer(cached).data, status=status.HTTP_200_OK)
 
@@ -84,5 +83,5 @@ class MobileBootstrapConfigView(APIView):
                 "support_url": obj.links_support_url,
             },
         }
-        cache.set(_CACHE_KEY, data)
+        cache.set(settings.MOBILE_APP_CONFIG_CACHE_KEY, data)
         return Response(MobileAppConfigSerializer(data).data, status=status.HTTP_200_OK)
