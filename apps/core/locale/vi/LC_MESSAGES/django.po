@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MaiVietLand Backend Core\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-09 11:45+0700\n"
+"POT-Creation-Date: 2026-01-10 10:13+0700\n"
 "PO-Revision-Date: 2025-01-21 00:00+0000\n"
 "Last-Translator: Glinteco Developers\n"
 "Language-Team: Vietnamese\n"
@@ -80,35 +80,35 @@ msgstr "Mật khẩu không được để trống."
 msgid "Username does not exist."
 msgstr "Tên đăng nhập không tồn tại."
 
-#: apps/core/api/serializers/auth/login.py:97
+#: apps/core/api/serializers/auth/login.py:98
 #, python-format
 msgid "Account is locked. Please try again in %(minutes)d minutes."
 msgstr "Tài khoản đã bị khóa. Vui lòng thử lại sau %(minutes)d phút."
 
-#: apps/core/api/serializers/auth/login.py:101
+#: apps/core/api/serializers/auth/login.py:104
 #: apps/core/api/serializers/auth/password_reset.py:45
 #: apps/core/api/serializers/auth/password_reset_change_password.py:78
 #: apps/core/api/serializers/auth/password_reset_otp_verification.py:76
 msgid "Account has been deactivated."
 msgstr "Tài khoản đã bị vô hiệu hóa."
 
-#: apps/core/api/serializers/auth/login.py:108
+#: apps/core/api/serializers/auth/login.py:113
 msgid ""
 "Account has been locked due to 5 failed login attempts. Please try again in "
 "5 minutes."
 msgstr ""
 "Tài khoản đã bị khóa do đăng nhập sai quá 5 lần. Vui lòng thử lại sau 5 phút."
 
-#: apps/core/api/serializers/auth/login.py:111
+#: apps/core/api/serializers/auth/login.py:118
 msgid "Incorrect password."
 msgstr "Mật khẩu không đúng."
 
-#: apps/core/api/serializers/auth/login.py:115
+#: apps/core/api/serializers/auth/login.py:122
 #: apps/core/api/serializers/auth/otp_verification.py:93
 msgid "Device ID is required for mobile login."
 msgstr "Yêu cầu Device ID cho đăng nhập di động."
 
-#: apps/core/api/serializers/auth/login.py:126
+#: apps/core/api/serializers/auth/login.py:134
 #: apps/core/api/serializers/auth/otp_verification.py:105
 msgid "This device is already registered to another user."
 msgstr "Thiết bị này đã được đăng ký cho người dùng khác."
@@ -173,20 +173,20 @@ msgstr "Vui lòng xác nhận mật khẩu mới."
 msgid "Password confirmation cannot be blank."
 msgstr "Xác nhận mật khẩu không được để trống."
 
-#: apps/core/api/serializers/auth/password_change.py:71
+#: apps/core/api/serializers/auth/password_change.py:73
 #: apps/core/api/serializers/auth/password_reset_change_password.py:61
 msgid "New password and confirmation password do not match."
 msgstr "Mật khẩu mới và xác nhận mật khẩu không khớp."
 
-#: apps/core/api/serializers/auth/password_change.py:75
+#: apps/core/api/serializers/auth/password_change.py:79
 msgid "New password must be different from current password."
 msgstr "Mật khẩu mới phải khác với mật khẩu hiện tại."
 
-#: apps/core/api/serializers/auth/password_change.py:80
+#: apps/core/api/serializers/auth/password_change.py:85
 msgid "You need to be logged in to change your password."
 msgstr "Bạn cần đăng nhập để thay đổi mật khẩu."
 
-#: apps/core/api/serializers/auth/password_change.py:86
+#: apps/core/api/serializers/auth/password_change.py:91
 msgid "Current password is incorrect."
 msgstr "Mật khẩu hiện tại không đúng."
 

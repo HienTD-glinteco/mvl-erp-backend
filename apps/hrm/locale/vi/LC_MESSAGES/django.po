@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-09 21:23+0700\n"
+"POT-Creation-Date: 2026-01-10 10:13+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -655,7 +655,7 @@ msgstr "Không thể sửa ngày lễ trong quá khứ hoặc hiện tại"
 msgid "Cannot create/edit holidays in the past or present"
 msgstr "Không thể tạo/sửa ngày lễ trong quá khứ hoặc hiện tại"
 
-#: apps/hrm/api/serializers/holiday.py:442 apps/hrm/models/holiday.py:79
+#: apps/hrm/api/serializers/holiday.py:428 apps/hrm/models/holiday.py:79
 msgid "Compensatory Workdays"
 msgstr "Ngày làm bù"
 

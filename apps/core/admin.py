@@ -1,5 +1,7 @@
 from django.contrib import admin
 
+from apps.hrm.models import RoleBlockScope, RoleBranchScope, RoleDepartmentScope
+
 from .models import (
     AdministrativeUnit,
     DeviceChangeRequest,
@@ -101,8 +103,89 @@ class MobileAppConfigAdmin(admin.ModelAdmin):
     )
 
 
-admin.site.register(Role)
 admin.site.register(PasswordResetOTP)
 admin.site.register(AdministrativeUnit)
 admin.site.register(Nationality)
 admin.site.register(DeviceChangeRequest)
+
+
+class RoleBranchScopeInline(admin.TabularInline):
+    model = RoleBranchScope
+    fk_name = "role"
+    extra = 0
+    fields = ["branch"]
+    raw_id_fields = ["branch"]
+    verbose_name = "Branch Scope"
+    verbose_name_plural = "Branch Scopes"
+
+
+class RoleBlockScopeInline(admin.TabularInline):
+    model = RoleBlockScope
+    fk_name = "role"
+    extra = 0
+    fields = ["block"]
+    raw_id_fields = ["block"]
+    verbose_name = "Block Scope"
+    verbose_name_plural = "Block Scopes"
+
+
+class RoleDepartmentScopeInline(admin.TabularInline):
+    model = RoleDepartmentScope
+    fk_name = "role"
+    extra = 0
+    fields = ["department"]
+    raw_id_fields = ["department"]
+    verbose_name = "Department Scope"
+    verbose_name_plural = "Department Scopes"
+
+
+@admin.register(Role)
+class RoleAdmin(admin.ModelAdmin):
+    """Admin configuration for Role model"""
+
+    list_display = ["code", "name", "is_system_role", "is_default_role", "data_scope_level"]
+    list_filter = ["is_system_role", "is_default_role", "data_scope_level"]
+    search_fields = ["code", "name", "description"]
+    readonly_fields = ["code", "created_at", "updated_at"]
+    filter_horizontal = ["permissions"]
+    inlines = [RoleBranchScopeInline, RoleBlockScopeInline, RoleDepartmentScopeInline]
+    fieldsets = [
+        (None, {"fields": ["code", "name", "description"]}),
+        ("Permissions", {"fields": ["permissions"]}),
+        ("Data Scope", {"fields": ["data_scope_level"]}),
+        ("Settings", {"fields": ["is_system_role", "is_default_role"]}),
+        ("Timestamps", {"fields": ["created_at", "updated_at"]}),
+    ]
+
+
+@admin.register(RoleBranchScope)
+class RoleBranchScopeAdmin(admin.ModelAdmin):
+    """Admin configuration for RoleBranchScope model"""
+
+    list_display = ["id", "role", "branch", "created_at"]
+    list_filter = ["branch"]
+    search_fields = ["role__code", "role__name", "branch__code", "branch__name"]
+    readonly_fields = ["created_at", "updated_at"]
+    raw_id_fields = ["role", "branch"]
+
+
+@admin.register(RoleBlockScope)
+class RoleBlockScopeAdmin(admin.ModelAdmin):
+    """Admin configuration for RoleBlockScope model"""
+
+    list_display = ["id", "role", "block", "created_at"]
+    list_filter = ["block"]
+    search_fields = ["role__code", "role__name", "block__code", "block__name"]
+    readonly_fields = ["created_at", "updated_at"]
+    raw_id_fields = ["role", "block"]
+
+
+@admin.register(RoleDepartmentScope)
+class RoleDepartmentScopeAdmin(admin.ModelAdmin):
+    """Admin configuration for RoleDepartmentScope model"""
+
+    list_display = ["id", "role", "department", "created_at"]
+    list_filter = ["department"]
+    search_fields = ["role__code", "role__name", "department__code", "department__name"]
+    readonly_fields = ["created_at", "updated_at"]
+    raw_id_fields = ["role", "department"]
