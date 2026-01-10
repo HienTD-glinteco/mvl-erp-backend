@@ -47,13 +47,16 @@ class PasswordResetSerializer(serializers.Serializer):
         attrs["user"] = user
         return attrs
 
+    def get_email_to_send(self, user):
+        return user.employee.personal_email if hasattr(user, "employee") else user.email
+
     def send_reset_email(self, user, otp_code):
         """Send password reset OTP via email using Celery task"""
         try:
             # Send email via Celery task
             send_password_reset_email_task.delay(
                 user_id=str(user.id),
-                user_email=user.email,
+                user_email=self.get_email_to_send(user),
                 user_full_name=user.get_full_name(),
                 username=user.username,
                 otp_code=otp_code,

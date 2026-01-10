@@ -12,7 +12,6 @@ from apps.audit_logging import LogAction, log_audit_event
 from apps.core.api.serializers.auth import PasswordResetSerializer
 from apps.core.api.serializers.auth.responses import PasswordResetResponseSerializer
 from apps.core.models import PasswordResetOTP
-from apps.core.tasks.sms import send_otp_sms_task
 
 logger = logging.getLogger(__name__)
 
@@ -50,49 +49,50 @@ class PasswordResetView(APIView):
         if serializer.is_valid():
             user = serializer.validated_data["user"]
             identifier = (request.data.get("identifier") or "").strip()
-            is_email = "@" in identifier
+            # is_email = "@" in identifier
 
             # Create a password reset request with OTP via manager
-            reset_request, otp_code = PasswordResetOTP.objects.create_request(
-                user, channel=("email" if is_email else "sms")
-            )
+            reset_request, otp_code = PasswordResetOTP.objects.create_request(user, channel="email")
 
             # Dispatch OTP via chosen channel
-            if is_email:
-                # Send OTP via email
-                sent = serializer.send_reset_email(user, otp_code)
-                if not sent:
-                    logger.error(f"Failed to send password reset email for user {user.username}")
-                message = _("Password reset OTP code has been sent to your email. The code is valid for 3 minutes.")
-                email_hint = (
-                    f"{user.email[:3]}***@{user.email.split('@')[1]}" if user.email and "@" in user.email else None
-                )
-                response_payload = {
-                    "message": message,
-                    "reset_token": reset_request.reset_token,
-                    "email_hint": email_hint,
-                    "expires_at": reset_request.expires_at.isoformat(),
-                }
-            else:
-                # Send via SMS using third-party API
-                phone = user.phone_number or identifier
-                try:
-                    send_otp_sms_task.delay(phone, otp_code)
-                    logger.info(f"Password reset OTP SMS queued for user {user.username} phone {phone}")
-                except Exception as e:
-                    logger.error(f"Failed to queue SMS OTP for user {user.username}: {e}")
-                masked = None
-                if phone:
-                    # Basic masking: show last 2-3 digits
-                    last = phone[-2:]
-                    masked = f"***{last}"
-                message = _("Password reset OTP code has been sent via SMS. The code is valid for 3 minutes.")
-                response_payload = {
-                    "message": message,
-                    "reset_token": reset_request.reset_token,
-                    "phone_hint": masked,
-                    "expires_at": reset_request.expires_at.isoformat(),
-                }
+            # if is_email:
+            # Send OTP via email
+            sent = serializer.send_reset_email(user, otp_code)
+            if not sent:
+                logger.error(f"Failed to send password reset email for user {user.username}")
+            message = _("Password reset OTP code has been sent to your email. The code is valid for 3 minutes.")
+            email_to_send = serializer.get_email_to_send(user)
+            email_hint = (
+                f"{email_to_send[:3]}***@{email_to_send.split('@')[1]}"
+                if email_to_send and "@" in email_to_send
+                else None
+            )
+            response_payload = {
+                "message": message,
+                "reset_token": reset_request.reset_token,
+                "email_hint": email_hint,
+                "expires_at": reset_request.expires_at.isoformat(),
+            }
+            # else:
+            #     # Send via SMS using third-party API
+            #     phone = user.phone_number or identifier
+            #     try:
+            #         send_otp_sms_task.delay(phone, otp_code)
+            #         logger.info(f"Password reset OTP SMS queued for user {user.username} phone {phone}")
+            #     except Exception as e:
+            #         logger.error(f"Failed to queue SMS OTP for user {user.username}: {e}")
+            #     masked = None
+            #     if phone:
+            #         # Basic masking: show last 2-3 digits
+            #         last = phone[-2:]
+            #         masked = f"***{last}"
+            #     message = _("Password reset OTP code has been sent via SMS. The code is valid for 3 minutes.")
+            #     response_payload = {
+            #         "message": message,
+            #         "reset_token": reset_request.reset_token,
+            #         "phone_hint": masked,
+            #         "expires_at": reset_request.expires_at.isoformat(),
+            #     }
 
             # Log audit event for password reset request
             # For authentication events, set object_type to Employee if user has employee record
@@ -106,8 +106,8 @@ class PasswordResetView(APIView):
                 modified_object=modified_object,
                 user=user,
                 request=request,
-                change_message=f"User {user.username} requested password reset via {'email' if is_email else 'SMS'}",
-                reset_channel="email" if is_email else "sms",
+                change_message=f"User {user.username} requested password reset via email",
+                reset_channel="email",
             )
 
             return Response(response_payload, status=status.HTTP_200_OK)

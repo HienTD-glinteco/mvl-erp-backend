@@ -89,29 +89,30 @@ class AuthAuditLoggingTestCase(TestCase):
         self.assertIn("requested password reset", call_kwargs["change_message"])
         self.assertEqual(call_kwargs["reset_channel"], "email")
 
-    @patch("apps.core.api.views.auth.password_reset.PasswordResetView.throttle_classes", new=[])
-    @patch("apps.core.api.views.auth.password_reset.log_audit_event")
-    @patch("apps.core.tasks.sms.send_otp_sms_task.delay")
-    def test_password_reset_request_sms_audit_log(self, mock_sms_task, mock_log_audit_event):
-        """Test that password reset request via SMS creates an audit log"""
-        mock_sms_task.return_value = MagicMock()
+    # NOTE: comment this out because phone number is not supported for now
+    # @patch("apps.core.api.views.auth.password_reset.PasswordResetView.throttle_classes", new=[])
+    # @patch("apps.core.api.views.auth.password_reset.log_audit_event")
+    # @patch("apps.core.tasks.sms.send_otp_sms_task.delay")
+    # def test_password_reset_request_sms_audit_log(self, mock_sms_task, mock_log_audit_event):
+    #     """Test that password reset request via SMS creates an audit log"""
+    #     mock_sms_task.return_value = MagicMock()
 
-        # Add phone number to user
-        self.user.phone_number = "0123456789"
-        self.user.save()
+    #     # Add phone number to user
+    #     self.user.phone_number = "0123456789"
+    #     self.user.save()
 
-        data = {"identifier": "0123456789"}
-        response = self.client.post(self.forgot_password_url, data, format="json")
+    #     data = {"identifier": "0123456789"}
+    #     response = self.client.post(self.forgot_password_url, data, format="json")
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+    #     self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        # Verify audit log was created
-        mock_log_audit_event.assert_called_once()
-        call_kwargs = mock_log_audit_event.call_args[1]
-        self.assertEqual(call_kwargs["action"], LogAction.PASSWORD_RESET)
-        self.assertEqual(call_kwargs["user"], self.user)
-        self.assertIn("requested password reset", call_kwargs["change_message"])
-        self.assertEqual(call_kwargs["reset_channel"], "sms")
+    #     # Verify audit log was created
+    #     mock_log_audit_event.assert_called_once()
+    #     call_kwargs = mock_log_audit_event.call_args[1]
+    #     self.assertEqual(call_kwargs["action"], LogAction.PASSWORD_RESET)
+    #     self.assertEqual(call_kwargs["user"], self.user)
+    #     self.assertIn("requested password reset", call_kwargs["change_message"])
+    #     self.assertEqual(call_kwargs["reset_channel"], "sms")
 
 
 @override_settings(AUDIT_LOG_DISABLED=False)

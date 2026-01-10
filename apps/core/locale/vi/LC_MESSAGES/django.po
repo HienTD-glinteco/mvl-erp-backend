@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MaiVietLand Backend Core\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-10 10:13+0700\n"
+"POT-Creation-Date: 2026-01-10 10:21+0700\n"
 "PO-Revision-Date: 2025-01-21 00:00+0000\n"
 "Last-Translator: Glinteco Developers\n"
 "Language-Team: Vietnamese\n"
@@ -349,11 +349,11 @@ msgstr ""
 "Mật khẩu đã được thay đổi thành công. Tất cả phiên đăng nhập khác đã bị đăng "
 "xuất."
 
-#: apps/core/api/views/auth/password_reset.py:37
+#: apps/core/api/views/auth/password_reset.py:36
 msgid "Request password reset"
 msgstr "Yêu cầu đặt lại mật khẩu"
 
-#: apps/core/api/views/auth/password_reset.py:38
+#: apps/core/api/views/auth/password_reset.py:37
 msgid ""
 "Send password reset instructions via email or SMS based on email or phone "
 "number"
@@ -361,32 +361,25 @@ msgstr ""
 "Gửi hướng dẫn đặt lại mật khẩu qua email hoặc SMS dựa trên email hoặc số "
 "điện thoại"
 
-#: apps/core/api/views/auth/password_reset.py:42
+#: apps/core/api/views/auth/password_reset.py:41
 msgid "Invalid information"
 msgstr "Thông tin không hợp lệ"
 
-#: apps/core/api/views/auth/password_reset.py:43
+#: apps/core/api/views/auth/password_reset.py:42
 msgid "Too many password reset requests"
 msgstr "Quá nhiều yêu cầu đặt lại mật khẩu"
 
-#: apps/core/api/views/auth/password_reset.py:44
+#: apps/core/api/views/auth/password_reset.py:43
 msgid "System error while sending OTP"
 msgstr "Lỗi hệ thống khi gửi OTP"
 
-#: apps/core/api/views/auth/password_reset.py:66
+#: apps/core/api/views/auth/password_reset.py:63
 msgid ""
 "Password reset OTP code has been sent to your email. The code is valid for 3 "
 "minutes."
 msgstr ""
 "Mã OTP đặt lại mật khẩu đã được gửi đến email của bạn. Mã có hiệu lực trong "
 "3 phút."
-
-#: apps/core/api/views/auth/password_reset.py:89
-msgid ""
-"Password reset OTP code has been sent via SMS. The code is valid for 3 "
-"minutes."
-msgstr ""
-"Mã OTP đặt lại mật khẩu đã được gửi qua SMS. Mã có hiệu lực trong 3 phút."
 
 #: apps/core/api/views/auth/password_reset_change_password.py:37
 msgid "Set new password (Step 3: Change password)"

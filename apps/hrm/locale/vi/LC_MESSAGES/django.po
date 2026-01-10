@@ -695,10 +695,8 @@ msgstr ""
 "Chỉ trưởng phòng hoặc người được cấp quyền mới có thể từ chối đề xuất này"
 
 #: apps/hrm/api/serializers/recruitment_candidate.py:35
-#, fuzzy
-#| msgid "An employee with this email already exists."
 msgid "Candidate with this phone number already exists."
-msgstr "Nhân viên với email này đã tồn tại."
+msgstr "Ứng viên với số điện thoại này đã tồn tại."
 
 #: apps/hrm/api/serializers/recruitment_candidate.py:255
 msgid "Candidate not found in context."

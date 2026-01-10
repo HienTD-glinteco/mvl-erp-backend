@@ -101,30 +101,31 @@ class TestAuthentication:
         assert "message" in response_data["data"]
         assert "Password reset" in response_data["data"]["message"]
 
-    @patch("apps.core.api.views.auth.password_reset.PasswordResetView.throttle_classes", new=[])
-    @patch("apps.core.tasks.sms.send_otp_sms_task.delay")
-    def test_password_reset_request_phone(self, mock_sms_task):
-        """Test password reset request with phone number uses SMS"""
-        mock_sms_task.return_value = MagicMock()
+    # NOTE: comment this out because phone number is not supported for now
+    # @patch("apps.core.api.views.auth.password_reset.PasswordResetView.throttle_classes", new=[])
+    # @patch("apps.core.tasks.sms.send_otp_sms_task.delay")
+    # def test_password_reset_request_phone(self, mock_sms_task):
+    #     """Test password reset request with phone number uses SMS"""
+    #     mock_sms_task.return_value = MagicMock()
 
-        # Add phone number to user
-        self.user.phone_number = "0123456789"
-        self.user.save()
+    #     # Add phone number to user
+    #     self.user.phone_number = "0123456789"
+    #     self.user.save()
 
-        data = {"identifier": "0123456789"}
-        response = self.client.post(self.forgot_password_url, data, format="json")
+    #     data = {"identifier": "0123456789"}
+    #     response = self.client.post(self.forgot_password_url, data, format="json")
 
-        assert response.status_code == status.HTTP_200_OK
-        response_data = response.json()
-        assert response_data["success"]
-        assert "message" in response_data["data"]
-        # Message should indicate SMS was used
-        assert "via SMS" in response_data["data"]["message"]  # contains SMS
-        # Should include phone hint, not email hint
-        assert "phone_hint" in response_data["data"]  # masked phone
-        assert "email_hint" not in response_data["data"]  # no email hint in SMS path
-        # Verify SMS task was called
-        mock_sms_task.assert_called_once()
+    #     assert response.status_code == status.HTTP_200_OK
+    #     response_data = response.json()
+    #     assert response_data["success"]
+    #     assert "message" in response_data["data"]
+    #     # Message should indicate SMS was used
+    #     assert "via SMS" in response_data["data"]["message"]  # contains SMS
+    #     # Should include phone hint, not email hint
+    #     assert "phone_hint" in response_data["data"]  # masked phone
+    #     assert "email_hint" not in response_data["data"]  # no email hint in SMS path
+    #     # Verify SMS task was called
+    #     mock_sms_task.assert_called_once()
 
     @patch("apps.core.api.views.auth.password_reset.PasswordResetView.throttle_classes", new=[])
     def test_password_reset_wrong_identifier(self):
