@@ -19,11 +19,11 @@ from apps.hrm.models import (
     Proposal,
     TimeSheetEntry,
 )
-from apps.hrm.signals.timesheet_triggers import (
-    _process_calendar_change,
-    _process_contract_change,
-    _process_exemption_change,
-    _process_proposal_change,
+from apps.hrm.tasks.timesheet_triggers import (
+    process_calendar_change,
+    process_contract_change,
+    process_exemption_change,
+    process_proposal_change,
 )
 
 
@@ -67,7 +67,7 @@ def test_employee(db):
 
 @pytest.mark.django_db
 def test_bulk_update_triggers_post_save(test_employee):
-    """Test that _process_contract_change manually triggers post_save for TimeSheetEntry."""
+    """Test that process_contract_change manually triggers post_save for TimeSheetEntry."""
 
     # 1. Create a contract
     contract_type = ContractType.objects.create(name="Full Time", code="FT")
@@ -91,11 +91,11 @@ def test_bulk_update_triggers_post_save(test_employee):
 
     try:
         # 4. Trigger the bulk update process
-        _process_contract_change(contract)
+        process_contract_change(contract)
 
         # 5. Verify signal was sent for each updated entry
         # Count should be at least 2 (for entry1 and entry2)
-        # Note: _process_contract_change might affect other entries if they exist,
+        # Note: process_contract_change might affect other entries if they exist,
         # but here we only created 2.
         assert handler.call_count >= 2
 
@@ -131,13 +131,13 @@ def test_bulk_update_triggers_post_save(test_employee):
 
 @pytest.mark.django_db
 def test_calendar_change_triggers_refresh(test_employee):
-    """Test that _process_calendar_change (Holiday) triggers refresh."""
+    """Test that process_calendar_change (Holiday) triggers refresh."""
     # Setup entries
     date_obj = date(2025, 4, 30)
     TimeSheetEntry.objects.create(employee=test_employee, date=date_obj)
 
     # Trigger logic (simulate Holiday creation)
-    _process_calendar_change(date_obj, date_obj)
+    process_calendar_change(date_obj, date_obj)
 
     # Verify monthly refresh
     report = EmployeeMonthlyTimesheet.objects.filter(employee=test_employee, month_key="202504").first()
@@ -147,7 +147,7 @@ def test_calendar_change_triggers_refresh(test_employee):
 
 @pytest.mark.django_db
 def test_exemption_change_triggers_refresh(test_employee):
-    """Test that _process_exemption_change triggers refresh."""
+    """Test that process_exemption_change triggers refresh."""
     # Setup entries
     date_obj = date(2025, 5, 10)
     TimeSheetEntry.objects.create(employee=test_employee, date=date_obj)
@@ -155,7 +155,7 @@ def test_exemption_change_triggers_refresh(test_employee):
     exemption = AttendanceExemption(employee=test_employee, effective_date=date(2025, 5, 1))
 
     # Trigger logic
-    _process_exemption_change(exemption)
+    process_exemption_change(exemption)
 
     # Verify monthly refresh
     report = EmployeeMonthlyTimesheet.objects.filter(employee=test_employee, month_key="202505").first()
@@ -165,7 +165,7 @@ def test_exemption_change_triggers_refresh(test_employee):
 
 @pytest.mark.django_db
 def test_proposal_change_triggers_refresh(test_employee):
-    """Test that _process_proposal_change triggers refresh."""
+    """Test that process_proposal_change triggers refresh."""
     # Setup entries
     date_obj = date(2025, 6, 15)
     TimeSheetEntry.objects.create(employee=test_employee, date=date_obj)
@@ -179,7 +179,7 @@ def test_proposal_change_triggers_refresh(test_employee):
     )
 
     # Trigger logic
-    _process_proposal_change(proposal)
+    process_proposal_change(proposal)
 
     # Verify monthly refresh
     report = EmployeeMonthlyTimesheet.objects.filter(employee=test_employee, month_key="202506").first()

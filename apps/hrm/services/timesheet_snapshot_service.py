@@ -63,12 +63,13 @@ class TimesheetSnapshotService:
 
     def snapshot_contract_info(self, entry: "TimeSheetEntry") -> None:
         """Snapshot current contract status (Probation vs Official)."""
+        from apps.hrm.models.contract import Contract
+        from apps.hrm.models.contract_type import ContractType
+
         if not entry.employee_id:
             return
 
         # Fetch directly if not prefetched
-        from apps.hrm.models.contract import Contract
-
         contract = (
             Contract.objects.filter(
                 employee_id=entry.employee_id,
@@ -80,8 +81,6 @@ class TimesheetSnapshotService:
         )
 
         if contract:
-            from apps.hrm.models.contract_type import ContractType
-
             entry.contract = contract
             # Only overwrite if currently default/None
             if entry.net_percentage == 100 or entry.net_percentage == 0:
@@ -113,12 +112,12 @@ class TimesheetSnapshotService:
 
     def snapshot_leave_reason(self, entry: "TimeSheetEntry") -> None:
         """Populate absent_reason if an approved PAID_LEAVE or UNPAID_LEAVE proposal exists."""
+        from apps.hrm.models.proposal import Proposal, ProposalType
+
         if entry.absent_reason:
             return
 
         # Use Proposal model directly to avoid circular dependency
-        from apps.hrm.models.proposal import Proposal, ProposalType
-
         leave = Proposal.get_active_leave_proposals(entry.employee_id, entry.date).first()
 
         if leave:

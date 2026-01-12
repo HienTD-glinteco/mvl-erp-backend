@@ -11,10 +11,10 @@ from apps.hrm.models import (
     Proposal,
 )
 from apps.hrm.tasks.timesheet_triggers import (
-    process_calendar_change as _process_calendar_change,
-    process_contract_change as _process_contract_change,
-    process_exemption_change as _process_exemption_change,
-    process_proposal_change as _process_proposal_change,
+    process_calendar_change,
+    process_contract_change,
+    process_exemption_change,
+    process_proposal_change,
 )
 
 
@@ -34,7 +34,7 @@ def contract_changed_handler(sender, instance: Contract, created, **kwargs):
         Contract.ContractStatus.EXPIRED,
     ]:
         # NOTE: should only trigger when the contract is active or expired (statuses that really have effect)
-        transaction.on_commit(lambda: _process_contract_change.delay(instance))
+        transaction.on_commit(lambda: process_contract_change.delay(instance))
 
 
 @receiver([post_save, post_delete], sender=Holiday)
@@ -54,7 +54,7 @@ def calendar_event_changed_handler(sender, instance, **kwargs):
     if not end_date:
         end_date = start_date
 
-    transaction.on_commit(lambda: _process_calendar_change.delay(start_date, end_date))
+    transaction.on_commit(lambda: process_calendar_change.delay(start_date, end_date))
 
 
 @receiver([post_save, post_delete], sender=AttendanceExemption)
@@ -65,7 +65,7 @@ def exemption_changed_handler(sender, instance: AttendanceExemption, **kwargs):
     if not instance.employee_id or not instance.effective_date:
         return
 
-    transaction.on_commit(lambda: _process_exemption_change.delay(instance))
+    transaction.on_commit(lambda: process_exemption_change.delay(instance))
 
 
 @receiver([post_save, post_delete], sender=Proposal)
@@ -90,4 +90,4 @@ def proposal_changed_handler(sender, instance: Proposal, **kwargs):
     ]:
         return
 
-    transaction.on_commit(lambda: _process_proposal_change.delay(instance))
+    transaction.on_commit(lambda: process_proposal_change.delay(instance))
