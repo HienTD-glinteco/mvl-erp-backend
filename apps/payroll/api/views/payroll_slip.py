@@ -164,6 +164,10 @@ class PayrollSlipViewSet(ExportDocumentMixin, ExportXLSXMixin, AuditLoggingMixin
             "name_template": _("Hold payroll slip"),
             "description_template": _("Put a specific payroll slip on hold"),
         },
+        "unhold": {
+            "name_template": _("Unhold payroll slip"),
+            "description_template": _("Release a held payroll slip"),
+        },
         "ready": {
             "name_template": _("Mark payroll slip as ready"),
             "description_template": _("Change payroll slip status to READY"),
@@ -306,13 +310,16 @@ class PayrollSlipViewSet(ExportDocumentMixin, ExportXLSXMixin, AuditLoggingMixin
     @action(detail=True, methods=["post"])
     def hold(self, request, pk=None):
         """Hold the payroll slip."""
+        from django.core.exceptions import ValidationError
+
         slip = self.get_object()
         serializer = PayrollSlipHoldSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        slip.status = PayrollSlip.Status.HOLD
-        slip.status_note = serializer.validated_data["reason"]
-        slip.save(update_fields=["status", "status_note", "updated_at"])
+        try:
+            slip.hold(reason=serializer.validated_data["reason"], user=request.user)
+        except ValidationError as e:
+            return Response({"error": str(e.message)}, status=status.HTTP_400_BAD_REQUEST)
 
         response_serializer = PayrollSlipStatusUpdateSerializer(
             {
@@ -322,6 +329,90 @@ class PayrollSlipViewSet(ExportDocumentMixin, ExportXLSXMixin, AuditLoggingMixin
             }
         )
         return Response(response_serializer.data)
+
+    @extend_schema(
+        summary="Unhold payroll slip",
+        description=(
+            "Release a held payroll slip. Triggers recalculation and determines new status. "
+            "If the slip belongs to a COMPLETED period, it will be moved to the current ONGOING period's Table 1."
+        ),
+        tags=["10.7: Payroll Slips"],
+        request=None,
+        responses={
+            200: PayrollSlipStatusUpdateSerializer,
+            400: {
+                "type": "object",
+                "properties": {
+                    "error": {"type": "string"},
+                },
+            },
+        },
+        examples=[
+            OpenApiExample(
+                "Success - Slip unhold (same period)",
+                value={
+                    "success": True,
+                    "data": {
+                        "id": 1,
+                        "status": "READY",
+                        "status_note": "",
+                        "is_carried_over": False,
+                    },
+                    "error": None,
+                },
+                response_only=True,
+                status_codes=["200"],
+            ),
+            OpenApiExample(
+                "Success - Slip unhold (carried over to new period)",
+                value={
+                    "success": True,
+                    "data": {
+                        "id": 1,
+                        "status": "READY",
+                        "status_note": "",
+                        "is_carried_over": True,
+                        "payment_period_id": 5,
+                    },
+                    "error": None,
+                },
+                response_only=True,
+                status_codes=["200"],
+            ),
+            OpenApiExample(
+                "Error - Slip not on hold",
+                value={
+                    "success": False,
+                    "data": None,
+                    "error": "Cannot unhold slip with status READY",
+                },
+                response_only=True,
+                status_codes=["400"],
+            ),
+        ],
+    )
+    @action(detail=True, methods=["post"])
+    def unhold(self, request, pk=None):
+        """Unhold/release the payroll slip."""
+        from django.core.exceptions import ValidationError
+
+        slip = self.get_object()
+
+        try:
+            slip.unhold(user=request.user)
+        except ValidationError as e:
+            return Response({"error": str(e.message)}, status=status.HTTP_400_BAD_REQUEST)
+
+        response_data = {
+            "id": slip.id,
+            "status": slip.status,
+            "status_note": slip.status_note,
+            "is_carried_over": slip.is_carried_over,
+        }
+        if slip.payment_period_id:
+            response_data["payment_period_id"] = slip.payment_period_id
+
+        return Response(response_data)
 
     @extend_schema(
         summary="Mark payroll slip as ready",

@@ -425,6 +425,86 @@ class SalaryPeriodViewSet(AuditLoggingMixin, BaseModelViewSet):
         )
 
     @extend_schema(
+        summary="Uncomplete salary period",
+        description="Unlock a completed salary period. Only allowed if no newer periods exist.",
+        tags=["10.6: Salary Periods"],
+        request=None,
+        responses={
+            200: {
+                "type": "object",
+                "properties": {
+                    "id": {"type": "integer"},
+                    "status": {"type": "string"},
+                    "uncompleted_at": {"type": "string", "format": "date-time"},
+                    "message": {"type": "string"},
+                },
+            },
+            400: {
+                "type": "object",
+                "properties": {
+                    "error": {"type": "string"},
+                },
+            },
+        },
+        examples=[
+            OpenApiExample(
+                "Success - Period uncompleted",
+                value={
+                    "success": True,
+                    "data": {
+                        "id": 1,
+                        "status": "ONGOING",
+                        "uncompleted_at": "2024-02-15T10:00:00Z",
+                        "message": "Period successfully uncompleted",
+                    },
+                    "error": None,
+                },
+                response_only=True,
+                status_codes=["200"],
+            ),
+            OpenApiExample(
+                "Error - Newer periods exist",
+                value={
+                    "success": False,
+                    "data": None,
+                    "error": "Cannot uncomplete: newer salary periods exist",
+                },
+                response_only=True,
+                status_codes=["400"],
+            ),
+            OpenApiExample(
+                "Error - Period not completed",
+                value={
+                    "success": False,
+                    "data": None,
+                    "error": "Period is not completed",
+                },
+                response_only=True,
+                status_codes=["400"],
+            ),
+        ],
+    )
+    @action(detail=True, methods=["post"])
+    def uncomplete(self, request, pk=None):
+        """Uncomplete/unlock the salary period."""
+        period = self.get_object()
+
+        can, reason = period.can_uncomplete()
+        if not can:
+            return Response({"error": reason}, status=status.HTTP_400_BAD_REQUEST)
+
+        period.uncomplete(user=request.user)
+
+        return Response(
+            {
+                "id": period.id,
+                "status": period.status,
+                "uncompleted_at": period.uncompleted_at,
+                "message": "Period successfully uncompleted",
+            }
+        )
+
+    @extend_schema(
         summary="Send email notifications",
         description="Send payroll slip emails to employees asynchronously. Returns task ID for tracking progress.",
         tags=["10.6: Salary Periods"],
@@ -788,7 +868,12 @@ class SalaryPeriodViewSet(AuditLoggingMixin, BaseModelViewSet):
     )
 )
 class SalaryPeriodReadySlipsViewSet(BaseReadOnlyModelViewSet):
-    """ViewSet for ready payroll slips."""
+    """ViewSet for Table 1 (Payment Table) - slips to be paid in this period.
+
+    Returns:
+    - For ONGOING period: READY slips from this period + carried over READY slips
+    - For COMPLETED period: DELIVERED slips where payment_period = this period
+    """
 
     queryset = PayrollSlip.objects.none()
     serializer_class = PayrollSlipSerializer
@@ -800,8 +885,8 @@ class SalaryPeriodReadySlipsViewSet(BaseReadOnlyModelViewSet):
     STANDARD_ACTIONS = {}
     PERMISSION_REGISTERED_ACTIONS = {
         "list_ready": {
-            "name_template": _("View Ready Payroll Slips"),
-            "description_template": _("View ready payroll slips"),
+            "name_template": _("View Payment Table (Ready Slips)"),
+            "description_template": _("View payment table with ready/delivered payroll slips"),
         }
     }
 
@@ -828,7 +913,12 @@ class SalaryPeriodReadySlipsViewSet(BaseReadOnlyModelViewSet):
     http_method_names = ["get"]
 
     def get_queryset(self):
-        """Get queryset based on salary period status."""
+        """Get queryset based on salary period status.
+
+        Table 1 (Payment Table):
+        - ONGOING: All READY slips (regardless of which salary_period they belong to)
+        - COMPLETED: DELIVERED slips where payment_period = this period
+        """
         pk = self.kwargs.get("pk")
         if not pk:
             return PayrollSlip.objects.none()
@@ -839,16 +929,16 @@ class SalaryPeriodReadySlipsViewSet(BaseReadOnlyModelViewSet):
             return PayrollSlip.objects.none()
 
         if period.status == SalaryPeriod.Status.ONGOING:
-            # Get all READY slips from this period and all previous periods
-            queryset = PayrollSlip.objects.filter(
-                Q(salary_period=period, status=PayrollSlip.Status.READY)
-                | Q(salary_period__month__lt=period.month, status=PayrollSlip.Status.READY)
-            ).select_related("employee", "salary_period")
+            # Table 1 for ONGOING: All READY slips (from any period)
+            # This includes carry-over slips from previous completed periods
+            queryset = PayrollSlip.objects.filter(status=PayrollSlip.Status.READY).select_related(
+                "employee", "salary_period", "payment_period"
+            )
         else:  # COMPLETED
-            # Get all DELIVERED slips from this period only
+            # Table 1 for COMPLETED: DELIVERED slips paid in this period
             queryset = PayrollSlip.objects.filter(
-                salary_period=period, status=PayrollSlip.Status.DELIVERED
-            ).select_related("employee", "salary_period")
+                payment_period=period, status=PayrollSlip.Status.DELIVERED
+            ).select_related("employee", "salary_period", "payment_period")
 
         return queryset
 
@@ -899,7 +989,13 @@ class SalaryPeriodReadySlipsViewSet(BaseReadOnlyModelViewSet):
     )
 )
 class SalaryPeriodNotReadySlipsViewSet(BaseReadOnlyModelViewSet):
-    """ViewSet for not-ready payroll slips."""
+    """ViewSet for Table 2 (Deferred Table) - slips not paid in this period.
+
+    Returns:
+    - For ONGOING period: PENDING/HOLD slips from this period
+    - For COMPLETED period: All non-DELIVERED slips (PENDING/HOLD/READY) that belonged to this period.
+      READY slips appear here if they became ready AFTER the period was completed (e.g., after penalty payment).
+    """
 
     queryset = PayrollSlip.objects.none()
     serializer_class = PayrollSlipSerializer
@@ -911,8 +1007,8 @@ class SalaryPeriodNotReadySlipsViewSet(BaseReadOnlyModelViewSet):
     STANDARD_ACTIONS = {}
     PERMISSION_REGISTERED_ACTIONS = {
         "list_not_ready": {
-            "name_template": _("View Not-Ready Payroll Slips"),
-            "description_template": _("View not-ready payroll slips"),
+            "name_template": _("View Deferred Table (Not Ready Slips)"),
+            "description_template": _("View deferred table with pending/hold payroll slips"),
         }
     }
 
@@ -939,7 +1035,12 @@ class SalaryPeriodNotReadySlipsViewSet(BaseReadOnlyModelViewSet):
     http_method_names = ["get"]
 
     def get_queryset(self):
-        """Get queryset based on salary period status."""
+        """Get queryset based on salary period status.
+
+        Table 2 (Deferred Table):
+        - ONGOING: PENDING/HOLD slips from this period only
+        - COMPLETED: All non-DELIVERED slips (PENDING/HOLD/READY) from this period
+        """
         pk = self.kwargs.get("pk")
         if not pk:
             return PayrollSlip.objects.none()
@@ -950,18 +1051,16 @@ class SalaryPeriodNotReadySlipsViewSet(BaseReadOnlyModelViewSet):
             return PayrollSlip.objects.none()
 
         if period.status == SalaryPeriod.Status.ONGOING:
-            # Get all PENDING/HOLD slips from this period and all previous periods
-            queryset = PayrollSlip.objects.filter(
-                Q(salary_period=period, status__in=[PayrollSlip.Status.PENDING, PayrollSlip.Status.HOLD])
-                | Q(
-                    salary_period__month__lt=period.month,
-                    status__in=[PayrollSlip.Status.PENDING, PayrollSlip.Status.HOLD],
-                )
-            ).select_related("employee", "salary_period")
-        else:  # COMPLETED
-            # Get all PENDING/HOLD slips from this period only
+            # Table 2 for ONGOING: PENDING/HOLD slips only
             queryset = PayrollSlip.objects.filter(
                 salary_period=period, status__in=[PayrollSlip.Status.PENDING, PayrollSlip.Status.HOLD]
-            ).select_related("employee", "salary_period")
+            ).select_related("employee", "salary_period", "payment_period")
+        else:  # COMPLETED
+            # Table 2 for COMPLETED: All non-DELIVERED slips (PENDING/HOLD/READY)
+            # READY slips here are those that became ready after period completion
+            queryset = PayrollSlip.objects.filter(
+                salary_period=period,
+                status__in=[PayrollSlip.Status.PENDING, PayrollSlip.Status.HOLD, PayrollSlip.Status.READY],
+            ).select_related("employee", "salary_period", "payment_period")
 
         return queryset

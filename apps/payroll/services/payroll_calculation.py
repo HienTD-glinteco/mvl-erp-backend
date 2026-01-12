@@ -45,7 +45,18 @@ class PayrollCalculationService:
         - Recovery vouchers
         - Penalty status check
         - Final net salary
+
+        Updated Rules:
+        - If slip is DELIVERED, skip calculation entirely
+        - If slip is HOLD, calculate values but DON'T change status
         """
+        # Skip if already delivered - data is frozen
+        if self.slip.status == self.slip.Status.DELIVERED:
+            return
+
+        # Store original status if HOLD to preserve it
+        was_hold = self.slip.status == self.slip.Status.HOLD
+
         # Step 1: Cache employee information (independent of contract)
         self._cache_employee_data()
 
@@ -93,8 +104,12 @@ class PayrollCalculationService:
         # Step 14: Check for unpaid penalties
         self._check_unpaid_penalties()
 
-        # Step 15: Determine final status
-        self._determine_final_status(contract, timesheet)
+        # Step 15: Determine final status (only if not HOLD)
+        if was_hold:
+            # Preserve HOLD status - only update values, not status
+            pass
+        else:
+            self._determine_final_status(contract, timesheet)
 
         # Step 16: Update timestamp and save
         self.slip.calculated_at = timezone.now()
@@ -104,10 +119,26 @@ class PayrollCalculationService:
         self._update_related_models_status()
 
     def _get_active_contract(self) -> Optional[Contract]:
-        """Get employee's active contract for the salary period."""
+        """Get employee's active contract for the salary period.
+
+        Contract logic: Get the latest active contract with effective_date
+        before or on the last day of the salary period month.
+
+        Example: For salary period 12/2025:
+        - Contract effective 02/12/2025 should be included
+        - We check effective_date <= 31/12/2025 (end of month)
+        """
+        import calendar
+
+        # Get last day of the salary period month
+        _, last_day = calendar.monthrange(self.period.month.year, self.period.month.month)
+        end_of_month = self.period.month.replace(day=last_day)
+
         return (
             Contract.objects.filter(
-                employee=self.employee, status=Contract.ContractStatus.ACTIVE, effective_date__lte=self.period.month
+                employee=self.employee,
+                status=Contract.ContractStatus.ACTIVE,
+                effective_date__lte=end_of_month,
             )
             .order_by("-effective_date")
             .first()

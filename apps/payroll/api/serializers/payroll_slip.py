@@ -17,7 +17,9 @@ class PayrollSlipSerializer(serializers.ModelSerializer):
 
     employee = EmployeeNestedSerializer(read_only=True)
     salary_period = SalaryPeriodNestedSerializer(read_only=True)
+    payment_period = SalaryPeriodNestedSerializer(read_only=True)
     colored_status = ColoredValueSerializer(read_only=True)
+    is_carried_over = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = PayrollSlip
@@ -26,6 +28,8 @@ class PayrollSlipSerializer(serializers.ModelSerializer):
             "id",
             "code",
             "salary_period",
+            "payment_period",  # New field: period when actually paid
+            "is_carried_over",  # New property: True if payment_period != salary_period
             "employee",
             "employee_code",
             "employee_name",
@@ -107,6 +111,10 @@ class PayrollSlipSerializer(serializers.ModelSerializer):
             "email_sent_at",
             "delivered_at",
             "delivered_by",
+            # Hold tracking
+            "hold_reason",
+            "held_at",
+            "held_by",
             # Audit
             "calculation_log",
             "calculated_at",

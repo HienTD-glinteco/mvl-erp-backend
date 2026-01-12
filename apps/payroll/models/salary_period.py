@@ -176,6 +176,50 @@ class SalaryPeriod(AutoCodeMixin, ColoredValueMixin, BaseModel):
         help_text="User who completed the period",
     )
 
+    # Uncomplete tracking fields
+    uncompleted_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name=_("Uncompleted At"),
+        help_text="Timestamp when period was uncompleted/unlocked",
+    )
+
+    uncompleted_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="uncompleted_salary_periods",
+        verbose_name=_("Uncompleted By"),
+        help_text="User who uncompleted the period",
+    )
+
+    # Payment table statistics (Table 1)
+    payment_count = models.PositiveIntegerField(
+        default=0, verbose_name=_("Payment Count"), help_text="Count of payroll slips in payment table"
+    )
+
+    payment_total = models.DecimalField(
+        max_digits=20,
+        decimal_places=0,
+        default=0,
+        verbose_name=_("Payment Total"),
+        help_text="Total net salary of payroll slips in payment table",
+    )
+
+    # Deferred table statistics (Table 2)
+    deferred_count = models.PositiveIntegerField(
+        default=0, verbose_name=_("Deferred Count"), help_text="Count of payroll slips deferred to next period"
+    )
+
+    deferred_total = models.DecimalField(
+        max_digits=20,
+        decimal_places=0,
+        default=0,
+        verbose_name=_("Deferred Total"),
+        help_text="Total net salary of deferred payroll slips",
+    )
+
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
@@ -253,10 +297,12 @@ class SalaryPeriod(AutoCodeMixin, ColoredValueMixin, BaseModel):
         return not blocking_slips
 
     def complete(self, user=None):
-        """Complete the salary period.
+        """Complete the salary period and transfer to accounting.
 
-        Marks period as completed and changes all READY slips to DELIVERED.
-        Can be executed at any time without checking can_complete.
+        Business Rules:
+        1. All READY slips (from any period) -> DELIVERED status with payment_period = this
+        2. All PENDING/HOLD slips remain (deferred to Table 2)
+        3. Update statistics
 
         Args:
             user: User completing the period
@@ -265,22 +311,78 @@ class SalaryPeriod(AutoCodeMixin, ColoredValueMixin, BaseModel):
 
         from .payroll_slip import PayrollSlip
 
-        # Update all READY slips to DELIVERED
-        self.payroll_slips.filter(status=PayrollSlip.Status.READY).update(
-            status=PayrollSlip.Status.DELIVERED, delivered_at=timezone.now(), delivered_by=user
+        now = timezone.now()
+
+        # Update ALL READY slips to DELIVERED and set payment_period to this period
+        # This includes carry-over slips from previous periods
+        PayrollSlip.objects.filter(status=PayrollSlip.Status.READY).update(
+            status=PayrollSlip.Status.DELIVERED,
+            delivered_at=now,
+            delivered_by=user,
+            payment_period=self,  # Payment period = this period
         )
 
         # Mark period as completed
         self.status = self.Status.COMPLETED
-        self.completed_at = timezone.now()
+        self.completed_at = now
         self.completed_by = user
         self.save(update_fields=["status", "completed_at", "completed_by", "updated_at"])
 
+        # Update statistics (including deferred count)
+        self.update_statistics()
+
+    def can_uncomplete(self) -> tuple[bool, str]:
+        """Check if period can be uncompleted.
+
+        Returns:
+            Tuple of (can_uncomplete: bool, reason: str)
+        """
+        if self.status != self.Status.COMPLETED:
+            return False, "Period is not completed"
+
+        # Rule: Cannot uncomplete if newer periods exist
+        newer_periods = SalaryPeriod.objects.filter(month__gt=self.month).exists()
+        if newer_periods:
+            return False, "Cannot uncomplete: newer salary periods exist"
+
+        return True, ""
+
+    def uncomplete(self, user=None):
+        """Uncomplete/unlock the salary period.
+
+        Business Rules:
+        1. Only allowed if no newer periods exist
+        2. Status changes to ONGOING
+        3. Payroll slip statuses remain unchanged (DELIVERED stays DELIVERED)
+        4. Future CRUD on related objects will trigger recalculation
+
+        Args:
+            user: User uncompleting the period
+
+        Raises:
+            ValidationError: If uncomplete is not allowed
+        """
+        from django.core.exceptions import ValidationError
+        from django.utils import timezone
+
+        can, reason = self.can_uncomplete()
+        if not can:
+            raise ValidationError(reason)
+
+        # Change status to ONGOING
+        self.status = self.Status.ONGOING
+        self.uncompleted_at = timezone.now()
+        self.uncompleted_by = user
+        # Keep completed_at/completed_by for audit trail
+        self.save(update_fields=["status", "uncompleted_at", "uncompleted_by", "updated_at"])
+
     def update_statistics(self):
-        """Update all statistics fields based on current payroll slips."""
+        """Update all statistics fields including new deferred counts."""
         from django.db.models import Count, Q, Sum
 
         from apps.payroll.models import PenaltyTicket, RecoveryVoucher, TravelExpense
+
+        from .payroll_slip import PayrollSlip
 
         # Count employees with recovery vouchers
         self.employees_need_recovery = (
@@ -312,8 +414,6 @@ class SalaryPeriod(AutoCodeMixin, ColoredValueMixin, BaseModel):
         self.employees_need_email = self.payroll_slips.filter(need_resend_email=True).count()
 
         # Update payroll slip aggregate statistics
-        from .payroll_slip import PayrollSlip
-
         stats = self.payroll_slips.aggregate(
             pending_count=Count("id", filter=Q(status=PayrollSlip.Status.PENDING)),
             ready_count=Count("id", filter=Q(status=PayrollSlip.Status.READY)),
@@ -330,6 +430,40 @@ class SalaryPeriod(AutoCodeMixin, ColoredValueMixin, BaseModel):
         self.total_gross_income = stats["total_gross_income"] or 0
         self.total_net_salary = stats["total_net_salary"] or 0
 
+        # Update deferred table statistics (Table 2)
+        # For ONGOING: count PENDING/HOLD only
+        # For COMPLETED: count PENDING/HOLD/READY (non-DELIVERED slips)
+        if self.status == self.Status.ONGOING:
+            deferred_statuses = [PayrollSlip.Status.PENDING, PayrollSlip.Status.HOLD]
+        else:
+            # COMPLETED period: include READY slips that weren't paid in this period
+            deferred_statuses = [
+                PayrollSlip.Status.PENDING,
+                PayrollSlip.Status.HOLD,
+                PayrollSlip.Status.READY,
+            ]
+
+        deferred_stats = self.payroll_slips.filter(status__in=deferred_statuses).aggregate(
+            count=Count("id"), total=Sum("net_salary")
+        )
+
+        self.deferred_count = deferred_stats["count"] or 0
+        self.deferred_total = deferred_stats["total"] or 0
+
+        # Update payment table statistics (Table 1)
+        if self.status == self.Status.ONGOING:
+            payment_stats = PayrollSlip.objects.filter(
+                Q(salary_period=self, status=PayrollSlip.Status.READY)
+                | Q(payment_period=self, status=PayrollSlip.Status.READY)
+            ).aggregate(count=Count("id"), total=Sum("net_salary"))
+        else:
+            payment_stats = PayrollSlip.objects.filter(
+                payment_period=self, status=PayrollSlip.Status.DELIVERED
+            ).aggregate(count=Count("id"), total=Sum("net_salary"))
+
+        self.payment_count = payment_stats["count"] or 0
+        self.payment_total = payment_stats["total"] or 0
+
         self.save(
             update_fields=[
                 "employees_need_recovery",
@@ -343,5 +477,9 @@ class SalaryPeriod(AutoCodeMixin, ColoredValueMixin, BaseModel):
                 "delivered_count",
                 "total_gross_income",
                 "total_net_salary",
+                "deferred_count",
+                "deferred_total",
+                "payment_count",
+                "payment_total",
             ]
         )
