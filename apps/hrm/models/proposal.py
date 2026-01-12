@@ -974,6 +974,196 @@ class ProposalOvertimeEntry(BaseModel):
             if self.start_time >= self.end_time:
                 raise ValidationError({"end_time": _("End time must be after start time")})
 
+        if not self.date or not self.start_time or not self.end_time:
+            return
+
+        # 1. Check if date is a Holiday
+        is_holiday = self._validate_holiday()
+
+        # Check if date is a Compensatory Workday
+        from apps.hrm.models.holiday import CompensatoryWorkday
+
+        comp_workday = None
+        try:
+            comp_workday = CompensatoryWorkday.objects.get(date=self.date)
+        except CompensatoryWorkday.DoesNotExist:
+            pass
+
+        # 2. If NOT a holiday AND NOT a Compensatory Workday, check overlap with Official Working Hours
+        if not is_holiday and not comp_workday:
+            self._validate_no_overlap_with_work_schedule()
+
+        # 3. Check overlap with Compensatory Workday (regardless of holiday status)
+        if comp_workday:
+            self._validate_no_overlap_with_compensatory_workday(comp_workday)
+
+        # 4. Check overlap with Existing Entries (always)
+        self._validate_no_overlap_with_existing_entries()
+
+    def _validate_holiday(self) -> bool:
+        """Check if the date is a holiday. Returns True if it is."""
+        from apps.hrm.models.holiday import Holiday
+
+        # Check if date falls within any holiday range
+        is_holiday = Holiday.objects.filter(start_date__lte=self.date, end_date__gte=self.date).exists()
+        return is_holiday
+
+    def _validate_no_overlap_with_work_schedule(self):
+        """Check if overtime entry overlaps with official working hours."""
+        from apps.hrm.utils.work_schedule_cache import get_work_schedule_by_weekday
+
+        weekday = self.date.isoweekday() + 1
+        work_schedule = get_work_schedule_by_weekday(weekday)
+        if not work_schedule:
+            return
+
+        # Check overlap with morning session
+        if work_schedule.morning_start_time and work_schedule.morning_end_time:
+            if self._check_overlap(
+                self.start_time, self.end_time, work_schedule.morning_start_time, work_schedule.morning_end_time
+            ):
+                raise ValidationError(
+                    {
+                        "start_time": _(
+                            "Overtime entry cannot overlap with official morning working hours ({}-{})"
+                        ).format(
+                            work_schedule.morning_start_time.strftime("%H:%M"),
+                            work_schedule.morning_end_time.strftime("%H:%M"),
+                        )
+                    }
+                )
+
+        # Check overlap with afternoon session
+        if work_schedule.afternoon_start_time and work_schedule.afternoon_end_time:
+            if self._check_overlap(
+                self.start_time, self.end_time, work_schedule.afternoon_start_time, work_schedule.afternoon_end_time
+            ):
+                raise ValidationError(
+                    {
+                        "start_time": _(
+                            "Overtime entry cannot overlap with official afternoon working hours ({}-{})"
+                        ).format(
+                            work_schedule.afternoon_start_time.strftime("%H:%M"),
+                            work_schedule.afternoon_end_time.strftime("%H:%M"),
+                        )
+                    }
+                )
+
+    def _validate_no_overlap_with_compensatory_workday(self, comp_workday):
+        """Check if overtime entry overlaps with compensatory working hours."""
+        from apps.hrm.models.holiday import CompensatoryWorkday
+        from apps.hrm.utils.work_schedule_cache import get_work_schedule_by_weekday
+
+        # comp_workday is passed from clean() method so we don't query again
+
+        # Determine reference working hours
+        # Per user requirement: Use the schedule of the correpsonding weekday of the date
+        weekday = self.date.isoweekday() + 1  # 1=Mon...7=Sun -> DB 2=Mon...8=Sun
+        reference_schedule = get_work_schedule_by_weekday(weekday)
+
+        if not reference_schedule:
+            # If no schedule exists for this weekday, we cannot validate overlap against "working hours"
+            return
+
+        # Use CompensatoryWorkday session to determine forbidden times
+        check_morning = comp_workday.session in [
+            CompensatoryWorkday.Session.MORNING,
+            CompensatoryWorkday.Session.FULL_DAY,
+        ]
+        check_afternoon = comp_workday.session in [
+            CompensatoryWorkday.Session.AFTERNOON,
+            CompensatoryWorkday.Session.FULL_DAY,
+        ]
+
+        if check_morning and reference_schedule.morning_start_time and reference_schedule.morning_end_time:
+            if self._check_overlap(
+                self.start_time,
+                self.end_time,
+                reference_schedule.morning_start_time,
+                reference_schedule.morning_end_time,
+            ):
+                raise ValidationError(
+                    {
+                        "start_time": _(
+                            "Overtime entry cannot overlap with compensatory morning shift ({}-{})"
+                        ).format(
+                            reference_schedule.morning_start_time.strftime("%H:%M"),
+                            reference_schedule.morning_end_time.strftime("%H:%M"),
+                        )
+                    }
+                )
+
+        if check_afternoon and reference_schedule.afternoon_start_time and reference_schedule.afternoon_end_time:
+            if self._check_overlap(
+                self.start_time,
+                self.end_time,
+                reference_schedule.afternoon_start_time,
+                reference_schedule.afternoon_end_time,
+            ):
+                raise ValidationError(
+                    {
+                        "start_time": _(
+                            "Overtime entry cannot overlap with compensatory afternoon shift ({}-{})"
+                        ).format(
+                            reference_schedule.afternoon_start_time.strftime("%H:%M"),
+                            reference_schedule.afternoon_end_time.strftime("%H:%M"),
+                        )
+                    }
+                )
+
+    def _validate_no_overlap_with_existing_entries(self):
+        """Check for overlaps with existing entries in DB."""
+        # Ensure we have access to the proposal creator
+        if self.proposal_id:
+            try:
+                creator_id = self.proposal.created_by_id
+            except Exception:
+                # If proposal is not resolvable yet (unlikely in most flows if ID is present but safe guard)
+                return
+        elif hasattr(self, "proposal") and self.proposal.created_by_id:
+            creator_id = self.proposal.created_by_id
+        elif hasattr(self, "_proposal_created_by"):
+            # NOTE: from ProposalOvertimeEntrySerializer.validate
+            creator_id = self._proposal_created_by.id
+        else:
+            # Cannot determine creator, skip validation
+            return
+
+        if not creator_id:
+            return
+
+        # Filter for existing valid proposals
+        from apps.hrm.constants import ProposalStatus
+
+        overlapping_entries = ProposalOvertimeEntry.objects.filter(
+            proposal__created_by_id=creator_id,
+            date=self.date,
+            proposal__proposal_status__in=[ProposalStatus.PENDING, ProposalStatus.APPROVED],
+        )
+
+        if self.pk:
+            overlapping_entries = overlapping_entries.exclude(pk=self.pk)
+
+        # Check for overlaps
+        for entry in overlapping_entries:
+            if self._check_overlap(self.start_time, self.end_time, entry.start_time, entry.end_time):
+                raise ValidationError(
+                    {
+                        "start_time": _(
+                            "Overtime entry overlaps with an existing entry from proposal {proposal_code} ({start}-{end})"
+                        ).format(
+                            proposal_code=entry.proposal.code,
+                            start=entry.start_time.strftime("%H:%M"),
+                            end=entry.end_time.strftime("%H:%M"),
+                        )
+                    }
+                )
+
+    @staticmethod
+    def _check_overlap(start1, end1, start2, end2):
+        """Return True if (start1, end1) overlaps with (start2, end2)."""
+        return max(start1, start2) < min(end1, end2)
+
     def save(self, *args, **kwargs):
         self.clean()
         super().save(*args, **kwargs)

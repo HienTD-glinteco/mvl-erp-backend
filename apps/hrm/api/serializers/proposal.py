@@ -284,6 +284,13 @@ class ProposalOvertimeEntrySerializer(serializers.ModelSerializer):
         for attr, value in attrs.items():
             setattr(instance, attr, value)
 
+        request = self.context["request"]
+        user = request.user
+        if hasattr(user, "employee"):
+            # NOTE: temporarily assign employee to _proposal_created_by - For validation
+            # Must be an Employee instance
+            instance._proposal_created_by = user.employee
+
         try:
             instance.clean()
         except DjangoValidationError as e:
@@ -338,6 +345,30 @@ class ProposalOvertimeWorkSerializer(ProposalByTypeSerializer):
     def validate_entries(self, value):
         if not value:
             raise serializers.ValidationError(_("At least one overtime entry is required"))
+
+        # Check for overlapping time ranges on the same date
+        # Entries appearing earlier in the list are considered valid
+        seen_intervals = {}  # date -> list of (start_time, end_time)
+        for entry in value:
+            date = entry["date"]
+            start = entry["start_time"]
+            end = entry["end_time"]
+
+            if date not in seen_intervals:
+                seen_intervals[date] = []
+
+            for s, e in seen_intervals[date]:
+                # Overlap condition: use model static method
+                if ProposalOvertimeEntry._check_overlap(start, end, s, e):
+                    raise serializers.ValidationError(
+                        _(
+                            "Overlapping overtime entries on %(date)s: %(start)s-%(end)s overlaps with a previous entry."
+                        )
+                        % {"date": date, "start": start, "end": end}
+                    )
+
+            seen_intervals[date].append((start, end))
+
         return value
 
     def create(self, validated_data):
