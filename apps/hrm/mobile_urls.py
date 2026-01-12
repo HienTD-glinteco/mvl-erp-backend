@@ -29,6 +29,7 @@ from apps.hrm.api.views.auth.device_change import (
     DeviceChangeRequestView,
     DeviceChangeVerifyOTPView,
 )
+from apps.hrm.api.views.work_schedule import WorkScheduleViewSet
 
 app_name = "hrm-mobile"
 
@@ -178,5 +179,10 @@ urlpatterns += [
         "device-change/verify-otp/",
         DeviceChangeVerifyOTPView.as_view(),
         name="device_change_verify_otp",
+    ),
+    path(
+        "work-schedules/",
+        WorkScheduleViewSet.as_view({"get": "list"}),
+        name="work-schedule",
     ),
 ]
