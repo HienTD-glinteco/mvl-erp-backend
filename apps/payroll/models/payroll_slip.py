@@ -277,6 +277,14 @@ class PayrollSlip(AutoCodeMixin, ColoredValueMixin, BaseModel):
         max_digits=20, decimal_places=0, default=0, verbose_name=_("Dependent Deduction")
     )
 
+    total_family_deduction = models.DecimalField(
+        max_digits=20, decimal_places=0, default=0, verbose_name=_("Total Family Deduction")
+    )
+
+    non_taxable_allowance = models.DecimalField(
+        max_digits=20, decimal_places=0, default=0, verbose_name=_("Non-Taxable Allowance")
+    )
+
     taxable_income = models.DecimalField(max_digits=20, decimal_places=0, default=0, verbose_name=_("Taxable Income"))
 
     personal_income_tax = models.DecimalField(

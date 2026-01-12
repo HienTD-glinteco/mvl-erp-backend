@@ -96,6 +96,8 @@ class PayrollSlipSerializer(serializers.ModelSerializer):
             "personal_deduction",
             "dependent_count",
             "dependent_deduction",
+            "total_family_deduction",
+            "non_taxable_allowance",
             "taxable_income",
             "personal_income_tax",
             # Vouchers
@@ -211,6 +213,8 @@ class PayrollSlipExportSerializer(serializers.ModelSerializer):
             "personal_deduction",
             "dependent_count",
             "dependent_deduction",
+            "total_family_deduction",
+            "non_taxable_allowance",
             "taxable_income",
             "personal_income_tax",
             "back_pay_amount",

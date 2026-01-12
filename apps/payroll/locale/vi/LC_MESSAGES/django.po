@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-12 10:19+0700\n"
+"POT-Creation-Date: 2026-01-12 12:32+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -989,27 +989,39 @@ msgstr "Số người phụ thuộc"
 msgid "Dependent Deduction"
 msgstr "Giảm trừ gia cảnh"
 
-#: apps/payroll/models/payroll_slip.py:280
+#: apps/payroll/models/payroll_slip.py:281
+#, fuzzy
+#| msgid "Personal Deduction"
+msgid "Total Family Deduction"
+msgstr "Giảm trừ cá nhân"
+
+#: apps/payroll/models/payroll_slip.py:285
+#, fuzzy
+#| msgid "Phone Allowance"
+msgid "Non-Taxable Allowance"
+msgstr "Phụ cấp điện thoại"
+
+#: apps/payroll/models/payroll_slip.py:288
 msgid "Taxable Income"
 msgstr "Thu nhập tính thuế"
 
-#: apps/payroll/models/payroll_slip.py:283
+#: apps/payroll/models/payroll_slip.py:291
 msgid "Personal Income Tax"
 msgstr "Thuế thu nhập cá nhân"
 
-#: apps/payroll/models/payroll_slip.py:288
+#: apps/payroll/models/payroll_slip.py:296
 msgid "Back Pay Amount"
 msgstr "Số tiền truy lĩnh"
 
-#: apps/payroll/models/payroll_slip.py:292
+#: apps/payroll/models/payroll_slip.py:300
 msgid "Recovery Amount"
 msgstr "Số tiền truy thu"
 
-#: apps/payroll/models/payroll_slip.py:296
+#: apps/payroll/models/payroll_slip.py:304
 msgid "Net Salary"
 msgstr "Lương thực lĩnh (NET)"
 
-#: apps/payroll/models/payroll_slip.py:300
+#: apps/payroll/models/payroll_slip.py:308
 #: apps/payroll/models/penalty_ticket.py:61
 #: apps/payroll/models/recovery_voucher.py:70
 #: apps/payroll/models/salary_period.py:81
@@ -1017,69 +1029,69 @@ msgstr "Lương thực lĩnh (NET)"
 msgid "Status"
 msgstr "Trạng thái"
 
-#: apps/payroll/models/payroll_slip.py:304
+#: apps/payroll/models/payroll_slip.py:312
 msgid "Status Note"
 msgstr "Ghi chú trạng thái"
 
-#: apps/payroll/models/payroll_slip.py:308
+#: apps/payroll/models/payroll_slip.py:316
 msgid "Need Resend Email"
 msgstr "Cần gửi email"
 
-#: apps/payroll/models/payroll_slip.py:311
+#: apps/payroll/models/payroll_slip.py:319
 msgid "Email Sent At"
 msgstr "Thời gian gửi email"
 
-#: apps/payroll/models/payroll_slip.py:313
+#: apps/payroll/models/payroll_slip.py:321
 msgid "Delivered At"
 msgstr "Thời gian giao"
 
-#: apps/payroll/models/payroll_slip.py:321
+#: apps/payroll/models/payroll_slip.py:329
 msgid "Delivered By"
 msgstr "Người giao"
 
-#: apps/payroll/models/payroll_slip.py:329
+#: apps/payroll/models/payroll_slip.py:337
 #, fuzzy
 #| msgid "Hold Count"
 msgid "Hold Reason"
 msgstr "Số lượng tạm giữ"
 
-#: apps/payroll/models/payroll_slip.py:334
+#: apps/payroll/models/payroll_slip.py:342
 #, fuzzy
 #| msgid "Delivered At"
 msgid "Held At"
 msgstr "Thời gian giao"
 
-#: apps/payroll/models/payroll_slip.py:343
+#: apps/payroll/models/payroll_slip.py:351
 #, fuzzy
 #| msgid "Delivered By"
 msgid "Held By"
 msgstr "Người giao"
 
-#: apps/payroll/models/payroll_slip.py:348
+#: apps/payroll/models/payroll_slip.py:356
 msgid "Calculation Log"
 msgstr "Nhật ký tính toán"
 
-#: apps/payroll/models/payroll_slip.py:351
+#: apps/payroll/models/payroll_slip.py:359
 msgid "Calculated At"
 msgstr "Thời gian tính lương"
 
-#: apps/payroll/models/payroll_slip.py:359
+#: apps/payroll/models/payroll_slip.py:367
 #: apps/payroll/models/recovery_voucher.py:78
 #: apps/payroll/models/salary_period.py:229
 msgid "Created By"
 msgstr "Người tạo"
 
-#: apps/payroll/models/payroll_slip.py:368
+#: apps/payroll/models/payroll_slip.py:376
 #: apps/payroll/models/recovery_voucher.py:85
 #: apps/payroll/models/salary_period.py:238
 msgid "Updated By"
 msgstr "Người cập nhật"
 
-#: apps/payroll/models/payroll_slip.py:372
+#: apps/payroll/models/payroll_slip.py:380
 msgid "Payroll Slip"
 msgstr "Phiếu lương"
 
-#: apps/payroll/models/payroll_slip.py:373
+#: apps/payroll/models/payroll_slip.py:381
 msgid "Payroll Slips"
 msgstr "Các phiếu lương"
 
