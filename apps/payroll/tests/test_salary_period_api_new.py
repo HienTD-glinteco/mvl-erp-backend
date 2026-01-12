@@ -199,6 +199,7 @@ class TestReadySlipsAPI:
 
         # Mark slip as delivered
         payroll_slip_ready.status = PayrollSlip.Status.DELIVERED
+        payroll_slip_ready.payment_period = salary_period
         payroll_slip_ready.save()
 
         # Act
