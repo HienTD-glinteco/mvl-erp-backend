@@ -1,3 +1,5 @@
+from django.core.exceptions import FieldDoesNotExist
+from django.core.validators import MaxLengthValidator
 from django.utils.translation import gettext as _
 from rest_framework import serializers
 
@@ -5,6 +7,8 @@ from apps.files.api.serializers import FileSerializer
 from apps.files.api.serializers.mixins import FileConfirmSerializerMixin
 from apps.hrm.models import ContractType
 from libs.drf.serializers import ColoredValueSerializer, FieldFilteringSerializerMixin
+from libs.drf.validators import HTMLContentMaxLengthValidator
+from libs.models.fields import SafeTextField
 
 
 class ContractTypeSerializer(FileConfirmSerializerMixin, serializers.ModelSerializer):
@@ -78,6 +82,24 @@ class ContractTypeSerializer(FileConfirmSerializerMixin, serializers.ModelSerial
             "created_at",
             "updated_at",
         ]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # NOTE: alter max length validator class for `SafeTextField`
+        # TODO: this update only applied for this serializer only, should apply it to others later
+        for name, field in self.fields.items():
+            try:
+                model_field = self.Meta.model._meta.get_field(name)
+            except FieldDoesNotExist:
+                continue
+
+            if not isinstance(model_field, SafeTextField):
+                continue
+
+            validators = [validator for validator in field.validators if not isinstance(validator, MaxLengthValidator)]
+            validators.append(HTMLContentMaxLengthValidator(model_field.max_length))
+            self.fields[name].validators = validators
 
     def validate(self, attrs):
         """Validate contract type data.

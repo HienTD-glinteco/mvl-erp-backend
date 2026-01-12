@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MaiVietLand Backend Core\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-12 10:19+0700\n"
+"POT-Creation-Date: 2026-01-12 14:40+0700\n"
 "PO-Revision-Date: 2025-01-21 00:00+0000\n"
 "Last-Translator: Glinteco Developers\n"
 "Language-Team: Vietnamese\n"
@@ -782,7 +782,7 @@ msgid "Password must contain at least one digit."
 msgstr "Mật khẩu phải chứa ít nhất một chữ số."
 
 #: apps/core/validators.py:35
-#, no-python-format
+#, no-python-format, python-brace-format
 msgid ""
 "Password must contain at least one special character (!@#$%^&*(),.?\":{}|<>)."
 msgstr "Mật khẩu phải chứa ít nhất một ký tự đặc biệt (!@#$%^&*(),.?\":{}|<>)."

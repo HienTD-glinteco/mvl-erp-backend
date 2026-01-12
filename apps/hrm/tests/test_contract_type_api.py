@@ -639,3 +639,46 @@ class TestContractTypeAPI:
 
         assert data["colored_tax_calculation_method"]["value"] == "flat_10"
         assert data["colored_tax_calculation_method"]["variant"] == "YELLOW"
+
+    def test_create_contract_type_html_length_validation(self, api_client, contract_type_data):
+        """Test that HTML content length validation works correctly.
+
+        Verifies that:
+        1. Raw HTML length > max_length but Text length <= max_length -> PASS
+        2. Text length > max_length -> FAIL
+        """
+        # note field has max_length=500
+
+        # Case 1: Raw HTML exceeds 500 chars (e.g. many tags), but text is short
+        # Create strict tags that safe string cleaner might preserve or at least text content matches
+        # Using <b> tags. 7 chars per tag pair "<b></b>", plus content.
+        # We want > 500 raw chars. 100 * "<b>a</b>" = 700 chars. Text content = 100 chars.
+
+        long_html_content = "".join([f"<b>{i}</b>" for i in range(100)])  # 100 chars of digits, + tags
+        # Total text length = 100 (if i is 0-9) -> actually range(100) has single and double digits.
+        # 0-9: 10 * 7 = 70. Text: 10
+        # 10-99: 90 * 8 = 720. Text: 180.
+        # Total text ~ 190 chars. Total raw > 500.
+
+        contract_type_data["note"] = long_html_content
+
+        url = reverse("hrm:contract-type-list")
+        response = api_client.post(url, contract_type_data, format="json")
+
+        assert response.status_code == status.HTTP_201_CREATED, (
+            f"Should pass when text length ({len(long_html_content)}) is within limit. Error: {response.json().get('error')}"
+        )
+
+        # Case 2: Text content exceeds 500 chars
+        long_text = "a" * 501
+        contract_type_data["note"] = f"<p>{long_text}</p>"
+
+        # Modify name to avoid unique constraint error from previous create
+        contract_type_data["name"] = "Contract Type validation test"
+
+        response = api_client.post(url, contract_type_data, format="json")
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        json_response = response.json()
+        errors = json_response.get("error", {}).get("errors", [])
+        assert any(e.get("attr") == "note" for e in errors), f"Should fail with note error, got {json_response}"

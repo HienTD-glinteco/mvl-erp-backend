@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-12 10:59+0700\n"
+"POT-Creation-Date: 2026-01-12 14:40+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -247,15 +247,15 @@ msgstr ""
 "Ngày hết hiệu lực của phụ lục phải bằng hoặc trước ngày hết hiệu lực của hợp "
 "đồng gốc."
 
-#: apps/hrm/api/serializers/contract_type.py:97
+#: apps/hrm/api/serializers/contract_type.py:119
 msgid "Duration in months is required for fixed-term contracts."
 msgstr "Thời hạn bằng tháng là bắt buộc đối với hợp đồng có thời hạn cố định."
 
-#: apps/hrm/api/serializers/contract_type.py:166
+#: apps/hrm/api/serializers/contract_type.py:188
 msgid "Yes"
 msgstr "Có"
 
-#: apps/hrm/api/serializers/contract_type.py:166
+#: apps/hrm/api/serializers/contract_type.py:188
 msgid "No"
 msgstr "Không"
 
