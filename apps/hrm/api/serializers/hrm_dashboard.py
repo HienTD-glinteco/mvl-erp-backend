@@ -7,6 +7,7 @@ class DashboardItemQueryParamsSerializer(serializers.Serializer):
     """Serializer for query params in dashboard items."""
 
     proposal_status__in = serializers.CharField(required=False, help_text="Proposal status filter")
+    approve_status = serializers.CharField(required=False, help_text="Approval status filter")
     is_pending = serializers.CharField(required=False, help_text="Pending status filter")
     status = serializers.CharField(required=False, help_text="Status filter")
 

@@ -211,7 +211,7 @@ class HRMDashboardViewSet(BaseGenericViewSet):
                 "count": attendance_other_pending_count,
                 "path": "/attendance/other-attendance",
                 "query_params": {
-                    "is_pending": "true",
+                    "approve_status": AttendanceRecord.ApproveStatus.PENDING,
                 },
             },
             "timesheet_complaints_pending": {

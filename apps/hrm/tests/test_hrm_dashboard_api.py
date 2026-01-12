@@ -158,7 +158,7 @@ class TestHRMDashboardAPI(APITestMixin):
         assert attendance["key"] == "attendance_other_pending"
         assert attendance["count"] == 1
         assert attendance["path"] == "/attendance/other-attendance"
-        assert attendance["query_params"]["is_pending"] == "true"
+        assert attendance["query_params"]["approve_status"] == AttendanceRecord.ApproveStatus.PENDING
 
         # Check timesheet_complaints_pending
         complaints = data["timesheet_complaints_pending"]
