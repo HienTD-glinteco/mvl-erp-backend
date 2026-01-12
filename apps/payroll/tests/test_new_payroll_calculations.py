@@ -441,7 +441,7 @@ class TestPersonalIncomeTaxBasedOnEmployeeType:
 
         # Assert
         payroll_slip.refresh_from_db()
-        # Official employees: taxable_income_base excludes non_taxable_overtime_salary
+        # Official employees: taxable_income_base excludes non_taxable_overtime_salary and non_taxable_allowance
         expected_base = (
             payroll_slip.gross_income
             - payroll_slip.non_taxable_travel_expense
@@ -449,6 +449,7 @@ class TestPersonalIncomeTaxBasedOnEmployeeType:
             - payroll_slip.employee_health_insurance
             - payroll_slip.employee_unemployment_insurance
             - payroll_slip.non_taxable_overtime_salary
+            - payroll_slip.non_taxable_allowance
         )
         assert payroll_slip.taxable_income_base == expected_base.quantize(Decimal("1"))
         # Tax should be calculated progressively, not flat 10%

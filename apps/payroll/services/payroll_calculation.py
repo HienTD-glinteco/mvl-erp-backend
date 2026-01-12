@@ -495,8 +495,24 @@ class PayrollCalculationService:
         self.slip.personal_deduction = Decimal(str(tax_config["standard_deduction"]))
         self.slip.dependent_deduction = dependent_count * Decimal(str(tax_config["dependent_deduction"]))
 
+        # Calculate total family deduction
+        self.slip.total_family_deduction = (self.slip.personal_deduction + self.slip.dependent_deduction).quantize(
+            Decimal("1")
+        )
+
         # Check if employee is official
         is_official = self.slip.employment_status == EmployeeType.OFFICIAL
+
+        # Calculate non-taxable allowance
+        if is_official and self.period.standard_working_days > 0:
+            # Non-taxable allowance = (lunch + phone) / standard_days * (probation_days * 0.85 + official_days)
+            allowance_base = self.slip.lunch_allowance + self.slip.phone_allowance
+            working_days_factor = self.slip.probation_working_days * Decimal("0.85") + self.slip.official_working_days
+            self.slip.non_taxable_allowance = (
+                allowance_base / self.period.standard_working_days * working_days_factor
+            ).quantize(Decimal("1"))
+        else:
+            self.slip.non_taxable_allowance = Decimal("0")
 
         if is_official:
             # Official employee: Calculate taxable income base with deductions
@@ -507,6 +523,7 @@ class PayrollCalculationService:
                 - self.slip.employee_health_insurance
                 - self.slip.employee_unemployment_insurance
                 - self.slip.non_taxable_overtime_salary
+                - self.slip.non_taxable_allowance
             ).quantize(Decimal("1"))
 
             # Calculate taxable income after deductions
