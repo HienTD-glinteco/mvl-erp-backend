@@ -72,6 +72,17 @@ class PayrollSlip(AutoCodeMixin, ColoredValueMixin, BaseModel):
         "SalaryPeriod", on_delete=models.CASCADE, related_name="payroll_slips", verbose_name=_("Salary Period")
     )
 
+    # Payment period - when this slip is actually paid (may differ from salary_period)
+    payment_period = models.ForeignKey(
+        "SalaryPeriod",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="payment_slips",
+        verbose_name=_("Payment Period"),
+        help_text="The period when this slip is actually paid (may differ from salary_period)",
+    )
+
     employee = models.ForeignKey(
         "hrm.Employee", on_delete=models.PROTECT, related_name="payroll_slips", verbose_name=_("Employee")
     )
@@ -310,6 +321,28 @@ class PayrollSlip(AutoCodeMixin, ColoredValueMixin, BaseModel):
         verbose_name=_("Delivered By"),
     )
 
+    # ========== Hold Tracking Fields ==========
+    hold_reason = models.CharField(
+        max_length=500,
+        blank=True,
+        default="",
+        verbose_name=_("Hold Reason"),
+        help_text="Reason for holding the salary",
+    )
+
+    held_at = models.DateTimeField(
+        null=True, blank=True, verbose_name=_("Held At"), help_text="Timestamp when slip was put on hold"
+    )
+
+    held_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="held_payroll_slips",
+        verbose_name=_("Held By"),
+    )
+
     # ========== Audit Fields ==========
     calculation_log = models.JSONField(
         default=dict, verbose_name=_("Calculation Log"), help_text="Detailed breakdown of calculation"
@@ -358,3 +391,108 @@ class PayrollSlip(AutoCodeMixin, ColoredValueMixin, BaseModel):
     def colored_status(self):
         """Get colored value representation for status field."""
         return self.get_colored_value("status")
+
+    @property
+    def is_carried_over(self) -> bool:
+        """Check if slip is being paid in a different period than it belongs to.
+
+        Returns True if payment_period differs from salary_period.
+        This happens when a slip becomes READY after its period was COMPLETED
+        (e.g., after penalty payment) and will be paid in a later period.
+        """
+        return self.payment_period_id is not None and self.payment_period_id != self.salary_period_id
+
+    def hold(self, reason: str, user=None):
+        """Put payroll slip on hold.
+
+        Business Rules:
+        1. Any status except HOLD can be held
+        2. Status changes to HOLD
+        3. Reason is required
+
+        Args:
+            reason: Reason for holding
+            user: User performing the hold
+
+        Raises:
+            ValidationError: If hold is not allowed
+        """
+        from django.core.exceptions import ValidationError
+        from django.utils import timezone
+
+        if self.status == self.Status.HOLD:
+            raise ValidationError("Slip is already on HOLD")
+
+        if not reason:
+            raise ValidationError("Hold reason is required")
+
+        self.status = self.Status.HOLD
+        self.hold_reason = reason
+        self.status_note = f"Hold: {reason}"
+        self.held_at = timezone.now()
+        self.held_by = user
+        self.save(update_fields=["status", "hold_reason", "status_note", "held_at", "held_by", "updated_at"])
+
+    def unhold(self, user=None):
+        """Release held payroll slip.
+
+        Business Rules:
+        1. Only HOLD slips can be unholded
+        2. Triggers recalculation
+        3. Status determined by recalculation (READY or PENDING)
+        4. If salary period is ONGOING: slip goes to Table 1
+        5. If salary period is COMPLETED:
+           - Slip stays in Table 2 of old period
+           - AND appears in Table 1 of current ONGOING period
+
+        Args:
+            user: User performing the unhold
+
+        Raises:
+            ValidationError: If unhold is not allowed
+        """
+        from django.core.exceptions import ValidationError
+
+        from .salary_period import SalaryPeriod
+
+        if self.status != self.Status.HOLD:
+            raise ValidationError(f"Cannot unhold slip with status {self.status}")
+
+        # Clear hold info
+        self.hold_reason = ""
+        self.status_note = ""
+        self.held_at = None
+        self.held_by = None
+
+        # Handle based on whether salary period is ongoing or completed
+        if self.salary_period.status == SalaryPeriod.Status.COMPLETED:
+            # Old period case: need to move to current period
+            self._handle_unhold_from_completed_period(user)
+        else:
+            # Current period case: just recalculate
+            self._recalculate_and_update_status()
+
+        self.save()
+
+    def _handle_unhold_from_completed_period(self, user=None):
+        """Handle unhold for slip from a completed period.
+
+        Does NOT set payment_period - leave it null.
+        The slip will appear in Table 1 (SalaryPeriodReadySlipsViewSet) of the
+        current ONGOING period because that view queries all READY slips.
+        payment_period will be set when the current period is completed.
+        """
+        # Don't set payment_period - leave it null
+        # SalaryPeriodReadySlipsViewSet will show all READY slips for ONGOING period
+        # payment_period will be set when period.complete() is called
+
+        # Recalculate status
+        self._recalculate_and_update_status()
+
+    def _recalculate_and_update_status(self):
+        """Recalculate and determine new status."""
+        from apps.payroll.services.payroll_calculation import PayrollCalculationService
+
+        calculator = PayrollCalculationService(self)
+        calculator.calculate()
+        # Status is determined by calculator._determine_final_status()

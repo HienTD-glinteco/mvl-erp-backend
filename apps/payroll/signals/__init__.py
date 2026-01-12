@@ -9,6 +9,7 @@ Signal Files:
 - employee_lifecycle: Employee onboarding/offboarding
 - deadline_validation: Pre-save validations
 - code_generation: Auto-code generation
+- period_protection: CRUD protection for completed periods
 
 DEPRECATED (Phase 2 - DO NOT USE):
 - payroll_recalculation: Merged into model_lifecycle
@@ -23,6 +24,7 @@ from apps.payroll.signals import (
     employee_lifecycle,
     kpi_assessment,
     model_lifecycle,
+    period_protection,
 )
 
 # DEPRECATED - These are kept for backward compatibility but will be removed
@@ -35,6 +37,7 @@ __all__ = [
     "employee_lifecycle",
     "kpi_assessment",
     "model_lifecycle",
+    "period_protection",
     # Deprecated - do not use:
     # "dashboard_cache",
     # "payroll_recalculation",

@@ -11,6 +11,7 @@ class SalaryPeriodListSerializer(serializers.ModelSerializer):
 
     colored_status = ColoredValueSerializer(read_only=True)
     month = serializers.SerializerMethodField()
+    can_uncomplete = serializers.SerializerMethodField()
 
     class Meta:
         model = SalaryPeriod
@@ -26,6 +27,11 @@ class SalaryPeriodListSerializer(serializers.ModelSerializer):
             "ready_count",
             "hold_count",
             "delivered_count",
+            # New table statistics
+            "payment_count",
+            "payment_total",
+            "deferred_count",
+            "deferred_total",
             "proposal_deadline",
             "kpi_assessment_deadline",
             "employees_need_recovery",
@@ -33,6 +39,7 @@ class SalaryPeriodListSerializer(serializers.ModelSerializer):
             "employees_paid_penalties",
             "employees_with_travel",
             "employees_need_email",
+            "can_uncomplete",
             "created_at",
             "updated_at",
         ]
@@ -42,12 +49,18 @@ class SalaryPeriodListSerializer(serializers.ModelSerializer):
         """Return month in n/YYYY format (month without leading zero)."""
         return obj.month.strftime("%-m/%Y")
 
+    def get_can_uncomplete(self, obj):
+        """Return whether period can be uncompleted."""
+        can, _ = obj.can_uncomplete()
+        return can
+
 
 class SalaryPeriodSerializer(serializers.ModelSerializer):
     """Detail serializer for SalaryPeriod."""
 
     colored_status = ColoredValueSerializer(read_only=True)
     month = serializers.SerializerMethodField()
+    can_uncomplete = serializers.SerializerMethodField()
 
     class Meta:
         model = SalaryPeriod
@@ -64,6 +77,11 @@ class SalaryPeriodSerializer(serializers.ModelSerializer):
             "ready_count",
             "hold_count",
             "delivered_count",
+            # New table statistics
+            "payment_count",
+            "payment_total",
+            "deferred_count",
+            "deferred_total",
             "total_gross_income",
             "total_net_salary",
             "proposal_deadline",
@@ -75,6 +93,9 @@ class SalaryPeriodSerializer(serializers.ModelSerializer):
             "employees_need_email",
             "completed_at",
             "completed_by",
+            "uncompleted_at",
+            "uncompleted_by",
+            "can_uncomplete",
             "created_at",
             "updated_at",
             "created_by",
@@ -92,6 +113,10 @@ class SalaryPeriodSerializer(serializers.ModelSerializer):
             "ready_count",
             "hold_count",
             "delivered_count",
+            "payment_count",
+            "payment_total",
+            "deferred_count",
+            "deferred_total",
             "total_gross_income",
             "total_net_salary",
             "employees_need_recovery",
@@ -101,6 +126,8 @@ class SalaryPeriodSerializer(serializers.ModelSerializer):
             "employees_need_email",
             "completed_at",
             "completed_by",
+            "uncompleted_at",
+            "uncompleted_by",
             "created_at",
             "updated_at",
             "created_by",
@@ -110,6 +137,11 @@ class SalaryPeriodSerializer(serializers.ModelSerializer):
     def get_month(self, obj):
         """Return month in n/YYYY format (month without leading zero)."""
         return obj.month.strftime("%-m/%Y")
+
+    def get_can_uncomplete(self, obj):
+        """Return whether period can be uncompleted."""
+        can, _ = obj.can_uncomplete()
+        return can
 
 
 class SalaryPeriodCreateSerializer(serializers.ModelSerializer):
@@ -157,7 +189,12 @@ class SalaryPeriodCreateAsyncSerializer(serializers.Serializer):
     )
 
     def validate_month(self, value):
-        """Validate month format and convert to YYYY-MM."""
+        """Validate month format and convert to YYYY-MM.
+
+        Business Rules:
+        1. Cannot create if period already exists
+        2. Cannot create if ANY previous period is not COMPLETED
+        """
         from datetime import date
 
         try:
@@ -177,11 +214,12 @@ class SalaryPeriodCreateAsyncSerializer(serializers.Serializer):
         if SalaryPeriod.objects.filter(month=target_month).exists():
             raise serializers.ValidationError("Salary period already exists for this month")
 
-        # Check if previous period is completed
-        previous_periods = SalaryPeriod.objects.filter(month__lt=target_month).order_by("-month")
-        if previous_periods.exists() and previous_periods.first().status != SalaryPeriod.Status.COMPLETED:
+        # NEW RULE: ALL previous periods must be completed
+        uncompleted_periods = SalaryPeriod.objects.filter(month__lt=target_month, status=SalaryPeriod.Status.ONGOING)
+        if uncompleted_periods.exists():
+            periods_str = ", ".join([p.month.strftime("%-m/%Y") for p in uncompleted_periods])
             raise serializers.ValidationError(
-                f"Previous period {previous_periods.first().month.strftime('%-m/%Y')} is not completed yet"
+                f"Cannot create new period. The following periods are not completed: {periods_str}"
             )
 
         # Return in YYYY-MM format for task
