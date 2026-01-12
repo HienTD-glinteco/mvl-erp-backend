@@ -279,6 +279,7 @@ jobs:
             poetry run python manage.py upload_import_templates
             poetry run python manage.py sync_roles_from_excel
             poetry run python manage.py init_org_data
+            poetry run python manage.py sync_periodic_tasks
 
 
             # Update supervisor configuration and restart gunicorn workers

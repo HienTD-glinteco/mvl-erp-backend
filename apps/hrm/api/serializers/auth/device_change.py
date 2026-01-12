@@ -85,9 +85,19 @@ class DeviceChangeRequestSerializer(serializers.Serializer):
                 _("Account is temporarily locked due to multiple failed login attempts. Please try again later.")
             )
 
-        # Check if device_id equals current registered device
-        if hasattr(user, "device") and user.device is not None:
-            if user.device.device_id == device_id:
+        # Check if the device is already registered and not is revoked
+        device = (
+            UserDevice.objects.filter(device_id=device_id, client=UserDevice.Client.MOBILE)
+            .exclude(state=UserDevice.State.REVOKED)
+            .first()
+        )
+        if device:
+            if device.user != user:
+                raise serializers.ValidationError(
+                    _("This device is already registered to another account. Please use a different device.")
+                )
+            else:
+                # Check if device_id equals current registered device
                 raise serializers.ValidationError(
                     _("This device is already registered for your account. No need to create a device change request.")
                 )

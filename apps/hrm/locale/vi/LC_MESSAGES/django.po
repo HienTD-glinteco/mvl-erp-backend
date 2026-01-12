@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-10 10:13+0700\n"
+"POT-Creation-Date: 2026-01-12 10:09+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -73,123 +73,135 @@ msgstr "Trạng Thái"
 
 #: apps/hrm/api/serializers/auth/device_change.py:26
 msgid "Please enter your username."
-msgstr ""
+msgstr "Vui lòng nhập tên người dùng."
 
 #: apps/hrm/api/serializers/auth/device_change.py:27
 msgid "Username cannot be blank."
-msgstr ""
+msgstr "Tên người dùng không được để trống."
 
 #: apps/hrm/api/serializers/auth/device_change.py:34
 msgid "Please enter your password."
-msgstr ""
+msgstr "Vui lòng nhập mật khẩu."
 
 #: apps/hrm/api/serializers/auth/device_change.py:35
 msgid "Password cannot be blank."
-msgstr ""
+msgstr "Mật khẩu không được để trống."
 
 #: apps/hrm/api/serializers/auth/device_change.py:42
-#, fuzzy
-#| msgid "Old device ID"
 msgid "Please provide device ID."
-msgstr "Mã thiết bị cũ"
+msgstr "Vui lòng cung cấp mã thiết bị."
 
 #: apps/hrm/api/serializers/auth/device_change.py:43
 msgid "Device ID cannot be blank."
-msgstr ""
+msgstr "Mã thiết bị không được để trống."
 
 #: apps/hrm/api/serializers/auth/device_change.py:74
 msgid "Incorrect password. Please try again."
-msgstr ""
+msgstr "Mật khẩu không đúng. Vui lòng thử lại."
 
 #: apps/hrm/api/serializers/auth/device_change.py:76
 msgid "Username does not exist."
-msgstr ""
+msgstr "Tên người dùng không tồn tại."
 
 #: apps/hrm/api/serializers/auth/device_change.py:80
 msgid "This account is inactive. Please contact support."
-msgstr ""
+msgstr "Tài khoản này không hoạt động. Vui lòng liên hệ với hỗ trợ."
 
 #: apps/hrm/api/serializers/auth/device_change.py:85
 msgid ""
 "Account is temporarily locked due to multiple failed login attempts. Please "
 "try again later."
 msgstr ""
+"Tài khoản này tạm thời bị khóa do nhiều lần đăng nhập thất bại. Vui lòng thử "
+"lại sau."
 
-#: apps/hrm/api/serializers/auth/device_change.py:92
+#: apps/hrm/api/serializers/auth/device_change.py:97
+msgid ""
+"This device is already registered to another account. Please use a different "
+"device."
+msgstr ""
+"Thiết bị này đã được đăng ký cho tài khoản khác. Vui lòng sử dụng thiết bi "
+"khác."
+
+#: apps/hrm/api/serializers/auth/device_change.py:102
 msgid ""
 "This device is already registered for your account. No need to create a "
 "device change request."
 msgstr ""
-
-#: apps/hrm/api/serializers/auth/device_change.py:151
-msgid "Please provide request ID."
-msgstr ""
-
-#: apps/hrm/api/serializers/auth/device_change.py:152
-msgid "Invalid request ID format."
-msgstr ""
-
-#: apps/hrm/api/serializers/auth/device_change.py:160
-msgid "Please enter the OTP code."
-msgstr ""
+"Thiết bị này đã được đăng ký cho tài khoản của bạn. Không cần tạo yêu cầu "
+"thay đổi thiết bị."
 
 #: apps/hrm/api/serializers/auth/device_change.py:161
-#: apps/hrm/api/serializers/auth/device_change.py:179
-msgid "OTP code cannot be blank."
-msgstr ""
+msgid "Please provide request ID."
+msgstr "Vui lòng cung cấp mã yêu cầu."
 
 #: apps/hrm/api/serializers/auth/device_change.py:162
-#: apps/hrm/api/serializers/auth/device_change.py:163
+msgid "Invalid request ID format."
+msgstr "Mã yêu cầu không hợp lệ."
+
+#: apps/hrm/api/serializers/auth/device_change.py:170
+msgid "Please enter the OTP code."
+msgstr "Vui lòng nhập mã OTP."
+
+#: apps/hrm/api/serializers/auth/device_change.py:171
+#: apps/hrm/api/serializers/auth/device_change.py:189
+msgid "OTP code cannot be blank."
+msgstr "Mã OTP không được để trống."
+
+#: apps/hrm/api/serializers/auth/device_change.py:172
+#: apps/hrm/api/serializers/auth/device_change.py:173
 msgid "OTP code must be 6 digits."
-msgstr ""
+msgstr "Mã OTP phải có 6 chữ số."
 
-#: apps/hrm/api/serializers/auth/device_change.py:181
-#, fuzzy
-#| msgid "Token does not contain device_id."
+#: apps/hrm/api/serializers/auth/device_change.py:191
 msgid "OTP code can only contain digits."
-msgstr "Token không chứa device_id"
+msgstr "Mã OTP chỉ được chứa số."
 
-#: apps/hrm/api/serializers/auth/device_change.py:194
+#: apps/hrm/api/serializers/auth/device_change.py:204
 msgid "Invalid or expired request. Please start over."
-msgstr ""
+msgstr "Yêu cầu không hợp lệ hoặc đã hết hạn. Vui lòng bắt đầu lại."
 
-#: apps/hrm/api/serializers/auth/device_change.py:198
-#, fuzzy
-#| msgid "This candidate has already been converted to an employee."
+#: apps/hrm/api/serializers/auth/device_change.py:208
 msgid "This request has already been verified."
-msgstr "Ứng viên này đã được chuyển đổi thành nhân viên."
+msgstr "Yêu cầu này đã được xác nhận."
 
-#: apps/hrm/api/serializers/auth/device_change.py:201
+#: apps/hrm/api/serializers/auth/device_change.py:211
 msgid ""
 "This request has failed due to too many incorrect attempts. Please start "
 "over."
 msgstr ""
+"Yêu cầu này đã thất bại do quá nhiều lần thử không chính xác. Vui lòng bắt "
+"đầu lại."
 
-#: apps/hrm/api/serializers/auth/device_change.py:204
+#: apps/hrm/api/serializers/auth/device_change.py:214
 msgid "This request has expired. Please start over."
-msgstr ""
+msgstr "Yêu cầu này đã hết hạn. Vui lòng bắt đầu lại."
 
-#: apps/hrm/api/serializers/auth/device_change.py:210
+#: apps/hrm/api/serializers/auth/device_change.py:220
 msgid "OTP code has expired. Please request a new one."
-msgstr ""
+msgstr "Mã OTP đã hết hạn. Vui lòng yêu cầu một mã mới."
 
-#: apps/hrm/api/serializers/auth/device_change.py:217
-#: apps/hrm/api/serializers/auth/device_change.py:232
+#: apps/hrm/api/serializers/auth/device_change.py:227
+#: apps/hrm/api/serializers/auth/device_change.py:242
 msgid ""
 "Too many incorrect attempts. This request has been marked as failed. Please "
 "start over."
 msgstr ""
+"Quá nhiều lần thử không chính xác. Yêu cầu này đã được đánh dấu là thất  "
+"bại. Vui lòng bắt đầu lại."
 
-#: apps/hrm/api/serializers/auth/device_change.py:226
+#: apps/hrm/api/serializers/auth/device_change.py:236
 #, python-brace-format
 msgid "Incorrect OTP code. You have {attempts} attempt(s) remaining."
-msgstr ""
+msgstr "Mã OTP không chính xác. Bạn còn {attempts} lần thử."
 
-#: apps/hrm/api/serializers/auth/device_change.py:241
+#: apps/hrm/api/serializers/auth/device_change.py:251
 msgid ""
 "Your account is not linked to an employee record. Please contact HR to set "
 "up your employee profile before requesting device change."
 msgstr ""
+"Tài khoản của bạn không liên kết với hồ sơ nhân viên. Vui lòng liên hệ với "
+"HR để tạo hồ sơ nhân viên trước khi yêu cầu thay đổi thiết bị."
 
 #: apps/hrm/api/serializers/contract.py:182
 msgid "Only contracts with DRAFT status can be edited."

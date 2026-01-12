@@ -74,7 +74,12 @@ class DeviceChangeRequestTestCase(TestCase):
 
         # Create existing device for user
         self.old_device_id = "old_device_token_123"
-        UserDevice.objects.create(user=self.user, device_id=self.old_device_id, platform="android")
+        UserDevice.objects.create(
+            user=self.user,
+            device_id=self.old_device_id,
+            platform="android",
+            client=UserDevice.Client.MOBILE,
+        )
 
         # URLs
         self.request_url = reverse("hrm-mobile:device_change_request")
@@ -127,6 +132,38 @@ class DeviceChangeRequestTestCase(TestCase):
         response_data = response.json()
         self.assertFalse(response_data["success"])
         self.assertIn("non_field_errors", response_data["error"])
+
+    def test_device_change_request_device_registered_to_another_user(self):
+        """Test that device_id already registered to another user is rejected."""
+        # Create another user with a device
+        other_user = User.objects.create_user(
+            username="otheruser",
+            email="other@example.com",
+            password="testpass123",
+        )
+        other_device_id = "other_user_device_token"
+        UserDevice.objects.create(
+            user=other_user,
+            device_id=other_device_id,
+            platform="android",
+            client=UserDevice.Client.MOBILE,
+        )
+
+        # Try to use other user's device
+        data = {
+            "username": "testuser",
+            "password": "testpass123",
+            "device_id": other_device_id,  # Device registered to another user
+            "platform": "android",
+        }
+
+        response = self.client.post(self.request_url, data, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        response_data = response.json()
+        self.assertFalse(response_data["success"])
+        self.assertIn("non_field_errors", response_data["error"])
+        self.assertIn("already registered to another account", str(response_data["error"]))
 
     def test_device_change_request_invalid_credentials(self):
         """Test that invalid credentials are rejected."""

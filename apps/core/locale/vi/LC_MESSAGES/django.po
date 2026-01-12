@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MaiVietLand Backend Core\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-10 10:59+0700\n"
+"POT-Creation-Date: 2026-01-12 10:05+0700\n"
 "PO-Revision-Date: 2025-01-21 00:00+0000\n"
 "Last-Translator: Glinteco Developers\n"
 "Language-Team: Vietnamese\n"
@@ -41,10 +41,8 @@ msgid "You do not have permission to perform this action"
 msgstr "Bạn không có quyền thực hiện hành động này"
 
 #: apps/core/api/permissions.py:68
-#, fuzzy
-#| msgid "You do not have permission to perform this action"
 msgid "You do not have permission to access this data."
-msgstr "Bạn không có quyền thực hiện hành động này"
+msgstr "Bạn không có quyền truy cập dữ liệu này"
 
 #: apps/core/api/serializers/auth/login.py:17
 #: apps/core/api/serializers/auth/otp_verification.py:17
@@ -784,7 +782,7 @@ msgid "Password must contain at least one digit."
 msgstr "Mật khẩu phải chứa ít nhất một chữ số."
 
 #: apps/core/validators.py:35
-#, no-python-format, python-brace-format
+#, no-python-format
 msgid ""
 "Password must contain at least one special character (!@#$%^&*(),.?\":{}|<>)."
 msgstr "Mật khẩu phải chứa ít nhất một ký tự đặc biệt (!@#$%^&*(),.?\":{}|<>)."

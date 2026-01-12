@@ -20,6 +20,9 @@ CELERY_TASK_SOFT_TIME_LIMIT = 60 * 60 * 6  # default to 6 hours.
 CELERY_TASK_ALWAYS_EAGER = config("CELERY_TASK_ALWAYS_EAGER", default=False, cast=bool)
 CELERY_TASK_EAGER_PROPAGATES = config("CELERY_TASK_EAGER_PROPAGATES", default=False, cast=bool)
 
+# Use database-backed scheduler for managing periodic tasks via Django Admin
+CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
+
 CELERY_BEAT_SCHEDULE: dict[str, dict] = {
     # Reactivate employees from maternity leave when leave period ends
     "reactive_maternity_leave_employees": {
