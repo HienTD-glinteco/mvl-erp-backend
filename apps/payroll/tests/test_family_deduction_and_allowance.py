@@ -47,9 +47,10 @@ class TestTotalFamilyDeduction:
         for i in range(3):
             EmployeeDependent.objects.create(
                 employee=employee,
-                fullname=f"Dependent {i}",
+                dependent_name=f"Dependent {i}",
                 relationship="CHILD",
-                birth_date="2015-01-01",
+                date_of_birth="2015-01-01",
+                effective_date="2015-01-01",
                 is_active=True,
             )
 
