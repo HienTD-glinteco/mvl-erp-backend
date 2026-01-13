@@ -255,10 +255,25 @@ class TestCheckContractStatusTask:
         # No change expected since status is already correct
         assert result["updated_count"] == 0
 
-    def test_returns_correct_summary(self, db, employee, contract_type):
+    def test_returns_correct_summary(self, db, employee, contract_type, organization):
         """Test that the task returns correct summary."""
-        # Arrange - Create multiple contracts with different statuses
-        # Contract 1: ACTIVE that should become ABOUT_TO_EXPIRE
+        # Create a second employee for independent contract processing
+        employee2 = Employee.objects.create(
+            fullname="Contract Status Test Employee 2",
+            email="contract.status2@test.com",
+            username="contractstatususer2",
+            phone="0123456780",
+            citizen_id="999888777665",
+            attendance_code="CST002",
+            start_date=date.today(),
+            department=organization["department"],
+            block=organization["block"],
+            branch=organization["branch"],
+            personal_email="contract.status.personal2@test.com",
+        )
+
+        # Arrange - Create contracts for different employees
+        # Contract 1 (employee 1): ACTIVE that should become ABOUT_TO_EXPIRE
         create_contract_with_forced_status(
             employee=employee,
             contract_type=contract_type,
@@ -268,9 +283,9 @@ class TestCheckContractStatusTask:
             forced_status=Contract.ContractStatus.ACTIVE,
         )
 
-        # Contract 2: ABOUT_TO_EXPIRE that should become EXPIRED
+        # Contract 2 (employee 2): ABOUT_TO_EXPIRE that should become EXPIRED
         create_contract_with_forced_status(
-            employee=employee,
+            employee=employee2,
             contract_type=contract_type,
             sign_date=date.today() - timedelta(days=400),
             effective_date=date.today() - timedelta(days=380),
@@ -317,3 +332,45 @@ class TestCheckContractStatusTask:
         assert contract.status == Contract.ContractStatus.ACTIVE
         assert result["total_contracts"] == 1
         assert result["updated_count"] == 0
+
+    def test_expires_older_contracts_for_same_employee(self, db, employee, contract_type):
+        """Test that older contracts for the same employee are expired, only newest is processed."""
+        # Arrange - Create multiple contracts for the same employee
+        # Older contract (lower id): should be EXPIRED regardless of dates
+        old_contract = create_contract_with_forced_status(
+            employee=employee,
+            contract_type=contract_type,
+            sign_date=date.today() - timedelta(days=30),
+            effective_date=date.today() - timedelta(days=10),
+            expiration_date=date.today() + timedelta(days=300),  # Would be ACTIVE based on dates
+            forced_status=Contract.ContractStatus.ACTIVE,
+        )
+
+        # Newer contract (higher id): should be processed based on dates
+        new_contract = create_contract_with_forced_status(
+            employee=employee,
+            contract_type=contract_type,
+            sign_date=date.today() - timedelta(days=10),
+            effective_date=date.today() - timedelta(days=5),
+            expiration_date=date.today() + timedelta(days=15),  # ABOUT_TO_EXPIRE based on dates
+            forced_status=Contract.ContractStatus.ACTIVE,
+        )
+
+        assert old_contract.id < new_contract.id  # Verify id ordering
+
+        # Act
+        result = check_contract_status()
+
+        # Assert
+        old_contract.refresh_from_db()
+        new_contract.refresh_from_db()
+
+        # Old contract should be EXPIRED (as an older contract)
+        assert old_contract.status == Contract.ContractStatus.EXPIRED
+        # New contract should be ABOUT_TO_EXPIRE (based on dates)
+        assert new_contract.status == Contract.ContractStatus.ABOUT_TO_EXPIRE
+
+        assert result["total_contracts"] == 2
+        assert result["updated_count"] == 2
+        assert result["expired_count"] == 1  # old contract
+        assert result["about_to_expire_count"] == 1  # new contract

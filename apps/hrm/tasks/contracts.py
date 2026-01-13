@@ -14,18 +14,18 @@ logger = logging.getLogger(__name__)
 def check_contract_status() -> dict[str, int]:
     """Update contract statuses based on effective and expiration dates.
 
-    This task updates the status field of all Contract records
-    based on their effective_date and expiration_date values according to these rules:
+    This task processes contracts per employee:
+    1. For each employee, identify the most recent contract (by effective_date, then created_at)
+    2. Update only the most recent contract's status based on date rules:
+       - If status is DRAFT: Keep DRAFT (preserved)
+       - If effective_date > today: NOT_EFFECTIVE
+       - If expiration_date is None (indefinite): ACTIVE
+       - If expiration_date < today: EXPIRED
+       - If days until expiration <= 30: ABOUT_TO_EXPIRE
+       - Otherwise: ACTIVE
+    3. Mark all older contracts for the same employee as EXPIRED
 
-    - If status is DRAFT: Keep DRAFT (preserved)
-    - If effective_date > today: NOT_EFFECTIVE
-    - If expiration_date is None (indefinite): ACTIVE
-    - If expiration_date < today: EXPIRED
-    - If days until expiration <= 30: ABOUT_TO_EXPIRE
-    - Otherwise: ACTIVE
-
-    The task is designed to run daily to automatically transition contracts
-    from ACTIVE → ABOUT_TO_EXPIRE → EXPIRED.
+    This ensures only one contract per employee can be ACTIVE/ABOUT_TO_EXPIRE at a time.
 
     Returns:
         dict: Summary with keys:
@@ -36,10 +36,13 @@ def check_contract_status() -> dict[str, int]:
             - expired_count: int number changed to EXPIRED
             - not_effective_count: int number changed to NOT_EFFECTIVE
     """
+    from collections import defaultdict
+
     logger.info("Starting contract status update task")
 
     # Get all contracts except DRAFT status (DRAFT is preserved and not auto-updated)
-    contracts = Contract.objects.exclude(status=Contract.ContractStatus.DRAFT)
+    # Order by employee_id and -id (largest id = most recent contract)
+    contracts = Contract.objects.exclude(status=Contract.ContractStatus.DRAFT).order_by("employee_id", "-id")
     total_count = contracts.count()
 
     logger.info("Processing %d contracts", total_count)
@@ -51,28 +54,43 @@ def check_contract_status() -> dict[str, int]:
         "not_effective": 0,
     }
 
-    # Collect contracts that need status updates
+    # Group contracts by employee
+    contracts_by_employee: dict[int, list[Contract]] = defaultdict(list)
+    for contract in contracts:
+        contracts_by_employee[contract.employee_id].append(contract)
+
+    # Process each employee's contracts
     contracts_to_update: list[Contract] = []
     now = timezone.now()
 
-    for contract in contracts:
-        old_status = contract.status
-        new_status = contract.calculate_status()
+    for employee_id, employee_contracts in contracts_by_employee.items():
+        # employee_contracts is already sorted by -effective_date, -created_at
+        # First contract is the most recent one
+        for idx, contract in enumerate(employee_contracts):
+            old_status = contract.status
 
-        if old_status != new_status:
-            status_changes[new_status] += 1
+            if idx == 0:
+                # Most recent contract: calculate status from dates
+                new_status = contract.calculate_status()
+            else:
+                # Older contracts: always expire them
+                new_status = Contract.ContractStatus.EXPIRED
 
-            logger.debug(
-                "Contract %s (%s): %s -> %s",
-                contract.id,
-                contract.code,
-                old_status,
-                new_status,
-            )
+            if old_status != new_status:
+                status_changes[new_status] += 1
 
-            contract.status = new_status
-            contract.updated_at = now
-            contracts_to_update.append(contract)
+                logger.debug(
+                    "Contract %s (%s): %s -> %s%s",
+                    contract.id,
+                    contract.code,
+                    old_status,
+                    new_status,
+                    "" if idx == 0 else " (older contract expired)",
+                )
+
+                contract.status = new_status
+                contract.updated_at = now
+                contracts_to_update.append(contract)
 
     # Bulk update all contracts that need status changes
     updated_count = len(contracts_to_update)
