@@ -80,6 +80,7 @@ class TravelExpense(ColoredValueMixin, BaseModel):
     class ExpenseType(models.TextChoices):
         TAXABLE = "TAXABLE", "Taxable"
         NON_TAXABLE = "NON_TAXABLE", "Non-taxable"
+        BY_WORKING_DAYS = "BY_WORKING_DAYS", "By working days"
 
     class TravelExpenseStatus(models.TextChoices):
         NOT_CALCULATED = "NOT_CALCULATED", "Not calculated"

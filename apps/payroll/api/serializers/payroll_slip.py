@@ -76,6 +76,7 @@ class PayrollSlipSerializer(serializers.ModelSerializer):
             # Travel expenses
             "taxable_travel_expense",
             "non_taxable_travel_expense",
+            "travel_expense_by_working_days",
             "total_travel_expense",
             # Income
             "gross_income",
@@ -197,6 +198,7 @@ class PayrollSlipExportSerializer(serializers.ModelSerializer):
             "non_taxable_overtime_salary",
             "taxable_travel_expense",
             "non_taxable_travel_expense",
+            "travel_expense_by_working_days",
             "total_travel_expense",
             "gross_income",
             "taxable_income_base",

@@ -535,6 +535,906 @@ class TestEmploymentStatusCaching:
 
 
 @pytest.mark.django_db
+class TestTravelExpenseCalculations:
+    """Test travel expense calculations with three expense types."""
+
+    def test_taxable_travel_expense_only(self, payroll_slip, contract, timesheet, employee, travel_expense_factory):
+        """Test calculation with only taxable travel expenses."""
+        # Arrange
+        from apps.payroll.models import TravelExpense
+
+        employee.employee_type = EmployeeType.OFFICIAL
+        employee.save()
+
+        contract.base_salary = Decimal("20000000")
+        contract.save()
+
+        travel_expense_factory(
+            employee=employee,
+            month=payroll_slip.salary_period.month,
+            expense_type=TravelExpense.ExpenseType.TAXABLE,
+            amount=1000000,
+        )
+        travel_expense_factory(
+            employee=employee,
+            month=payroll_slip.salary_period.month,
+            expense_type=TravelExpense.ExpenseType.TAXABLE,
+            amount=500000,
+        )
+
+        calculator = PayrollCalculationService(payroll_slip)
+
+        # Act
+        calculator.calculate()
+
+        # Assert
+        payroll_slip.refresh_from_db()
+        assert payroll_slip.taxable_travel_expense == Decimal("1500000")
+        assert payroll_slip.non_taxable_travel_expense == Decimal("0")
+        assert payroll_slip.travel_expense_by_working_days == Decimal("0")
+        assert payroll_slip.total_travel_expense == Decimal("1500000")
+
+    def test_non_taxable_travel_expense_only(
+        self, payroll_slip, contract, timesheet, employee, travel_expense_factory
+    ):
+        """Test calculation with only non-taxable travel expenses."""
+        # Arrange
+        from apps.payroll.models import TravelExpense
+
+        employee.employee_type = EmployeeType.OFFICIAL
+        employee.save()
+
+        contract.base_salary = Decimal("20000000")
+        contract.save()
+
+        travel_expense_factory(
+            employee=employee,
+            month=payroll_slip.salary_period.month,
+            expense_type=TravelExpense.ExpenseType.NON_TAXABLE,
+            amount=2000000,
+        )
+
+        calculator = PayrollCalculationService(payroll_slip)
+
+        # Act
+        calculator.calculate()
+
+        # Assert
+        payroll_slip.refresh_from_db()
+        assert payroll_slip.taxable_travel_expense == Decimal("0")
+        assert payroll_slip.non_taxable_travel_expense == Decimal("2000000")
+        assert payroll_slip.travel_expense_by_working_days == Decimal("0")
+        assert payroll_slip.total_travel_expense == Decimal("2000000")
+
+    def test_by_working_days_travel_expense_only(
+        self, payroll_slip, contract, timesheet, employee, travel_expense_factory
+    ):
+        """Test calculation with only by working days travel expenses."""
+        # Arrange
+        from apps.payroll.models import TravelExpense
+
+        employee.employee_type = EmployeeType.OFFICIAL
+        employee.save()
+
+        contract.base_salary = Decimal("20000000")
+        contract.save()
+
+        travel_expense_factory(
+            employee=employee,
+            month=payroll_slip.salary_period.month,
+            expense_type=TravelExpense.ExpenseType.BY_WORKING_DAYS,
+            amount=3000000,
+        )
+
+        calculator = PayrollCalculationService(payroll_slip)
+
+        # Act
+        calculator.calculate()
+
+        # Assert
+        payroll_slip.refresh_from_db()
+        assert payroll_slip.taxable_travel_expense == Decimal("0")
+        assert payroll_slip.non_taxable_travel_expense == Decimal("0")
+        assert payroll_slip.travel_expense_by_working_days == Decimal("3000000")
+        assert payroll_slip.total_travel_expense == Decimal("3000000")
+
+    def test_mixed_travel_expenses(self, payroll_slip, contract, timesheet, employee, travel_expense_factory):
+        """Test calculation with all three types of travel expenses."""
+        # Arrange
+        from apps.payroll.models import TravelExpense
+
+        employee.employee_type = EmployeeType.OFFICIAL
+        employee.save()
+
+        contract.base_salary = Decimal("20000000")
+        contract.save()
+
+        travel_expense_factory(
+            employee=employee,
+            month=payroll_slip.salary_period.month,
+            expense_type=TravelExpense.ExpenseType.TAXABLE,
+            amount=1000000,
+        )
+        travel_expense_factory(
+            employee=employee,
+            month=payroll_slip.salary_period.month,
+            expense_type=TravelExpense.ExpenseType.NON_TAXABLE,
+            amount=2000000,
+        )
+        travel_expense_factory(
+            employee=employee,
+            month=payroll_slip.salary_period.month,
+            expense_type=TravelExpense.ExpenseType.BY_WORKING_DAYS,
+            amount=3000000,
+        )
+
+        calculator = PayrollCalculationService(payroll_slip)
+
+        # Act
+        calculator.calculate()
+
+        # Assert
+        payroll_slip.refresh_from_db()
+        assert payroll_slip.taxable_travel_expense == Decimal("1000000")
+        assert payroll_slip.non_taxable_travel_expense == Decimal("2000000")
+        assert payroll_slip.travel_expense_by_working_days == Decimal("3000000")
+        assert payroll_slip.total_travel_expense == Decimal("6000000")
+
+    def test_by_working_days_expense_in_total_position_income(
+        self, payroll_slip, contract, timesheet, employee, travel_expense_factory
+    ):
+        """Test that by working days expense is included in total position income."""
+        # Arrange
+        from apps.payroll.models import TravelExpense
+
+        employee.employee_type = EmployeeType.OFFICIAL
+        employee.save()
+
+        contract.base_salary = Decimal("20000000")
+        contract.kpi_salary = Decimal("2000000")
+        contract.lunch_allowance = Decimal("1000000")
+        contract.phone_allowance = Decimal("500000")
+        contract.other_allowance = Decimal("500000")
+        contract.save()
+
+        travel_expense_factory(
+            employee=employee,
+            month=payroll_slip.salary_period.month,
+            expense_type=TravelExpense.ExpenseType.BY_WORKING_DAYS,
+            amount=3000000,
+        )
+
+        calculator = PayrollCalculationService(payroll_slip)
+
+        # Act
+        calculator.calculate()
+
+        # Assert
+        payroll_slip.refresh_from_db()
+        # total_position_income should include by_working_days expense
+        expected = (
+            Decimal("20000000")  # base_salary
+            + Decimal("1000000")  # lunch_allowance
+            + Decimal("500000")  # phone_allowance
+            + Decimal("500000")  # other_allowance
+            + Decimal("2000000")  # kpi_salary
+            + payroll_slip.kpi_bonus
+            + payroll_slip.business_progressive_salary
+            + Decimal("3000000")  # travel_expense_by_working_days
+        )
+        assert payroll_slip.total_position_income == expected
+
+    def test_by_working_days_expense_in_business_progressive_calculation(
+        self, payroll_slip, contract, timesheet, employee, travel_expense_factory, sales_revenue_factory
+    ):
+        """Test that by working days expense is deducted in business progressive salary calculation."""
+        # Arrange
+        from apps.payroll.models import TravelExpense
+
+        employee.employee_type = EmployeeType.OFFICIAL
+        employee.save()
+
+        contract.base_salary = Decimal("10000000")
+        contract.kpi_salary = Decimal("1000000")
+        contract.lunch_allowance = Decimal("500000")
+        contract.other_allowance = Decimal("500000")
+        contract.save()
+
+        travel_expense_factory(
+            employee=employee,
+            month=payroll_slip.salary_period.month,
+            expense_type=TravelExpense.ExpenseType.BY_WORKING_DAYS,
+            amount=2000000,
+        )
+
+        # Add sales revenue to trigger business progressive salary
+        sales_revenue_factory(
+            employee=employee, month=payroll_slip.salary_period.month, revenue=1000000000, transaction_count=10
+        )
+
+        calculator = PayrollCalculationService(payroll_slip)
+
+        # Act
+        calculator.calculate()
+
+        # Assert
+        payroll_slip.refresh_from_db()
+        # business_progressive_salary should be:
+        # (tier amount) - base_salary - kpi_salary - lunch_allowance - other_allowance - travel_expense_by_working_days
+        # tier M3 is 20,000,000 for revenue >= 1B and transactions >= 10
+        expected = (
+            Decimal("20000000")
+            - Decimal("10000000")
+            - Decimal("1000000")
+            - Decimal("500000")
+            - Decimal("500000")
+            - Decimal("2000000")
+        )
+        expected = max(Decimal("0"), expected)
+        assert payroll_slip.business_progressive_salary == expected
+
+    def test_gross_income_excludes_by_working_days_expense(
+        self, payroll_slip, contract, timesheet, employee, travel_expense_factory
+    ):
+        """Test that gross income only includes taxable and non-taxable travel expenses."""
+        # Arrange
+        from apps.payroll.models import TravelExpense
+
+        employee.employee_type = EmployeeType.OFFICIAL
+        employee.save()
+
+        contract.base_salary = Decimal("20000000")
+        contract.save()
+
+        timesheet.tc1_overtime_hours = Decimal("10.00")
+        timesheet.save()
+
+        travel_expense_factory(
+            employee=employee,
+            month=payroll_slip.salary_period.month,
+            expense_type=TravelExpense.ExpenseType.TAXABLE,
+            amount=1000000,
+        )
+        travel_expense_factory(
+            employee=employee,
+            month=payroll_slip.salary_period.month,
+            expense_type=TravelExpense.ExpenseType.NON_TAXABLE,
+            amount=2000000,
+        )
+        travel_expense_factory(
+            employee=employee,
+            month=payroll_slip.salary_period.month,
+            expense_type=TravelExpense.ExpenseType.BY_WORKING_DAYS,
+            amount=3000000,
+        )
+
+        payroll_slip.salary_period.standard_working_days = Decimal("22.00")
+        payroll_slip.salary_period.save()
+
+        calculator = PayrollCalculationService(payroll_slip)
+
+        # Act
+        calculator.calculate()
+
+        # Assert
+        payroll_slip.refresh_from_db()
+        # gross_income = actual_working_days_income + taxable_overtime + non_taxable_overtime
+        #                + taxable_travel + non_taxable_travel (NOT by_working_days)
+        expected_gross = (
+            payroll_slip.actual_working_days_income
+            + payroll_slip.taxable_overtime_salary
+            + payroll_slip.non_taxable_overtime_salary
+            + Decimal("1000000")  # taxable_travel_expense
+            + Decimal("2000000")  # non_taxable_travel_expense
+        )
+        assert payroll_slip.gross_income == expected_gross.quantize(Decimal("1"))
+
+
+@pytest.mark.django_db
+class TestBusinessProgressiveSalaryCalculation:
+    """Test business progressive salary calculation logic."""
+
+    def test_no_sales_revenue_returns_m0_grade(self, payroll_slip, contract, timesheet, employee):
+        """Test that no sales revenue results in M0 grade and zero progressive salary."""
+        # Arrange
+        employee.employee_type = EmployeeType.OFFICIAL
+        employee.save()
+
+        contract.base_salary = Decimal("20000000")
+        contract.save()
+
+        calculator = PayrollCalculationService(payroll_slip)
+
+        # Act
+        calculator.calculate()
+
+        # Assert
+        payroll_slip.refresh_from_db()
+        assert payroll_slip.business_grade == "M0"
+        assert payroll_slip.business_progressive_salary == Decimal("0")
+        assert payroll_slip.sales_revenue == 0
+        assert payroll_slip.sales_transaction_count == 0
+
+    def test_sales_revenue_below_threshold(self, payroll_slip, contract, timesheet, employee, sales_revenue_factory):
+        """Test sales revenue below tier threshold."""
+        # Arrange
+        employee.employee_type = EmployeeType.OFFICIAL
+        employee.save()
+
+        contract.base_salary = Decimal("20000000")
+        contract.save()
+
+        # M1 requires >= 500M, set to 400M
+        sales_revenue_factory(employee=employee, month=payroll_slip.salary_period.month, revenue=400000000)
+
+        calculator = PayrollCalculationService(payroll_slip)
+
+        # Act
+        calculator.calculate()
+
+        # Assert
+        payroll_slip.refresh_from_db()
+        assert payroll_slip.business_grade == "M0"
+        assert payroll_slip.business_progressive_salary == Decimal("0")
+
+    def test_sales_revenue_meets_tier_m1(self, payroll_slip, contract, timesheet, employee, sales_revenue_factory):
+        """Test sales revenue that meets M1 tier criteria."""
+        # Arrange
+        employee.employee_type = EmployeeType.OFFICIAL
+        employee.save()
+
+        contract.base_salary = Decimal("10000000")
+        contract.kpi_salary = Decimal("1000000")
+        contract.lunch_allowance = Decimal("500000")
+        contract.other_allowance = Decimal("500000")
+        contract.save()
+
+        # M1: revenue >= 500M, transactions >= 5, amount = 15M
+        sales_revenue_factory(
+            employee=employee, month=payroll_slip.salary_period.month, revenue=500000000, transaction_count=5
+        )
+
+        calculator = PayrollCalculationService(payroll_slip)
+
+        # Act
+        calculator.calculate()
+
+        # Assert
+        payroll_slip.refresh_from_db()
+        assert payroll_slip.business_grade == "M1"
+        # 15M - 10M (base) - 1M (kpi) - 0.5M (lunch) - 0.5M (other) = 3M
+        expected = (
+            Decimal("15000000") - Decimal("10000000") - Decimal("1000000") - Decimal("500000") - Decimal("500000")
+        )
+        assert payroll_slip.business_progressive_salary == max(Decimal("0"), expected)
+
+    def test_sales_revenue_meets_highest_tier_m3(
+        self, payroll_slip, contract, timesheet, employee, sales_revenue_factory
+    ):
+        """Test sales revenue that meets M3 tier criteria."""
+        # Arrange
+        employee.employee_type = EmployeeType.OFFICIAL
+        employee.save()
+
+        contract.base_salary = Decimal("10000000")
+        contract.kpi_salary = Decimal("1000000")
+        contract.lunch_allowance = Decimal("500000")
+        contract.other_allowance = Decimal("500000")
+        contract.save()
+
+        # M3: revenue >= 1B, transactions >= 10, amount = 20M
+        sales_revenue_factory(
+            employee=employee, month=payroll_slip.salary_period.month, revenue=1000000000, transaction_count=10
+        )
+
+        calculator = PayrollCalculationService(payroll_slip)
+
+        # Act
+        calculator.calculate()
+
+        # Assert
+        payroll_slip.refresh_from_db()
+        assert payroll_slip.business_grade == "M3"
+        expected = (
+            Decimal("20000000") - Decimal("10000000") - Decimal("1000000") - Decimal("500000") - Decimal("500000")
+        )
+        assert payroll_slip.business_progressive_salary == max(Decimal("0"), expected)
+
+    def test_business_progressive_negative_becomes_zero(
+        self, payroll_slip, contract, timesheet, employee, sales_revenue_factory
+    ):
+        """Test that negative business progressive salary is capped at zero."""
+        # Arrange
+        employee.employee_type = EmployeeType.OFFICIAL
+        employee.save()
+
+        # Set very high base salary so progressive would be negative
+        contract.base_salary = Decimal("50000000")
+        contract.kpi_salary = Decimal("5000000")
+        contract.lunch_allowance = Decimal("2000000")
+        contract.other_allowance = Decimal("2000000")
+        contract.save()
+
+        # M1 tier = 15M, but deductions exceed this
+        sales_revenue_factory(
+            employee=employee, month=payroll_slip.salary_period.month, revenue=500000000, transaction_count=5
+        )
+
+        calculator = PayrollCalculationService(payroll_slip)
+
+        # Act
+        calculator.calculate()
+
+        # Assert
+        payroll_slip.refresh_from_db()
+        assert payroll_slip.business_progressive_salary == Decimal("0")
+
+
+@pytest.mark.django_db
+class TestRecoveryVouchersAndPenalties:
+    """Test recovery vouchers and penalty calculations."""
+
+    def test_back_pay_amount_calculation(self, payroll_slip, contract, timesheet, employee, recovery_voucher_factory):
+        """Test that back pay amounts are correctly summed."""
+        # Arrange
+        from apps.payroll.models import RecoveryVoucher
+
+        employee.employee_type = EmployeeType.OFFICIAL
+        employee.save()
+
+        contract.base_salary = Decimal("20000000")
+        contract.save()
+
+        recovery_voucher_factory(
+            employee=employee,
+            month=payroll_slip.salary_period.month,
+            voucher_type=RecoveryVoucher.VoucherType.BACK_PAY,
+            amount=1000000,
+        )
+        recovery_voucher_factory(
+            employee=employee,
+            month=payroll_slip.salary_period.month,
+            voucher_type=RecoveryVoucher.VoucherType.BACK_PAY,
+            amount=500000,
+        )
+
+        calculator = PayrollCalculationService(payroll_slip)
+
+        # Act
+        calculator.calculate()
+
+        # Assert
+        payroll_slip.refresh_from_db()
+        assert payroll_slip.back_pay_amount == Decimal("1500000")
+
+    def test_recovery_amount_calculation(self, payroll_slip, contract, timesheet, employee, recovery_voucher_factory):
+        """Test that recovery amounts are correctly summed."""
+        # Arrange
+        from apps.payroll.models import RecoveryVoucher
+
+        employee.employee_type = EmployeeType.OFFICIAL
+        employee.save()
+
+        contract.base_salary = Decimal("20000000")
+        contract.save()
+
+        recovery_voucher_factory(
+            employee=employee,
+            month=payroll_slip.salary_period.month,
+            voucher_type=RecoveryVoucher.VoucherType.RECOVERY,
+            amount=2000000,
+        )
+        recovery_voucher_factory(
+            employee=employee,
+            month=payroll_slip.salary_period.month,
+            voucher_type=RecoveryVoucher.VoucherType.RECOVERY,
+            amount=1000000,
+        )
+
+        calculator = PayrollCalculationService(payroll_slip)
+
+        # Act
+        calculator.calculate()
+
+        # Assert
+        payroll_slip.refresh_from_db()
+        assert payroll_slip.recovery_amount == Decimal("3000000")
+
+    def test_unpaid_penalty_detection(self, payroll_slip, contract, timesheet, employee, penalty_ticket_factory):
+        """Test that unpaid penalties are detected and flagged."""
+        # Arrange
+        from apps.payroll.models import PenaltyTicket
+
+        employee.employee_type = EmployeeType.OFFICIAL
+        employee.save()
+
+        contract.base_salary = Decimal("20000000")
+        contract.save()
+
+        penalty_ticket_factory(
+            employee=employee, month=payroll_slip.salary_period.month, status=PenaltyTicket.Status.UNPAID
+        )
+        penalty_ticket_factory(
+            employee=employee, month=payroll_slip.salary_period.month, status=PenaltyTicket.Status.UNPAID
+        )
+
+        calculator = PayrollCalculationService(payroll_slip)
+
+        # Act
+        calculator.calculate()
+
+        # Assert
+        payroll_slip.refresh_from_db()
+        assert payroll_slip.has_unpaid_penalty is True
+        assert payroll_slip.unpaid_penalty_count == 2
+        assert payroll_slip.status == payroll_slip.Status.PENDING
+
+    def test_paid_penalties_do_not_affect_status(
+        self, payroll_slip, contract, timesheet, employee, penalty_ticket_factory
+    ):
+        """Test that paid penalties do not affect payroll slip status."""
+        # Arrange
+        from apps.payroll.models import PenaltyTicket
+
+        employee.employee_type = EmployeeType.OFFICIAL
+        employee.save()
+
+        contract.base_salary = Decimal("20000000")
+        contract.save()
+
+        penalty_ticket_factory(
+            employee=employee, month=payroll_slip.salary_period.month, status=PenaltyTicket.Status.PAID
+        )
+
+        calculator = PayrollCalculationService(payroll_slip)
+
+        # Act
+        calculator.calculate()
+
+        # Assert
+        payroll_slip.refresh_from_db()
+        assert payroll_slip.has_unpaid_penalty is False
+        assert payroll_slip.unpaid_penalty_count == 0
+        assert payroll_slip.status == payroll_slip.Status.READY
+
+
+@pytest.mark.django_db
+class TestNetSalaryCalculation:
+    """Test net salary calculation formula."""
+
+    def test_net_salary_formula(self, payroll_slip, contract, timesheet, employee):
+        """Test net salary calculation formula."""
+        # Arrange
+        employee.employee_type = EmployeeType.OFFICIAL
+        employee.save()
+
+        contract.base_salary = Decimal("20000000")
+        contract.save()
+
+        calculator = PayrollCalculationService(payroll_slip)
+
+        # Act
+        calculator.calculate()
+
+        # Assert
+        payroll_slip.refresh_from_db()
+        expected_net = (
+            payroll_slip.gross_income
+            - payroll_slip.employee_social_insurance
+            - payroll_slip.employee_health_insurance
+            - payroll_slip.employee_unemployment_insurance
+            - payroll_slip.employee_union_fee
+            - payroll_slip.personal_income_tax
+            + payroll_slip.back_pay_amount
+            - payroll_slip.recovery_amount
+        )
+        assert payroll_slip.net_salary == expected_net.quantize(Decimal("1"))
+
+    def test_net_salary_with_recovery_vouchers(
+        self, payroll_slip, contract, timesheet, employee, recovery_voucher_factory
+    ):
+        """Test net salary calculation with recovery vouchers."""
+        # Arrange
+        from apps.payroll.models import RecoveryVoucher
+
+        employee.employee_type = EmployeeType.OFFICIAL
+        employee.save()
+
+        contract.base_salary = Decimal("20000000")
+        contract.save()
+
+        recovery_voucher_factory(
+            employee=employee,
+            month=payroll_slip.salary_period.month,
+            voucher_type=RecoveryVoucher.VoucherType.BACK_PAY,
+            amount=1000000,
+        )
+        recovery_voucher_factory(
+            employee=employee,
+            month=payroll_slip.salary_period.month,
+            voucher_type=RecoveryVoucher.VoucherType.RECOVERY,
+            amount=500000,
+        )
+
+        calculator = PayrollCalculationService(payroll_slip)
+
+        # Act
+        calculator.calculate()
+
+        # Assert
+        payroll_slip.refresh_from_db()
+        expected_net = (
+            payroll_slip.gross_income
+            - payroll_slip.employee_social_insurance
+            - payroll_slip.employee_health_insurance
+            - payroll_slip.employee_unemployment_insurance
+            - payroll_slip.employee_union_fee
+            - payroll_slip.personal_income_tax
+            + Decimal("1000000")  # back_pay
+            - Decimal("500000")  # recovery
+        )
+        assert payroll_slip.net_salary == expected_net.quantize(Decimal("1"))
+
+
+@pytest.mark.django_db
+class TestPayrollSlipStatusDetermination:
+    """Test payroll slip status determination logic."""
+
+    def test_status_ready_when_all_data_complete(self, payroll_slip, contract, timesheet, employee):
+        """Test that status is READY when all required data is present."""
+        # Arrange
+        employee.employee_type = EmployeeType.OFFICIAL
+        employee.save()
+
+        contract.base_salary = Decimal("20000000")
+        contract.save()
+
+        calculator = PayrollCalculationService(payroll_slip)
+
+        # Act
+        calculator.calculate()
+
+        # Assert
+        payroll_slip.refresh_from_db()
+        assert payroll_slip.status == payroll_slip.Status.READY
+        assert payroll_slip.status_note == ""
+
+    def test_status_pending_when_no_contract(self, payroll_slip, timesheet, employee):
+        """Test that status is PENDING when contract is missing."""
+        # Arrange - No contract
+        employee.employee_type = EmployeeType.OFFICIAL
+        employee.save()
+
+        calculator = PayrollCalculationService(payroll_slip)
+
+        # Act
+        calculator.calculate()
+
+        # Assert
+        payroll_slip.refresh_from_db()
+        assert payroll_slip.status == payroll_slip.Status.PENDING
+        assert "contract" in payroll_slip.status_note.lower()
+
+    def test_status_pending_when_no_timesheet(self, payroll_slip, contract, employee):
+        """Test that status is PENDING when timesheet is missing."""
+        # Arrange - No timesheet
+        employee.employee_type = EmployeeType.OFFICIAL
+        employee.save()
+
+        contract.base_salary = Decimal("20000000")
+        contract.save()
+
+        calculator = PayrollCalculationService(payroll_slip)
+
+        # Act
+        calculator.calculate()
+
+        # Assert
+        payroll_slip.refresh_from_db()
+        assert payroll_slip.status == payroll_slip.Status.PENDING
+        assert "timesheet" in payroll_slip.status_note.lower()
+
+    def test_status_pending_when_unpaid_penalties_exist(
+        self, payroll_slip, contract, timesheet, employee, penalty_ticket_factory
+    ):
+        """Test that status is PENDING when unpaid penalties exist."""
+        # Arrange
+        from apps.payroll.models import PenaltyTicket
+
+        employee.employee_type = EmployeeType.OFFICIAL
+        employee.save()
+
+        contract.base_salary = Decimal("20000000")
+        contract.save()
+
+        penalty_ticket_factory(
+            employee=employee, month=payroll_slip.salary_period.month, status=PenaltyTicket.Status.UNPAID
+        )
+
+        calculator = PayrollCalculationService(payroll_slip)
+
+        # Act
+        calculator.calculate()
+
+        # Assert
+        payroll_slip.refresh_from_db()
+        assert payroll_slip.status == payroll_slip.Status.PENDING
+        assert "penalties" in payroll_slip.status_note.lower()
+
+    def test_status_preserved_when_hold(self, payroll_slip, contract, timesheet, employee):
+        """Test that HOLD status is preserved during recalculation."""
+        # Arrange
+        employee.employee_type = EmployeeType.OFFICIAL
+        employee.save()
+
+        contract.base_salary = Decimal("20000000")
+        contract.save()
+
+        payroll_slip.status = payroll_slip.Status.HOLD
+        payroll_slip.save()
+
+        calculator = PayrollCalculationService(payroll_slip)
+
+        # Act
+        calculator.calculate()
+
+        # Assert
+        payroll_slip.refresh_from_db()
+        assert payroll_slip.status == payroll_slip.Status.HOLD
+
+    def test_status_skip_calculation_when_delivered(self, payroll_slip, contract, timesheet, employee):
+        """Test that calculation is skipped when status is DELIVERED."""
+        # Arrange
+        employee.employee_type = EmployeeType.OFFICIAL
+        employee.save()
+
+        contract.base_salary = Decimal("20000000")
+        contract.save()
+
+        # First calculate to get some values
+        calculator = PayrollCalculationService(payroll_slip)
+        calculator.calculate()
+
+        # Change to DELIVERED
+        payroll_slip.status = payroll_slip.Status.DELIVERED
+        payroll_slip.save()
+
+        original_net_salary = payroll_slip.net_salary
+
+        # Change contract (should not affect delivered slip)
+        contract.base_salary = Decimal("30000000")
+        contract.save()
+
+        # Act - Try to recalculate
+        calculator = PayrollCalculationService(payroll_slip)
+        calculator.calculate()
+
+        # Assert - Values should remain unchanged
+        payroll_slip.refresh_from_db()
+        assert payroll_slip.net_salary == original_net_salary
+        assert payroll_slip.status == payroll_slip.Status.DELIVERED
+
+
+@pytest.mark.django_db
+class TestEdgeCases:
+    """Test edge cases and boundary conditions."""
+
+    def test_zero_working_days(self, payroll_slip, contract, timesheet, employee):
+        """Test calculation when employee has zero working days."""
+        # Arrange
+        employee.employee_type = EmployeeType.OFFICIAL
+        employee.save()
+
+        contract.base_salary = Decimal("20000000")
+        contract.save()
+
+        timesheet.total_working_days = Decimal("0.00")
+        timesheet.official_working_days = Decimal("0.00")
+        timesheet.probation_working_days = Decimal("0.00")
+        timesheet.save()
+
+        payroll_slip.salary_period.standard_working_days = Decimal("22.00")
+        payroll_slip.salary_period.save()
+
+        calculator = PayrollCalculationService(payroll_slip)
+
+        # Act
+        calculator.calculate()
+
+        # Assert
+        payroll_slip.refresh_from_db()
+        assert payroll_slip.actual_working_days_income == Decimal("0")
+        assert payroll_slip.gross_income >= Decimal("0")
+
+    def test_zero_standard_working_days(self, payroll_slip, contract, timesheet, employee):
+        """Test calculation when standard working days is zero."""
+        # Arrange
+        employee.employee_type = EmployeeType.OFFICIAL
+        employee.save()
+
+        contract.base_salary = Decimal("20000000")
+        contract.save()
+
+        payroll_slip.salary_period.standard_working_days = Decimal("0.00")
+        payroll_slip.salary_period.save()
+
+        calculator = PayrollCalculationService(payroll_slip)
+
+        # Act
+        calculator.calculate()
+
+        # Assert
+        payroll_slip.refresh_from_db()
+        assert payroll_slip.hourly_rate == Decimal("0.00")
+        assert payroll_slip.actual_working_days_income == Decimal("0")
+
+    def test_very_high_overtime_hours(self, payroll_slip, contract, timesheet, employee):
+        """Test calculation with very high overtime hours."""
+        # Arrange
+        employee.employee_type = EmployeeType.OFFICIAL
+        employee.save()
+
+        contract.base_salary = Decimal("20000000")
+        contract.save()
+
+        timesheet.tc3_overtime_hours = Decimal("100.00")
+        timesheet.save()
+
+        payroll_slip.salary_period.standard_working_days = Decimal("22.00")
+        payroll_slip.salary_period.save()
+
+        calculator = PayrollCalculationService(payroll_slip)
+
+        # Act
+        calculator.calculate()
+
+        # Assert
+        payroll_slip.refresh_from_db()
+        assert payroll_slip.overtime_pay > Decimal("0")
+        assert payroll_slip.total_overtime_hours == Decimal("100.00")
+
+    def test_employee_without_position(self, payroll_slip, contract, timesheet, employee):
+        """Test calculation when employee has no position assigned."""
+        # Arrange
+        employee.position = None
+        employee.employee_type = EmployeeType.OFFICIAL
+        employee.save()
+
+        contract.base_salary = Decimal("20000000")
+        contract.save()
+
+        calculator = PayrollCalculationService(payroll_slip)
+
+        # Act
+        calculator.calculate()
+
+        # Assert
+        payroll_slip.refresh_from_db()
+        assert payroll_slip.position_name == ""
+        assert payroll_slip.status == payroll_slip.Status.READY
+
+    def test_employee_without_department(self, payroll_slip, contract, timesheet, employee, department):
+        """Test calculation when employee has no department assigned."""
+        # Arrange
+        # Note: department is required field, so we just verify it's cached correctly
+        employee.employee_type = EmployeeType.OFFICIAL
+        employee.save()
+
+        contract.base_salary = Decimal("20000000")
+        contract.save()
+
+        calculator = PayrollCalculationService(payroll_slip)
+
+        # Act
+        calculator.calculate()
+
+        # Assert
+        payroll_slip.refresh_from_db()
+        assert payroll_slip.department_name == department.name
+        assert payroll_slip.status == payroll_slip.Status.READY
+
+
+@pytest.mark.django_db
 class TestNewFieldsInSerializers:
     """Test that new fields are properly serialized."""
 
@@ -560,8 +1460,10 @@ class TestNewFieldsInSerializers:
         assert "taxable_overtime_salary" in data
         assert "overtime_progress_allowance" in data
         assert "non_taxable_overtime_salary" in data
+        assert "travel_expense_by_working_days" in data
 
         # Verify values are serialized correctly
         assert data["total_position_income"] == str(payroll_slip.total_position_income)
         assert data["actual_working_days_income"] == str(payroll_slip.actual_working_days_income)
         assert data["taxable_overtime_salary"] == str(payroll_slip.taxable_overtime_salary)
+        assert data["travel_expense_by_working_days"] == str(payroll_slip.travel_expense_by_working_days)

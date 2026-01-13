@@ -213,6 +213,10 @@ class PayrollSlip(AutoCodeMixin, ColoredValueMixin, BaseModel):
         max_digits=20, decimal_places=0, default=0, verbose_name=_("Non-Taxable Travel Expense")
     )
 
+    travel_expense_by_working_days = models.DecimalField(
+        max_digits=20, decimal_places=0, default=0, verbose_name=_("Travel Expense By Working Days")
+    )
+
     total_travel_expense = models.DecimalField(
         max_digits=20, decimal_places=0, default=0, verbose_name=_("Total Travel Expense")
     )

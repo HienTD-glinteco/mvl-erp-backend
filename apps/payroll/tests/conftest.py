@@ -189,7 +189,30 @@ def salary_config():
             "apply_on": "base_salary",
             "tiers": [
                 {"code": "M0", "amount": 0, "criteria": []},
-                {"code": "M1", "amount": 7000000, "criteria": []},
+                {
+                    "code": "M1",
+                    "amount": 15000000,
+                    "criteria": [
+                        {"name": "revenue", "min": 500000000},
+                        {"name": "transaction_count", "min": 5},
+                    ],
+                },
+                {
+                    "code": "M2",
+                    "amount": 17000000,
+                    "criteria": [
+                        {"name": "revenue", "min": 750000000},
+                        {"name": "transaction_count", "min": 7},
+                    ],
+                },
+                {
+                    "code": "M3",
+                    "amount": 20000000,
+                    "criteria": [
+                        {"name": "revenue", "min": 1000000000},
+                        {"name": "transaction_count", "min": 10},
+                    ],
+                },
             ],
         },
     }
@@ -200,9 +223,13 @@ def salary_config():
 @pytest.fixture
 def salary_period(salary_config):
     """Create a salary period."""
+    from decimal import Decimal
+
     from apps.payroll.models import SalaryPeriod
 
-    return SalaryPeriod.objects.create(month=date(2024, 1, 1), salary_config_snapshot=salary_config.config)
+    return SalaryPeriod.objects.create(
+        month=date(2024, 1, 1), salary_config_snapshot=salary_config.config, standard_working_days=Decimal("22.00")
+    )
 
 
 @pytest.fixture
@@ -383,3 +410,83 @@ def payroll_slip_ready(salary_period, employee_ready, contract_ready, timesheet_
     calculator = PayrollCalculationService(slip)
     calculator.calculate()
     return slip
+
+
+# ========== Factory Fixtures ==========
+
+
+@pytest.fixture
+def travel_expense_factory(db):
+    """Factory fixture for creating travel expenses."""
+
+    def _create_travel_expense(**kwargs):
+        from apps.payroll.models import TravelExpense
+
+        defaults = {
+            "name": f"Travel Expense {random_code()}",
+            "amount": 1000000,
+        }
+        defaults.update(kwargs)
+        return TravelExpense.objects.create(**defaults)
+
+    return _create_travel_expense
+
+
+@pytest.fixture
+def sales_revenue_factory(db):
+    """Factory fixture for creating sales revenue."""
+
+    def _create_sales_revenue(**kwargs):
+        from apps.payroll.models import SalesRevenue
+
+        defaults = {
+            "revenue": 0,
+            "transaction_count": 0,
+        }
+        defaults.update(kwargs)
+        return SalesRevenue.objects.create(**defaults)
+
+    return _create_sales_revenue
+
+
+@pytest.fixture
+def recovery_voucher_factory(db):
+    """Factory fixture for creating recovery vouchers."""
+
+    def _create_recovery_voucher(**kwargs):
+        from apps.payroll.models import RecoveryVoucher
+
+        defaults = {
+            "name": f"Recovery Voucher {random_code()}",
+            "amount": 1000000,
+        }
+        defaults.update(kwargs)
+        return RecoveryVoucher.objects.create(**defaults)
+
+    return _create_recovery_voucher
+
+
+@pytest.fixture
+def penalty_ticket_factory(db):
+    """Factory fixture for creating penalty tickets."""
+
+    def _create_penalty_ticket(**kwargs):
+        from apps.payroll.models import PenaltyTicket
+
+        defaults = {
+            "amount": 100000,
+            "violation_count": 1,
+            "violation_type": PenaltyTicket.ViolationType.UNDER_10_MINUTES,
+            "note": f"Penalty {random_code()}",
+        }
+        defaults.update(kwargs)
+
+        # Auto-populate employee_code and employee_name if employee is provided
+        if "employee" in kwargs:
+            emp = kwargs["employee"]
+            defaults.setdefault("employee_code", emp.code)
+            defaults.setdefault("employee_name", emp.fullname)
+
+        return PenaltyTicket.objects.create(**defaults)
+
+    return _create_penalty_ticket
