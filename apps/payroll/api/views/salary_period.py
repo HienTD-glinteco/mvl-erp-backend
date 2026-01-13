@@ -1,5 +1,6 @@
 """ViewSet for SalaryPeriod model."""
 
+from django.db import models
 from django.utils.translation import gettext as _
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiExample, extend_schema, extend_schema_view
@@ -1183,7 +1184,7 @@ class SalaryPeriodReadySlipsViewSet(BaseReadOnlyModelViewSet):
         """Get queryset based on salary period status.
 
         Table 1 (Payment Table):
-        - ONGOING: All READY slips (regardless of which salary_period they belong to)
+        - ONGOING: All READY slips + DELIVERED slips from this period (regardless of salary_period they belong to)
         - COMPLETED: DELIVERED slips where payment_period = this period
         """
         pk = self.kwargs.get("pk")
@@ -1196,11 +1197,14 @@ class SalaryPeriodReadySlipsViewSet(BaseReadOnlyModelViewSet):
             return PayrollSlip.objects.none()
 
         if period.status == SalaryPeriod.Status.ONGOING:
-            # Table 1 for ONGOING: All READY slips (from any period)
-            # This includes carry-over slips from previous completed periods
-            queryset = PayrollSlip.objects.filter(status=PayrollSlip.Status.READY).select_related(
-                "employee", "salary_period", "payment_period"
-            )
+            # Table 1 for ONGOING: All READY slips + DELIVERED slips from this period
+            # This includes:
+            # - READY slips from any period (including carry-overs)
+            # - DELIVERED slips from this period (can be recalculated)
+            queryset = PayrollSlip.objects.filter(
+                models.Q(status=PayrollSlip.Status.READY)
+                | models.Q(status=PayrollSlip.Status.DELIVERED, salary_period=period)
+            ).select_related("employee", "salary_period", "payment_period")
         else:  # COMPLETED
             # Table 1 for COMPLETED: DELIVERED slips paid in this period
             queryset = PayrollSlip.objects.filter(

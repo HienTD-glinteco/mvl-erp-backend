@@ -14,6 +14,7 @@ from apps.payroll.models import (
     SalesRevenue,
     TravelExpense,
 )
+from libs.decimals import round_currency
 
 
 class PayrollCalculationService:
@@ -166,13 +167,36 @@ class PayrollCalculationService:
         """Cache employee information in the payroll slip.
 
         This caches basic employee info that doesn't depend on contract.
+        Also snapshots employee_official_date from EmployeeWorkHistory.
         """
+        import calendar
+
         self.slip.employee_code = self.employee.code
         self.slip.employee_name = self.employee.fullname
         self.slip.employee_email = self.employee.email or ""
         self.slip.tax_code = self.employee.tax_code or ""
         self.slip.department_name = self.employee.department.name if self.employee.department else ""
         self.slip.position_name = self.employee.position.name if self.employee.position else ""
+
+        # Snapshot employee_official_date from EmployeeWorkHistory
+        _, last_day = calendar.monthrange(self.period.month.year, self.period.month.month)
+        end_of_month = self.period.month.replace(day=last_day)
+
+        from apps.hrm.constants import EmployeeType
+        from apps.hrm.models import EmployeeWorkHistory
+
+        official_history = (
+            EmployeeWorkHistory.objects.filter(
+                employee=self.employee,
+                name=EmployeeWorkHistory.EventType.CHANGE_EMPLOYEE_TYPE,
+                new_employee_type=EmployeeType.OFFICIAL,
+                date__lte=end_of_month,
+            )
+            .order_by("-date")
+            .first()
+        )
+
+        self.slip.employee_official_date = official_history.date if official_history else None
 
     def _cache_contract_data(self, contract: Contract):
         """Cache contract data in the payroll slip."""
@@ -220,7 +244,7 @@ class PayrollCalculationService:
 
         self.slip.kpi_grade = kpi_grade
         self.slip.kpi_percentage = kpi_percentage
-        self.slip.kpi_bonus = kpi_bonus.quantize(Decimal("1"))
+        self.slip.kpi_bonus = round_currency(kpi_bonus)
 
     def _calculate_business_progressive_salary(self):
         """Calculate business progressive salary based on sales revenue."""
@@ -273,7 +297,7 @@ class PayrollCalculationService:
         self.slip.sales_revenue = sales_revenue
         self.slip.sales_transaction_count = sales_transaction_count
         self.slip.business_grade = business_grade
-        self.slip.business_progressive_salary = business_progressive_salary.quantize(Decimal("1"))
+        self.slip.business_progressive_salary = round_currency(business_progressive_salary)
 
     def _get_timesheet(self) -> Optional[EmployeeMonthlyTimesheet]:
         """Get employee's monthly timesheet."""
@@ -314,7 +338,7 @@ class PayrollCalculationService:
             + self.slip.business_progressive_salary
             + self.slip.travel_expense_by_working_days
         )
-        self.slip.total_position_income = total_position_income.quantize(Decimal("1"))
+        self.slip.total_position_income = round_currency(total_position_income)
 
         # Calculate actual working days income
         if self.period.standard_working_days > 0:
@@ -335,7 +359,7 @@ class PayrollCalculationService:
                 probation_income = self.slip.probation_working_days * total_position_income * Decimal("0.85")
                 actual_working_days_income = (official_income + probation_income) / self.period.standard_working_days
 
-            self.slip.actual_working_days_income = actual_working_days_income.quantize(Decimal("1"))
+            self.slip.actual_working_days_income = round_currency(actual_working_days_income)
         else:
             self.slip.actual_working_days_income = Decimal("0")
 
@@ -350,14 +374,14 @@ class PayrollCalculationService:
 
             if is_probation:
                 # Probation: total_position_income * 0.85 / standard_working_days / 8
-                self.slip.hourly_rate = (
-                    (total_position_income * Decimal("0.85")) / (self.period.standard_working_days * Decimal("8"))
-                ).quantize(Decimal("0.01"))
+                self.slip.hourly_rate = round_currency(
+                    (total_position_income * Decimal("0.85")) / (self.period.standard_working_days * Decimal("8")), 2
+                )
             else:
                 # Non-probation: total_position_income / standard_working_days / 8
-                self.slip.hourly_rate = (
-                    total_position_income / (self.period.standard_working_days * Decimal("8"))
-                ).quantize(Decimal("0.01"))
+                self.slip.hourly_rate = round_currency(
+                    total_position_income / (self.period.standard_working_days * Decimal("8")), 2
+                )
         else:
             self.slip.hourly_rate = Decimal("0.00")
 
@@ -379,15 +403,15 @@ class PayrollCalculationService:
             self.slip.tc1_overtime_hours + self.slip.tc2_overtime_hours + self.slip.tc3_overtime_hours
         )
 
-        self.slip.overtime_pay = (tc1_pay + tc2_pay + tc3_pay).quantize(Decimal("1"))
+        self.slip.overtime_pay = round_currency(tc1_pay + tc2_pay + tc3_pay)
 
         # Calculate taxable overtime salary
         taxable_overtime_salary = self.slip.total_overtime_hours * self.slip.hourly_rate
-        self.slip.taxable_overtime_salary = taxable_overtime_salary.quantize(Decimal("1"))
+        self.slip.taxable_overtime_salary = round_currency(taxable_overtime_salary)
 
         # Calculate overtime progress allowance
         overtime_progress_allowance = self.slip.overtime_pay - taxable_overtime_salary
-        self.slip.overtime_progress_allowance = overtime_progress_allowance.quantize(Decimal("1"))
+        self.slip.overtime_progress_allowance = round_currency(overtime_progress_allowance)
 
         # Calculate non-taxable overtime salary
         if overtime_progress_allowance > (taxable_overtime_salary * Decimal("2")):
@@ -397,7 +421,7 @@ class PayrollCalculationService:
             # Otherwise, use overtime_pay - taxable_overtime_salary
             non_taxable_overtime_salary = self.slip.overtime_pay - taxable_overtime_salary
 
-        self.slip.non_taxable_overtime_salary = non_taxable_overtime_salary.quantize(Decimal("1"))
+        self.slip.non_taxable_overtime_salary = round_currency(non_taxable_overtime_salary)
 
     def _calculate_travel_expenses(self):
         """Calculate travel expenses."""
@@ -431,16 +455,22 @@ class PayrollCalculationService:
 
     def _calculate_gross_income(self):
         """Calculate gross income with new formula."""
-        self.slip.gross_income = (
+        self.slip.gross_income = round_currency(
             self.slip.actual_working_days_income
             + self.slip.taxable_overtime_salary
             + self.slip.non_taxable_overtime_salary
             + self.slip.taxable_travel_expense
             + self.slip.non_taxable_travel_expense
-        ).quantize(Decimal("1"))
+        )
 
     def _calculate_insurance_contributions(self):
-        """Calculate insurance contributions."""
+        """Calculate insurance contributions.
+
+        Insurance logic:
+        - Only OFFICIAL employees are eligible for insurance
+        - If employee_official_date is on or after 15th of the period month, no insurance
+        - Otherwise, calculate insurance based on base_salary with ceiling
+        """
         from apps.hrm.constants import EmployeeType
 
         insurance_config = self.config["insurance_contributions"]
@@ -448,67 +478,76 @@ class PayrollCalculationService:
         # Check if employee is official (not probation)
         is_official = self.slip.employment_status == EmployeeType.OFFICIAL
 
+        # Check if official date allows insurance calculation
+        # If official date is >= 15th of the period month, no insurance
+        should_calculate_insurance = False
+        if is_official and self.slip.employee_official_date:
+            # Get the period month
+            period_month = self.period.month
+            # If official date is before 15th of the period month, calculate insurance
+            cutoff_date = period_month.replace(day=15)
+            should_calculate_insurance = self.slip.employee_official_date < cutoff_date
+        elif is_official:
+            # If no official date recorded but employee is official, calculate insurance
+            should_calculate_insurance = True
+
         # Social insurance
         si_config = insurance_config["social_insurance"]
-        if is_official:
-            # Official employee: use base_salary with ceiling
+        if should_calculate_insurance:
+            # Official employee with valid date: use base_salary with ceiling
             social_insurance_base = min(self.slip.base_salary, Decimal(str(si_config["salary_ceiling"])))
         else:
-            # Non-official employee: no social insurance
+            # Non-official employee or official date >= 15th: no social insurance
             social_insurance_base = Decimal("0")
 
         self.slip.social_insurance_base = social_insurance_base
-        self.slip.employee_social_insurance = (
+        self.slip.employee_social_insurance = round_currency(
             social_insurance_base * Decimal(str(si_config["employee_rate"]))
-        ).quantize(Decimal("1"))
-        self.slip.employer_social_insurance = (
+        )
+        self.slip.employer_social_insurance = round_currency(
             social_insurance_base * Decimal(str(si_config["employer_rate"]))
-        ).quantize(Decimal("1"))
+        )
 
         # Health insurance
         hi_config = insurance_config["health_insurance"]
         hi_base = (
-            min(social_insurance_base, Decimal(str(hi_config["salary_ceiling"]))) if is_official else Decimal("0")
+            min(social_insurance_base, Decimal(str(hi_config["salary_ceiling"])))
+            if should_calculate_insurance
+            else Decimal("0")
         )
-        self.slip.employee_health_insurance = (hi_base * Decimal(str(hi_config["employee_rate"]))).quantize(
-            Decimal("1")
-        )
-        self.slip.employer_health_insurance = (hi_base * Decimal(str(hi_config["employer_rate"]))).quantize(
-            Decimal("1")
-        )
+        self.slip.employee_health_insurance = round_currency(hi_base * Decimal(str(hi_config["employee_rate"])))
+        self.slip.employer_health_insurance = round_currency(hi_base * Decimal(str(hi_config["employer_rate"])))
 
         # Unemployment insurance
         ui_config = insurance_config["unemployment_insurance"]
         ui_base = (
-            min(social_insurance_base, Decimal(str(ui_config["salary_ceiling"]))) if is_official else Decimal("0")
+            min(social_insurance_base, Decimal(str(ui_config["salary_ceiling"])))
+            if should_calculate_insurance
+            else Decimal("0")
         )
-        self.slip.employee_unemployment_insurance = (ui_base * Decimal(str(ui_config["employee_rate"]))).quantize(
-            Decimal("1")
-        )
-        self.slip.employer_unemployment_insurance = (ui_base * Decimal(str(ui_config["employer_rate"]))).quantize(
-            Decimal("1")
-        )
+        self.slip.employee_unemployment_insurance = round_currency(ui_base * Decimal(str(ui_config["employee_rate"])))
+        self.slip.employer_unemployment_insurance = round_currency(ui_base * Decimal(str(ui_config["employer_rate"])))
 
         # Union fee
         uf_config = insurance_config["union_fee"]
         uf_base = (
-            min(social_insurance_base, Decimal(str(uf_config["salary_ceiling"]))) if is_official else Decimal("0")
+            min(social_insurance_base, Decimal(str(uf_config["salary_ceiling"])))
+            if should_calculate_insurance
+            else Decimal("0")
         )
-        self.slip.employee_union_fee = (uf_base * Decimal(str(uf_config["employee_rate"]))).quantize(Decimal("1"))
-        self.slip.employer_union_fee = (uf_base * Decimal(str(uf_config["employer_rate"]))).quantize(Decimal("1"))
+        self.slip.employee_union_fee = round_currency(uf_base * Decimal(str(uf_config["employee_rate"])))
+        self.slip.employer_union_fee = round_currency(uf_base * Decimal(str(uf_config["employer_rate"])))
 
         # Accident insurance (employer only)
         ai_config = insurance_config["accident_occupational_insurance"]
-        if is_official:
+        if should_calculate_insurance:
             if ai_config["salary_ceiling"] is None:
                 ai_base = self.slip.base_salary
             else:
                 ai_base = min(self.slip.base_salary, Decimal(str(ai_config["salary_ceiling"])))
         else:
             ai_base = Decimal("0")
-        self.slip.employer_accident_insurance = (ai_base * Decimal(str(ai_config["employer_rate"]))).quantize(
-            Decimal("1")
-        )
+        self.slip.employer_accident_insurance = round_currency(ai_base * Decimal(str(ai_config["employer_rate"])))
 
     def _calculate_personal_income_tax(self):
         """Calculate personal income tax with updated formula."""
@@ -524,9 +563,7 @@ class PayrollCalculationService:
         self.slip.dependent_deduction = dependent_count * Decimal(str(tax_config["dependent_deduction"]))
 
         # Calculate total family deduction
-        self.slip.total_family_deduction = (self.slip.personal_deduction + self.slip.dependent_deduction).quantize(
-            Decimal("1")
-        )
+        self.slip.total_family_deduction = round_currency(self.slip.personal_deduction + self.slip.dependent_deduction)
 
         # Check if employee is official
         is_official = self.slip.employment_status == EmployeeType.OFFICIAL
@@ -536,15 +573,15 @@ class PayrollCalculationService:
             # Non-taxable allowance = (lunch + phone) / standard_days * (probation_days * 0.85 + official_days)
             allowance_base = self.slip.lunch_allowance + self.slip.phone_allowance
             working_days_factor = self.slip.probation_working_days * Decimal("0.85") + self.slip.official_working_days
-            self.slip.non_taxable_allowance = (
+            self.slip.non_taxable_allowance = round_currency(
                 allowance_base / self.period.standard_working_days * working_days_factor
-            ).quantize(Decimal("1"))
+            )
         else:
             self.slip.non_taxable_allowance = Decimal("0")
 
         if is_official:
             # Official employee: Calculate taxable income base with deductions
-            self.slip.taxable_income_base = (
+            self.slip.taxable_income_base = round_currency(
                 self.slip.gross_income
                 - self.slip.non_taxable_travel_expense
                 - self.slip.employee_social_insurance
@@ -552,7 +589,7 @@ class PayrollCalculationService:
                 - self.slip.employee_unemployment_insurance
                 - self.slip.non_taxable_overtime_salary
                 - self.slip.non_taxable_allowance
-            ).quantize(Decimal("1"))
+            )
 
             # Calculate taxable income after deductions
             taxable_income = (
@@ -562,7 +599,7 @@ class PayrollCalculationService:
             if taxable_income < 0:
                 taxable_income = Decimal("0")
 
-            self.slip.taxable_income = taxable_income.quantize(Decimal("1"))
+            self.slip.taxable_income = round_currency(taxable_income)
 
             # Progressive tax calculation
             personal_income_tax = Decimal("0")
@@ -589,13 +626,13 @@ class PayrollCalculationService:
                         personal_income_tax += (taxable_income - previous_threshold) * rate
                     break
 
-            self.slip.personal_income_tax = personal_income_tax.quantize(Decimal("1"))
+            self.slip.personal_income_tax = round_currency(personal_income_tax)
         else:
             # Non-official employee: taxable_income_base = gross_income, tax = 10% if >= 2,000,000
             self.slip.taxable_income_base = self.slip.gross_income
             self.slip.taxable_income = self.slip.gross_income
             if self.slip.gross_income >= Decimal("2000000"):
-                self.slip.personal_income_tax = (self.slip.gross_income * Decimal("0.10")).quantize(Decimal("1"))
+                self.slip.personal_income_tax = round_currency(self.slip.gross_income * Decimal("0.10"))
             else:
                 self.slip.personal_income_tax = Decimal("0")
 
@@ -618,7 +655,7 @@ class PayrollCalculationService:
 
     def _calculate_net_salary(self):
         """Calculate final net salary."""
-        self.slip.net_salary = (
+        self.slip.net_salary = round_currency(
             self.slip.gross_income
             - self.slip.employee_social_insurance
             - self.slip.employee_health_insurance
@@ -627,7 +664,7 @@ class PayrollCalculationService:
             - self.slip.personal_income_tax
             + self.slip.back_pay_amount
             - self.slip.recovery_amount
-        ).quantize(Decimal("1"))
+        )
 
     def _check_unpaid_penalties(self):
         """Check for unpaid penalty tickets."""
@@ -639,7 +676,14 @@ class PayrollCalculationService:
         self.slip.unpaid_penalty_count = unpaid_penalties.count()
 
     def _determine_final_status(self, contract, timesheet):
-        """Determine final status based on data availability."""
+        """Determine final status based on data availability.
+
+        Special rules for ONGOING periods:
+        - If period is ONGOING and slip is DELIVERED, change back to READY
+          (allows recalculation of delivered slips in ongoing periods)
+        """
+        from apps.payroll.models import SalaryPeriod
+
         missing_reasons = []
 
         if not contract:
@@ -653,9 +697,13 @@ class PayrollCalculationService:
             self.slip.status = self.slip.Status.PENDING
             self.slip.status_note = "Missing/blocking: " + ", ".join(missing_reasons)
         else:
+            # For ONGOING periods: change DELIVERED back to READY if no missing data
+            if self.period.status == SalaryPeriod.Status.ONGOING and self.slip.status == self.slip.Status.DELIVERED:
+                self.slip.status = self.slip.Status.READY
+                self.slip.status_note = ""
             # Only change to READY if currently PENDING
-            # Don't override HOLD or DELIVERED status
-            if self.slip.status == self.slip.Status.PENDING:
+            # Don't override HOLD or DELIVERED status for non-ONGOING periods
+            elif self.slip.status == self.slip.Status.PENDING:
                 self.slip.status = self.slip.Status.READY
                 self.slip.status_note = ""
 
