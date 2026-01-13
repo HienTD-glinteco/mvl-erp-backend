@@ -94,4 +94,9 @@ CELERY_BEAT_SCHEDULE: dict[str, dict] = {
         "task": "apps.hrm.tasks.contracts.check_contract_status",
         "schedule": crontab(hour=0, minute=0),  # Daily at 00:00
     },
+    # Update employee status from approved leave proposals daily
+    "update_employee_status_from_leave_proposals": {
+        "task": "apps.hrm.tasks.proposal.update_employee_status_from_approved_leave_proposals",
+        "schedule": crontab(hour=0, minute=0),  # Daily at 00:00
+    },
 }

@@ -541,6 +541,12 @@ class Proposal(ColoredValueMixin, AutoCodeMixin, BaseModel):
             if self.maternity_leave_start_date > self.maternity_leave_end_date:
                 errors["maternity_leave_end_date"] = _("Maternity leave end date must be on or after start date")
 
+            overlap_error = self._clean_leave_overlap_dates(
+                self.maternity_leave_start_date, self.maternity_leave_end_date
+            )
+            if overlap_error:
+                errors["maternity_leave_start_date"] = overlap_error  # type: ignore[assignment]
+
         if errors:
             raise ValidationError(errors)
 
@@ -564,6 +570,10 @@ class Proposal(ColoredValueMixin, AutoCodeMixin, BaseModel):
         if self.unpaid_leave_start_date and self.unpaid_leave_end_date:
             if self.unpaid_leave_start_date > self.unpaid_leave_end_date:
                 errors["unpaid_leave_end_date"] = _("Unpaid leave end date must be on or after start date")
+
+            overlap_error = self._clean_leave_overlap_dates(self.unpaid_leave_start_date, self.unpaid_leave_end_date)
+            if overlap_error:
+                errors["unpaid_leave_start_date"] = overlap_error  # type: ignore[assignment]
 
         if errors:
             raise ValidationError(errors)
@@ -590,6 +600,41 @@ class Proposal(ColoredValueMixin, AutoCodeMixin, BaseModel):
         # Set new block and branch based on the new department, so we don't need to write additional code on save() method
         self.job_transfer_new_block = self.job_transfer_new_department.block  # type: ignore
         self.job_transfer_new_branch = self.job_transfer_new_department.branch  # type: ignore
+
+    def _clean_leave_overlap_dates(self, current_start_date: datetime.date, current_end_date: datetime.date) -> str:  # type: ignore[return]
+        """
+        Method for checking overlap dates between LEAVE proposals.
+        Since both UNPAID_LEAVE and MATERNITY_LEAVE are just LEAVE, and affect Employee's status, we should prevent overlap.
+        """
+        if not getattr(self, "created_by", None):
+            return ""
+
+        created_by_id = self.created_by_id or self.created_by.id
+        overlapping_proposals = Proposal.objects.filter(
+            created_by_id=created_by_id,
+            proposal_type__in=[ProposalType.UNPAID_LEAVE, ProposalType.MATERNITY_LEAVE],
+        ).exclude(proposal_status=ProposalStatus.REJECTED)
+
+        if self.pk:
+            overlapping_proposals = overlapping_proposals.exclude(pk=self.pk)
+
+        for _proposal in overlapping_proposals:
+            start_date = _proposal.unpaid_leave_start_date
+            end_date = _proposal.unpaid_leave_end_date
+            if _proposal.proposal_type == ProposalType.MATERNITY_LEAVE:
+                start_date = _proposal.maternity_leave_start_date
+                end_date = _proposal.maternity_leave_end_date
+
+            if max(current_start_date, start_date) < min(current_end_date, end_date):  # type: ignore
+                return _(
+                    "{current_type} period overlaps with existing {overlap_type} proposal {code} ({start} - {end})"
+                ).format(
+                    current_type=self.proposal_type,
+                    overlap_type=_proposal.proposal_type,
+                    code=_proposal.code,
+                    start=start_date,
+                    end=end_date,
+                )
 
     def clean(self) -> None:
         """Validate proposal fields based on business rules."""

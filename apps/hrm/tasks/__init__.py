@@ -9,6 +9,7 @@ from apps.hrm.tasks.attendances import sync_all_attendance_devices, sync_attenda
 from apps.hrm.tasks.certificates import update_certificate_statuses
 from apps.hrm.tasks.contracts import check_contract_status
 from apps.hrm.tasks.employee import reactive_maternity_leave_employees_task
+from apps.hrm.tasks.proposal import update_employee_status_from_approved_leave_proposals
 from apps.hrm.tasks.reports_hr import aggregate_hr_reports_batch, aggregate_hr_reports_for_work_history
 from apps.hrm.tasks.reports_recruitment import (
     aggregate_recruitment_reports_batch,
@@ -29,4 +30,5 @@ __all__ = [
     "aggregate_recruitment_reports_for_work_history",
     "aggregate_recruitment_reports_batch",
     "reactive_maternity_leave_employees_task",
+    "update_employee_status_from_approved_leave_proposals",
 ]

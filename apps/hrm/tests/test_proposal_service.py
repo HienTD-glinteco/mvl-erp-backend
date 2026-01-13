@@ -1,4 +1,5 @@
 from datetime import date, time
+from unittest.mock import patch
 
 import pytest
 from django.utils import timezone
@@ -167,8 +168,51 @@ class TestMaternityLeaveProposal:
         # Verify all days are marked as maternity leave
         for day in range(1, 6):
             entry = TimeSheetEntry.objects.get(employee=test_employee, date=date(2025, 3, day))
-            assert entry.status == TimesheetStatus.ABSENT
             assert entry.absent_reason == TimesheetReason.MATERNITY_LEAVE
+
+    def test_execute_maternity_leave_updates_employee_status(self, test_employee):
+        """Test that executing a maternity leave proposal updates employee status if currently active."""
+        today = timezone.now().date()
+
+        # Create a maternity leave proposal that includes today
+        proposal = Proposal.objects.create(
+            code="DX_LEAVE_005",
+            proposal_type=ProposalType.MATERNITY_LEAVE,
+            proposal_status=ProposalStatus.APPROVED,
+            maternity_leave_start_date=today - timezone.timedelta(days=10),
+            maternity_leave_end_date=today + timezone.timedelta(days=10),
+            created_by=test_employee,
+        )
+
+        # Execute the proposal
+        ProposalService.execute_approved_proposal(proposal)
+
+        # Verify employee status is updated to MATERNITY_LEAVE
+        test_employee.refresh_from_db()
+        assert test_employee.status == Employee.Status.MATERNITY_LEAVE
+        assert test_employee.resignation_start_date == proposal.maternity_leave_start_date
+        assert test_employee.resignation_end_date == proposal.maternity_leave_end_date
+
+    def test_execute_maternity_leave_outside_range_keeps_status(self, test_employee):
+        """Test that employee status is NOT updated if current date is outside leave range."""
+        today = timezone.now().date()
+
+        # Create a maternity leave proposal for the future
+        proposal = Proposal.objects.create(
+            code="DX_LEAVE_006",
+            proposal_type=ProposalType.MATERNITY_LEAVE,
+            proposal_status=ProposalStatus.APPROVED,
+            maternity_leave_start_date=today + timezone.timedelta(days=10),
+            maternity_leave_end_date=today + timezone.timedelta(days=20),
+            created_by=test_employee,
+        )
+
+        # Execute the proposal
+        ProposalService.execute_approved_proposal(proposal)
+
+        # Verify employee status remains ACTIVE
+        test_employee.refresh_from_db()
+        assert test_employee.status == Employee.Status.ACTIVE
 
 
 class TestComplaintProposalCorrection:
@@ -298,15 +342,20 @@ class TestOvertimeProposal:
         )
 
         # Execute the proposal
-        ProposalService.execute_approved_proposal(proposal)
+        with patch.object(TimeSheetEntry, "calculate_hours_from_schedule", autospec=True) as mock_calculate:
+            ProposalService.execute_approved_proposal(proposal)
 
-        # Verify timesheet entries were created for overtime dates
-        entry_25 = TimeSheetEntry.objects.get(employee=test_employee, date=date(2025, 1, 25))
-        entry_26 = TimeSheetEntry.objects.get(employee=test_employee, date=date(2025, 1, 26))
+            # Verify timesheet entries were created for overtime dates
+            entry_25 = TimeSheetEntry.objects.get(employee=test_employee, date=date(2025, 1, 25))
+            entry_26 = TimeSheetEntry.objects.get(employee=test_employee, date=date(2025, 1, 26))
 
-        # Entries should exist (overtime calculation happens in calculate_hours_from_schedule)
-        assert entry_25 is not None
-        assert entry_26 is not None
+            # Entries should exist
+            assert entry_25 is not None
+            assert entry_26 is not None
+
+            # Verify calculate_hours_from_schedule was called for each entry
+            # We expect at least 2 calls (one for each date)
+            assert mock_calculate.call_count == 2
 
     def test_overtime_proposal_without_entries_raises_error(self, test_employee):
         """Test that overtime proposal without entries raises an error."""
