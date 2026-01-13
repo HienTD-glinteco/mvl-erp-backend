@@ -85,7 +85,7 @@ def auto_generate_salary_period():
         return f"Previous period {previous_periods.first().month} is not completed yet"
 
     # Get latest salary config
-    salary_config = SalaryConfig.objects.first()
+    salary_config = SalaryConfig.objects.order_by("-version").first()
     if not salary_config:
         return "No salary configuration found"
 
@@ -264,7 +264,7 @@ def create_salary_period_task(self, month_str, proposal_deadline_str=None, kpi_a
         )
 
         # Get latest salary config
-        salary_config = SalaryConfig.objects.first()
+        salary_config = SalaryConfig.objects.order_by("-version").first()
         if not salary_config:
             return {"error": "No salary configuration found"}
 
@@ -341,7 +341,7 @@ def recalculate_salary_period_task(self, period_id):
     Returns:
         dict: Result with statistics
     """
-    from apps.payroll.models import SalaryPeriod
+    from apps.payroll.models import SalaryConfig, SalaryPeriod
     from apps.payroll.services.payroll_calculation import PayrollCalculationService
 
     try:
@@ -349,6 +349,12 @@ def recalculate_salary_period_task(self, period_id):
 
         if salary_period.status == SalaryPeriod.Status.COMPLETED:
             return {"error": "Cannot recalculate completed period"}
+
+        # Update snapshot
+        salary_config = SalaryConfig.objects.order_by("-version").first()
+        if salary_config:
+            salary_period.salary_config_snapshot = salary_config.config
+            salary_period.save()
 
         payroll_slips = salary_period.payroll_slips.all()
         total = payroll_slips.count()

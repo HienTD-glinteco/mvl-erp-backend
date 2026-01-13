@@ -284,16 +284,28 @@ def on_recovery_voucher_deleted(sender, instance, **kwargs):
 
 
 @receiver(post_save, sender=Contract)
-def on_contract_saved(sender, instance, **kwargs):
-    """Recalculate payroll when active contract changes.
+def on_contract_saved(sender, instance, created, **kwargs):
+    """Recalculate payroll when contract changes.
 
-    Only triggers for active contracts to avoid unnecessary recalculations.
+    Triggers recalculation for:
+    - Active contracts (main contracts or appendices)
+    - Contract appendices with effective_date >= start of month
+
+    For appendices, we need to recalculate payroll slips where the appendix
+    effective_date falls within the payroll period.
     """
-    if instance.status == "ACTIVE":
-        from apps.payroll.tasks import recalculate_payroll_slip_task
+    from apps.payroll.tasks import recalculate_payroll_slip_task
 
-        month = instance.effective_date.replace(day=1)
-        recalculate_payroll_slip_task.delay(str(instance.employee_id), month.isoformat())
+    if not instance.employee_id or not instance.effective_date:
+        return
+
+    # Only trigger for ACTIVE contracts (including appendices that are active)
+    if instance.status != Contract.ContractStatus.ACTIVE:
+        return
+
+    # Get the month of the effective date
+    month = instance.effective_date.replace(day=1)
+    recalculate_payroll_slip_task.delay(str(instance.employee_id), month.isoformat())
 
 
 @receiver(post_save, sender=EmployeeMonthlyTimesheet)

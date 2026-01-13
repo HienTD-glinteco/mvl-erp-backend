@@ -57,8 +57,10 @@ class PayrollCalculationService:
         # Store original status if HOLD to preserve it
         was_hold = self.slip.status == self.slip.Status.HOLD
 
-        # Step 1: Cache employee information (independent of contract)
-        self._cache_employee_data()
+        # Step 1: Cache employee information ONLY on first calculation
+        # This preserves employee data at time of payroll creation
+        if not self.slip.employee_code:
+            self._cache_employee_data()
 
         # Step 2: Get employee's active contract (optional)
         contract = self._get_active_contract()
@@ -121,11 +123,15 @@ class PayrollCalculationService:
     def _get_active_contract(self) -> Optional[Contract]:
         """Get employee's active contract for the salary period.
 
-        Contract logic: Get the latest active contract with effective_date
-        before or on the last day of the salary period month.
+        Contract logic:
+        - For ACTIVE/MATERNITY_LEAVE/UNPAID_LEAVE employees: Get latest ACTIVE contract
+        - For RESIGNED employees: Get latest contract (any status) before end of period
+        - For ONBOARDING employees: No contract expected
+        - Contract appendices are included as they have parent_contract
 
         Example: For salary period 12/2025:
         - Contract effective 02/12/2025 should be included
+        - Contract appendix effective 15/12/2025 should override base contract
         - We check effective_date <= 31/12/2025 (end of month)
         """
         import calendar
@@ -134,6 +140,18 @@ class PayrollCalculationService:
         _, last_day = calendar.monthrange(self.period.month.year, self.period.month.month)
         end_of_month = self.period.month.replace(day=last_day)
 
+        # For resigned employees, get the last contract regardless of status
+        if self.employee.status == self.employee.Status.RESIGNED:
+            return (
+                Contract.objects.filter(
+                    employee=self.employee,
+                    effective_date__lte=end_of_month,
+                )
+                .order_by("-effective_date")
+                .first()
+            )
+
+        # For active employees, get active contract
         return (
             Contract.objects.filter(
                 employee=self.employee,
