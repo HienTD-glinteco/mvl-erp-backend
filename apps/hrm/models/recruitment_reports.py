@@ -4,6 +4,7 @@ from django.utils.translation import gettext_lazy as _
 from libs.models import BaseReportModel
 
 from ..constants import RecruitmentSourceType
+from .employee import Employee
 from .organization import Block, Branch, Department
 
 
@@ -44,28 +45,35 @@ class BaseReportDepartmentModel(BaseReportModel):
         unique_together = [["report_date", "branch", "block", "department"]]
 
 
-class StaffGrowthReport(BaseReportDepartmentModel):
-    """Daily staff growth statistics report.
+class StaffGrowthReport(BaseReportModel):
+    """Staff growth statistics by timeframe (week/month).
 
-    Stores data about staff changes including introductions, returns,
-    new hires, transfers, and resignations for a specific date and organizational unit.
-    Each record represents data for one day.
+    Each record stores DISTINCT employee counts for a specific timeframe.
+    No aggregation needed at query time.
     """
 
-    month_key = models.CharField(
-        max_length=7,
-        verbose_name=_("Month key"),
-        help_text="Format: MM/YYYY for monthly aggregation",
-        db_index=True,
+    class TimeframeType(models.TextChoices):
+        WEEK = "week", "Week"
+        MONTH = "month", "Month"
+
+    timeframe_type = models.CharField(
+        max_length=10,
+        choices=TimeframeType.choices,
+        verbose_name=_("Timeframe type"),
     )
-    week_key = models.CharField(
+    timeframe_key = models.CharField(
         max_length=20,
-        verbose_name=_("Week key"),
-        help_text="Format: Week W - MM/YYYY for weekly aggregation",
+        verbose_name=_("Timeframe key"),
+        help_text="Format: 'W01-2026' for week or '01/2026' for month",
         db_index=True,
-        null=True,
-        blank=True,
     )
+
+    # Organizational structure
+    branch = models.ForeignKey(Branch, on_delete=models.CASCADE, null=True, blank=True)
+    block = models.ForeignKey(Block, on_delete=models.CASCADE, null=True, blank=True)
+    department = models.ForeignKey(Department, on_delete=models.CASCADE, null=True, blank=True)
+
+    # Statistics (DISTINCT employee counts)
     num_introductions = models.PositiveIntegerField(default=0, verbose_name=_("Number of introductions"))
     num_returns = models.PositiveIntegerField(default=0, verbose_name=_("Number of returns"))
     num_recruitment_source = models.PositiveIntegerField(default=0, verbose_name=_("Number of new recruitment source"))
@@ -75,9 +83,49 @@ class StaffGrowthReport(BaseReportDepartmentModel):
     class Meta:
         verbose_name = _("Staff Growth Report")
         verbose_name_plural = _("Staff Growth Reports")
+        unique_together = [
+            ["timeframe_type", "timeframe_key", "branch", "block", "department"]
+        ]
 
     def __str__(self):
-        return f"Staff Growth Report - {self.report_date}"
+        return f"Staff Growth Report - {self.timeframe_key} ({self.timeframe_type})"
+
+
+class StaffGrowthEventLog(models.Model):
+    """Track which employees have been counted in each timeframe.
+
+    Used for deduplication - ensures each employee is counted only once
+    per event type per timeframe.
+    """
+
+    class EventType(models.TextChoices):
+        INTRODUCTION = "introduction", "Introduction"
+        RETURN = "return", "Return"
+        RECRUITMENT_SOURCE = "recruitment_source", "Recruitment Source"
+        TRANSFER = "transfer", "Transfer"
+        RESIGNATION = "resignation", "Resignation"
+
+    report = models.ForeignKey(
+        StaffGrowthReport,
+        on_delete=models.CASCADE,
+        related_name="event_logs",
+    )
+    employee = models.ForeignKey(
+        Employee,
+        on_delete=models.CASCADE,
+        related_name="staff_growth_events",
+    )
+    event_type = models.CharField(
+        max_length=20,
+        choices=EventType.choices,
+    )
+    event_date = models.DateField(
+        help_text="Original date of the event",
+    )
+
+    class Meta:
+        unique_together = [["report", "employee", "event_type"]]
+        # Ensures each employee can only be counted ONCE per event type per report
 
 
 class RecruitmentSourceReport(BaseReportDepartmentModel):

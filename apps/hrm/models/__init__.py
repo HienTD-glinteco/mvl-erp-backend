@@ -37,6 +37,7 @@ from .recruitment_reports import (
     RecruitmentChannelReport,
     RecruitmentCostReport,
     RecruitmentSourceReport,
+    StaffGrowthEventLog,
     StaffGrowthReport,
 )
 from .recruitment_request import RecruitmentRequest
@@ -77,6 +78,7 @@ __all__ = [
     "InterviewSchedule",
     "InterviewCandidate",
     "StaffGrowthReport",
+    "StaffGrowthEventLog",
     "RecruitmentSourceReport",
     "RecruitmentChannelReport",
     "RecruitmentCostReport",

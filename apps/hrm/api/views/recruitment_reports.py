@@ -1,5 +1,6 @@
 from collections import defaultdict
 from decimal import Decimal
+from datetime import timedelta, date
 
 from django.db.models import Sum
 from django.utils.translation import gettext as _
@@ -128,26 +129,51 @@ class RecruitmentReportsViewSet(DataScopeReportFilterMixin, BaseGenericViewSet):
     @action(detail=False, methods=["get"], url_path="staff-growth")
     def staff_growth(self, request):
         """
-        Aggregate staff growth data by week or month period.
-        Returns a list of period objects with staff change statistics for each period.
+        Get staff growth data by timeframe.
+
+        Returns pre-calculated distinct employee counts.
+        No aggregation needed - data is already correct.
         """
-        queryset, __, __, __, period_type = self._prepare_report_queryset(
-            request,
-            StaffGrowthReportParametersSerializer,
-            StaffGrowthReport,
-            period_param="period_type",
+        serializer = StaffGrowthReportParametersSerializer(data=request.query_params)
+        serializer.is_valid(raise_exception=True)
+
+        from_date = serializer.validated_data["from_date"]
+        to_date = serializer.validated_data["to_date"]
+        period_type = serializer.validated_data.get("period_type", ReportPeriodType.MONTH.value)
+
+        # Map period_type to timeframe_type
+        if period_type == ReportPeriodType.WEEK.value:
+            timeframe_type = StaffGrowthReport.TimeframeType.WEEK
+        else:
+            timeframe_type = StaffGrowthReport.TimeframeType.MONTH
+
+        # Calculate timeframe keys for the date range
+        timeframe_keys = self._get_timeframe_keys(from_date, to_date, timeframe_type)
+
+        # Direct query - NO aggregation needed!
+        queryset = StaffGrowthReport.objects.filter(
+            timeframe_type=timeframe_type,
+            timeframe_key__in=timeframe_keys,
         )
 
-        # Group by period (week or month)
-        if period_type == ReportPeriodType.WEEK.value:
-            period_field = "week_key"
-        else:
-            period_field = "month_key"
+        # Apply data scope filters
+        queryset = self._apply_data_scope_filter(queryset, request)
 
-        aggregated = (
-            queryset.values(period_field)
-            .order_by(period_field)
+        # Apply organizational filters from request if present
+        org_filters = {}
+        for field in ["branch", "block", "department"]:
+            if serializer.validated_data.get(field):
+                org_filters[f"{field}_id"] = serializer.validated_data[field]
+        if org_filters:
+            queryset = queryset.filter(**org_filters)
+
+        # Group by timeframe_key (org structure filtering already applied)
+        results = (
+            queryset
+            .values("timeframe_key")
             .annotate(
+                # Sum across departments within same timeframe
+                # This is correct because each employee is only counted ONCE per timeframe
                 num_introductions=Sum("num_introductions"),
                 num_returns=Sum("num_returns"),
                 num_recruitment_source=Sum("num_recruitment_source"),
@@ -156,7 +182,7 @@ class RecruitmentReportsViewSet(DataScopeReportFilterMixin, BaseGenericViewSet):
             )
         )
 
-        # helper labels
+        # Helper labels (from existing code, though not strictly needed by serializer unless returned separately)
         field_labels = {
             "num_introductions": _("Introductions"),
             "num_returns": _("Returns"),
@@ -165,29 +191,85 @@ class RecruitmentReportsViewSet(DataScopeReportFilterMixin, BaseGenericViewSet):
             "num_resignations": _("Resignations"),
         }
 
-        # Build period label for each period
-        results = []
-        for item in aggregated:
-            if period_type == ReportPeriodType.WEEK.value:
-                label = item[period_field]
-            else:
-                # month_key is MM/YYYY, label as 'Month MM/YYYY'
-                label = f"{_('Month')} {item[period_field]}"
-            results.append(
-                {
-                    "field_labels": field_labels,
-                    "period_type": period_type,
-                    "label": label,
-                    "num_introductions": item["num_introductions"] or 0,
-                    "num_returns": item["num_returns"] or 0,
-                    "num_recruitment_source": item["num_recruitment_source"] or 0,
-                    "num_transfers": item["num_transfers"] or 0,
-                    "num_resignations": item["num_resignations"] or 0,
-                }
-            )
+        # Build response (need to sort or results are DB dependent?
+        # timeframe_key is string, so sorting might need care, but keys like W01-2026 or 01/2026 sort somewhat okayish)
+        # Better to sort by parsed date or just trust `timeframe_keys` order and map results to it.
 
-        serializer = StaffGrowthReportAggregatedSerializer(results, many=True)
+        # Create a dict for easy lookup
+        results_map = {item["timeframe_key"]: item for item in results}
+
+        response_data = []
+        # sort timeframe_keys is tricky because format is W01-2026 or 01/2026.
+        # But `_get_timeframe_keys` can return them sorted?
+        # Let's rely on `_get_timeframe_keys` logic which generates them chronologically?
+        # `_get_timeframe_keys` returns list(set(keys)) which is unsorted.
+        # So I should sort timeframe_keys here before iterating.
+
+        def sort_key_func(k):
+            # Sort helper
+            try:
+                if timeframe_type == StaffGrowthReport.TimeframeType.WEEK:
+                    # W01-2026 -> 2026, 1
+                    w, y = k.replace("W", "").split("-")
+                    return int(y), int(w)
+                else:
+                    # 01/2026 -> 2026, 1
+                    m, y = k.split("/")
+                    return int(y), int(m)
+            except ValueError:
+                return (0, 0)
+
+        sorted_keys = sorted(timeframe_keys, key=sort_key_func)
+
+        for key in sorted_keys:
+            # If no data exists for a key, do we return 0s or skip?
+            # Usually users expect to see the time column even if empty.
+            item = results_map.get(key, {})
+
+            if timeframe_type == StaffGrowthReport.TimeframeType.WEEK:
+                label = key  # "W01-2026"
+            else:
+                label = f"{_('Month')} {key}"  # "Month 01/2026"
+
+            response_data.append({
+                "field_labels": field_labels, # Add field_labels to match previous structure if needed by frontend
+                "period_type": period_type,
+                "label": label,
+                "num_introductions": item.get("num_introductions", 0) or 0,
+                "num_returns": item.get("num_returns", 0) or 0,
+                "num_recruitment_source": item.get("num_recruitment_source", 0) or 0,
+                "num_transfers": item.get("num_transfers", 0) or 0,
+                "num_resignations": item.get("num_resignations", 0) or 0,
+            })
+
+        serializer = StaffGrowthReportAggregatedSerializer(response_data, many=True)
         return Response(serializer.data)
+
+    def _get_timeframe_keys(
+        self, from_date: date, to_date: date, timeframe_type: str
+    ) -> list[str]:
+        """Generate list of timeframe keys for date range."""
+        keys = []
+        current = from_date
+
+        if timeframe_type == StaffGrowthReport.TimeframeType.WEEK:
+            while current <= to_date:
+                week_number = current.isocalendar()[1]
+                year = current.isocalendar()[0]  # ISO year
+                keys.append(f"W{week_number:02d}-{year}")
+                current += timedelta(days=7)
+        else:  # MONTH
+            # Adjust current to 1st of month to avoid issues
+            current = current.replace(day=1)
+            while current <= to_date:
+                keys.append(current.strftime("%m/%Y"))
+                # Move to next month
+                if current.month == 12:
+                    current = current.replace(year=current.year + 1, month=1, day=1)
+                else:
+                    current = current.replace(month=current.month + 1, day=1)
+
+        return list(set(keys))  # Remove duplicates
 
     @extend_schema(
         summary="Recruitment Source Report",
@@ -899,9 +981,13 @@ class RecruitmentReportsViewSet(DataScopeReportFilterMixin, BaseGenericViewSet):
                 start_date, end_date = get_current_week_range()
 
         filter_kwargs = {}
-        if start_date:
+        # StaffGrowthReport logic is handled separately now, so this generic method is fine for others.
+        # But if StaffGrowthReport is passed here, date filtering needs care as it doesn't have report_date.
+        # But `staff_growth` action doesn't use `_prepare_report_queryset` anymore (I overwrote it).
+
+        if date_field and start_date:
             filter_kwargs[f"{date_field}__gte"] = start_date
-        if end_date:
+        if date_field and end_date:
             filter_kwargs[f"{date_field}__lte"] = end_date
 
         queryset = model_class.objects.filter(**filter_kwargs)

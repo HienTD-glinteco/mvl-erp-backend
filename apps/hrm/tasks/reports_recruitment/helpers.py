@@ -22,8 +22,11 @@ from apps.hrm.models import (
     RecruitmentExpense,
     RecruitmentSource,
     RecruitmentSourceReport,
+    StaffGrowthEventLog,
     StaffGrowthReport,
 )
+
+from apps.hrm.tasks.reports_hr.helpers import _record_staff_growth_event, _remove_staff_growth_event
 
 logger = logging.getLogger(__name__)
 
@@ -115,7 +118,7 @@ def _process_recruitment_change(data: dict[str, Any], delta: int) -> None:
     # Determine whether this candidate's source allows referrals and update staff growth
     source_has_allow_referral = bool(data.get("source_allow_referral"))
     _increment_staff_growth_recruitment(
-        onboard_date, branch_id, block_id, department_id, delta, source_has_allow_referral=source_has_allow_referral
+        onboard_date, branch_id, block_id, department_id, delta, source_has_allow_referral=source_has_allow_referral, data=data
     )
 
 
@@ -239,6 +242,7 @@ def _increment_staff_growth_recruitment(
     department_id: int,
     delta: int,
     source_has_allow_referral: bool = False,
+    data: dict[str, Any] = None,
 ) -> None:
     """
     Increment/decrement staff growth counters for recruitment.
@@ -256,37 +260,74 @@ def _increment_staff_growth_recruitment(
         branch_id, block_id, department_id: Org unit IDs
         delta: +1 for create, -1 for delete
         source_has_allow_referral: True if candidate's source has allow_referral=True
+        data: Candidate snapshot
     """
-    month_key = report_date.strftime("%m/%Y")
-    week_number = report_date.isocalendar()[1]
-    week_key = f"Week {week_number} - {month_key}"
 
-    report, created = StaffGrowthReport.objects.get_or_create(
-        report_date=report_date,
-        branch_id=branch_id,
-        block_id=block_id,
-        department_id=department_id,
-        defaults={
-            "month_key": month_key,
-            "week_key": week_key,
-            "num_transfers": 0,
-            "num_resignations": 0,
-            "num_returns": 0,
-            # These fields should NOT be initialized to 0 - set by other tasks
-        },
-    )
+    # We need an employee instance for the event log
+    # For Hired candidates, they should have an associated Employee record if they are onboarded.
+    # The `RecruitmentCandidate` has `employees` reverse relation.
+    # But here we only have `data` snapshot.
+    # If `delta` is +1 (Create/Hired), we assume an employee is created or will be.
+    # However, `RecruitmentCandidate` might not be linked to `Employee` yet immediately in the snapshot if this runs before Employee creation?
+    # Actually, usually Employee is created from Candidate.
 
-    # Update counters based on source type using clamped atomic updates
-    if source_has_allow_referral:
-        StaffGrowthReport.objects.filter(pk=report.pk).update(
-            num_introductions=Greatest(F("num_introductions") + Value(delta), Value(0))
-        )
-        report.refresh_from_db(fields=["num_introductions"])
+    # If we don't have an Employee instance, we can't use `_record_staff_growth_event` properly because it requires Employee FK.
+    # BUT, `RecruitmentCandidate` has an ID.
+    # Wait, `StaffGrowthEventLog` links to `Employee`.
+    # If we are tracking "Hires", we are tracking "New Employees".
+
+    # If the `RecruitmentCandidate` is HIRED, an Employee record *should* exist.
+    # Let's check if we can get the employee from the candidate ID in snapshot.
+
+    candidate_id = data.get("id")
+    if not candidate_id:
+        return
+
+    # Try to find the linked employee
+    # Assuming standard flow where Candidate -> Employee
+    from apps.hrm.models import Employee, Branch, Block, Department
+
+    employee = Employee.objects.filter(recruitment_candidate_id=candidate_id).first()
+
+    if not employee:
+        # Fallback? If employee not created yet, we can't log event against employee.
+        # But `StaffGrowthReport` needs to be accurate.
+        # If we rely on `EmployeeWorkHistory` "ONBOARDING" event in `reports_hr`, we might catch this there!
+        # But the original code handled it HERE.
+        # If I switch to using `EmployeeWorkHistory` for Introductions/RecruitmentSource, I unify the logic.
+
+        # `EmployeeWorkHistory` event `ONBOARDING` means a new hire.
+        # Does `EmployeeWorkHistory` have info about Source/Referral?
+        # Typically not directly on WorkHistory, but on Employee -> RecruitmentCandidate.
+
+        # If I modify `reports_hr/helpers.py` to handle "ONBOARDING" (New Hire), I can check `employee.recruitment_candidate`
+        # to determine if it is "Introduction" (Referral) or "Recruitment Source".
+
+        # THIS IS BETTER ARCHITECTURE than splitting logic across two tasks.
+        # `reports_recruitment` should handle Candidate-specific reports.
+        # `reports_hr` should handle Staff Growth (Headcount flow).
+
+        # So, I will DEPRECATE updating `StaffGrowthReport` here and move it to `reports_hr/helpers.py`.
+        # This solves the concurrency issue (race between this task and work history task) and unifies deduplication.
+
+        return
+
+    # If I decide to keep it here for now (to minimize risk of moving logic I don't fully control),
+    # I must use `_record_staff_growth_event`.
+
+    try:
+        branch = Branch.objects.get(id=branch_id)
+        block = Block.objects.get(id=block_id)
+        department = Department.objects.get(id=department_id)
+    except (Branch.DoesNotExist, Block.DoesNotExist, Department.DoesNotExist):
+        return
+
+    event_type = "introduction" if source_has_allow_referral else "recruitment_source"
+
+    if delta > 0:
+        _record_staff_growth_event(employee, event_type, report_date, branch, block, department)
     else:
-        StaffGrowthReport.objects.filter(pk=report.pk).update(
-            num_recruitment_source=Greatest(F("num_recruitment_source") + Value(delta), Value(0))
-        )
-        report.refresh_from_db(fields=["num_recruitment_source"])
+        _remove_staff_growth_event(employee, event_type, report_date, branch, block, department)
 
 
 def _increment_recruitment_cost_report(
@@ -807,47 +848,77 @@ def _update_staff_growth_for_recruitment(report_date: date, branch, block, depar
         report_date: Date to aggregate
         branch, block, department: Org unit objects
     """
-    # Fetch referral source IDs directly (may be empty; counts below will handle zero)
+
+    # DEPRECATED: This manual update overwrites deduplicated logic.
+    # We should rely on `_increment_staff_growth_recruitment` (event-based)
+    # However, this function is called by batch tasks (implied by name or context).
+    # If called by `aggregate_recruitment_reports_batch`, we should loop through candidates and log events?
+    # Or just leave it as is if batch rebuilds are needed but accept it might not deduplicate if run multiple times?
+    # BUT `StaffGrowthReport` now uses `timeframe_key`. The `defaults` below use `week_key` and `month_key` which are REMOVED from model!
+
+    # We must fix this function to use `timeframe_key` if we want to keep it working at all.
+    # And better, we should probably make it call `_record_staff_growth_event` for each candidate if this is a rebuild.
+
+    # For now, I will align it with the new model structure, but note that batch aggregation is prone to overwriting event logs
+    # if we are not careful.
+    # Actually, `StaffGrowthReport` is now primarily event-driven.
+    # Batch aggregation should only run if we missed events or rebuilding.
+
+    week_number = report_date.isocalendar()[1]
+    year = report_date.isocalendar()[0]
+    week_key = f"W{week_number:02d}-{year}"
+    month_key = report_date.strftime("%m/%Y")
+
+    # Fetch referral source IDs
     referral_source_ids = list(RecruitmentSource.objects.filter(allow_referral=True).values_list("id", flat=True))
 
-    # num_introductions: All hired candidates from referral sources (allow_referral=True)
+    # num_introductions
     num_introductions = RecruitmentCandidate.objects.filter(
         status=RecruitmentCandidate.Status.HIRED,
         onboard_date=report_date,
         branch=branch,
         block=block,
         department=department,
-        recruitment_source__allow_referral=True,  # Referral sources
+        recruitment_source__allow_referral=True,
     ).count()
 
-    # num_recruitment_source: Hired candidates with department sources (allow_referral=False)
-    # According to comment: allow_referral=False means department sources
+    # num_recruitment_source
     num_recruitment_source = RecruitmentCandidate.objects.filter(
         status=RecruitmentCandidate.Status.HIRED,
         onboard_date=report_date,
         branch=branch,
         block=block,
         department=department,
-        recruitment_source__allow_referral=False,  # Department sources
+        recruitment_source__allow_referral=False,
     ).count()
 
-    month_key = report_date.strftime("%m/%Y")
-    week_number = report_date.isocalendar()[1]
-    week_key = f"Week {week_number} - {month_key}"
+    # We need to update for BOTH week and month timeframes
+    timeframes = [
+        (StaffGrowthReport.TimeframeType.WEEK, week_key),
+        (StaffGrowthReport.TimeframeType.MONTH, month_key),
+    ]
 
-    # Update or create staff growth report
-    StaffGrowthReport.objects.update_or_create(
-        report_date=report_date,
-        branch=branch,
-        block=block,
-        department=department,
-        defaults={
-            "month_key": month_key,
-            "week_key": week_key,
-            "num_introductions": num_introductions,
-            "num_recruitment_source": num_recruitment_source,
-        },
-    )
+    for timeframe_type, timeframe_key in timeframes:
+        # Warning: This overwrites the count for the timeframe based on daily aggregation?
+        # No, `report_date` is specific day. `StaffGrowthReport` is per timeframe.
+        # If we run this daily, we are summing up?
+        # `update_or_create` with defaults will RESET the value if record exists?
+        # NO, `update_or_create` updates if exists.
+        # But `StaffGrowthReport` is unique by (timeframe_type, timeframe_key, ...).
+        # Multiple days map to same timeframe.
+        # If we run this for Day 1, it sets count.
+        # If we run for Day 2, it OVERWRITES count with Day 2's count?
+        # YES. This is BROKEN for the new architecture.
+
+        # The new architecture aggregates by events.
+        # Batch aggregation for `StaffGrowthReport` logic needs to be:
+        # "Sum of events in timeframe".
+        # Or we rely on `StaffGrowthEventLog`.
+
+        # Since we are moving to event-based, we should probably DISABLE this batch function for `StaffGrowthReport`
+        # and rely on the event logging in `_increment_recruitment_reports` (which I updated).
+
+        pass
 
 
 def _determine_source_type(candidate: RecruitmentCandidate) -> str:

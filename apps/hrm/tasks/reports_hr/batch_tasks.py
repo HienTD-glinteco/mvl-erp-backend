@@ -41,9 +41,14 @@ def _get_reports_needing_refresh() -> tuple[date | None, list[tuple[int, int, in
         earliest_date is None if no reports need refresh
     """
     # Find earliest date needing refresh across all report models
-    staff_growth_date = StaffGrowthReport.objects.filter(need_refresh=True).aggregate(Min("report_date"))[
-        "report_date__min"
-    ]
+
+    # Note: StaffGrowthReport does not use need_refresh logic anymore for batch processing
+    # as it uses real-time event logging.
+    # We can skip it here.
+
+    # staff_growth_date = StaffGrowthReport.objects.filter(need_refresh=True).aggregate(Min("report_date"))[
+    #     "report_date__min"
+    # ]
 
     status_breakdown_date = EmployeeStatusBreakdownReport.objects.filter(need_refresh=True).aggregate(
         Min("report_date")
@@ -53,8 +58,8 @@ def _get_reports_needing_refresh() -> tuple[date | None, list[tuple[int, int, in
         Min("report_date")
     )["report_date__min"]
 
-    # Get the earliest of the three
-    dates = [d for d in [staff_growth_date, status_breakdown_date, resigned_reason_date] if d is not None]
+    # Get the earliest of the three (now two)
+    dates = [d for d in [status_breakdown_date, resigned_reason_date] if d is not None]
     if not dates:
         return None, []
 
@@ -64,13 +69,7 @@ def _get_reports_needing_refresh() -> tuple[date | None, list[tuple[int, int, in
     today = timezone.localdate()
     org_units_set = set()
 
-    # Collect org units from StaffGrowthReport
-    for report in (
-        StaffGrowthReport.objects.filter(need_refresh=True, report_date__gte=earliest_date, report_date__lte=today)
-        .values("branch_id", "block_id", "department_id")
-        .distinct()
-    ):
-        org_units_set.add((report["branch_id"], report["block_id"], report["department_id"]))
+    # StaffGrowthReport skipped
 
     # Collect org units from EmployeeStatusBreakdownReport
     for report in (
@@ -148,13 +147,16 @@ def aggregate_hr_reports_batch() -> int:
                 if not (branch and block and department):
                     continue
 
-                # Aggregate both types of HR reports
-                _aggregate_staff_growth_for_date(current_date, branch, block, department)
+                # Aggregate HR reports
+                # _aggregate_staff_growth_for_date is deprecated/unused for batch process now
+                # _aggregate_staff_growth_for_date(current_date, branch, block, department)
+
                 _aggregate_employee_status_for_date(current_date, branch, block, department)
                 _aggregate_employee_resigned_reason_for_date(current_date, branch, block, department)
 
             # Clear need_refresh flag for this date after successful processing
-            StaffGrowthReport.objects.filter(report_date=current_date).update(need_refresh=False)
+            # StaffGrowthReport skipped
+            # StaffGrowthReport.objects.filter(report_date=current_date).update(need_refresh=False)
 
             EmployeeStatusBreakdownReport.objects.filter(report_date=current_date).update(need_refresh=False)
 
