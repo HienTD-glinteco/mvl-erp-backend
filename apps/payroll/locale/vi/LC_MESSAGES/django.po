@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-12 16:04+0700\n"
+"POT-Creation-Date: 2026-01-13 10:49+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -628,7 +628,7 @@ msgstr "Tổng số nhân viên"
 #: apps/payroll/models/penalty_ticket.py:56
 #: apps/payroll/models/recovery_voucher.py:65
 #: apps/payroll/models/salary_period.py:69
-#: apps/payroll/models/travel_expense.py:105
+#: apps/payroll/models/travel_expense.py:106
 msgid "Month"
 msgstr "Tháng"
 
@@ -743,7 +743,7 @@ msgstr "Đã giao"
 
 #: apps/payroll/models/payroll_slip.py:69
 #: apps/payroll/models/salary_period.py:65
-#: apps/payroll/models/travel_expense.py:95
+#: apps/payroll/models/travel_expense.py:96
 msgid "Code"
 msgstr "Mã"
 
@@ -760,7 +760,7 @@ msgstr "Ngày nộp tiền"
 
 #: apps/payroll/models/payroll_slip.py:87
 #: apps/payroll/models/recovery_voucher.py:60
-#: apps/payroll/models/travel_expense.py:102
+#: apps/payroll/models/travel_expense.py:103
 msgid "Employee"
 msgstr "Nhân viên"
 
@@ -926,172 +926,178 @@ msgid "Non-Taxable Travel Expense"
 msgstr "Công tác phí không chịu thuế"
 
 #: apps/payroll/models/payroll_slip.py:217
+#, fuzzy
+#| msgid "Travel Expenses"
+msgid "Travel Expense By Working Days"
+msgstr "Các công tác phí"
+
+#: apps/payroll/models/payroll_slip.py:221
 msgid "Total Travel Expense"
 msgstr "Tổng công tác phí"
 
-#: apps/payroll/models/payroll_slip.py:221
+#: apps/payroll/models/payroll_slip.py:225
 msgid "Gross Income"
 msgstr "Tổng thu nhập gross"
 
-#: apps/payroll/models/payroll_slip.py:224
+#: apps/payroll/models/payroll_slip.py:228
 msgid "Taxable Income Base"
 msgstr "Thu nhập tính thuế"
 
-#: apps/payroll/models/payroll_slip.py:229
+#: apps/payroll/models/payroll_slip.py:233
 msgid "Social Insurance Base"
 msgstr "Lương đóng BHXH"
 
-#: apps/payroll/models/payroll_slip.py:233
+#: apps/payroll/models/payroll_slip.py:237
 msgid "Employee Social Insurance"
 msgstr "BHXH NLĐ đóng"
 
-#: apps/payroll/models/payroll_slip.py:237
+#: apps/payroll/models/payroll_slip.py:241
 msgid "Employee Health Insurance"
 msgstr "BHYT trích từ lương NLĐ"
 
-#: apps/payroll/models/payroll_slip.py:241
+#: apps/payroll/models/payroll_slip.py:245
 msgid "Employee Unemployment Insurance"
 msgstr "BHTN trích từ lương NLĐ"
 
-#: apps/payroll/models/payroll_slip.py:245
+#: apps/payroll/models/payroll_slip.py:249
 msgid "Employee Union Fee"
 msgstr "Công đoàn NLĐ đóng"
 
-#: apps/payroll/models/payroll_slip.py:250
+#: apps/payroll/models/payroll_slip.py:254
 msgid "Employer Social Insurance"
 msgstr "BHXH trích từ DN"
 
-#: apps/payroll/models/payroll_slip.py:254
+#: apps/payroll/models/payroll_slip.py:258
 msgid "Employer Health Insurance"
 msgstr "BHYT trích từ DN"
 
-#: apps/payroll/models/payroll_slip.py:258
+#: apps/payroll/models/payroll_slip.py:262
 msgid "Employer Unemployment Insurance"
 msgstr "BHTN trích từ DN"
 
-#: apps/payroll/models/payroll_slip.py:262
+#: apps/payroll/models/payroll_slip.py:266
 msgid "Employer Union Fee"
 msgstr "Công đoàn công ty đóng"
 
-#: apps/payroll/models/payroll_slip.py:266
+#: apps/payroll/models/payroll_slip.py:270
 msgid "Employer Accident Insurance"
 msgstr "BH TNLĐ-BNN trích từ DN"
 
-#: apps/payroll/models/payroll_slip.py:271
+#: apps/payroll/models/payroll_slip.py:275
 msgid "Personal Deduction"
 msgstr "Giảm trừ cá nhân"
 
-#: apps/payroll/models/payroll_slip.py:274
+#: apps/payroll/models/payroll_slip.py:278
 msgid "Dependent Count"
 msgstr "Số người phụ thuộc"
 
-#: apps/payroll/models/payroll_slip.py:277
+#: apps/payroll/models/payroll_slip.py:281
 msgid "Dependent Deduction"
 msgstr "Giảm trừ gia cảnh"
 
-#: apps/payroll/models/payroll_slip.py:281
+#: apps/payroll/models/payroll_slip.py:285
 #, fuzzy
 #| msgid "Personal Deduction"
 msgid "Total Family Deduction"
 msgstr "Giảm trừ cá nhân"
 
-#: apps/payroll/models/payroll_slip.py:285
+#: apps/payroll/models/payroll_slip.py:289
 #, fuzzy
 #| msgid "Phone Allowance"
 msgid "Non-Taxable Allowance"
 msgstr "Phụ cấp điện thoại"
 
-#: apps/payroll/models/payroll_slip.py:288
+#: apps/payroll/models/payroll_slip.py:292
 msgid "Taxable Income"
 msgstr "Thu nhập tính thuế"
 
-#: apps/payroll/models/payroll_slip.py:291
+#: apps/payroll/models/payroll_slip.py:295
 msgid "Personal Income Tax"
 msgstr "Thuế thu nhập cá nhân"
 
-#: apps/payroll/models/payroll_slip.py:296
+#: apps/payroll/models/payroll_slip.py:300
 msgid "Back Pay Amount"
 msgstr "Số tiền truy lĩnh"
 
-#: apps/payroll/models/payroll_slip.py:300
+#: apps/payroll/models/payroll_slip.py:304
 msgid "Recovery Amount"
 msgstr "Số tiền truy thu"
 
-#: apps/payroll/models/payroll_slip.py:304
+#: apps/payroll/models/payroll_slip.py:308
 msgid "Net Salary"
 msgstr "Lương thực lĩnh (NET)"
 
-#: apps/payroll/models/payroll_slip.py:308
+#: apps/payroll/models/payroll_slip.py:312
 #: apps/payroll/models/penalty_ticket.py:61
 #: apps/payroll/models/recovery_voucher.py:70
 #: apps/payroll/models/salary_period.py:81
-#: apps/payroll/models/travel_expense.py:112
+#: apps/payroll/models/travel_expense.py:113
 msgid "Status"
 msgstr "Trạng thái"
 
-#: apps/payroll/models/payroll_slip.py:312
+#: apps/payroll/models/payroll_slip.py:316
 msgid "Status Note"
 msgstr "Ghi chú trạng thái"
 
-#: apps/payroll/models/payroll_slip.py:316
+#: apps/payroll/models/payroll_slip.py:320
 msgid "Need Resend Email"
 msgstr "Cần gửi email"
 
-#: apps/payroll/models/payroll_slip.py:319
+#: apps/payroll/models/payroll_slip.py:323
 msgid "Email Sent At"
 msgstr "Thời gian gửi email"
 
-#: apps/payroll/models/payroll_slip.py:321
+#: apps/payroll/models/payroll_slip.py:325
 msgid "Delivered At"
 msgstr "Thời gian giao"
 
-#: apps/payroll/models/payroll_slip.py:329
+#: apps/payroll/models/payroll_slip.py:333
 msgid "Delivered By"
 msgstr "Người giao"
 
-#: apps/payroll/models/payroll_slip.py:337
+#: apps/payroll/models/payroll_slip.py:341
 #, fuzzy
 #| msgid "Hold Count"
 msgid "Hold Reason"
 msgstr "Số lượng tạm giữ"
 
-#: apps/payroll/models/payroll_slip.py:342
+#: apps/payroll/models/payroll_slip.py:346
 #, fuzzy
 #| msgid "Delivered At"
 msgid "Held At"
 msgstr "Thời gian giao"
 
-#: apps/payroll/models/payroll_slip.py:351
+#: apps/payroll/models/payroll_slip.py:355
 #, fuzzy
 #| msgid "Delivered By"
 msgid "Held By"
 msgstr "Người giao"
 
-#: apps/payroll/models/payroll_slip.py:356
+#: apps/payroll/models/payroll_slip.py:360
 msgid "Calculation Log"
 msgstr "Nhật ký tính toán"
 
-#: apps/payroll/models/payroll_slip.py:359
+#: apps/payroll/models/payroll_slip.py:363
 msgid "Calculated At"
 msgstr "Thời gian tính lương"
 
-#: apps/payroll/models/payroll_slip.py:367
+#: apps/payroll/models/payroll_slip.py:371
 #: apps/payroll/models/recovery_voucher.py:78
 #: apps/payroll/models/salary_period.py:229
 msgid "Created By"
 msgstr "Người tạo"
 
-#: apps/payroll/models/payroll_slip.py:376
+#: apps/payroll/models/payroll_slip.py:380
 #: apps/payroll/models/recovery_voucher.py:85
 #: apps/payroll/models/salary_period.py:238
 msgid "Updated By"
 msgstr "Người cập nhật"
 
-#: apps/payroll/models/payroll_slip.py:380
+#: apps/payroll/models/payroll_slip.py:384
 msgid "Payroll Slip"
 msgstr "Phiếu lương"
 
-#: apps/payroll/models/payroll_slip.py:381
+#: apps/payroll/models/payroll_slip.py:385
 msgid "Payroll Slips"
 msgstr "Các phiếu lương"
 
@@ -1134,7 +1140,7 @@ msgid "Violation Type"
 msgstr "Loại vi phạm"
 
 #: apps/payroll/models/penalty_ticket.py:55
-#: apps/payroll/models/travel_expense.py:104
+#: apps/payroll/models/travel_expense.py:105
 msgid "Amount"
 msgstr "Số tiền"
 
@@ -1144,7 +1150,7 @@ msgstr "Ngày nộp tiền"
 
 #: apps/payroll/models/penalty_ticket.py:65
 #: apps/payroll/models/recovery_voucher.py:72
-#: apps/payroll/models/travel_expense.py:114
+#: apps/payroll/models/travel_expense.py:115
 msgid "Note"
 msgstr "Ghi chú"
 
@@ -1397,35 +1403,35 @@ msgstr "Tổng doanh thu / Tổng số nhân viên kinh doanh"
 msgid "Sales Revenue Report"
 msgstr "Báo cáo doanh thu bán hàng"
 
-#: apps/payroll/models/travel_expense.py:96
+#: apps/payroll/models/travel_expense.py:97
 msgid "Expense name"
 msgstr "Tên chi phí"
 
-#: apps/payroll/models/travel_expense.py:97
+#: apps/payroll/models/travel_expense.py:98
 msgid "Expense type"
 msgstr "Loại chi phí"
 
-#: apps/payroll/models/travel_expense.py:105
+#: apps/payroll/models/travel_expense.py:106
 msgid "First day of the expense month"
 msgstr "Kỳ phát sinh chi phí"
 
-#: apps/payroll/models/travel_expense.py:121
+#: apps/payroll/models/travel_expense.py:122
 msgid "Created by"
 msgstr "Người tạo"
 
-#: apps/payroll/models/travel_expense.py:129
+#: apps/payroll/models/travel_expense.py:130
 msgid "Updated by"
 msgstr "Người cập nhật"
 
-#: apps/payroll/models/travel_expense.py:133
+#: apps/payroll/models/travel_expense.py:134
 msgid "Travel Expense"
 msgstr "Công tác phí"
 
-#: apps/payroll/models/travel_expense.py:134
+#: apps/payroll/models/travel_expense.py:135
 msgid "Travel Expenses"
 msgstr "Các công tác phí"
 
-#: apps/payroll/models/travel_expense.py:171
+#: apps/payroll/models/travel_expense.py:172
 #, fuzzy, python-format
 #| msgid "Cannot delete travel expense for a month with existing payroll."
 msgid ""

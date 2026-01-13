@@ -266,7 +266,7 @@ class PayrollCalculationService:
             - self.slip.kpi_salary
             - self.slip.lunch_allowance
             - self.slip.other_allowance
-            - self.slip.total_travel_expense
+            - self.slip.travel_expense_by_working_days
         )
         business_progressive_salary = max(Decimal("0"), business_progressive_salary)
 
@@ -312,6 +312,7 @@ class PayrollCalculationService:
             + self.slip.kpi_salary
             + self.slip.kpi_bonus
             + self.slip.business_progressive_salary
+            + self.slip.travel_expense_by_working_days
         )
         self.slip.total_position_income = total_position_income.quantize(Decimal("1"))
 
@@ -416,9 +417,17 @@ class PayrollCalculationService:
             or 0
         )
 
+        by_working_days = (
+            travel_expenses.filter(expense_type=TravelExpense.ExpenseType.BY_WORKING_DAYS).aggregate(Sum("amount"))[
+                "amount__sum"
+            ]
+            or 0
+        )
+
         self.slip.taxable_travel_expense = Decimal(str(taxable))
         self.slip.non_taxable_travel_expense = Decimal(str(non_taxable))
-        self.slip.total_travel_expense = Decimal(str(taxable + non_taxable))
+        self.slip.travel_expense_by_working_days = Decimal(str(by_working_days))
+        self.slip.total_travel_expense = Decimal(str(taxable + non_taxable + by_working_days))
 
     def _calculate_gross_income(self):
         """Calculate gross income with new formula."""
@@ -426,7 +435,8 @@ class PayrollCalculationService:
             self.slip.actual_working_days_income
             + self.slip.taxable_overtime_salary
             + self.slip.non_taxable_overtime_salary
-            + self.slip.total_travel_expense
+            + self.slip.taxable_travel_expense
+            + self.slip.non_taxable_travel_expense
         ).quantize(Decimal("1"))
 
     def _calculate_insurance_contributions(self):

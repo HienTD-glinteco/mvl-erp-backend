@@ -1,6 +1,6 @@
 """Tests for proposal deadline validation via signals."""
 
-from datetime import date, timedelta
+from datetime import date, time, timedelta
 
 import pytest
 from django.core.exceptions import ValidationError
@@ -357,8 +357,8 @@ class TestOvertimeEntryDeadlineValidationSignal:
             entry = ProposalOvertimeEntry(
                 proposal=proposal,
                 date=date(2024, 1, 15),
-                start_time="18:00",
-                end_time="20:00",
+                start_time=time(18, 0),
+                end_time=time(20, 0),
             )
             entry.save()
 
@@ -386,8 +386,8 @@ class TestOvertimeEntryDeadlineValidationSignal:
         entry = ProposalOvertimeEntry.objects.create(
             proposal=proposal,
             date=date(2024, 1, 15),
-            start_time="18:00",
-            end_time="20:00",
+            start_time=time(18, 0),
+            end_time=time(20, 0),
         )
 
         # Assert
@@ -407,8 +407,8 @@ class TestOvertimeEntryDeadlineValidationSignal:
         entry = ProposalOvertimeEntry.objects.create(
             proposal=proposal,
             date=date(2024, 6, 15),
-            start_time="18:00",
-            end_time="20:00",
+            start_time=time(18, 0),
+            end_time=time(20, 0),
         )
 
         # Assert
