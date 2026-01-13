@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-13 11:59+0700\n"
+"POT-Creation-Date: 2026-01-13 13:32+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -4792,26 +4792,22 @@ msgid "End time must be after start time"
 msgstr "Thời gian kết thúc làm ngoài giờ phải sau thời gian bắt đầu"
 
 #: apps/hrm/models/proposal.py:1073
-#, python-brace-format
 msgid ""
 "Overtime entry cannot overlap with official morning working hours ({}-{})"
 msgstr ""
 "Thời gian làm thêm giờ không thể trùng với giờ làm việc chính thức ({}-{})"
 
 #: apps/hrm/models/proposal.py:1089
-#, python-brace-format
 msgid ""
 "Overtime entry cannot overlap with official afternoon working hours ({}-{})"
 msgstr ""
 "Thời gian làm thêm giờ không thể trùng với giờ làm việc chính thức ({}-{})"
 
 #: apps/hrm/models/proposal.py:1133
-#, python-brace-format
 msgid "Overtime entry cannot overlap with compensatory morning shift ({}-{})"
 msgstr "Thời gian làm thêm giờ không thể trùng với giờ làm việc bù ({}-{})"
 
 #: apps/hrm/models/proposal.py:1151
-#, python-brace-format
 msgid "Overtime entry cannot overlap with compensatory afternoon shift ({}-{})"
 msgstr "Thời gian làm thêm giờ không thể trùng với giờ làm việc bù ({}-{})"
 

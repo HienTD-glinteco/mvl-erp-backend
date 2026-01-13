@@ -124,6 +124,31 @@ def test_maternity_leave_marks_on_time(settings):
     assert ts.status == TimesheetStatus.ABSENT
 
 
+def test_maternity_leave_with_attendance_marks_on_time(settings):
+    """If employee has attendance during maternity leave, status should be based on attendance."""
+    emp = _create_employee()
+    _create_monday_schedule()
+
+    d = date(2025, 3, 3)
+
+    Proposal.objects.create(
+        created_by=emp,
+        proposal_status=ProposalStatus.APPROVED,
+        proposal_type=ProposalType.MATERNITY_LEAVE,
+        maternity_leave_start_date=d,
+        maternity_leave_end_date=d,
+    )
+
+    ts = TimeSheetEntry(employee=emp, date=d)
+    ts.start_time = make_datetime(d, time(8, 0))
+    ts.end_time = make_datetime(d, time(17, 30))
+
+    TimesheetCalculator(ts).compute_status(is_finalizing=True)
+
+    # Should be ON_TIME (not ABSENT) since there are attendance records
+    assert ts.status == TimesheetStatus.ON_TIME
+
+
 def test_half_day_paid_leave_allows_afternoon_only(settings):
     emp = _create_employee()
     _create_monday_schedule()

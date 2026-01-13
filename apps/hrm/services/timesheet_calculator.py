@@ -387,7 +387,16 @@ class TimesheetCalculator:
         For leave reasons (paid/unpaid/maternity leave), status is only set to ABSENT
         when is_finalizing=True. For future dates (is_finalizing=False), status remains
         None to show gray/empty in the timesheet grid.
+
+        If employee has attendance records, skip leave logic - they worked despite
+        having approved leave, so calculate status from actual attendance.
         """
+        # If employee has attendance records, don't apply leave logic
+        # (they worked despite having approved leave)
+        has_attendance = self.entry.start_time or self.entry.end_time
+        if has_attendance:
+            return False
+
         leave_reasons = [
             TimesheetReason.PAID_LEAVE,
             TimesheetReason.UNPAID_LEAVE,
