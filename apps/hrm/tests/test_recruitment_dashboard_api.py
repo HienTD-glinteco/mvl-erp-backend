@@ -432,7 +432,7 @@ class TestRecruitmentDashboardIndividualChartsAPI(APITestMixin):
         stats = branch_data["statistics"][0]
         assert stats["total_cost"] == 10000000.00
         assert stats["total_hires"] == 2  # From HiredCandidateReport
-        assert stats["avg_cost"] == 5000000.00  # 10,000,000 / 2
+        assert stats["avg_cost"] == 5000000  # 10,000,000 / 2
 
     def test_source_type_breakdown_chart_endpoint(self):
         """Test source type breakdown chart endpoint"""
