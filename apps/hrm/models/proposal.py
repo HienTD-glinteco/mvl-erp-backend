@@ -399,9 +399,9 @@ class Proposal(ColoredValueMixin, AutoCodeMixin, BaseModel):
 
     def _get_late_exemption_short_description(self) -> str | None:
         """Get short description for late exemption proposal."""
-        day_string = _("day")
+        day_string = _("minute")
         if self.late_exemption_start_date and self.late_exemption_end_date and self.late_exemption_minutes:
-            return f"{self.late_exemption_minutes} {day_string} - {self.late_exemption_start_date} - {self.late_exemption_end_date} "
+            return f"{self.late_exemption_minutes} {day_string} - {self.late_exemption_start_date} - {self.late_exemption_end_date}"
         return None
 
     def _get_overtime_work_short_description(self) -> str | None:
@@ -425,7 +425,7 @@ class Proposal(ColoredValueMixin, AutoCodeMixin, BaseModel):
     def _get_unpaid_leave_short_description(self) -> str | None:
         """Get short description for unpaid leave proposal."""
         if self.unpaid_leave_start_date and self.unpaid_leave_end_date:
-            shift = f"{self.unpaid_leave_shift} - " if self.unpaid_leave_shift else ""
+            shift = f"{ProposalWorkShift(self.unpaid_leave_shift).label} - " if self.unpaid_leave_shift else ""
             return f"{shift}{self.unpaid_leave_start_date} - {self.unpaid_leave_end_date}"
         return None
 
