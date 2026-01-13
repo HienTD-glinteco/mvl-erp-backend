@@ -150,6 +150,7 @@ class LoginSerializer(serializers.Serializer):
 
     def get_tokens(self, user: User, *, client: str) -> dict[str, str]:
         device_id: str = self.validated_data["device_id"]
+        push_token = str(self.validated_data.get("push_token") or device_id)
         now = timezone.now()
 
         if client == UserDevice.Client.MOBILE:
@@ -158,20 +159,19 @@ class LoginSerializer(serializers.Serializer):
                 client=UserDevice.Client.MOBILE,
                 state=UserDevice.State.ACTIVE,
             ).first()
-
             if active_device is None:
                 UserDevice.objects.create(
                     user=user,
                     client=UserDevice.Client.MOBILE,
                     device_id=device_id,
                     platform=str(self.validated_data.get("platform") or ""),
-                    push_token=str(self.validated_data.get("push_token") or ""),
+                    push_token=push_token,
                     last_seen_at=now,
                     state=UserDevice.State.ACTIVE,
                 )
             else:
                 active_device.platform = str(self.validated_data.get("platform") or "")
-                active_device.push_token = str(self.validated_data.get("push_token") or "")
+                active_device.push_token = push_token
                 active_device.last_seen_at = now
                 active_device.save(update_fields=["platform", "push_token", "last_seen_at"])
 
