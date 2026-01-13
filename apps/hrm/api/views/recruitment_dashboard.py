@@ -648,7 +648,7 @@ class RecruitmentDashboardViewSet(PermissionRegistrationMixin, viewsets.ViewSet)
             key = (item["month_key"], item["branch"])
             total_cost = float(item["total_cost"])
             total_hires = hired_lookup.get(key, 0)
-            avg_cost = total_cost / total_hires if total_hires > 0 else 0.0
+            avg_cost = round(total_cost / total_hires) if total_hires > 0 else 0
             data_lookup[key] = {
                 "total_cost": total_cost,
                 "total_hires": total_hires,
