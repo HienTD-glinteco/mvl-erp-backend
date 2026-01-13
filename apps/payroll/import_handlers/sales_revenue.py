@@ -1,5 +1,6 @@
 """Import handler for sales revenue data."""
 
+import logging
 from datetime import date
 
 from django.utils.translation import gettext as _
@@ -8,6 +9,8 @@ from rest_framework import serializers
 from apps.hrm.models import Employee
 from apps.payroll.models import SalesRevenue
 from apps.payroll.tasks import aggregate_sales_revenue_report_task
+
+logger = logging.getLogger(__name__)
 
 
 def _parse_target_month(target_month_str: str) -> date | None:
@@ -245,4 +248,21 @@ def on_import_complete(import_job_id: int, options: dict) -> None:
         options: Import options dictionary
     """
     # Trigger aggregation in background
-    aggregate_sales_revenue_report_task.delay()
+    target_month_str = options.get("target_month")
+    target_month_iso = None
+
+    if not target_month_str:
+        logger.error("Target month not provided in options for import job %s", import_job_id)
+        return
+
+    target_month = _parse_target_month(target_month_str)
+    if not target_month:
+        logger.error(
+            "Invalid target month format '%s' in options for import job %s",
+            target_month_str,
+            import_job_id,
+        )
+        return
+
+    target_month_iso = target_month.isoformat()
+    aggregate_sales_revenue_report_task.delay(target_month_iso)

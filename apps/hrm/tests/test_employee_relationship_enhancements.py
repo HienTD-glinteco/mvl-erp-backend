@@ -243,6 +243,7 @@ class EmployeeRelationshipEnhancementsAPITest(TransactionTestCase):
         # Arrange
         relationship_data = {
             "employee_id": self.employee.id,
+            "personal_email": self.employee.email,
             "relative_name": "Jane Doe",
             "relation_type": "WIFE",
             "code": "CUSTOM_CODE",  # This should be ignored

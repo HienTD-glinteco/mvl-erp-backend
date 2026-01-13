@@ -16,8 +16,6 @@ class SalesRevenueReportAggregator:
     SalesRevenueReportFlatModel entries with calculated metrics.
     """
 
-    TARGET_PER_EMPLOYEE = Decimal("50000000.00")
-
     @classmethod
     def aggregate_for_months(cls, month_dates: list[date]) -> int:
         """Aggregate sales revenue data for specified months.
@@ -117,7 +115,7 @@ class SalesRevenueReportAggregator:
             # Calculate derived fields
             total_kpi_target = sales_data["total_kpi_target"] or 0
             target_per_employee = (
-                sales_data["target_per_employee"] / total_sales_employees if total_sales_employees > 0 else 0
+                sales_data["total_kpi_target"] / total_sales_employees if total_sales_employees > 0 else 0
             )
 
             if total_kpi_target > 0:

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-13 14:52+0700\n"
+"POT-Creation-Date: 2026-01-13 15:31+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -141,23 +141,23 @@ msgid "Note must not exceed 500 characters."
 msgstr "Ghi chú không được vượt quá 500 ký tự"
 
 #: apps/payroll/api/serializers/sales_revenue.py:82
-#: apps/payroll/import_handlers/sales_revenue.py:62
+#: apps/payroll/import_handlers/sales_revenue.py:65
 msgid "Revenue is required"
 msgstr "Trường này là bắt buộc"
 
 #: apps/payroll/api/serializers/sales_revenue.py:84
-#: apps/payroll/import_handlers/sales_revenue.py:110
+#: apps/payroll/import_handlers/sales_revenue.py:113
 msgid "Revenue must be non-negative"
 msgstr "Doanh thu phải là số không âm"
 
 #: apps/payroll/api/serializers/sales_revenue.py:90
-#: apps/payroll/import_handlers/sales_revenue.py:70
-#: apps/payroll/import_handlers/sales_revenue.py:71
+#: apps/payroll/import_handlers/sales_revenue.py:73
+#: apps/payroll/import_handlers/sales_revenue.py:74
 msgid "Transaction count is required"
 msgstr "Trường này là bắt buộc"
 
 #: apps/payroll/api/serializers/sales_revenue.py:92
-#: apps/payroll/import_handlers/sales_revenue.py:120
+#: apps/payroll/import_handlers/sales_revenue.py:123
 msgid "Transaction count must be non-negative"
 msgstr "Số lượng giao dịch phải là số không âm"
 
@@ -962,55 +962,55 @@ msgstr "Quản lý công tác phí"
 msgid "Cannot delete travel expense for a month with existing payroll."
 msgstr "Không thể xóa công tác phí cho một tháng đã có bảng lương."
 
-#: apps/payroll/import_handlers/sales_revenue.py:48
-#: apps/payroll/import_handlers/sales_revenue.py:88
+#: apps/payroll/import_handlers/sales_revenue.py:51
+#: apps/payroll/import_handlers/sales_revenue.py:91
 msgid "Employee code is required"
 msgstr "Trường này là bắt buộc"
 
-#: apps/payroll/import_handlers/sales_revenue.py:55
+#: apps/payroll/import_handlers/sales_revenue.py:58
 msgid "KPI target is required"
 msgstr "Trường này là bắt buộc"
 
-#: apps/payroll/import_handlers/sales_revenue.py:93
+#: apps/payroll/import_handlers/sales_revenue.py:96
 #, python-format
 msgid "Employee not found: %(code)s"
 msgstr "Không tìm thấy nhân viên: %(code)s"
 
-#: apps/payroll/import_handlers/sales_revenue.py:100
+#: apps/payroll/import_handlers/sales_revenue.py:103
 msgid "KPI target must be non-negative"
 msgstr "Chỉ tiêu KPI phải là số không âm"
 
-#: apps/payroll/import_handlers/sales_revenue.py:103
+#: apps/payroll/import_handlers/sales_revenue.py:106
 msgid "Invalid KPI target value"
 msgstr "Giá trị chỉ tiêu KPI không hợp lệ"
 
-#: apps/payroll/import_handlers/sales_revenue.py:113
-#: apps/payroll/import_handlers/sales_revenue.py:123
+#: apps/payroll/import_handlers/sales_revenue.py:116
+#: apps/payroll/import_handlers/sales_revenue.py:126
 msgid "Invalid revenue or transaction count"
 msgstr "Số lượng giao dịch bán hàng hoặc doanh thu không hợp lệ"
 
-#: apps/payroll/import_handlers/sales_revenue.py:130
+#: apps/payroll/import_handlers/sales_revenue.py:133
 msgid "Invalid month format, expected MM/YYYY"
 msgstr "Định dạng tháng không hợp lệ. Sử dụng MM/YYYY (ví dụ: 12/2025)"
 
-#: apps/payroll/import_handlers/sales_revenue.py:139
+#: apps/payroll/import_handlers/sales_revenue.py:142
 #, python-format
 msgid "Month %(row_month)s does not match target month %(target_month)s"
 msgstr ""
 
-#: apps/payroll/import_handlers/sales_revenue.py:170
+#: apps/payroll/import_handlers/sales_revenue.py:173
 msgid "Headers not found in options"
 msgstr ""
 
-#: apps/payroll/import_handlers/sales_revenue.py:177
+#: apps/payroll/import_handlers/sales_revenue.py:180
 msgid "Target month not provided in options"
 msgstr ""
 
-#: apps/payroll/import_handlers/sales_revenue.py:181
+#: apps/payroll/import_handlers/sales_revenue.py:184
 msgid "Invalid target month format, expected MM/YYYY"
 msgstr ""
 
-#: apps/payroll/import_handlers/sales_revenue.py:201
+#: apps/payroll/import_handlers/sales_revenue.py:204
 msgid "Validation failed"
 msgstr ""
 
@@ -1770,7 +1770,7 @@ msgstr ""
 "Không thể nộp đánh giá KPI sau hạn chốt (%(deadline)s). Vui lòng liên hệ với "
 "bộ phận nhân sự để được hỗ trợ."
 
-#: apps/payroll/tasks.py:188
+#: apps/payroll/tasks.py:191
 #, python-format
 msgid ""
 "Hello %(employee_name)s,\n"
@@ -1805,12 +1805,12 @@ msgstr ""
 "Trân trọng,\n"
 "Đội ngũ MaiVietLand"
 
-#: apps/payroll/tasks.py:214
+#: apps/payroll/tasks.py:217
 #, python-format
 msgid "Payroll Slip %(month)s - MaiVietLand"
 msgstr "Phiếu lương %(month)s - MaiVietLand"
 
-#: apps/payroll/tasks.py:914
+#: apps/payroll/tasks.py:915
 #, python-format
 msgid ""
 "KPI Assessment for period %(period)s has been created. Please access KPI "
