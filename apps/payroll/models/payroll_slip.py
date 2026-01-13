@@ -95,6 +95,12 @@ class PayrollSlip(AutoCodeMixin, ColoredValueMixin, BaseModel):
     department_name = models.CharField(max_length=250, verbose_name=_("Department Name"))
     position_name = models.CharField(max_length=250, verbose_name=_("Position Name"))
     employment_status = models.CharField(max_length=20, verbose_name=_("Employment Status"))
+    employee_official_date = models.DateField(
+        null=True,
+        blank=True,
+        verbose_name=_("Employee Official Date"),
+        help_text="Date when employee became OFFICIAL, used for insurance calculation",
+    )
 
     # Penalty ticket flags
     has_unpaid_penalty = models.BooleanField(
