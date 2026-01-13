@@ -886,27 +886,27 @@ msgstr "Báo cáo doanh thu bán hàng"
 
 #: apps/payroll/api/views/sales_revenue_report.py:56
 msgid "View sales revenue quality reports"
-msgstr "Xem báo cáo chất lượng doanh thu bán hàng"
+msgstr "Xem báo cáo Đánh giá chất lượng nhân sự"
 
 #: apps/payroll/api/views/sales_revenue_report.py:57
 msgid "View list of sales revenue quality reports"
-msgstr "Xem danh sách báo cáo chất lượng doanh thu bán hàng"
+msgstr "Xem danh sách báo cáo Đánh giá chất lượng nhân sự"
 
 #: apps/payroll/api/views/sales_revenue_report.py:60
 msgid "View sales revenue chart"
-msgstr "Xem biểu đồ doanh thu bán hàng"
+msgstr "Xem biểu đồ Đánh giá chất lượng nhân sự"
 
 #: apps/payroll/api/views/sales_revenue_report.py:61
 msgid "View sales revenue chart data for dashboard"
-msgstr "Xem dữ liệu biểu đồ doanh thu bán hàng cho bảng điều khiển"
+msgstr "Xem dữ liệu biểu đồ Đánh giá chất lượng nhân sự cho bảng điều khiển"
 
 #: apps/payroll/api/views/sales_revenue_report.py:64
 msgid "Export sales revenue quality reports"
-msgstr "Xuất báo cáo chất lượng doanh thu bán hàng"
+msgstr "Xuất báo cáo Đánh giá chất lượng nhân sự"
 
 #: apps/payroll/api/views/sales_revenue_report.py:65
 msgid "Export sales revenue quality reports to file"
-msgstr "Xuất báo cáo chất lượng doanh thu bán hàng ra file"
+msgstr "Xuất báo cáo Đánh giá chất lượng nhân sự ra file"
 
 #: apps/payroll/api/views/sales_revenue_report.py:146
 msgid "KPI Target"

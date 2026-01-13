@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-13 16:53+0700\n"
+"POT-Creation-Date: 2026-01-13 18:25+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -841,37 +841,37 @@ msgstr "Duyệt hàng loạt cho log chấm công Khác"
 msgid "Approve or reject multiple Other attendance records"
 msgstr "Duyệt hoặc từ chối hàng loạt log chấm công Khác"
 
-#: apps/hrm/api/views/attendance_report.py:28
+#: apps/hrm/api/views/attendance_report.py:29
 msgid "Report"
 msgstr "Báo Cáo"
 
-#: apps/hrm/api/views/attendance_report.py:29
+#: apps/hrm/api/views/attendance_report.py:30
 msgid "Attendance"
 msgstr "Quản lý Chấm Công"
 
-#: apps/hrm/api/views/attendance_report.py:33
+#: apps/hrm/api/views/attendance_report.py:34
 msgid "Attendance Report By Method"
 msgstr "Báo cáo tỷ lệ chấm công theo các phương thức"
 
-#: apps/hrm/api/views/attendance_report.py:34
+#: apps/hrm/api/views/attendance_report.py:35
 msgid ""
 "Get attendance statistics report by method (device, wifi, geolocation, other)"
 msgstr ""
 "Báo cáo thống kê chấm công theo phương thức (thiết bị, wifi, GPS, khác)"
 
-#: apps/hrm/api/views/attendance_report.py:37
+#: apps/hrm/api/views/attendance_report.py:38
 msgid "Attendance Report By Project"
 msgstr "Báo Cáo Chấm Công Hàng Ngày"
 
-#: apps/hrm/api/views/attendance_report.py:38
+#: apps/hrm/api/views/attendance_report.py:39
 msgid "Get attendance statistics report grouped by projects"
 msgstr "Báo cáo chấm công GPS theo dự án"
 
-#: apps/hrm/api/views/attendance_report.py:41
+#: apps/hrm/api/views/attendance_report.py:42
 msgid "Attendance Report By Project Organization"
 msgstr "Báo cáo chấm công GPS theo phòng ban"
 
-#: apps/hrm/api/views/attendance_report.py:43
+#: apps/hrm/api/views/attendance_report.py:44
 msgid ""
 "Get attendance statistics report for personnel working on projects grouped "
 "by organizational structure"
@@ -4792,22 +4792,26 @@ msgid "End time must be after start time"
 msgstr "Thời gian kết thúc làm ngoài giờ phải sau thời gian bắt đầu"
 
 #: apps/hrm/models/proposal.py:1073
+#, python-brace-format
 msgid ""
 "Overtime entry cannot overlap with official morning working hours ({}-{})"
 msgstr ""
 "Thời gian làm thêm giờ không thể trùng với giờ làm việc chính thức ({}-{})"
 
 #: apps/hrm/models/proposal.py:1089
+#, python-brace-format
 msgid ""
 "Overtime entry cannot overlap with official afternoon working hours ({}-{})"
 msgstr ""
 "Thời gian làm thêm giờ không thể trùng với giờ làm việc chính thức ({}-{})"
 
 #: apps/hrm/models/proposal.py:1133
+#, python-brace-format
 msgid "Overtime entry cannot overlap with compensatory morning shift ({}-{})"
 msgstr "Thời gian làm thêm giờ không thể trùng với giờ làm việc bù ({}-{})"
 
 #: apps/hrm/models/proposal.py:1151
+#, python-brace-format
 msgid "Overtime entry cannot overlap with compensatory afternoon shift ({}-{})"
 msgstr "Thời gian làm thêm giờ không thể trùng với giờ làm việc bù ({}-{})"
 

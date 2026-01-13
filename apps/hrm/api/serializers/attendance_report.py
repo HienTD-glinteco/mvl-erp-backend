@@ -73,7 +73,7 @@ class AttendanceProjectReportParameterSerializer(AttendanceReportBaseParameterSe
     def get_filters(self):
         filters = super().get_filters()
         if self.validated_data.get("block_type"):
-            filters["block__type"] = self.validated_data.get("block_type")
+            filters["block__block_type"] = self.validated_data.get("block_type")
         return filters
 
 
