@@ -245,4 +245,12 @@ def on_import_complete(import_job_id: int, options: dict) -> None:
         options: Import options dictionary
     """
     # Trigger aggregation in background
-    aggregate_sales_revenue_report_task.delay()
+    target_month_str = options.get("target_month")
+    target_month_iso = None
+
+    if target_month_str:
+        target_month = _parse_target_month(target_month_str)
+        if target_month:
+            target_month_iso = target_month.isoformat()
+
+    aggregate_sales_revenue_report_task.delay(target_month_iso)

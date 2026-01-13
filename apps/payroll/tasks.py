@@ -460,22 +460,31 @@ def send_emails_for_period_task(self, period_id, filter_status=None):
 
 
 @shared_task
-def aggregate_sales_revenue_report_task():
+def aggregate_sales_revenue_report_task(target_month_iso: str | None = None):
     """Aggregate sales revenue data into flat report model in background.
 
-    This task is triggered after sales revenue import completes via
-    the on_import_complete callback hook.
+    Args:
+        target_month_iso: Target month in ISO format (YYYY-MM-DD). If None, aggregates all months.
 
     Returns:
         dict: Result with count of records created/updated
     """
     import logging
+    from datetime import date
 
     logger = logging.getLogger(__name__)
 
     try:
-        count = SalesRevenueReportAggregator.aggregate_from_import()
-        logger.info(f"Sales revenue report aggregation completed: {count} records")
+        if target_month_iso:
+            # Parse ISO date and aggregate for specific month only
+            target_month = date.fromisoformat(target_month_iso)
+            count = SalesRevenueReportAggregator.aggregate_for_months([target_month])
+            logger.info(f"Sales revenue report aggregation for {target_month}: {count} records")
+        else:
+            # Fallback: aggregate all months (for manual triggers)
+            count = SalesRevenueReportAggregator.aggregate_from_import()
+            logger.info(f"Sales revenue report aggregation (all months): {count} records")
+
         return {"status": "success", "count": count}
     except Exception as e:
         import sentry_sdk
