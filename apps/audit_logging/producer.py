@@ -8,6 +8,7 @@ from typing import Any, Optional
 
 from django.conf import settings
 from django.http import HttpRequest
+from django.utils.translation import gettext as _, gettext_lazy as _l
 from rstream import Producer, exceptions
 
 from .registry import AuditLogRegistry
@@ -26,6 +27,13 @@ IGNORED_FIELD_NAMES = {
     "created",
     "updated",
     "modified",
+}
+
+
+ACTION_TRANSLATED_MAPPING = {
+    "ADD": _l("Add"),
+    "CHANGE": _l("Change"),
+    "DELETE": _l("Delete"),
 }
 
 
@@ -160,7 +168,7 @@ def _prepare_change_messages(
         rows = []
 
         if not (hasattr(original_object, "_meta") and hasattr(modified_object, "_meta")):
-            log_data["change_message"] = "Object modified"
+            log_data["change_message"] = _("Object modified")
             return
 
         for field in modified_object._meta.fields:
@@ -183,13 +191,14 @@ def _prepare_change_messages(
         if rows:
             log_data["change_message"] = {"headers": ["field", "old_value", "new_value"], "rows": rows}
         else:
-            log_data["change_message"] = "Object modified"
+            log_data["change_message"] = _("Object modified")
     elif action == "ADD":
-        log_data["change_message"] = "Created new object"
+        log_data["change_message"] = _("Created new object")
     elif action == "DELETE":
-        log_data["change_message"] = "Deleted object"
+        log_data["change_message"] = _("Deleted object")
     else:
-        log_data["change_message"] = f"Action: {action}"
+        translated_action = ACTION_TRANSLATED_MAPPING.get(action, _("Unknown Action"))
+        log_data["change_message"] = _("Action: {action}").format(action=translated_action)
 
 
 def log_audit_event(

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-12 09:54+0700\n"
+"POT-Creation-Date: 2026-01-13 16:16+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -78,7 +78,26 @@ msgid "Modified"
 msgstr "Chỉnh sửa"
 
 #: apps/audit_logging/decorators.py:154
-#, fuzzy
-#| msgid "Delete"
 msgid "Deleted"
 msgstr "Xóa"
+
+#: apps/audit_logging/producer.py:171 apps/audit_logging/producer.py:194
+msgid "Object modified"
+msgstr "Chỉnh sửa đối tượng"
+
+#: apps/audit_logging/producer.py:196
+msgid "Created new object"
+msgstr "Tạo mới đối tượng"
+
+#: apps/audit_logging/producer.py:198
+msgid "Deleted object"
+msgstr "Xóa đối tượng"
+
+#: apps/audit_logging/producer.py:200
+msgid "Unknown Action"
+msgstr "Hành động không xác định"
+
+#: apps/audit_logging/producer.py:201
+#, python-brace-format
+msgid "Action: {action}"
+msgstr "Hành động: {action}"
