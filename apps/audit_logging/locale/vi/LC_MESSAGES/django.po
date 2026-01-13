@@ -82,3 +82,23 @@ msgstr "Chỉnh sửa"
 #| msgid "Delete"
 msgid "Deleted"
 msgstr "Xóa"
+
+#: apps/audit_logging/translations.py:11
+msgid "Create"
+msgstr "Tạo mới"
+
+#: apps/audit_logging/translations.py:12
+msgid "Update"
+msgstr "Cập nhật"
+
+#: apps/audit_logging/translations.py:91
+msgid "Field"
+msgstr "Trường thông tin"
+
+#: apps/audit_logging/translations.py:91
+msgid "Old value"
+msgstr "Giá trị cũ"
+
+#: apps/audit_logging/translations.py:91
+msgid "New value"
+msgstr "Giá trị mới"

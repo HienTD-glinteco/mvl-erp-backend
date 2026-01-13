@@ -5,6 +5,11 @@ from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
 from ..opensearch_client import get_opensearch_client
+from ..translations import (
+    get_action_display,
+    get_object_type_display,
+    translate_change_message,
+)
 
 
 @extend_schema_field(
@@ -230,6 +235,12 @@ class AuditLogSerializer(serializers.Serializer):
     session_key = serializers.CharField(required=False, allow_null=True)
     object_name = serializers.CharField(required=False, allow_null=True)
 
+    # Added translated fields
+    object_type_display = serializers.SerializerMethodField()
+    action_display = serializers.SerializerMethodField()
+    change_message_display = serializers.SerializerMethodField()
+    is_system_action = serializers.SerializerMethodField()
+
     def get_change_message(self, obj) -> str | dict | None:
         change_message = obj.get("change_message")
         if not change_message:
@@ -237,6 +248,30 @@ class AuditLogSerializer(serializers.Serializer):
         if "message" in change_message:
             return change_message["message"]
         return change_message
+
+    def get_object_type_display(self, obj):
+        """Return translated object type using model verbose_name."""
+        return get_object_type_display(obj.get("object_type", ""))
+
+    def get_action_display(self, obj):
+        """Return translated action."""
+        return get_action_display(obj.get("action", ""))
+
+    def get_change_message_display(self, obj):
+        """Return change message with translated field names."""
+        return translate_change_message(obj.get("change_message"), obj.get("object_type"))
+
+    def get_is_system_action(self, obj):
+        """Check if action was performed by system (no user or system user)."""
+        user_id = obj.get("user_id")
+        username = obj.get("username", "")
+
+        # System actions typically have no user or special system usernames
+        if not user_id:
+            return True
+        if username in ["system", "celery", "scheduler"]:
+            return True
+        return False
 
 
 class AuditLogSearchResponseSerializer(serializers.Serializer):
