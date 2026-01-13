@@ -4640,10 +4640,8 @@ msgid "Proposals"
 msgstr "Đề xuất"
 
 #: apps/hrm/models/proposal.py:402
-#, fuzzy
-#| msgid "Late minutes"
 msgid "minute"
-msgstr "Số phút đi muộn"
+msgstr "phút"
 
 #: apps/hrm/models/proposal.py:485
 msgid "Late exemption start date is required"
