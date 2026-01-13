@@ -8,6 +8,7 @@ from rest_framework.response import Response
 from apps.hrm.api.mixins import DataScopeReportFilterMixin
 from apps.hrm.constants import AttendanceType
 from apps.hrm.models import AttendanceDailyReport, Block, Branch, Department, TimeSheetEntry
+from apps.hrm.models.employee import Employee
 from apps.hrm.utils.functions import calculate_percentage
 from apps.realestate.models import Project
 from libs.drf.base_viewset import BaseGenericViewSet
@@ -120,7 +121,12 @@ class AttendanceReportViewSet(DataScopeReportFilterMixin, BaseGenericViewSet):
             timesheet_filters["employee__block_id__in"] = filters["block_id__in"]
         if "department_id__in" in filters:
             timesheet_filters["employee__department_id__in"] = filters["department_id__in"]
-        total_employee = TimeSheetEntry.objects.filter(**timesheet_filters).count()
+        total_employee = (
+            TimeSheetEntry.objects.filter(**timesheet_filters)
+            .exclude(employee__code_type="OS")
+            .exclude(employee__status=Employee.Status.RESIGNED)
+            .count()
+        )
 
         # Get attendance stats
         attendance_stats = AttendanceDailyReport.objects.filter(**filters).aggregate(
