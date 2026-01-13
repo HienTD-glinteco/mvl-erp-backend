@@ -210,10 +210,18 @@ class AuditLogSummarySerializer(serializers.Serializer):
     username = serializers.CharField(required=False, allow_null=True)
     employee_code = serializers.CharField(required=False, allow_null=True)
     full_name = serializers.CharField(required=False, allow_null=True)
-    action = serializers.CharField(required=False, allow_null=True)
-    object_type = serializers.CharField(required=False, allow_null=True)
+    action = serializers.SerializerMethodField()
+    object_type = serializers.SerializerMethodField()
     object_id = serializers.CharField(required=False, allow_null=True)
     object_repr = serializers.CharField(required=False, allow_null=True)
+
+    def get_action(self, obj):
+        """Return translated action."""
+        return get_action_display(obj.get("action", ""))
+
+    def get_object_type(self, obj):
+        """Return translated object type using model verbose_name."""
+        return get_object_type_display(obj.get("object_type", ""))
 
 
 class AuditLogSerializer(serializers.Serializer):
@@ -225,41 +233,37 @@ class AuditLogSerializer(serializers.Serializer):
     username = serializers.CharField(required=False, allow_null=True)
     employee_code = serializers.CharField(required=False, allow_null=True)
     full_name = serializers.CharField(required=False, allow_null=True)
-    action = serializers.CharField(required=False, allow_null=True)
-    object_type = serializers.CharField(required=False, allow_null=True)
+    action = serializers.SerializerMethodField()
+    object_type = serializers.SerializerMethodField()
     object_id = serializers.CharField(required=False, allow_null=True)
     object_repr = serializers.CharField(required=False, allow_null=True)
-    change_message = ChangeMessageField(required=False, allow_null=True)
+    change_message = serializers.SerializerMethodField()
     ip_address = serializers.CharField(required=False, allow_null=True)
     user_agent = serializers.CharField(required=False, allow_null=True)
     session_key = serializers.CharField(required=False, allow_null=True)
     object_name = serializers.CharField(required=False, allow_null=True)
-
-    # Added translated fields
-    object_type_display = serializers.SerializerMethodField()
-    action_display = serializers.SerializerMethodField()
-    change_message_display = serializers.SerializerMethodField()
     is_system_action = serializers.SerializerMethodField()
+
+    def get_action(self, obj):
+        """Return translated action."""
+        return get_action_display(obj.get("action", ""))
+
+    def get_object_type(self, obj):
+        """Return translated object type using model verbose_name."""
+        return get_object_type_display(obj.get("object_type", ""))
 
     def get_change_message(self, obj) -> str | dict | None:
         change_message = obj.get("change_message")
         if not change_message:
             return None
-        if "message" in change_message:
-            return change_message["message"]
-        return change_message
 
-    def get_object_type_display(self, obj):
-        """Return translated object type using model verbose_name."""
-        return get_object_type_display(obj.get("object_type", ""))
+        # Extract message content if wrapped
+        content = change_message
+        if isinstance(change_message, dict) and "message" in change_message:
+            content = change_message["message"]
 
-    def get_action_display(self, obj):
-        """Return translated action."""
-        return get_action_display(obj.get("action", ""))
-
-    def get_change_message_display(self, obj):
-        """Return change message with translated field names."""
-        return translate_change_message(obj.get("change_message"), obj.get("object_type"))
+        # Translate structure
+        return translate_change_message(content, obj.get("object_type"))
 
     def get_is_system_action(self, obj):
         """Check if action was performed by system (no user or system user)."""
