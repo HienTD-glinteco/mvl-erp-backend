@@ -55,30 +55,13 @@ class SalesRevenueReportAggregator:
         # Format month key
         month_key = month_date.strftime("%m/%Y")
 
-        # Get departments from EmployeeStatusBreakdownReport for this month
-        # This supports historical data import
-        employee_breakdowns = EmployeeStatusBreakdownReport.objects.filter(
-            report_date=last_day,
-            department__function=Department.DepartmentFunction.BUSINESS,
-            department__is_active=True,
-        ).select_related("branch", "block", "department")
-
-        # Build breakdown map and departments map
-        breakdown_map = {}
-        departments_map = {}
-        for eb in employee_breakdowns:
-            key = (eb.branch_id, eb.block_id, eb.department_id)
-            breakdown_map[key] = eb.count_active
-            departments_map[eb.department_id] = eb.department
-
-        if not departments_map:
-            return 0
-
-        # Aggregate sales revenue by department in a single query
+        # Aggregate sales revenue by department directly from SalesRevenue
+        # Only include BUSINESS function departments that are active
         sales_aggregated = (
             SalesRevenue.objects.filter(
                 month=month_date,
-                employee__department_id__in=departments_map.keys(),
+                employee__department__function=Department.DepartmentFunction.BUSINESS,
+                employee__department__is_active=True,
             )
             .values("employee__branch_id", "employee__block_id", "employee__department_id")
             .annotate(
@@ -89,6 +72,27 @@ class SalesRevenueReportAggregator:
                 total_kpi_target=Sum("kpi_target"),
             )
         )
+
+        if not sales_aggregated.exists():
+            return 0
+
+        # Get unique department IDs from sales data
+        dept_ids = {sa["employee__department_id"] for sa in sales_aggregated}
+
+        # Get departments with related branch/block for report creation
+        departments_map = {
+            d.id: d for d in Department.objects.filter(id__in=dept_ids).select_related("branch", "block")
+        }
+
+        # Build breakdown map from EmployeeStatusBreakdownReport for employee counts only
+        employee_breakdowns = EmployeeStatusBreakdownReport.objects.filter(
+            report_date=last_day,
+            department_id__in=dept_ids,
+        )
+        breakdown_map = {}
+        for eb in employee_breakdowns:
+            key = (eb.branch_id, eb.block_id, eb.department_id)
+            breakdown_map[key] = eb.count_active
 
         # Process aggregated data
         count = 0

@@ -51,8 +51,9 @@ def run():
             timezone.datetime(2025, 12, 1).date().isoformat(),
             timezone.datetime(2025, 11, 1).date().isoformat(),
         ]
-        result = aggregate_sales_revenue_report_task()
-        print(f"Task completed. Result: {result}")
+        for month in target_months:
+            result = aggregate_sales_revenue_report_task(month)
+            print(f"Task completed. Result: {result}")
 
         # Verify new count
         new_report_count = SalesRevenueReportFlatModel.objects.count()
