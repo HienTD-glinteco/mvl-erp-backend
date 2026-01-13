@@ -8,7 +8,7 @@ from django.apps import apps
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from rest_framework.request import Request
-from rest_framework.test import APIRequestFactory
+from rest_framework.test import APIRequestFactory, force_authenticate
 
 from .constants import DEFAULT_PROGRESS_CHUNK_SIZE
 from .generator import XLSXGenerator
@@ -207,23 +207,27 @@ def generate_xlsx_from_viewset_task(
         factory = APIRequestFactory()
         django_request = factory.get("/", data=request_data.get("query_params", {}))
 
-        # Add user to request if provided
+        # Add user authentication to request if provided
+        User = get_user_model()
         if request_data.get("user_id"):
-            User = get_user_model()
             try:
                 user = User.objects.get(pk=request_data["user_id"])
-                django_request.user = user
+                # Use force_authenticate to properly set the user on the request
+                force_authenticate(django_request, user=user)
             except User.DoesNotExist:
+                # User was deleted - request will use AnonymousUser
                 pass
 
         # Create DRF Request
         drf_request = Request(django_request)
 
-        # Instantiate ViewSet and set up context
+        # Instantiate ViewSet with proper initialization
         viewset = viewset_class()
         viewset.request = drf_request
         viewset.format_kwarg = None
         viewset.action = "export"  # Set action for get_serializer_class()
+        viewset.kwargs = {}  # Initialize kwargs for compatibility
+        viewset.basename = getattr(viewset_class, "basename", "export")  # Set basename
 
         # Call get_export_data to build schema
         schema = viewset.get_export_data(drf_request)

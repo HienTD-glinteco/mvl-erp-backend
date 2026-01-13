@@ -1,9 +1,8 @@
 """ViewSet for SalaryPeriod model."""
 
-from django.db.models import Q
 from django.utils.translation import gettext as _
 from django_filters.rest_framework import DjangoFilterBackend
-from drf_spectacular.utils import OpenApiExample, OpenApiParameter, extend_schema, extend_schema_view
+from drf_spectacular.utils import OpenApiExample, extend_schema, extend_schema_view
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter
@@ -14,7 +13,6 @@ from apps.core.api.permissions import DataScopePermission, RoleBasedPermission
 from apps.hrm.utils.filters import RoleDataScopeFilterBackend
 from apps.payroll.api.filtersets import PayrollSlipFilterSet, SalaryPeriodFilterSet
 from apps.payroll.api.serializers import (
-    PayrollSlipExportSerializer,
     PayrollSlipSerializer,
     SalaryPeriodCreateAsyncSerializer,
     SalaryPeriodCreateResponseSerializer,
@@ -655,53 +653,19 @@ class SalaryPeriodViewSet(AuditLoggingMixin, BaseModelViewSet):
         return Response(response_data)
 
     @extend_schema(
-        summary="Export payroll slips to XLSX",
-        description="Export all payroll slips for this salary period to XLSX format with filtering support",
+        summary="Export payroll slips to XLSX (2 sheets)",
+        description=(
+            "Export payroll slips for this salary period to XLSX format with 2 sheets:\n"
+            "- Sheet 1 'Ready Slips': READY slips (ONGOING) or DELIVERED slips (COMPLETED)\n"
+            "- Sheet 2 'Not Ready Slips': PENDING/HOLD slips\n\n"
+            "Each sheet contains detailed salary breakdown including position income, "
+            "working days, overtime, insurance contributions, tax calculations, and bank account.\n\n"
+            "Headers include grouped columns for: Position Income (9 cols), Working Days (4 cols), "
+            "Overtime (10 cols), Employer Contributions (5 cols), Employee Deductions (4 cols), "
+            "and Tax Information (5 cols)."
+        ),
         tags=["10.6: Salary Periods"],
-        parameters=[
-            OpenApiParameter(
-                name="search",
-                description="Search query (searches employee code, employee name, code)",
-                required=False,
-                type=str,
-            ),
-            OpenApiParameter(
-                name="ordering",
-                description="Order by field(s). Prefix with '-' for descending order",
-                required=False,
-                type=str,
-            ),
-            OpenApiParameter(
-                name="employee_code",
-                description="Filter by employee code",
-                required=False,
-                type=str,
-            ),
-            OpenApiParameter(
-                name="department_name",
-                description="Filter by department name",
-                required=False,
-                type=str,
-            ),
-            OpenApiParameter(
-                name="position_name",
-                description="Filter by position name",
-                required=False,
-                type=str,
-            ),
-            OpenApiParameter(
-                name="status",
-                description="Filter by status",
-                required=False,
-                type=str,
-            ),
-            OpenApiParameter(
-                name="has_unpaid_penalty",
-                description="Filter by unpaid penalty status",
-                required=False,
-                type=bool,
-            ),
-        ],
+        parameters=[],
         responses={
             200: {
                 "type": "object",
@@ -715,12 +679,12 @@ class SalaryPeriodViewSet(AuditLoggingMixin, BaseModelViewSet):
         },
         examples=[
             OpenApiExample(
-                "Success - Export link",
+                "Success - Export link with 2 sheets",
                 value={
                     "success": True,
                     "data": {
                         "url": "https://s3.amazonaws.com/...",
-                        "filename": "salary_period_payroll_slips.xlsx",
+                        "filename": "salary_period_SP-202501_payroll_slips.xlsx",
                         "expires_in": 3600,
                         "storage_backend": "s3",
                     },
@@ -733,7 +697,7 @@ class SalaryPeriodViewSet(AuditLoggingMixin, BaseModelViewSet):
     )
     @action(detail=True, methods=["get"], url_path="payrollslips-export")
     def payrollslips_export(self, request, pk=None):
-        """Export payroll slips for this salary period to XLSX."""
+        """Export payroll slips for this salary period to XLSX with 2 sheets (Ready and Not Ready)."""
         from django.conf import settings
 
         from libs.export_xlsx.constants import STORAGE_S3
@@ -742,57 +706,360 @@ class SalaryPeriodViewSet(AuditLoggingMixin, BaseModelViewSet):
 
         period = self.get_object()
 
-        # Get queryset of payroll slips for this period
-        slips = period.payroll_slips.select_related("employee", "salary_period").all()
+        # Define detailed headers structure for both sheets
+        # Row 1: Group headers (with colspan)
+        # Row 2: Column headers (sub-headers for groups with span > 1, empty for span = 1)
 
-        # Apply search filter if provided
-        search = request.query_params.get("search")
-        if search:
-            slips = slips.filter(
-                Q(employee_code__icontains=search) | Q(employee_name__icontains=search) | Q(code__icontains=search)
+        # For groups with span=1, leave the second row header empty to avoid duplication
+        headers = [
+            "",  # A: STT - already in group
+            "",  # B: Employee code - already in group
+            "",  # C: Full name - already in group
+            "",  # D: Department - already in group
+            "",  # E: Position - already in group
+            "",  # F: Employment status - already in group
+            "",  # G: Email - already in group
+            "",  # H: Sales revenue - already in group
+            "",  # I: Transaction count - already in group
+            # Position income (9 columns) - need sub-headers
+            _("Base salary"),  # J
+            _("Lunch allowance"),  # K
+            _("Phone allowance"),  # L
+            _("Travel allowance"),  # M
+            _("KPI salary"),  # N
+            _("KPI grade"),  # O - Changed from KPI percentage
+            _("KPI bonus"),  # P
+            _("Business bonus"),  # Q
+            _("Total"),  # R
+            # Working days (4 columns) - need sub-headers
+            _("Standard"),  # S
+            _("Actual"),  # T
+            _("Probation"),  # U
+            _("Official"),  # V
+            # Income by working days
+            "",  # W: Already in group
+            # Overtime (10 columns) - need sub-headers
+            _("Weekday/Saturday"),  # X
+            _("Sunday"),  # Y
+            _("Holiday"),  # Z
+            _("Total"),  # AA
+            _("Hourly rate"),  # AB
+            _("Reference overtime pay"),  # AC
+            _("Progress allowance"),  # AD
+            _("Hours for calculation"),  # AE
+            _("Taxable overtime"),  # AF
+            _("Non-taxable overtime"),  # AG
+            # Total income
+            "",  # AH: Already in group
+            # Insurance base
+            "",  # AI: Already in group
+            # Employer contributions (5 columns) - need sub-headers
+            _("Social insurance (17%)"),  # AJ
+            _("Health insurance (3%)"),  # AK
+            _("Accident insurance (0.5%)"),  # AL
+            _("Unemployment insurance (1%)"),  # AM
+            _("Union fee (2%)"),  # AN
+            # Employee deductions (4 columns) - need sub-headers
+            _("Social insurance (8%)"),  # AO
+            _("Health insurance (1.5%)"),  # AP
+            _("Unemployment insurance (1%)"),  # AQ
+            _("Union fee (1%)"),  # AR
+            # Tax (6 columns) - need sub-headers
+            _("Tax code"),  # AS
+            _("Dependents count"),  # AT
+            _("Total deduction"),  # AU
+            _("Non-taxable allowance"),  # AV
+            _("Taxable income"),  # AW
+            _("Personal income tax"),  # AX
+            # Adjustments
+            "",  # AY: Back pay - already in group
+            "",  # AZ: Recovery - already in group
+            # Net salary
+            "",  # BA: Already in group
+            # Bank account
+            "",  # BB: Already in group
+        ]
+
+        # Define groups for colspan headers
+        groups = [
+            {"title": _("No."), "span": 1},
+            {"title": _("Employee code"), "span": 1},
+            {"title": _("Full name"), "span": 1},
+            {"title": _("Department"), "span": 1},
+            {"title": _("Position"), "span": 1},
+            {"title": _("Employment status"), "span": 1},
+            {"title": _("Email"), "span": 1},
+            {"title": _("Sales revenue"), "span": 1},
+            {"title": _("Transaction count"), "span": 1},
+            {"title": _("Position income"), "span": 9},
+            {"title": _("Working days"), "span": 4},
+            {"title": _("Actual working days income"), "span": 1},
+            {"title": _("Overtime"), "span": 10},
+            {"title": _("Gross income"), "span": 1},
+            {"title": _("Insurance base"), "span": 1},
+            {"title": _("Employer contributions"), "span": 5},
+            {"title": _("Employee deductions"), "span": 4},
+            {"title": _("Tax information"), "span": 6},  # Changed from 5 to 6
+            {"title": _("Back pay"), "span": 1},
+            {"title": _("Recovery"), "span": 1},
+            {"title": _("Net salary"), "span": 1},
+            {"title": _("Bank account"), "span": 1},
+        ]
+
+        field_names = [
+            "stt",  # A
+            "employee_code",  # B
+            "employee_name",  # C
+            "department_name",  # D
+            "position_name",  # E
+            "employment_status",  # F
+            "employee_email",  # G
+            "sales_revenue",  # H
+            "sales_transaction_count",  # I
+            # Position income (9 fields)
+            "base_salary",  # J
+            "lunch_allowance",  # K
+            "phone_allowance",  # L
+            "travel_expense_by_working_days",  # M
+            "kpi_salary",  # N
+            "kpi_grade",  # O
+            "kpi_bonus",  # P
+            "business_progressive_salary",  # Q
+            "total_position_income",  # R
+            # Working days (4 fields)
+            "standard_working_days",  # S
+            "total_working_days",  # T
+            "probation_working_days",  # U
+            "official_working_days",  # V
+            # Income by working days (1 field)
+            "actual_working_days_income",  # W
+            # Overtime (10 fields)
+            "tc1_overtime_hours",  # X
+            "tc2_overtime_hours",  # Y
+            "tc3_overtime_hours",  # Z
+            "total_overtime_hours",  # AA
+            "hourly_rate",  # AB
+            "overtime_pay_reference",  # AC - Reference overtime pay
+            "overtime_progress_allowance",  # AD
+            "overtime_hours_for_calculation",  # AE
+            "taxable_overtime_salary",  # AF
+            "non_taxable_overtime_salary",  # AG
+            # Total income (1 field)
+            "gross_income",  # AH
+            # Insurance base (1 field)
+            "social_insurance_base",  # AI
+            # Employer contributions (5 fields)
+            "employer_social_insurance",  # AJ
+            "employer_health_insurance",  # AK
+            "employer_accident_insurance",  # AL
+            "employer_unemployment_insurance",  # AM
+            "employer_union_fee",  # AN
+            # Employee deductions (4 fields)
+            "employee_social_insurance",  # AO
+            "employee_health_insurance",  # AP
+            "employee_unemployment_insurance",  # AQ
+            "employee_union_fee",  # AR
+            # Tax (5 fields)
+            "tax_code",  # AS
+            "dependent_count",  # AT
+            "total_deduction",  # AU
+            "non_taxable_allowance",  # AV
+            "taxable_income",  # AW
+            "personal_income_tax",  # AX
+            # Adjustments (2 fields)
+            "back_pay_amount",  # AY
+            "recovery_amount",  # AZ
+            # Net salary (1 field)
+            "net_salary",  # BA
+            # Bank account (1 field)
+            "bank_account",  # BB
+        ]
+
+        # Sheet 1: Ready slips (based on SalaryPeriodReadySlipsViewSet logic)
+        if period.status == SalaryPeriod.Status.ONGOING:
+            ready_slips = (
+                PayrollSlip.objects.filter(status=PayrollSlip.Status.READY)
+                .select_related("employee", "salary_period")
+                .prefetch_related("employee__bank_accounts")
+            )
+        else:  # COMPLETED
+            ready_slips = (
+                PayrollSlip.objects.filter(payment_period=period, status=PayrollSlip.Status.DELIVERED)
+                .select_related("employee", "salary_period")
+                .prefetch_related("employee__bank_accounts")
             )
 
-        # Apply field filters
-        employee_code = request.query_params.get("employee_code")
-        if employee_code:
-            slips = slips.filter(employee_code__icontains=employee_code)
+        # Sheet 2: Not ready slips (based on SalaryPeriodNotReadySlipsViewSet logic)
+        if period.status == SalaryPeriod.Status.ONGOING:
+            not_ready_slips = (
+                PayrollSlip.objects.filter(
+                    salary_period=period, status__in=[PayrollSlip.Status.PENDING, PayrollSlip.Status.HOLD]
+                )
+                .select_related("employee", "salary_period")
+                .prefetch_related("employee__bank_accounts")
+            )
+        else:  # COMPLETED
+            not_ready_slips = (
+                PayrollSlip.objects.filter(
+                    salary_period=period,
+                    status__in=[PayrollSlip.Status.PENDING, PayrollSlip.Status.HOLD, PayrollSlip.Status.READY],
+                )
+                .select_related("employee", "salary_period")
+                .prefetch_related("employee__bank_accounts")
+            )
 
-        department_name = request.query_params.get("department_name")
-        if department_name:
-            slips = slips.filter(department_name__icontains=department_name)
+        # Build data for both sheets
+        def build_sheet_data(slips):
+            """Build sheet data with Excel formulas for calculated fields."""
+            data = []
 
-        position_name = request.query_params.get("position_name")
-        if position_name:
-            slips = slips.filter(position_name__icontains=position_name)
+            # Get insurance config percentages from period's salary config
+            insurance_config = period.salary_config_snapshot.get("insurance_contributions", {})
+            employer_si_rate = insurance_config.get("employer_social_insurance", 17) / 100
+            employer_hi_rate = insurance_config.get("employer_health_insurance", 3) / 100
+            employer_ai_rate = insurance_config.get("employer_accident_insurance", 0.5) / 100
+            employer_ui_rate = insurance_config.get("employer_unemployment_insurance", 1) / 100
+            employer_uf_rate = insurance_config.get("employer_union_fee", 2) / 100
+            employee_si_rate = insurance_config.get("employee_social_insurance", 8) / 100
+            employee_hi_rate = insurance_config.get("employee_health_insurance", 1.5) / 100
+            employee_ui_rate = insurance_config.get("employee_unemployment_insurance", 1) / 100
+            employee_uf_rate = insurance_config.get("employee_union_fee", 1) / 100
 
-        status_filter = request.query_params.get("status")
-        if status_filter:
-            slips = slips.filter(status=status_filter)
+            # Get tax config
+            tax_config = period.salary_config_snapshot.get("personal_income_tax", {})
+            personal_deduction = tax_config.get("personal_deduction", 11000000)
+            dependent_deduction = tax_config.get("dependent_deduction", 4400000)
 
-        has_unpaid_penalty = request.query_params.get("has_unpaid_penalty")
-        if has_unpaid_penalty is not None:
-            slips = slips.filter(has_unpaid_penalty=has_unpaid_penalty.lower() == "true")
+            # Employment status constants (English values used in formulas)
+            from apps.hrm.constants import EmployeeType
 
-        # Apply ordering
-        ordering = request.query_params.get("ordering", "-calculated_at")
-        slips = slips.order_by(ordering)
+            probation_status = EmployeeType.PROBATION.value  # "PROBATION"
+            official_status = EmployeeType.OFFICIAL.value  # "OFFICIAL"
 
-        # Serialize data using export serializer
-        serializer = PayrollSlipExportSerializer(slips, many=True)
+            for idx, slip in enumerate(slips, start=1):
+                # Row number in Excel (accounting for header rows: 1 group + 1 header = 2 rows)
+                excel_row = idx + 2
 
-        # Prepare export data
-        headers = [str(field.label) for field in serializer.child.fields.values()]
-        data = serializer.data
-        field_names = list(serializer.child.fields.keys())
+                row = {
+                    # A: STT
+                    "stt": idx,
+                    # B: Employee code
+                    "employee_code": slip.employee_code or "",
+                    # C: Full name
+                    "employee_name": slip.employee_name or "",
+                    # D: Department
+                    "department_name": slip.department_name or "",
+                    # E: Position
+                    "position_name": slip.position_name or "",
+                    # F: Employment status
+                    "employment_status": slip.employment_status or "",
+                    # G: Email
+                    "employee_email": slip.employee_email or "",
+                    # H: Sales revenue
+                    "sales_revenue": slip.sales_revenue or 0,
+                    # I: Transaction count
+                    "sales_transaction_count": slip.sales_transaction_count or 0,
+                    # Position income (J-R)
+                    "base_salary": slip.base_salary or 0,  # J
+                    "lunch_allowance": slip.lunch_allowance or 0,  # K
+                    "phone_allowance": slip.phone_allowance or 0,  # L
+                    "travel_expense_by_working_days": slip.travel_expense_by_working_days or 0,  # M
+                    "kpi_salary": slip.kpi_salary or 0,  # N
+                    "kpi_grade": slip.kpi_grade or "",  # O
+                    "kpi_bonus": slip.kpi_bonus or 0,  # P
+                    "business_progressive_salary": slip.business_progressive_salary or 0,  # Q
+                    # R: Total position income = J+K+L+M+N+P+Q
+                    "total_position_income": f"=J{excel_row}+K{excel_row}+L{excel_row}+M{excel_row}+N{excel_row}+P{excel_row}+Q{excel_row}",
+                    # Working days (S-V)
+                    "standard_working_days": slip.standard_working_days or 0,  # S
+                    "total_working_days": slip.total_working_days or 0,  # T
+                    "probation_working_days": slip.probation_working_days or 0,  # U
+                    "official_working_days": slip.official_working_days or 0,  # V
+                    # W: Actual working days income
+                    # Formula: IF(E{row}="NVKD",(V{row}*R{row}+U{row}*R{row})/S{row},(V{row}*R{row}+U{row}*R{row}*0.85)/S{row})
+                    "actual_working_days_income": f'=IF(E{excel_row}="NVKD",(V{excel_row}*R{excel_row}+U{excel_row}*R{excel_row})/S{excel_row},(V{excel_row}*R{excel_row}+U{excel_row}*R{excel_row}*0.85)/S{excel_row})',
+                    # Overtime (X-AG)
+                    "tc1_overtime_hours": slip.tc1_overtime_hours or 0,  # X
+                    "tc2_overtime_hours": slip.tc2_overtime_hours or 0,  # Y
+                    "tc3_overtime_hours": slip.tc3_overtime_hours or 0,  # Z
+                    "total_overtime_hours": slip.total_overtime_hours or 0,  # AA - fill data, not formula
+                    # AB: Hourly rate = IF(F="PROBATION",R*0.85/S/8,R/S/8)
+                    "hourly_rate": f'=IF(F{excel_row}="{probation_status}",R{excel_row}*0.85/S{excel_row}/8,R{excel_row}/S{excel_row}/8)',
+                    # AC: Reference overtime pay = (X*1.5+Y*2+Z*3)*AB
+                    "overtime_pay_reference": f"=(X{excel_row}*1.5+Y{excel_row}*2+Z{excel_row}*3)*AB{excel_row}",
+                    # AD: Progress allowance = AC-AF
+                    "overtime_progress_allowance": f"=AC{excel_row}-AF{excel_row}",
+                    # AE: Hours for calculation = AA
+                    "overtime_hours_for_calculation": f"=AA{excel_row}",
+                    # AF: Taxable overtime = AE*AB
+                    "taxable_overtime_salary": f"=AE{excel_row}*AB{excel_row}",
+                    # AG: Non-taxable overtime = IF(AD>AF*2,AF*2,AC-AF)
+                    "non_taxable_overtime_salary": f"=IF(AD{excel_row}>AF{excel_row}*2,AF{excel_row}*2,AC{excel_row}-AF{excel_row})",
+                    # AH: Gross income = W+AF+AG
+                    "gross_income": f"=W{excel_row}+AF{excel_row}+AG{excel_row}",
+                    # AI: Insurance base = IF(F="OFFICIAL",J,0)
+                    "social_insurance_base": f'=IF(F{excel_row}="{official_status}",J{excel_row},0)',
+                    # Employer contributions (AJ-AN)
+                    "employer_social_insurance": f"=AI{excel_row}*{employer_si_rate}",  # AJ
+                    "employer_health_insurance": f"=AI{excel_row}*{employer_hi_rate}",  # AK
+                    "employer_accident_insurance": f"=AI{excel_row}*{employer_ai_rate}",  # AL
+                    "employer_unemployment_insurance": f"=AI{excel_row}*{employer_ui_rate}",  # AM
+                    "employer_union_fee": f"=AI{excel_row}*{employer_uf_rate}",  # AN
+                    # Employee deductions (AO-AR)
+                    "employee_social_insurance": f"=AI{excel_row}*{employee_si_rate}",  # AO
+                    "employee_health_insurance": f"=AI{excel_row}*{employee_hi_rate}",  # AP
+                    "employee_unemployment_insurance": f"=AI{excel_row}*{employee_ui_rate}",  # AQ
+                    "employee_union_fee": f"=AI{excel_row}*{employee_uf_rate}",  # AR
+                    # Tax information (AS-AX)
+                    "tax_code": slip.tax_code or "",  # AS
+                    "dependent_count": slip.dependent_count or 0,  # AT
+                    # AU: Total deduction = personal_deduction + dependent_count * dependent_deduction
+                    "total_deduction": f"={personal_deduction}+AT{excel_row}*{dependent_deduction}",
+                    # AV: Non-taxable allowance = SUM(K:L)/S*(U*0.85+V)
+                    "non_taxable_allowance": f"=SUM(K{excel_row}:L{excel_row})/S{excel_row}*(U{excel_row}*0.85+V{excel_row})",
+                    # AW: Taxable income - depends on employment status
+                    # If F="OFFICIAL": =IF(AH-SUM(AO:AQ)-AU-AG-AV>0,AH-SUM(AO:AQ)-AU-AG-AV,0)
+                    # Else: =AH
+                    "taxable_income": f'=IF(F{excel_row}="{official_status}",IF(AH{excel_row}-SUM(AO{excel_row}:AQ{excel_row})-AU{excel_row}-AG{excel_row}-AV{excel_row}>0,AH{excel_row}-SUM(AO{excel_row}:AQ{excel_row})-AU{excel_row}-AG{excel_row}-AV{excel_row},0),AH{excel_row})',
+                    # AX: Personal income tax
+                    # If F="OFFICIAL": Progressive tax brackets
+                    # Else: =IF(AW>=2000000,AW*10%,0)
+                    "personal_income_tax": f'=IF(F{excel_row}="{official_status}",IF(AW{excel_row}<=5000000,AW{excel_row}*0.05,IF(AW{excel_row}<=10000000,AW{excel_row}*0.1-250000,IF(AW{excel_row}<=18000000,AW{excel_row}*0.15-750000,IF(AW{excel_row}<=32000000,AW{excel_row}*0.2-1650000,IF(AW{excel_row}<=52000000,AW{excel_row}*0.25-3250000,IF(AW{excel_row}<=80000000,AW{excel_row}*0.3-5850000,AW{excel_row}*0.35-9850000)))))),IF(AW{excel_row}>=2000000,AW{excel_row}*0.1,0))',
+                    # Adjustments (AY-AZ)
+                    "back_pay_amount": slip.back_pay_amount or 0,  # AY
+                    "recovery_amount": slip.recovery_amount or 0,  # AZ
+                    # BA: Net salary = ROUND(AH-SUM(AO:AQ)-AR+AY-AZ-AX,0)
+                    "net_salary": f"=ROUND(AH{excel_row}-SUM(AO{excel_row}:AQ{excel_row})-AR{excel_row}+AY{excel_row}-AZ{excel_row}-AX{excel_row},0)",
+                    # BB: Bank account
+                    "bank_account": (
+                        slip.employee.default_bank_account.account_number
+                        if slip.employee and slip.employee.default_bank_account
+                        else ""
+                    ),
+                }
+                data.append(row)
+            return data
 
+        ready_data = build_sheet_data(ready_slips)
+        not_ready_data = build_sheet_data(not_ready_slips)
+
+        # Create schema with 2 sheets
         schema = {
             "sheets": [
                 {
-                    "name": f"Payroll Slips - {period.code}",
+                    "name": "Ready Slips",
+                    "groups": groups,
                     "headers": headers,
                     "field_names": field_names,
-                    "data": data,
-                }
+                    "data": ready_data,
+                },
+                {
+                    "name": "Not Ready Slips",
+                    "groups": groups,
+                    "headers": headers,
+                    "field_names": field_names,
+                    "data": not_ready_data,
+                },
             ]
         }
 

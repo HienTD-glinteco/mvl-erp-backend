@@ -591,10 +591,13 @@ class PayrollCalculationService:
 
             self.slip.personal_income_tax = personal_income_tax.quantize(Decimal("1"))
         else:
-            # Non-official employee: taxable_income_base = gross_income, tax = 10%
+            # Non-official employee: taxable_income_base = gross_income, tax = 10% if >= 2,000,000
             self.slip.taxable_income_base = self.slip.gross_income
             self.slip.taxable_income = self.slip.gross_income
-            self.slip.personal_income_tax = (self.slip.gross_income * Decimal("0.10")).quantize(Decimal("1"))
+            if self.slip.gross_income >= Decimal("2000000"):
+                self.slip.personal_income_tax = (self.slip.gross_income * Decimal("0.10")).quantize(Decimal("1"))
+            else:
+                self.slip.personal_income_tax = Decimal("0")
 
     def _process_recovery_vouchers(self):
         """Process recovery vouchers."""
