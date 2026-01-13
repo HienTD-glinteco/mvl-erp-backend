@@ -155,6 +155,9 @@ class TimesheetSnapshotService:
                 if allowed_minutes < 65:
                     allowed_minutes = 65
                     reason = AllowedLateMinutesReason.MATERNITY
+                # BUG FIX: Even if already >= 65, still set reason if proposal exists
+                else:
+                    reason = AllowedLateMinutesReason.MATERNITY
 
             if p.proposal_type == ProposalType.LATE_EXEMPTION:
                 # Custom grace period for late exemption

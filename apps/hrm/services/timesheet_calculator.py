@@ -3,6 +3,8 @@ from decimal import Decimal
 from fractions import Fraction
 from typing import Optional
 
+from django.utils import timezone
+
 from apps.hrm.constants import (
     STANDARD_WORKING_HOURS_PER_DAY,
     AllowedLateMinutesReason,
@@ -82,6 +84,12 @@ class TimesheetCalculator:
     def handle_exemption(self) -> bool:
         """Check if employee is exempt. If so, grant full credit and exit."""
         if self.entry.is_exempt:
+            # NEW: Don't finalize future dates
+            if self.entry.date > timezone.localdate():
+                self.entry.status = None
+                self.entry.working_days = None
+                return True
+
             self.entry.status = TimesheetStatus.ON_TIME
             self.entry.working_days = self._get_max_working_days()
             # Reset penalties/absent reasons just in case
@@ -384,18 +392,33 @@ class TimesheetCalculator:
     def _handle_leave_status(self, is_finalizing: bool) -> bool:
         """Return True if status was set due to leave.
 
-        For leave reasons (paid/unpaid/maternity leave), status is only set to ABSENT
-        when is_finalizing=True. For future dates (is_finalizing=False), status remains
-        None to show gray/empty in the timesheet grid.
-
-        If employee has attendance records, skip leave logic - they worked despite
-        having approved leave, so calculate status from actual attendance.
+        PRIORITY RULE: Attendance > Events > Proposals
+        - If employee has attendance logs, their leave proposal is OVERRIDDEN
+        - They should be calculated as normal working day
+        - Clear absent_reason so leave balance is automatically refunded on monthly refresh
         """
-        # If employee has attendance records, don't apply leave logic
-        # (they worked despite having approved leave)
         has_attendance = self.entry.start_time or self.entry.end_time
+
+        # PRIORITY RULE: Attendance wins over leave proposal
         if has_attendance:
+            # Clear absent_reason → leave will be automatically refunded
+            # when EmployeeMonthlyTimesheet.refresh_for_employee_month() runs
+            # because consumed_leave_days = COUNT(absent_reason=PAID_LEAVE)
+            if self.entry.absent_reason in [
+                TimesheetReason.PAID_LEAVE,
+                TimesheetReason.UNPAID_LEAVE,
+            ]:
+                self.entry.absent_reason = None
+
+            # Continue with NORMAL attendance calculation
             return False
+
+        # Check if day has no work schedule (e.g., Sunday)
+        if self._get_schedule_max_days() == 0:
+            # No schedule = no working days regardless of leave
+            self.entry.working_days = Decimal("0.00")
+            self.entry.status = None
+            return True
 
         leave_reasons = [
             TimesheetReason.PAID_LEAVE,
@@ -458,10 +481,19 @@ class TimesheetCalculator:
 
         self.entry.working_days = Decimal("0.00")
 
+        # NEW: Handle Holiday - always get full credit
+        if self.entry.day_type == TimesheetDayType.HOLIDAY:
+            self.entry.working_days = Decimal("1.00")
+            return
+
         # 1. Absolute Absence (Full Day)
         if self.entry.status == TimesheetStatus.ABSENT:
             if self.entry.absent_reason == TimesheetReason.PAID_LEAVE:
                 self.entry.working_days = Decimal("1.00")
+            elif self.entry.day_type == TimesheetDayType.COMPENSATORY:
+                # NEW: Absent on compensatory day = negative (debt)
+                max_days = self._get_schedule_max_days()
+                self.entry.working_days = -max_days
             return
 
         # 2. Base worked hours calculation

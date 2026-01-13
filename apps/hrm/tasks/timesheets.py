@@ -138,24 +138,31 @@ def recalculate_timesheets(employee_id: int, start_date_str: str) -> dict:
 def finalize_daily_timesheets() -> dict:
     """End-of-day task to finalize statuses for the day.
 
-    Runs daily (e.g., at 17:30).
+    Runs daily (e.g., at 17:30 or later).
     Logic:
-    - Queries all TimeSheetEntry for today.
-    - If status is None or implicitly ABSENT (no logs), sets status = ABSENT.
-    - If status is SINGLE_PUNCH (1 log), ensures working_days logic is applied (Calculator handles this).
-    - Saving the entry triggers recalculation via clean/save logic usually, but here we invoke Calculator explicitly to be sure.
+    1. Get all active employees.
+    2. For each employee, ensure a TimeSheetEntry exists for today.
+    3. Run calculator with is_finalizing=True.
+
+    This ensures that employees who were absent (no logs) get an ABSENT entry.
     """
     today = timezone.localdate()
-    # Or just today = date.today() depending on TZ settings.
-    # Use localdate for safety if server has UTC.
 
-    entries = TimeSheetEntry.objects.filter(date=today)
+    # Get active employees
+    active_employees = Employee.objects.filter(status=Employee.Status.ACTIVE).values_list("id", flat=True)
+
     count = 0
 
-    for entry in entries:
-        # Re-run calculator to finalize status based on logs (or lack thereof)
-        # The calculator logic handles "No logs -> ABSENT" and "1 log -> SINGLE_PUNCH"
+    for emp_id in active_employees:
+        # Get or create ensures we handle employees with no logs for today
+        entry, created = TimeSheetEntry.objects.get_or_create(
+            employee_id=emp_id,
+            date=today,
+        )
 
+        # Re-run calculator to finalize status
+        # If no logs: will become ABSENT (if work schedule exists)
+        # If logs: will become SINGLE_PUNCH or NOT_ON_TIME/ON_TIME
         calc = TimesheetCalculator(entry)
         calc.compute_all(is_finalizing=True)
         entry.save()

@@ -48,6 +48,7 @@ class ProposalService:
             ProposalType.TIMESHEET_ENTRY_COMPLAINT: ProposalService._execute_complaint_proposal,
             ProposalType.OVERTIME_WORK: ProposalService._execute_overtime_proposal,
             ProposalType.DEVICE_CHANGE: ProposalService._execute_device_change_proposal,
+            ProposalType.POST_MATERNITY_BENEFITS: ProposalService._execute_post_maternity_benefits_proposal,
         }
 
         handler = handler_map.get(proposal.proposal_type)  # type: ignore
@@ -282,3 +283,34 @@ class ProposalService:
         # Step 4: Bump token version and blacklist refresh tokens (force re-login)
         bump_user_mobile_token_version(requester_user)
         revoke_user_outstanding_tokens(requester_user)
+
+    @staticmethod
+    def _execute_post_maternity_benefits_proposal(proposal: Proposal) -> None:
+        """Execute a post maternity benefits proposal.
+
+        This primarily updates the timesheet calculation logic (allowed late minutes,
+        maternity bonus). We trigger a recalculation of affected timesheet entries.
+        """
+        start_date = proposal.post_maternity_benefits_start_date
+        end_date = proposal.post_maternity_benefits_end_date
+
+        if not start_date or not end_date:
+            raise ProposalExecutionError(f"Post Maternity proposal {proposal.id} missing start/end date")
+
+        # Iterate through date range and force save to trigger recalculation
+        current_date = start_date
+        while current_date <= end_date:
+            # We only care about existing entries that might need recalculation
+            # or creating placeholders?
+            # Usually benefits apply when there is attendance.
+            # But the requirement implies we should ensure entries exist or just update existing.
+            # Let's update existing ones first.
+            entries = TimeSheetEntry.objects.filter(employee=proposal.created_by, date=current_date)
+            for entry in entries:
+                # The save() method usually triggers signals which call the calculator
+                # But to be explicit and efficient, we can call calculate_hours_from_schedule
+                # or just save()
+                entry.calculate_hours_from_schedule()
+                entry.save()
+
+            current_date += timedelta(days=1)

@@ -28,12 +28,13 @@ def contract_changed_handler(sender, instance: Contract, created, **kwargs):
     if not instance.effective_date or not instance.employee_id:
         return
 
+    # UPDATED: Trigger for ACTIVE, ABOUT_TO_EXPIRE, and EXPIRED.
+    # The important part is that the task handles retroactive updates correctly.
     if instance.status in [
         Contract.ContractStatus.ACTIVE,
         Contract.ContractStatus.ABOUT_TO_EXPIRE,
         Contract.ContractStatus.EXPIRED,
     ]:
-        # NOTE: should only trigger when the contract is active or expired (statuses that really have effect)
         transaction.on_commit(lambda: process_contract_change.delay(instance))
 
 
