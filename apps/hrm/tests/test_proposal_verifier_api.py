@@ -1243,3 +1243,121 @@ class TestProposalVerifierSerializerCombinedFields:
 
         for field in all_combined_fields:
             assert field in proposal_data, f"Missing combined field: {field}"
+
+    def test_proposal_verifier_returns_timesheet_complaint_fields_and_timesheet_id(
+        self, api_client, superuser, employee, verifier_employee
+    ):
+        """Timesheet complaint proposals should include complaint fields and resolved timesheet_entry_id."""
+        from datetime import date, time
+
+        from apps.hrm.models import TimeSheetEntry
+
+        complaint_date = date(2025, 5, 10)
+        # Create a timesheet entry for the same employee/date
+        tse = TimeSheetEntry.objects.create(employee=employee, date=complaint_date)
+
+        proposal = Proposal.objects.create(
+            proposal_type=ProposalType.TIMESHEET_ENTRY_COMPLAINT,
+            timesheet_entry_complaint_complaint_date=complaint_date,
+            timesheet_entry_complaint_complaint_reason="Wrong check-in",
+            timesheet_entry_complaint_proposed_check_in_time=time(8, 15),
+            timesheet_entry_complaint_proposed_check_out_time=time(17, 45),
+            created_by=employee,
+        )
+        # Junction should be auto-created by Proposal.save()
+        verifier = ProposalVerifier.objects.create(proposal=proposal, employee=verifier_employee)
+
+        url = reverse("hrm:proposal-verifier-detail", args=[verifier.id])
+        response = api_client.get(url)
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()["data"]["proposal"]
+
+        # Timesheet complaint specific fields
+        fields = [
+            "timesheet_entry_id",
+            "timesheet_entry_complaint_complaint_date",
+            "timesheet_entry_complaint_complaint_reason",
+            "timesheet_entry_complaint_proposed_check_in_time",
+            "timesheet_entry_complaint_proposed_check_out_time",
+            "timesheet_entry_complaint_approved_check_in_time",
+            "timesheet_entry_complaint_approved_check_out_time",
+            "timesheet_entry_complaint_latitude",
+            "timesheet_entry_complaint_longitude",
+            "timesheet_entry_complaint_address",
+            "timesheet_entry_complaint_complaint_image",
+            "proposal_verifier",
+        ]
+        for f in fields:
+            assert f in data, f"Missing timesheet complaint field: {f}"
+
+        assert data["timesheet_entry_id"] == tse.id
+        assert data["timesheet_entry_complaint_complaint_date"] == "2025-05-10"
+        assert data["timesheet_entry_complaint_complaint_reason"] == "Wrong check-in"
+        assert data["timesheet_entry_complaint_proposed_check_in_time"] == "08:15:00"
+        assert data["timesheet_entry_complaint_proposed_check_out_time"] == "17:45:00"
+
+    def test_proposal_verifier_returns_overtime_entries_list(self, api_client, superuser, employee, verifier_employee):
+        """Overtime proposals should include overtime_entries list in combined serializer."""
+        from datetime import date, time
+
+        from apps.hrm.models import ProposalOvertimeEntry
+
+        proposal = Proposal.objects.create(
+            proposal_type=ProposalType.OVERTIME_WORK,
+            created_by=employee,
+        )
+        # Create two overtime entries
+        ProposalOvertimeEntry.objects.create(
+            proposal=proposal,
+            date=date(2025, 6, 1),
+            start_time=time(18, 0),
+            end_time=time(20, 0),
+            description="Evening overtime",
+        )
+        ProposalOvertimeEntry.objects.create(
+            proposal=proposal,
+            date=date(2025, 6, 2),
+            start_time=time(19, 0),
+            end_time=time(21, 30),
+            description="Night overtime",
+        )
+        verifier = ProposalVerifier.objects.create(proposal=proposal, employee=verifier_employee)
+
+        url = reverse("hrm:proposal-verifier-detail", args=[verifier.id])
+        response = api_client.get(url)
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()["data"]["proposal"]
+
+        assert "overtime_entries" in data
+        assert isinstance(data["overtime_entries"], list)
+        assert len(data["overtime_entries"]) == 2
+        # Spot-check one entry
+        entry0 = data["overtime_entries"][0]
+        assert "duration_hours" in entry0
+
+    def test_proposal_verifier_returns_assets_list(self, api_client, superuser, employee, verifier_employee):
+        """Asset allocation proposals should include assets list in combined serializer."""
+        from apps.hrm.models import ProposalAsset
+
+        proposal = Proposal.objects.create(
+            proposal_type=ProposalType.ASSET_ALLOCATION,
+            created_by=employee,
+        )
+        ProposalAsset.objects.create(
+            proposal=proposal,
+            name="Laptop",
+            unit_type="unit",
+            quantity=1,
+            note="MacBook Pro",
+        )
+        verifier = ProposalVerifier.objects.create(proposal=proposal, employee=verifier_employee)
+
+        url = reverse("hrm:proposal-verifier-detail", args=[verifier.id])
+        response = api_client.get(url)
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()["data"]["proposal"]
+
+        assert "assets" in data
+        assert isinstance(data["assets"], list)
+        assert len(data["assets"]) == 1
+        assert data["assets"][0]["name"] == "Laptop"

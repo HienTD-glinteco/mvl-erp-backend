@@ -606,6 +606,7 @@ class ProposalCombinedSerializer(
     ProposalPaidLeaveSerializer,
     ProposalUnpaidLeaveSerializer,
     ProposalJobTransferSerializer,
+    ProposalTimesheetEntryComplaintSerializer,
 ):
     """Combined serializer for all proposal types."""
 
@@ -642,6 +643,19 @@ class ProposalCombinedSerializer(
                 "device_change_new_device_id",
                 "device_change_new_platform",
                 "device_change_old_device_id",
+                # Timesheet Entry Complaint fields
+                "timesheet_entry_id",
+                "timesheet_entry_complaint_complaint_date",
+                "timesheet_entry_complaint_complaint_reason",
+                "timesheet_entry_complaint_proposed_check_in_time",
+                "timesheet_entry_complaint_proposed_check_out_time",
+                "timesheet_entry_complaint_approved_check_in_time",
+                "timesheet_entry_complaint_approved_check_out_time",
+                "timesheet_entry_complaint_latitude",
+                "timesheet_entry_complaint_longitude",
+                "timesheet_entry_complaint_address",
+                "timesheet_entry_complaint_complaint_image",
+                "proposal_verifier",
             ]
         )
         read_only_fields = fields

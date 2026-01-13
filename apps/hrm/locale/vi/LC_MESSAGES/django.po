@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-13 10:49+0700\n"
+"POT-Creation-Date: 2026-01-13 11:59+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -448,7 +448,7 @@ msgstr "Mã Chấm Công"
 #: apps/hrm/api/serializers/recruitment_candidate_export.py:23
 #: apps/hrm/models/attendance_geolocation.py:77 apps/hrm/models/employee.py:227
 #: apps/hrm/models/employee_certificate.py:170
-#: apps/hrm/models/employee_work_history.py:116 apps/hrm/models/proposal.py:806
+#: apps/hrm/models/employee_work_history.py:116 apps/hrm/models/proposal.py:851
 #: apps/hrm/models/recruitment_candidate.py:112
 #: apps/hrm/models/recruitment_request.py:89 apps/hrm/models/timesheet.py:139
 msgid "Status"
@@ -704,11 +704,11 @@ msgid ""
 "previous entry."
 msgstr ""
 
-#: apps/hrm/api/serializers/proposal.py:745
+#: apps/hrm/api/serializers/proposal.py:759
 msgid "This serializer requires an existing verifier instance"
 msgstr "Thông tin người xác mình là bắt buộc"
 
-#: apps/hrm/api/serializers/proposal.py:749
+#: apps/hrm/api/serializers/proposal.py:763
 msgid "Only the department leader can reject this proposal"
 msgstr ""
 "Chỉ trưởng phòng hoặc người được cấp quyền mới có thể từ chối đề xuất này"
@@ -1512,9 +1512,9 @@ msgid "Retrieve departments that can serve as management departments"
 msgstr "Lấy các phòng ban có thể làm phòng ban quản lý"
 
 #: apps/hrm/api/views/proposal.py:149 apps/hrm/api/views/proposal.py:3299
-#: apps/hrm/models/proposal.py:302 apps/hrm/models/proposal.py:706
-#: apps/hrm/models/proposal.py:792 apps/hrm/models/proposal.py:897
-#: apps/hrm/models/proposal.py:942
+#: apps/hrm/models/proposal.py:302 apps/hrm/models/proposal.py:751
+#: apps/hrm/models/proposal.py:837 apps/hrm/models/proposal.py:942
+#: apps/hrm/models/proposal.py:987
 msgid "Proposal"
 msgstr "Đề xuất"
 
@@ -3112,8 +3112,8 @@ msgstr "Lần đồng bộ cuối"
 #: apps/hrm/models/employee_work_history.py:108
 #: apps/hrm/models/interview_schedule.py:31
 #: apps/hrm/models/job_description.py:25
-#: apps/hrm/models/monthly_timesheet.py:133 apps/hrm/models/proposal.py:818
-#: apps/hrm/models/proposal.py:890 apps/hrm/models/recruitment_candidate.py:119
+#: apps/hrm/models/monthly_timesheet.py:133 apps/hrm/models/proposal.py:863
+#: apps/hrm/models/proposal.py:935 apps/hrm/models/recruitment_candidate.py:119
 #: apps/hrm/models/recruitment_candidate_contact_log.py:20
 #: apps/hrm/models/recruitment_expense.py:73 apps/hrm/models/timesheet.py:160
 #: apps/hrm/models/work_schedule.py:82
@@ -3133,7 +3133,7 @@ msgstr "Kết nối thành công. Phiên bản phần mềm: %(firmware)s"
 #: apps/hrm/models/employee_dependent.py:50
 #: apps/hrm/models/employee_relationship.py:54
 #: apps/hrm/models/employee_work_history.py:67
-#: apps/hrm/models/monthly_timesheet.py:33 apps/hrm/models/proposal.py:799
+#: apps/hrm/models/monthly_timesheet.py:33 apps/hrm/models/proposal.py:844
 #: apps/hrm/models/recruitment_candidate.py:134
 #: apps/hrm/models/recruitment_candidate_contact_log.py:16
 #: apps/hrm/models/recruitment_reports.py:214 apps/hrm/models/timesheet.py:41
@@ -4293,7 +4293,7 @@ msgstr "Đơn vị hành chính"
 
 #: apps/hrm/models/organization.py:35 apps/hrm/models/organization.py:100
 #: apps/hrm/models/organization.py:178 apps/hrm/models/organization.py:304
-#: apps/hrm/models/proposal.py:935 apps/hrm/models/recruitment_channel.py:33
+#: apps/hrm/models/proposal.py:980 apps/hrm/models/recruitment_channel.py:33
 #: apps/hrm/models/recruitment_source.py:19
 msgid "Description"
 msgstr "Mô tả"
@@ -4677,137 +4677,152 @@ msgstr ""
 msgid "Maternity leave end date must be on or after start date"
 msgstr "Ngày kết thúc nghỉ thai sản phải lớn hơn hoặc bằng ngày bắt đầu"
 
-#: apps/hrm/models/proposal.py:554
+#: apps/hrm/models/proposal.py:560
 msgid "Paid leave end date must be on or after start date"
 msgstr "Ngày kết thúc nghỉ có lương phải lớn hơn hoặc bằng ngày bắt đầu"
 
-#: apps/hrm/models/proposal.py:566
+#: apps/hrm/models/proposal.py:572
 msgid "Unpaid leave end date must be on or after start date"
 msgstr "Ngày kết thúc nghỉ không lương phải lớn hơn hoặc bằng ngày bắt đầu"
 
-#: apps/hrm/models/proposal.py:577
+#: apps/hrm/models/proposal.py:587
 msgid "Job transfer effective date is required"
 msgstr "Ngày hiệu lực điều chuyển công tác là bắt buộc"
 
-#: apps/hrm/models/proposal.py:581
+#: apps/hrm/models/proposal.py:591
 msgid "New department is required for job transfer"
 msgstr "Phong ban mới là bắt buộc cho điều chuyển công tác"
 
-#: apps/hrm/models/proposal.py:585
+#: apps/hrm/models/proposal.py:595
 msgid "New position is required for job transfer"
 msgstr "Chức vụ mới là bắt buộc cho điều chuyển công tác"
 
-#: apps/hrm/models/proposal.py:601
+#: apps/hrm/models/proposal.py:630
+#, python-brace-format
+msgid ""
+"{current_type} period overlaps with existing {overlap_type} proposal {code} "
+"({start} - {end})"
+msgstr ""
+
+#: apps/hrm/models/proposal.py:646
 msgid "Resolution note is required when rejecting a proposal"
 msgstr "Ghi chú là bắt buộc khi từ chối đề xuất"
 
-#: apps/hrm/models/proposal.py:713
+#: apps/hrm/models/proposal.py:758
 msgid "Timesheet entry"
 msgstr "Ngày công"
 
-#: apps/hrm/models/proposal.py:718
+#: apps/hrm/models/proposal.py:763
 msgid "Proposal Timesheet Entry"
 msgstr "Khiếu nại chấm công"
 
-#: apps/hrm/models/proposal.py:719
+#: apps/hrm/models/proposal.py:764
 msgid "Proposal Timesheet Entries"
 msgstr "Khiếu nại chấm công"
 
-#: apps/hrm/models/proposal.py:761
+#: apps/hrm/models/proposal.py:806
 msgid ""
 "A timesheet entry complaint proposal can only be linked to one timesheet "
 "entry."
 msgstr "Một ngày công chỉ có thể tạo 1 khiếu nại chấm công."
 
-#: apps/hrm/models/proposal.py:774
+#: apps/hrm/models/proposal.py:819
 msgid ""
 "This timesheet entry already has a pending or approved complaint proposal."
 msgstr "Ngày công này đã có khiếu nại chấm công chờ duyệt hoặc đã duyệt."
 
-#: apps/hrm/models/proposal.py:812
+#: apps/hrm/models/proposal.py:857
 msgid "Verified time"
 msgstr "Thời gian xác nhận"
 
-#: apps/hrm/models/proposal.py:831
+#: apps/hrm/models/proposal.py:876
 msgid "Proposal Verifier"
 msgstr "Người xác nhận"
 
-#: apps/hrm/models/proposal.py:832
+#: apps/hrm/models/proposal.py:877
 msgid "Proposal Verifiers"
 msgstr "Người xác nhận"
 
-#: apps/hrm/models/proposal.py:857
+#: apps/hrm/models/proposal.py:902
 msgid "Only one verifier is allowed per proposal in the current system design."
 msgstr "Loại đề xuất hiện tại chỉ cho phép một người xác nhận."
 
-#: apps/hrm/models/proposal.py:871
+#: apps/hrm/models/proposal.py:916
 msgid "Asset name"
 msgstr "Tên thiết bị"
 
-#: apps/hrm/models/proposal.py:879
+#: apps/hrm/models/proposal.py:924
 msgid "Unit type"
 msgstr "Đơn vị"
 
-#: apps/hrm/models/proposal.py:883
+#: apps/hrm/models/proposal.py:928
 msgid "Quantity"
 msgstr "Số lượng"
 
-#: apps/hrm/models/proposal.py:903
+#: apps/hrm/models/proposal.py:948
 msgid "Proposal Asset"
 msgstr "Đề xuất cấp thiết bị"
 
-#: apps/hrm/models/proposal.py:904
+#: apps/hrm/models/proposal.py:949
 msgid "Proposal Assets"
 msgstr "Đề xuất cấp thiết bị"
 
-#: apps/hrm/models/proposal.py:920
+#: apps/hrm/models/proposal.py:965
 msgid "Overtime date"
 msgstr "Ngày làm thêm giờ"
 
-#: apps/hrm/models/proposal.py:924 apps/hrm/models/timesheet.py:67
+#: apps/hrm/models/proposal.py:969 apps/hrm/models/timesheet.py:67
 msgid "Start time"
 msgstr "Ngày Bắt Đầu"
 
-#: apps/hrm/models/proposal.py:928 apps/hrm/models/timesheet.py:68
+#: apps/hrm/models/proposal.py:973 apps/hrm/models/timesheet.py:68
 msgid "End time"
 msgstr "Ngày Kết Thúc"
 
-#: apps/hrm/models/proposal.py:948
+#: apps/hrm/models/proposal.py:993
 msgid "Proposal Overtime Entry"
 msgstr "Đề xuất làm thêm giờ"
 
-#: apps/hrm/models/proposal.py:949
+#: apps/hrm/models/proposal.py:994
 msgid "Proposal Overtime Entries"
 msgstr "Đề xuất làm thêm giờ"
 
-#: apps/hrm/models/proposal.py:975
+#: apps/hrm/models/proposal.py:1020
 msgid "End time must be after start time"
 msgstr "Thời gian kết thúc làm ngoài giờ phải sau thời gian bắt đầu"
 
-#: apps/hrm/models/proposal.py:1028
+#: apps/hrm/models/proposal.py:1073
+#, python-brace-format
 msgid ""
 "Overtime entry cannot overlap with official morning working hours ({}-{})"
 msgstr ""
+"Thời gian làm thêm giờ không thể trùng với giờ làm việc chính thức ({}-{})"
 
-#: apps/hrm/models/proposal.py:1044
+#: apps/hrm/models/proposal.py:1089
+#, python-brace-format
 msgid ""
 "Overtime entry cannot overlap with official afternoon working hours ({}-{})"
 msgstr ""
+"Thời gian làm thêm giờ không thể trùng với giờ làm việc chính thức ({}-{})"
 
-#: apps/hrm/models/proposal.py:1088
+#: apps/hrm/models/proposal.py:1133
+#, python-brace-format
 msgid "Overtime entry cannot overlap with compensatory morning shift ({}-{})"
-msgstr ""
+msgstr "Thời gian làm thêm giờ không thể trùng với giờ làm việc bù ({}-{})"
 
-#: apps/hrm/models/proposal.py:1106
+#: apps/hrm/models/proposal.py:1151
+#, python-brace-format
 msgid "Overtime entry cannot overlap with compensatory afternoon shift ({}-{})"
-msgstr ""
+msgstr "Thời gian làm thêm giờ không thể trùng với giờ làm việc bù ({}-{})"
 
-#: apps/hrm/models/proposal.py:1153
+#: apps/hrm/models/proposal.py:1198
 #, python-brace-format
 msgid ""
 "Overtime entry overlaps with an existing entry from proposal {proposal_code} "
 "({start}-{end})"
 msgstr ""
+"Thời gian làm thêm giờ trùng với một đề xuất hiện có {proposal_code} "
+"({start}-{end})"
 
 #: apps/hrm/models/recruitment_candidate.py:21
 msgid "Contacted"
@@ -5383,7 +5398,7 @@ msgstr "Loại nhân viên thay đổi từ {old_type} sang {new_type}"
 msgid "Contract changed from {old_contract} to {new_contract}"
 msgstr "Hợp đồng thay đổi từ {old_contract} sang {new_contract}"
 
-#: apps/hrm/services/proposal_service.py:150
+#: apps/hrm/services/proposal_service.py:165
 #, python-format
 msgid "Complaint proposal %(id)s missing approved check-in/out times"
 msgstr ""
