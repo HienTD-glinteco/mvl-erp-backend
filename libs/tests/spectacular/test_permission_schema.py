@@ -18,7 +18,7 @@ class MockViewSet(PermissionSchemaMixin):
     action = None
 
     # Simulate STANDARD_ACTIONS from PermissionRegistrationMixin
-    STANDARD_ACTIONS = {
+    STANDARD_ACTIONS: dict[str, dict] = {
         "list": {},
         "retrieve": {},
         "create": {},
@@ -30,7 +30,7 @@ class MockViewSet(PermissionSchemaMixin):
         "history_detail": {},
     }
 
-    PERMISSION_REGISTERED_ACTIONS = {}
+    PERMISSION_REGISTERED_ACTIONS: dict[str, dict] = {}
 
 
 class TestPermissionSchemaMixin:

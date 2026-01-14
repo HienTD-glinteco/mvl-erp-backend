@@ -39,7 +39,7 @@ class TestImportSerializer(serializers.ModelSerializer):
 class TestImportViewSet(ImportXLSXMixin, BaseModelViewSet):
     """Test ViewSet with import functionality"""
 
-    queryset = TestImportModel.objects.all()
+    queryset = TestImportModel.objects.all()  # type: ignore[attr-defined]
     serializer_class = TestImportSerializer
     module = "Test"
     submodule = "Import Test"
@@ -49,7 +49,7 @@ class TestImportViewSet(ImportXLSXMixin, BaseModelViewSet):
 class TestImportViewSetWithCustomSchema(ImportXLSXMixin, BaseModelViewSet):
     """Test ViewSet with custom import schema"""
 
-    queryset = TestImportModel.objects.all()
+    queryset = TestImportModel.objects.all()  # type: ignore[attr-defined]
     serializer_class = TestImportSerializer
     module = "Test"
     submodule = "Import Test"
@@ -65,7 +65,7 @@ class TestImportViewSetWithCustomSchema(ImportXLSXMixin, BaseModelViewSet):
 class TestImportViewSetWithSerializer(ImportXLSXMixin, BaseModelViewSet):
     """Test ViewSet with custom import serializer"""
 
-    queryset = TestImportModel.objects.all()
+    queryset = TestImportModel.objects.all()  # type: ignore[attr-defined]
     serializer_class = TestImportSerializer
     module = "Test"
     submodule = "Import Test"

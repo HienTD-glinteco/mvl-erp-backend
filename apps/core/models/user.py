@@ -105,8 +105,29 @@ class User(BaseModel, AbstractBaseUser, PermissionsMixin):
         return self.otp_code
 
     def invalidate_all_sessions(self):
-        """Invalidate all user sessions after password change"""
-        # Clear the active session key to force logout
+        """
+        Invalidate all user sessions after password change.
+
+        This will:
+        1. Clear Django sessions from database
+        2. Clear the active_session_key flag
+
+        Note: JWT tokens should be revoked separately using revoke_user_outstanding_tokens()
+        """
+        from django.contrib.sessions.models import Session
+
+        # Delete all Django sessions for this user
+        # Find all sessions that contain this user_id
+        user_sessions = []
+        for session in Session.objects.all():
+            session_data = session.get_decoded()
+            if session_data.get("_auth_user_id") == str(self.pk):
+                user_sessions.append(session.session_key)
+
+        # Delete found sessions
+        Session.objects.filter(session_key__in=user_sessions).delete()
+
+        # Clear the active session key flag
         self.active_session_key = ""
         self.save(update_fields=["active_session_key"])
 

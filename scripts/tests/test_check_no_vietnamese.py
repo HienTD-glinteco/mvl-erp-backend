@@ -17,7 +17,8 @@ def run_check_script(file_content: str) -> tuple[int, str]:
     Returns:
         tuple: (exit_code, output)
     """
-    script_path = Path(__file__).parent.parent / "scripts" / "check_no_vietnamese.py"
+    # From scripts/tests/, go up 2 levels to backend/, then to scripts/
+    script_path = Path(__file__).parent.parent.parent / "scripts" / "check_no_vietnamese.py"
 
     with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
         f.write(file_content)

@@ -86,7 +86,17 @@ class PasswordResetChangePasswordSerializer(serializers.Serializer):
         return attrs
 
     def save(self):
-        """Change user password and delete OTP record"""
+        """
+        Change user password and delete OTP record.
+
+        This will:
+        1. Set new password
+        2. Delete password reset OTP record
+        3. Invalidate all Django sessions
+        4. Revoke all outstanding JWT tokens
+
+        The user will need to login again with the new password.
+        """
         reset_request = self.validated_data["reset_request"]
         user = self.validated_data["user"]
         new_password = self.validated_data["new_password"]
@@ -98,8 +108,12 @@ class PasswordResetChangePasswordSerializer(serializers.Serializer):
         # Cleanup reset request
         reset_request.delete_after_use()
 
-        # Invalidate sessions and revoke tokens
+        # Invalidate all Django sessions (logout from web sessions)
         user.invalidate_all_sessions()
+
+        # Revoke all outstanding JWT refresh tokens (logout from mobile/API)
         revoke_user_outstanding_tokens(user)
+
+        logger.info(f"Password reset completed for user {user}. All sessions and tokens invalidated.")
 
         return user

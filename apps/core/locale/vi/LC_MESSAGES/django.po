@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MaiVietLand Backend Core\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-14 15:25+0700\n"
+"POT-Creation-Date: 2026-01-14 15:28+0700\n"
 "PO-Revision-Date: 2025-01-21 00:00+0000\n"
 "Last-Translator: Glinteco Developers\n"
 "Language-Team: Vietnamese\n"
@@ -140,51 +140,51 @@ msgstr "Mã OTP chỉ được chứa số."
 msgid "OTP code is incorrect or has expired."
 msgstr "Mã OTP không đúng hoặc đã hết hạn."
 
-#: apps/core/api/serializers/auth/password_change.py:23
+#: apps/core/api/serializers/auth/password_change.py:25
 msgid "Please enter your current password."
 msgstr "Vui lòng nhập mật khẩu hiện tại."
 
-#: apps/core/api/serializers/auth/password_change.py:24
-#: apps/core/api/serializers/auth/password_change.py:47
+#: apps/core/api/serializers/auth/password_change.py:26
+#: apps/core/api/serializers/auth/password_change.py:49
 msgid "Current password cannot be blank."
 msgstr "Mật khẩu hiện tại không được để trống."
 
-#: apps/core/api/serializers/auth/password_change.py:31
+#: apps/core/api/serializers/auth/password_change.py:33
 #: apps/core/api/serializers/auth/password_reset_change_password.py:25
 msgid "Please enter your new password."
 msgstr "Vui lòng nhập mật khẩu mới."
 
-#: apps/core/api/serializers/auth/password_change.py:32
-#: apps/core/api/serializers/auth/password_change.py:53
+#: apps/core/api/serializers/auth/password_change.py:34
+#: apps/core/api/serializers/auth/password_change.py:55
 #: apps/core/api/serializers/auth/password_reset_change_password.py:26
 #: apps/core/api/serializers/auth/password_reset_change_password.py:41
 msgid "New password cannot be blank."
 msgstr "Mật khẩu mới không được để trống."
 
-#: apps/core/api/serializers/auth/password_change.py:39
+#: apps/core/api/serializers/auth/password_change.py:41
 #: apps/core/api/serializers/auth/password_reset_change_password.py:33
 msgid "Please confirm your new password."
 msgstr "Vui lòng xác nhận mật khẩu mới."
 
-#: apps/core/api/serializers/auth/password_change.py:40
+#: apps/core/api/serializers/auth/password_change.py:42
 #: apps/core/api/serializers/auth/password_reset_change_password.py:34
 msgid "Password confirmation cannot be blank."
 msgstr "Xác nhận mật khẩu không được để trống."
 
-#: apps/core/api/serializers/auth/password_change.py:73
+#: apps/core/api/serializers/auth/password_change.py:75
 #: apps/core/api/serializers/auth/password_reset_change_password.py:61
 msgid "New password and confirmation password do not match."
 msgstr "Mật khẩu mới và xác nhận mật khẩu không khớp."
 
-#: apps/core/api/serializers/auth/password_change.py:79
+#: apps/core/api/serializers/auth/password_change.py:81
 msgid "New password must be different from current password."
 msgstr "Mật khẩu mới phải khác với mật khẩu hiện tại."
 
-#: apps/core/api/serializers/auth/password_change.py:85
+#: apps/core/api/serializers/auth/password_change.py:87
 msgid "You need to be logged in to change your password."
 msgstr "Bạn cần đăng nhập để thay đổi mật khẩu."
 
-#: apps/core/api/serializers/auth/password_change.py:91
+#: apps/core/api/serializers/auth/password_change.py:93
 msgid "Current password is incorrect."
 msgstr "Mật khẩu hiện tại không đúng."
 

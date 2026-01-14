@@ -597,7 +597,7 @@ class GenerateXLSXFromViewsetTaskTests(TestCase):
         Role.objects.create(code="admin", name="Administrator")
 
         # Call the task with a ViewSet that has custom get_export_data
-        viewset_class_path = "tests.libs.test_export_xlsx_mixin.TestExportViewSet"
+        viewset_class_path = "libs.tests.test_export_xlsx_mixin.TestExportViewSet"
         request_data = {
             "query_params": {},
             "user_id": None,
@@ -910,7 +910,7 @@ class GenerateXLSXFromViewsetTaskTemplateTests(TestCase):
 
         Role.objects.create(code="admin", name="Administrator")
 
-        viewset_class_path = "tests.libs.test_export_xlsx_mixin.TestExportViewSet"
+        viewset_class_path = "libs.tests.test_export_xlsx_mixin.TestExportViewSet"
         request_data = {
             "query_params": {},
             "user_id": None,
