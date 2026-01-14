@@ -152,16 +152,13 @@ class TimesheetSnapshotService:
         for p in proposals:
             if p.proposal_type == ProposalType.POST_MATERNITY_BENEFITS:
                 # Extension for post maternity - min 65 mins
+                reason = AllowedLateMinutesReason.MATERNITY
                 if allowed_minutes < 65:
                     allowed_minutes = 65
-                    reason = AllowedLateMinutesReason.MATERNITY
-                # BUG FIX: Even if already >= 65, still set reason if proposal exists
-                else:
-                    reason = AllowedLateMinutesReason.MATERNITY
 
             if p.proposal_type == ProposalType.LATE_EXEMPTION:
                 # Custom grace period for late exemption
-                if p.late_exemption_minutes is not None:
+                if not p.late_exemption_minutes:
                     allowed_minutes = p.late_exemption_minutes
                     reason = AllowedLateMinutesReason.LATE_EXEMPTION
 
