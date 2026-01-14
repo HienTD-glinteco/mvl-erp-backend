@@ -138,31 +138,24 @@ def recalculate_timesheets(employee_id: int, start_date_str: str) -> dict:
 def finalize_daily_timesheets() -> dict:
     """End-of-day task to finalize statuses for the day.
 
-    Runs daily (e.g., at 17:30 or later).
+    Runs daily (e.g., at 17:30).
     Logic:
-    1. Get all active employees.
-    2. For each employee, ensure a TimeSheetEntry exists for today.
-    3. Run calculator with is_finalizing=True.
-
-    This ensures that employees who were absent (no logs) get an ABSENT entry.
+    - Queries all TimeSheetEntry for today.
+    - If status is None or implicitly ABSENT (no logs), sets status = ABSENT.
+    - If status is SINGLE_PUNCH (1 log), ensures working_days logic is applied (Calculator handles this).
+    - Saving the entry triggers recalculation via clean/save logic usually, but here we invoke Calculator explicitly to be sure.
     """
     today = timezone.localdate()
+    # Or just today = date.today() depending on TZ settings.
+    # Use localdate for safety if server has UTC.
 
-    # Get active employees
-    active_employees = Employee.objects.filter(status=Employee.Status.ACTIVE).values_list("id", flat=True)
-
+    entries = TimeSheetEntry.objects.filter(date=today)
     count = 0
 
-    for emp_id in active_employees:
-        # Get or create ensures we handle employees with no logs for today
-        entry, created = TimeSheetEntry.objects.get_or_create(
-            employee_id=emp_id,
-            date=today,
-        )
+    for entry in entries:
+        # Re-run calculator to finalize status based on logs (or lack thereof)
+        # The calculator logic handles "No logs -> ABSENT" and "1 log -> SINGLE_PUNCH"
 
-        # Re-run calculator to finalize status
-        # If no logs: will become ABSENT (if work schedule exists)
-        # If logs: will become SINGLE_PUNCH or NOT_ON_TIME/ON_TIME
         calc = TimesheetCalculator(entry)
         calc.compute_all(is_finalizing=True)
         entry.save()
@@ -278,77 +271,6 @@ def link_proposals_to_timesheet_entry_task(timesheet_entry_id: int) -> dict:
     # Bulk Create
     if to_add_ids:
         new_links = [ProposalTimeSheetEntry(proposal_id=pid, timesheet_entry=entry) for pid in to_add_ids]
-        # NOTE: ignore_conflicts=True to handle potential race conditions safely
-        objs = ProposalTimeSheetEntry.objects.bulk_create(new_links, ignore_conflicts=True)
-        logger.info("Linked %s proposals to entry %s", len(objs), entry.id)
-
-    return {"success": True, "added": len(to_add_ids), "removed": len(to_remove_ids)}
-
-
-@shared_task
-def link_timesheet_entries_to_proposal_task(proposal_id: int) -> dict:
-    """Link existing timesheet entries to a newly created/updated proposal.
-
-    This task searches for timesheet entries for the proposal's creator within
-    the proposal's effective date range and syncs ProposalTimeSheetEntry records.
-    """
-    try:
-        proposal = Proposal.objects.get(pk=proposal_id)
-    except Proposal.DoesNotExist:
-        logger.warning("Proposal %s not found.", proposal_id)
-        return {"success": False, "error": "Proposal not found"}
-
-    creator = proposal.created_by
-    entries_q = Q(pk__in=[])
-
-    # Identify relevant dates based on proposal type
-    if proposal.proposal_type in [
-        ProposalType.LATE_EXEMPTION,
-        ProposalType.POST_MATERNITY_BENEFITS,
-        ProposalType.MATERNITY_LEAVE,
-        ProposalType.PAID_LEAVE,
-        ProposalType.UNPAID_LEAVE,
-    ]:
-        # Use helper to get start/end dates based on type, avoiding long chain of ORs
-        start, end = _get_proposal_date_ranges(proposal)
-
-        if start and end:
-            entries_q = Q(date__gte=start, date__lte=end)
-
-    elif proposal.proposal_type == ProposalType.TIMESHEET_ENTRY_COMPLAINT:
-        if proposal.timesheet_entry_complaint_complaint_date:
-            entries_q = Q(date=proposal.timesheet_entry_complaint_complaint_date)
-
-    elif proposal.proposal_type == ProposalType.OVERTIME_WORK:
-        # Overtime entries might be multiple non-contiguous dates
-        ot_dates = proposal.overtime_entries.values_list("date", flat=True)
-        if ot_dates:
-            entries_q = Q(date__in=ot_dates)
-
-    # Find relevant timesheet entries
-    relevant_timesheet_ids = set(
-        TimeSheetEntry.objects.filter(entries_q, employee=creator).values_list("id", flat=True)
-    )
-
-    # Get existing linked timesheet IDs
-    existing_linked_ids = set(
-        ProposalTimeSheetEntry.objects.filter(proposal=proposal).values_list("timesheet_entry_id", flat=True)
-    )
-
-    # Determine changes
-    to_add_ids = relevant_timesheet_ids - existing_linked_ids
-    to_remove_ids = existing_linked_ids - relevant_timesheet_ids
-
-    # Bulk Delete
-    if to_remove_ids:
-        deleted_count, _ = ProposalTimeSheetEntry.objects.filter(
-            proposal=proposal, timesheet_entry_id__in=to_remove_ids
-        ).delete()
-        logger.info("Unlinked %s timesheet entries from proposal %s", deleted_count, proposal.id)
-
-    # Bulk Create
-    if to_add_ids:
-        new_links = [ProposalTimeSheetEntry(proposal=proposal, timesheet_entry_id=tid) for tid in to_add_ids]
         # NOTE: ignore_conflicts=True to handle potential race conditions safely
         objs = ProposalTimeSheetEntry.objects.bulk_create(new_links, ignore_conflicts=True)
         logger.info("Linked %s timesheet entries to proposal %s", len(objs), proposal.id)

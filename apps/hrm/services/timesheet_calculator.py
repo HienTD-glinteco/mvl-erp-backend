@@ -404,11 +404,7 @@ class TimesheetCalculator:
             # Clear absent_reason → leave will be automatically refunded
             # when EmployeeMonthlyTimesheet.refresh_for_employee_month() runs
             # because consumed_leave_days = COUNT(absent_reason=PAID_LEAVE)
-            if self.entry.absent_reason in [
-                TimesheetReason.PAID_LEAVE,
-                TimesheetReason.UNPAID_LEAVE,
-            ]:
-                self.entry.absent_reason = None
+            self.entry.absent_reason = None
 
             # Continue with NORMAL attendance calculation
             return False

@@ -8,6 +8,7 @@ from apps.core.models import UserDevice
 from apps.core.utils.jwt import bump_user_mobile_token_version, revoke_user_outstanding_tokens
 from apps.hrm.constants import ProposalType, TimesheetReason
 from apps.hrm.models import Employee, Proposal, ProposalOvertimeEntry, ProposalTimeSheetEntry, TimeSheetEntry
+from apps.hrm.services.timesheet_snapshot_service import TimesheetSnapshotService
 
 
 class ProposalExecutionError(Exception):
@@ -307,9 +308,9 @@ class ProposalService:
             # Let's update existing ones first.
             entries = TimeSheetEntry.objects.filter(employee=proposal.created_by, date=current_date)
             for entry in entries:
-                # The save() method usually triggers signals which call the calculator
-                # But to be explicit and efficient, we can call calculate_hours_from_schedule
-                # or just save()
+                # Explicitly snapshot data first to capture proposal info (e.g. allowed late minutes)
+                # before calculation runs.
+                TimesheetSnapshotService().snapshot_data(entry)
                 entry.calculate_hours_from_schedule()
                 entry.save()
 
