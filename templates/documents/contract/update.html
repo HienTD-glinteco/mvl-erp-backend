@@ -1,0 +1,274 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta content="text/html; charset=UTF-8" http-equiv="content-type">
+    <style type="text/css">
+        /* Global Page Settings */
+        @page {
+            size: A4;
+            margin: 0;
+        }
+        body {
+            font-family: "Times New Roman", Times, serif;
+            font-size: 13pt; /* Sample standard size */
+            line-height: 1.15;
+            color: #000000;
+            background-color: #ffffff;
+            /* Exact padding from sample (c35) */
+            padding: 40.5pt 72pt 49.5pt 72pt;
+            max-width: 451.5pt;
+            margin: 0 auto;
+        }
+
+        /* Typography Helpers */
+        p { margin: 0; padding: 0; margin-bottom: 3pt; }
+        .bold { font-weight: 700; }
+        .italic { font-style: italic; }
+        .uppercase { text-transform: uppercase; }
+        .text-center { text-align: center; }
+        .text-right { text-align: right; }
+        .text-justify { text-align: justify; }
+
+        /* Font Sizes */
+        .fs-11 { font-size: 11pt; }
+        .fs-13 { font-size: 13pt; }
+        .fs-14 { font-size: 14pt; }
+        .fs-18 { font-size: 18pt; }
+
+        /* Header Table */
+        .header-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20pt;
+            margin-left: -5pt;
+        }
+        .header-table td { vertical-align: top; padding: 0; }
+
+        /* Custom HR lines */
+        hr.header-line {
+            border: 0;
+            border-top: 1pt solid #000;
+            margin: 2pt auto;
+        }
+
+        /* Titles */
+        .contract-title {
+            font-size: 18pt;
+            font-weight: 700;
+            text-align: center;
+            margin-top: 10pt;
+            margin-bottom: 10pt;
+        }
+        .article-title {
+            font-size: 13pt;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-top: 12pt;
+            margin-bottom: 6pt;
+        }
+
+        /* List Styles - Simulating the specific bullets from sample */
+        ul { padding: 0; margin: 0; list-style-type: none; }
+
+        /* Dash List (-) */
+        .list-dash > li {
+            padding-left: 20pt;
+            position: relative;
+            text-align: justify;
+        }
+        .list-dash > li::before {
+            content: "-";
+            position: absolute;
+            left: 0;
+            width: 15pt;
+        }
+
+        /* Plus List (+) */
+        .list-plus > li {
+            padding-left: 20pt;
+            position: relative;
+            text-align: justify;
+        }
+        .list-plus > li::before {
+            content: "+";
+            position: absolute;
+            left: 0;
+            width: 15pt;
+        }
+
+        /* Indentation Helpers */
+        .indent-1 { padding-left: 14pt; } /* Matches c18/c43 */
+        .indent-2 { padding-left: 28pt; } /* Matches c16 */
+        .indent-3 { padding-left: 36pt; } /* Matches c5/c44 */
+        .indent-4 { padding-left: 54pt; } /* Deep indent for Salary */
+
+        /* Signatures */
+        .signature-table {
+            width: 100%;
+            margin-top: 20pt;
+            border: none;
+        }
+        .signature-table td {
+            width: 50%;
+            text-align: center;
+            vertical-align: top;
+            font-weight: 700;
+        }
+
+        /* Dynamic Data Highlight */
+        .data-text {
+            color: #980000;
+            font-style: italic;
+            font-weight: 700;
+        }
+        .data-text-normal {
+            color: #980000;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+
+    <table class="header-table">
+        <tr>
+            <td class="text-center" style="width: 45%;">
+                <p class="bold fs-11">CÔNG TY CỔ PHẦN</p>
+                <p class="bold fs-11">ĐỊA ỐC MAI VIỆT</p>
+                <hr class="header-line" style="width: 124px;">
+
+                <p class="bold fs-11" style="margin-top: 5pt;">&nbsp;</p> <p class="fs-13 text-center">
+                    Số: <span class="data-text-normal" style="font-weight: 400;">{{ contract.contract_number|default:contract.code }}</span>
+                </p>
+            </td>
+            <td class="text-center" style="width: 55%;">
+                <p class="bold fs-11">CỘNG HOÀ XÃ HỘI CHỦ NGHĨA VIỆT NAM</p>
+                <p class="bold fs-13">Độc lập - Tự do - Hạnh phúc</p>
+                <hr class="header-line" style="width: 200px;">
+
+                <p class="italic fs-13 text-right" style="margin-top: 5pt; margin-right: 5pt;">
+                    Hà Nội, ngày {{ contract.sign_date|date:"d" }} tháng {{ contract.sign_date|date:"m" }} năm {{ contract.sign_date|date:"Y" }}
+                </p>
+            </td>
+        </tr>
+    </table>
+
+    <p class="contract-title">HỢP ĐỒNG LAO ĐỘNG</p>
+
+    <ul class="list-dash mb-2">
+        <li><span class="italic">Căn cứ vào Bộ Luật Lao Động nước Cộng Hoà Xã Hội Chủ Nghĩa Việt Nam và các văn bản sửa đổi bổ sung, hướng dẫn thi hành Bộ Luật Lao Động năm 2019.</span></li>
+        <li><span class="italic">Căn cứ vào nhu cầu thực tế của các bên.</span></li>
+    </ul>
+
+    <p class="italic mb-2">Hôm nay, tại văn phòng Công ty cổ phần địa ốc Mai Việt, chúng tôi gồm:</p>
+
+    <p class="bold indent-1" style="margin-top: 10pt;">NGƯỜI SỬ DỤNG LAO ĐỘNG: CÔNG TY CỔ PHẦN ĐỊA ỐC MAI VIỆT</p>
+    <div class="indent-1">
+        <p>Mã số doanh nghiệp: 0108752372</p>
+        <p>Địa chỉ: Tầng 11, Tháp C Số 219 Trung Kính, Phường Yên Hòa, Quận Cầu Giấy, Hà Nội.</p>
+        <p>Điện thoại: 02499 966 656</p>
+        <p>Đại diện theo ủy quyền: Ông <span class="bold">NGUYỄN VĨNH TOÀN</span></p>
+        <p>Chức vụ: Trưởng Phòng Hành Chính Nhân Sự</p>
+        <p>(Theo GUQ số 40/2023/MV ký ngày 01/03/2023)</p>
+    </div>
+
+    <div style="height: 10pt;"></div>
+
+    <p class="bold indent-1">NGƯỜI LAO ĐỘNG: Ông/bà <span class="data-text">{{ contract.employee.fullname }}</span></p>
+    <div class="indent-1">
+        <p>Ngày sinh: <span class="data-text">{{ contract.employee.date_of_birth|date:"d/m/Y"|default:"" }}</span></p>
+        <p>CMND số: <span class="data-text">{{ contract.employee.citizen_id|default:"" }}</span> cấp ngày <span class="data-text">{{ contract.employee.citizen_id_issued_date|date:"d/m/Y"|default:"" }}</span> tại <span class="data-text">{{ contract.employee.citizen_id_issued_place|default:"" }}</span></p>
+        <p>Địa chỉ thường trú: <span class="data-text">{{ contract.employee.permanent_address|default:"" }}</span></p>
+        <p>Chỗ ở hiện tại: <span class="data-text">{{ contract.employee.residential_address|default:"" }}</span></p>
+        <p>Di động: <span class="data-text">{{ contract.employee.phone|default:"" }}</span> &nbsp;&nbsp;&nbsp;&nbsp; Mã số thuế: <span class="data-text">{{ contract.employee.tax_code|default:"" }}</span></p>
+    </div>
+
+    <p class="italic indent-1 mt-1">Thỏa thuận ký kết hợp đồng lao động và cam kết thực hiện đúng những điều khoản sau đây:</p>
+
+    <p class="article-title">ĐIỀU 1. CÔNG VIỆC HỢP ĐỒNG</p>
+    <ul class="list-dash">
+        <li>Chức vụ: <span class="data-text">{{ contract.employee.position.name|default:"" }}</span>.</li>
+    </ul>
+    <div class="indent-1 text-justify">
+        <p>Thuộc: Phòng <span class="data-text">{{ contract.employee.department.name|default:"" }}</span> - Khối <span class="data-text">{{ contract.employee.block.name|default:"" }}</span> - Chi nhánh <span class="data-text">{{ contract.employee.branch.name|default:"" }}</span></p>
+        <p>Công việc: Thực hiện các công việc theo bản mô tả công việc ở vị trí tương đương của công ty theo từng thời kỳ và/ hoặc theo sự phân công của ban lãnh đạo công ty.</p>
+    </div>
+    <ul class="list-dash mt-1">
+        <li>Công ty có quyền thay đổi tên gọi chức vụ của Người Lao Động hoặc phân công Người Lao Động giữ các vị trí khác có tính chất công việc và chức năng tương đương mà không bị xem là sự thay đổi công việc theo Hợp đồng lao động của Người Lao Động.</li>
+    </ul>
+
+    <p class="article-title">ĐIỀU 2. THỜI HẠN VÀ ĐỊA ĐIỂM LÀM VIỆC</p>
+    <div class="text-justify">
+        <p>
+            <span class="bold">Loại hợp đồng</span>: Hợp đồng <span class="data-text">{{ contract.duration_display|default:"" }}</span>,
+            từ ngày <span class="data-text">{{ contract.effective_date|date:"d/m/Y" }}</span>
+            đến ngày <span class="data-text">{{ contract.expiration_date|date:"d/m/Y"|default:"không xác định" }}</span>
+        </p>
+        <p>
+            <span class="bold">Địa điểm làm việc</span>: Tầng 11 Tháp C, số 219 Trung Kính, phường Yên hòa, quận Cầu giấy, Hà Nội hoặc các địa điểm khác của Công ty theo quyết định của công ty, sau khi đã thông báo cho Người Lao Động.
+        </p>
+    </div>
+
+    <p class="article-title">ĐIỀU 3. CHẾ ĐỘ TIỀN LƯƠNG CỦA NGƯỜI LAO ĐỘNG</p>
+    <ul class="list-dash indent-4" style="margin-left: 0;"> <li>
+            Lương cơ bản: <span class="data-text">{{ contract.base_salary|floatformat:0|default:"0" }}</span> đồng/tháng
+        </li>
+    </ul>
+    <p class="indent-4 italic">(Bằng chữ: <span class="data-text">....................................................................................</span>)</p>
+    <ul class="list-dash indent-4" style="margin-left: 0;">
+        <li>
+            Hoa Hồng: Theo quy định của Công ty tại từng thời điểm.
+        </li>
+    </ul>
+
+    <p class="article-title">ĐIỀU 4. QUYỀN LỢI VÀ NGHĨA VỤ CỦA CÁC BÊN</p>
+    <div class="text-justify">
+        {{ contract.contract_type.rights_and_obligations|default:""|safe }}
+    </div>
+
+    <p class="article-title">ĐIỀU 5. THỜI GIAN LÀM VIỆC VÀ THỜI GIAN NGHỈ NGƠI</p>
+    <p class="bold">5.1 Thời gian làm việc:</p>
+    <ul class="list-dash">
+        <li>Áp dụng từ thứ 2 đến thứ 6 hàng tuần</li>
+    </ul>
+    <p class="indent-3">+ Sáng: từ 8h00 đến 12h00 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; + Chiều: từ 13h30 đến 17h30</p>
+
+    <ul class="list-dash">
+        <li>Áp dụng riêng cho thứ 7 hàng tuần</li>
+    </ul>
+    <p class="indent-3">+ Sáng: từ 8h00 đến 12h00</p>
+
+    <p class="text-justify mt-1">Công ty có thể thay đổi ngày làm việc trong tuần hoặc giờ làm việc trong ngày tùy theo đặc điểm công việc khi Công ty thấy cần thiết, sau khi đã thông báo cho Người Lao Động.</p>
+
+    <p class="bold mt-1">5.2 Thời gian nghỉ ngơi:</p>
+    <ul class="list-dash">
+        <li>Nghỉ hàng tuần: Người Lao Động được nghỉ chiều Thứ 7 và Chủ Nhật hàng tuần. Công ty có thể bố trí ngày nghỉ hàng tuần vào ngày khác nhưng vẫn đảm bảo đủ số ngày nghỉ sau khi đã thông báo cho Người Lao Động.</li>
+        <li>Nghỉ lễ: Người Lao Động được nghỉ các ngày lễ theo quy định của Bộ Luật lao động.</li>
+        <li>Nghỉ hàng năm: Người Lao Động làm việc đủ 12 tháng cho công ty theo hợp đồng lao động thì được nghỉ hằng năm hưởng nguyên lương 12 ngày. Nếu thời gian làm việc chưa đủ 12 tháng thì số ngày nghỉ hằng năm sẽ được tính theo tỷ lệ tương ứng với số tháng làm việc.</li>
+        <li>Các ngày nghỉ được trả lương khác: Người Lao Động được nghỉ ốm, nghỉ thai sản được trả lương theo đúng các quy định của pháp luật hiện hành.</li>
+    </ul>
+
+    <p class="article-title">ĐIỀU 6. CÁC CHẾ ĐỘ LÀM VIỆC</p>
+    <div class="text-justify">
+        {{ contract.contract_type.working_conditions|default:""|safe }}
+    </div>
+
+    <p class="article-title">ĐIỀU 7. BẢO MẬT</p>
+    <p class="text-justify indent-3">
+        Người Lao Động phải tuân thủ nghĩa vụ bảo mật thông tin theo quy định tại bản Cam Kết Bảo Mật và các nội quy, quy chế do Công ty ban hành trong từng thời kỳ. Vi phạm nghĩa vụ bảo mật thông tin là một vi phạm nghiêm trọng và có thể bị xử lý ở mức kỷ luật cao nhất là sa thải. Nghĩa vụ bảo mật kinh doanh, bí mật công nghệ có hiệu lực ngay cả khi hợp đồng này chấm dứt.
+    </p>
+
+    <p class="article-title">ĐIỀU 8. ĐIỀU KHOẢN THI HÀNH</p>
+    <div class="text-justify">
+        {{ contract.contract_type.terms|default:""|safe }}
+    </div>
+
+    <table class="signature-table">
+        <tr>
+            <td>NGƯỜI LAO ĐỘNG</td>
+            <td>NGƯỜI SỬ DỤNG LAO ĐỘNG</td>
+        </tr>
+    </table>
+
+</body>
+</html>

@@ -2,7 +2,7 @@
 
 from django.utils.translation import gettext as _
 from django_filters.rest_framework import DjangoFilterBackend
-from drf_spectacular.utils import OpenApiExample, extend_schema, extend_schema_view
+from drf_spectacular.utils import OpenApiExample, OpenApiParameter, extend_schema, extend_schema_view
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
@@ -18,6 +18,7 @@ from apps.hrm.api.serializers.contract import (
     ContractListSerializer,
     ContractSerializer,
 )
+from apps.hrm.constants import ContractExportTemplate
 from apps.hrm.models import Contract, ContractType
 from apps.hrm.utils.filters import RoleDataScopeFilterBackend
 from apps.imports.api.mixins import AsyncImportProgressMixin
@@ -267,6 +268,15 @@ from libs.export_xlsx import ExportXLSXMixin
     ),
     export_detail_document=extend_schema(
         tags=["7.2: Contract"],
+        parameters=[
+            OpenApiParameter(
+                name="template",
+                description="Template type for export",
+                required=False,
+                type=str,
+                enum=[choice[0] for choice in ContractExportTemplate.choices],
+            ),
+        ],
     ),
 )
 class ContractViewSet(
@@ -349,7 +359,7 @@ class ContractViewSet(
     export_filename = "contracts"
 
     # Document export configuration
-    document_template_name = "documents/contract.html"
+    document_template_name = "documents/contract/sale.html"
 
     # Import handler path for AsyncImportProgressMixin
     # import_row_handler will be determined dynamically
@@ -376,6 +386,19 @@ class ContractViewSet(
         # raising ValidationError here will result in 400 Bad Request
         raise ValidationError({"options": {"mode": _("Import mode must be either 'create' or 'update'")}})
 
+    def get_document_template_name(self, request, instance):
+        """Get document template name based on request parameter."""
+        template_type = request.query_params.get("template")
+
+        mapping = {
+            ContractExportTemplate.CONTRACT_SALE: "documents/contract/sale.html",
+            ContractExportTemplate.CONTRACT_SUPPORT: "documents/contract/support.html",
+            ContractExportTemplate.CONTRACT_PROBATION: "documents/contract/probation.html",
+            ContractExportTemplate.CONTRACT_UPDATE: "documents/contract/update.html",
+        }
+
+        return mapping.get(template_type, super().get_document_template_name(request, instance))
+
     def get_export_context(self, instance):
         """Prepare context for contract document export.
 
@@ -385,7 +408,56 @@ class ContractViewSet(
         Returns:
             dict: Context dictionary for template rendering.
         """
-        return {"contract": instance}
+        # Calculate salary totals
+        base_salary = instance.base_salary or 0
+        kpi_salary = instance.kpi_salary or 0
+        lunch_allowance = instance.lunch_allowance or 0
+        phone_allowance = instance.phone_allowance or 0
+        other_allowance = instance.other_allowance or 0
+
+        base_plus_allowance = base_salary + lunch_allowance + phone_allowance
+        total_income = base_plus_allowance + kpi_salary + other_allowance
+
+        # Get direct manager (Department Leader)
+        direct_manager = ""
+        if instance.employee and instance.employee.department and instance.employee.department.leader:
+            direct_manager = instance.employee.department.leader.fullname
+
+        # Employee shortcuts for easier template access
+        employee = instance.employee
+        employee_data = {}
+        if employee:
+            employee_data = {
+                "fullname": employee.fullname or "",
+                "date_of_birth": employee.date_of_birth,
+                "phone": employee.phone or "",
+                "citizen_id": employee.citizen_id or "",
+                "citizen_id_issued_date": employee.citizen_id_issued_date,
+                "citizen_id_issued_place": employee.citizen_id_issued_place or "",
+                "permanent_address": employee.permanent_address or "",
+                "residential_address": employee.residential_address or "",
+                "tax_code": employee.tax_code or "",
+                "department_name": employee.department.name if employee.department else "",
+                "block_name": employee.block.name if employee.block else "",
+                "branch_name": employee.branch.name if employee.branch else "",
+                "position_name": employee.position.name if employee.position else "",
+            }
+
+        return {
+            "contract": instance,
+            # Calculated values
+            "total_income": total_income,
+            "base_plus_allowance": base_plus_allowance,
+            "direct_manager": direct_manager,
+            # Individual salary components for easy access
+            "base_salary": base_salary,
+            "kpi_salary": kpi_salary,
+            "lunch_allowance": lunch_allowance,
+            "phone_allowance": phone_allowance,
+            "other_allowance": other_allowance,
+            # Employee data shortcuts
+            **employee_data,
+        }
 
     def get_export_filename(self, instance):
         """Generate filename for contract document export.

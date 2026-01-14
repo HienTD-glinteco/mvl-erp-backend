@@ -1,0 +1,336 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta content="text/html; charset=UTF-8" http-equiv="content-type">
+    <style type="text/css">
+        /* Global Page Setup */
+        @page {
+            size: A4;
+            margin: 0;
+        }
+        body {
+            font-family: "Times New Roman", Times, serif;
+            font-size: 11pt; /* Match sample standard size */
+            line-height: 1.15;
+            color: #000000;
+            background-color: #ffffff;
+            /* Exact margins from the sample file (c38) */
+            padding: 31.5pt 72pt 49.5pt 72pt;
+            max-width: 451.5pt; /* Content width constraint */
+            margin: 0 auto;
+        }
+
+        /* Typography */
+        p {
+            margin: 0;
+            padding: 0;
+        }
+        .bold { font-weight: 700; }
+        .italic { font-style: italic; }
+        .text-center { text-align: center; }
+        .text-right { text-align: right; }
+        .text-justify { text-align: justify; }
+
+        /* Titles */
+        .main-title {
+            font-size: 18pt;
+            font-weight: 700;
+            margin-bottom: 5pt;
+        }
+        .sub-title {
+            font-size: 16pt;
+            font-weight: 700; /* Normal weight in sample but looks bold in context, keeping consistent */
+        }
+        .section-title {
+            font-size: 12pt;
+            font-weight: 700;
+            padding-top: 12pt;
+            padding-bottom: 0pt;
+            text-align: left;
+        }
+
+        /* Table Styling - The core of the visual match */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            border-spacing: 0;
+            margin-bottom: 0pt;
+        }
+
+        /* Standard Bordered Table (Dotted style like sample) */
+        .bordered-table td {
+            border: 1pt dotted #000000;
+            padding: 0pt 5.4pt; /* Tight padding from sample */
+            vertical-align: middle;
+            height: 18pt; /* Minimum height for consistency */
+        }
+
+        /* Header Specifics */
+        .header-logo-cell {
+            width: 88.8pt;
+            text-align: left;
+            vertical-align: top !important;
+            padding-top: 5pt !important;
+        }
+        .header-title-cell {
+            width: 227.4pt;
+            text-align: center;
+            vertical-align: middle;
+        }
+        .header-label-cell {
+            width: 78.6pt;
+            vertical-align: top;
+        }
+        .header-value-cell {
+            width: 86.9pt;
+            vertical-align: top;
+        }
+
+        /* Information Tables (Sections 1-6) */
+        .info-label {
+            width: 107.8pt; /* Exact width from sample c18 */
+        }
+        /* The rest of the width is auto-filled by the second column */
+
+        /* Signatures */
+        .signature-table {
+            margin-top: 10pt;
+            border: none;
+        }
+        .signature-table td {
+            border: none; /* No borders for signature wrapper */
+            vertical-align: top;
+            text-align: center;
+            font-weight: 700;
+            padding-top: 12pt;
+        }
+        .signature-box {
+            border: 1pt solid #000000; /* Solid border for signature box per sample c56/c52?
+                                          Actually sample has solid top border for signature area */
+            border: none;
+            border-top: 1pt solid black; /* Matches the visual separate line */
+            padding-top: 5pt;
+        }
+
+        /* Utilities */
+        .spacer { height: 10pt; }
+        .list-item {
+            margin-left: 15pt;
+            text-indent: -15pt;
+        }
+    </style>
+</head>
+<body>
+
+    <table class="bordered-table">
+        <tr>
+            <td rowspan="4" class="header-logo-cell">
+                <img src="{% static 'documents/contract/probation/logo.jpg' %}"
+                     alt="Logo"
+                     style="width: 104px; height: 80px; display: block;"
+                     onerror="this.style.display='none'"/>
+            </td>
+            <td rowspan="4" class="header-title-cell">
+                <p class="main-title">THƯ MỜI LÀM VIỆC</p>
+                <p class="sub-title">(THỬ VIỆC)</p>
+            </td>
+            <td class="header-label-cell">Mã hiệu</td>
+            <td class="header-value-cell italic" style="color: #980000;">
+                {{ contract.contract_number|default:contract.code }}
+            </td>
+        </tr>
+        <tr>
+            <td class="header-label-cell">Lần ban hành</td>
+            <td class="header-value-cell">01</td>
+        </tr>
+        <tr>
+            <td class="header-label-cell">Ngày ban hành</td>
+            <td class="header-value-cell"></td>
+        </tr>
+        <tr>
+            <td class="header-label-cell">Trang</td>
+            <td class="header-value-cell">01</td>
+        </tr>
+    </table>
+
+    <div class="spacer"></div>
+
+    <p>
+        <span class="bold" style="font-size: 12pt;">Kính gửi</span>: Anh/Chị
+        <span class="italic" style="font-size: 12pt; color: #980000;">
+            {{ contract.employee.fullname }}
+        </span>
+    </p>
+    <div class="spacer"></div>
+    <p class="bold" style="font-size: 12pt;">Chào mừng Anh/ Chị đã đến với Mai Việt Land!</p>
+    <div class="spacer"></div>
+    <p class="text-justify" style="font-size: 12pt;">
+        Thư mời này được làm vào ngày
+        <span class="italic" style="color: #980000;">{{ contract.sign_date|date:"d/m/Y" }}</span>
+        giữa Công ty Cổ phần Địa Ốc Mai Việt (được gọi là “Người sử dụng lao động”) và Anh/Chị
+        <span class="italic" style="color: #980000;">{{ contract.employee.fullname }}</span>
+        (được gọi là “Người Lao Động”).
+    </p>
+
+    <p class="section-title">1. NGƯỜI SỬ DỤNG LAO ĐỘNG</p>
+    <table class="bordered-table">
+        <tr>
+            <td class="info-label">Công ty</td>
+            <td class="bold">Công ty Cổ Phần Địa Ốc Mai Việt</td>
+        </tr>
+        <tr>
+            <td class="info-label">Địa chỉ</td>
+            <td>Tầng 11 Tháp C, số 219 Phố Trung Kính, Phường Yên Hòa, Quận Cầu Giấy, Thành Phố Hà Nội</td>
+        </tr>
+        <tr>
+            <td class="info-label">Đại diện theo ủy quyền</td>
+            <td>
+                <p class="bold">Ông Nguyễn Vĩnh Toàn</p>
+                <p class="italic">(Theo Ủy quyền số 40/2023/MV ký ngày 01/03/2023)</p>
+            </td>
+        </tr>
+        <tr>
+            <td class="info-label">Chức vụ</td>
+            <td>Trưởng phòng Hành Chính Nhân Sự</td>
+        </tr>
+    </table>
+
+    <p class="section-title">2. NGƯỜI LAO ĐỘNG</p>
+    <table class="bordered-table">
+        <tr>
+            <td class="info-label">Họ và Tên</td>
+            <td class="italic" style="color: #980000;">{{ contract.employee.fullname }}</td>
+        </tr>
+        <tr>
+            <td class="info-label">Ngày sinh</td>
+            <td class="italic" style="color: #980000;">
+                {{ contract.employee.date_of_birth|date:"d/m/Y"|default:"" }}
+            </td>
+        </tr>
+        <tr>
+            <td class="info-label">Điện thoại</td>
+            <td class="italic" style="color: #980000;">{{ contract.employee.phone|default:"" }}</td>
+        </tr>
+        <tr>
+            <td class="info-label">Địa chỉ thường trú</td>
+            <td class="italic" style="color: #980000;">{{ contract.employee.permanent_address|default:"" }}</td>
+        </tr>
+        <tr>
+            <td class="info-label">CMND/CCCD</td>
+            <td>
+                <span class="italic" style="color: #980000;">{{ contract.employee.citizen_id|default:"" }}</span>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                Ngày cấp: <span class="italic" style="color: #980000;">{{ contract.employee.citizen_id_issued_date|date:"d/m/Y"|default:"" }}</span>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                Nơi cấp: <span class="italic" style="color: #980000;">{{ contract.employee.citizen_id_issued_place|default:"" }}</span>
+            </td>
+        </tr>
+    </table>
+
+    <p class="section-title">3. TRÁCH NHIỆM CÔNG VIỆC</p>
+    <table class="bordered-table">
+        <tr>
+            <td class="info-label">Vị trí/ Chức danh</td>
+            <td class="italic" style="color: #980000;">{{ contract.employee.position.name|default:"" }}</td>
+        </tr>
+        <tr>
+            <td class="info-label">Phòng ban</td>
+            <td class="italic" style="color: #980000;">{{ contract.employee.department.name|default:"" }}</td>
+        </tr>
+        <tr>
+            <td class="info-label">Quản lý trực tiếp</td>
+            <td class="italic" style="color: #980000;">{{ direct_manager|default:"" }}</td>
+        </tr>
+        <tr>
+            <td class="info-label">Trách nhiệm</td>
+            <td>Theo mô tả công việc</td>
+        </tr>
+    </table>
+
+    <p class="section-title">4. THỜI GIAN LÀM VIỆC</p>
+    <table class="bordered-table">
+        <tr>
+            <td class="info-label">Thời hạn</td>
+            <td class="text-justify">
+                <span class="bold">Từ ngày <span class="italic" style="color: #980000;">{{ contract.effective_date|date:"d/m/Y" }}</span>
+                đến ngày <span class="italic" style="color: #980000;">{{ contract.expiration_date|date:"d/m/Y"|default:"" }}</span></span>
+                Sau thời gian thử việc nếu đạt các yêu cầu sẽ xem xét ký Hợp đồng lao động theo quy định.
+            </td>
+        </tr>
+        <tr>
+            <td class="info-label">Thời gian làm việc</td>
+            <td class="text-justify">
+                <p style="margin-bottom: 3pt;">Thời giờ làm việc tại Công ty là 8h/ngày (từ 8h-17h30; nghỉ trong ngày từ 12h-13h30), 44h/tuần theo sự phân công của Lãnh đạo đơn vị/ Phòng Ban tùy theo tính chất công việc đặc thù được giao, bao gồm nhưng không giới hạn bởi các công việc được giao theo kết quả hoàn thành.</p>
+                <p>Thông thường công ty nghỉ làm việc vào chiều thứ Bảy, tuy nhiên do yêu cầu của khách hàng và tính chất công việc kinh doanh của công ty, nhân viên một số bộ phận có thể vẫn làm việc bình thường.</p>
+            </td>
+        </tr>
+        <tr>
+            <td class="info-label">Địa điểm làm việc</td>
+            <td>219 Trung Kính, Yên Hòa, Cầu Giấy, Hà Nội</td>
+        </tr>
+    </table>
+
+    <p class="section-title">5. CHẾ ĐỘ</p>
+    <table class="bordered-table">
+        <tr>
+            <td class="info-label">Tiếp nhận làm việc dưới hình thức</td>
+            <td class="bold">Thử việc</td>
+        </tr>
+        <tr>
+            <td class="info-label">Tổng thu nhập</td>
+            <td>
+                <span class="italic" style="color: #980000;">
+                    {{ total_income|floatformat:0|default:"0" }}
+                </span>
+                <span class="bold"> đồng/tháng.</span>
+            </td>
+        </tr>
+        <tr>
+            <td class="info-label">Chế độ khác</td>
+            <td>
+                <p>Đào tạo nâng cao, đào tạo theo vị trí chức danh, đào tạo bổ sung/ nâng cao kiến thức, nghiệp vụ và kỹ năng</p>
+                <p>Các chế độ sinh hoạt chuyên môn và hoạt động công đoàn</p>
+            </td>
+        </tr>
+    </table>
+
+    <p class="section-title">6. THỎA THUẬN KHÁC</p>
+    <table class="bordered-table">
+        <tr>
+            <td class="info-label">Cam kết</td>
+            <td class="text-justify">
+                <p style="margin-bottom: 3pt;">Khi đang làm việc cho chúng tôi, Người Lao Động không được phép làm việc thêm cho bất cứ tổ chức nào khác cùng ngành nghề hoạt động với công ty chúng tôi và tuyệt đối không tiết lộ cho bên thứ ba, không sử dụng cho bất cứ mục đích nào khác ngoài nhiệm vụ được giao: những thông tin sản phẩm công nghệ, tài liệu liên quan đến tổ chức, đến hoạt động kinh doanh, tài chính hay chế độ phúc lợi, v.v…</p>
+                <p>Người lao động đồng ý để người sử dụng lao động khấu trừ một phần lương/ hỗ trợ trong 2 tháng đầu tiên để may và cấp phát đồng phục (Phần khấu trừ sẽ được hoàn trả cho người lao động theo chính sách đã ban hành của Công ty).</p>
+            </td>
+        </tr>
+        <tr>
+            <td class="info-label">Giải quyết tranh chấp</td>
+            <td class="text-justify">
+                Nếu có phát sinh tranh chấp trong quá trình thực hiện, hai bên sẽ cùng nhau thương lượng giải quyết trên tinh thần hợp tác, cùng có lợi. Trường hợp không tự thỏa thuận được thì các bên có quyền yêu cầu Toà án nhân dân có thẩm quyền giải quyết.
+            </td>
+        </tr>
+        <tr>
+            <td class="info-label">Thông báo thời gian chấm dứt</td>
+            <td class="text-justify">
+                Trong trường hợp Người sử dụng lao động và Người lao động chưa có sự phù hợp trong công việc, giữa hai bên có thể chấm dứt thử việc, yêu cầu thông báo trước ít nhất 03 (ba) ngày làm việc.
+            </td>
+        </tr>
+    </table>
+
+    <table class="signature-table">
+        <tr>
+            <td style="width: 50%;">
+                <div class="signature-box" style="margin-right: -1px;"> NGƯỜI LAO ĐỘNG
+                </div>
+            </td>
+            <td style="width: 50%;">
+                <div class="signature-box" style="margin-left: -1px;">
+                    BÊN SỬ DỤNG LAO ĐỘNG
+                </div>
+            </td>
+        </tr>
+    </table>
+
+</body>
+</html>

@@ -235,3 +235,10 @@ class ProposalVerifierStatus(models.TextChoices):
     PENDING = "pending", _("Pending")
     VERIFIED = "verified", _("Verified")
     NOT_VERIFIED = "not_verified", _("Not verified")
+
+
+class ContractExportTemplate(models.TextChoices):
+    CONTRACT_SALE = "contract_sale", _("Sale contract")
+    CONTRACT_SUPPORT = "contract_support", _("Support contract")
+    CONTRACT_PROBATION = "contract_probation", _("Probation contract")
+    CONTRACT_UPDATE = "contract_update", _("Update contract")

@@ -561,3 +561,29 @@ class TestContractDocumentExport:
         response = api_client.get(url)
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    def test_export_document_with_specific_template(self, api_client, contract):
+        """Test exporting contract with a specific template."""
+        from apps.hrm.constants import ContractExportTemplate
+
+        url = reverse("hrm:contract-export-detail-document", kwargs={"pk": contract.pk})
+        params = {"type": "pdf", "template": ContractExportTemplate.CONTRACT_SALE}
+
+        response = api_client.get(url, params)
+
+        assert response.status_code == status.HTTP_206_PARTIAL_CONTENT
+        assert response["Content-Type"] == "application/pdf"
+
+    def test_export_document_all_templates(self, api_client, contract):
+        """Test exporting contract with all available templates."""
+        from apps.hrm.constants import ContractExportTemplate
+
+        url = reverse("hrm:contract-export-detail-document", kwargs={"pk": contract.pk})
+
+        for template_key, _ in ContractExportTemplate.choices:
+            params = {"type": "pdf", "template": template_key}
+            response = api_client.get(url, params)
+
+            assert response.status_code == status.HTTP_206_PARTIAL_CONTENT, (
+                f"Template {template_key} failed with status {response.status_code}"
+            )

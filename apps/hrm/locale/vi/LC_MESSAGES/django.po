@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-14 17:27+0700\n"
+"POT-Creation-Date: 2026-01-14 22:26+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -880,7 +880,7 @@ msgstr "Báo cáo chấm công GPS theo phòng ban"
 
 #: apps/hrm/api/views/attendance_wifi_device.py:288
 #: apps/hrm/api/views/bank.py:102 apps/hrm/api/views/bank_account.py:72
-#: apps/hrm/api/views/contract.py:325
+#: apps/hrm/api/views/contract.py:335
 #: apps/hrm/api/views/contract_appendix.py:281
 #: apps/hrm/api/views/contract_type.py:264 apps/hrm/api/views/decision.py:258
 #: apps/hrm/api/views/employee.py:119
@@ -932,18 +932,18 @@ msgstr "Quản lý Ngân Hàng"
 msgid "Bank Account Management"
 msgstr "Quản lý Tài Khoản Ngân Hàng"
 
-#: apps/hrm/api/views/contract.py:326
+#: apps/hrm/api/views/contract.py:336
 msgid "Contract Management"
 msgstr "Quản lý Hợp Đồng"
 
-#: apps/hrm/api/views/contract.py:330 apps/hrm/api/views/contract.py:331
+#: apps/hrm/api/views/contract.py:340 apps/hrm/api/views/contract.py:341
 #: apps/hrm/api/views/contract_appendix.py:286
 #: apps/hrm/api/views/contract_appendix.py:287
 #, python-brace-format
 msgid "Publish {model_name}"
 msgstr "Ban hành {model_name}"
 
-#: apps/hrm/api/views/contract.py:334 apps/hrm/api/views/contract.py:335
+#: apps/hrm/api/views/contract.py:344 apps/hrm/api/views/contract.py:345
 #: apps/hrm/api/views/contract_appendix.py:290
 #: apps/hrm/api/views/contract_appendix.py:291
 #: apps/hrm/api/views/employee.py:162 apps/hrm/api/views/employee.py:163
@@ -953,7 +953,7 @@ msgstr "Ban hành {model_name}"
 msgid "Download import template for {model_name}"
 msgstr "Tải xuống mẫu import {model_name}"
 
-#: apps/hrm/api/views/contract.py:338
+#: apps/hrm/api/views/contract.py:348
 #: apps/hrm/api/views/contract_appendix.py:294
 #: apps/hrm/api/views/employee.py:166
 #: apps/hrm/api/views/employee_relationship.py:247
@@ -961,7 +961,7 @@ msgstr "Tải xuống mẫu import {model_name}"
 msgid "Import {model_name} data"
 msgstr "Import {model_name}"
 
-#: apps/hrm/api/views/contract.py:339
+#: apps/hrm/api/views/contract.py:349
 #: apps/hrm/api/views/contract_appendix.py:295
 #: apps/hrm/api/views/employee.py:167
 #: apps/hrm/api/views/employee_relationship.py:248
@@ -969,17 +969,17 @@ msgstr "Import {model_name}"
 msgid "Import {model_name} data asynchronously"
 msgstr ""
 
-#: apps/hrm/api/views/contract.py:342
+#: apps/hrm/api/views/contract.py:352
 #, python-brace-format
 msgid "Export {model_name} document"
 msgstr "Export {model_name} document"
 
-#: apps/hrm/api/views/contract.py:343
+#: apps/hrm/api/views/contract.py:353
 #, python-brace-format
 msgid "Export {model_name} as document (PDF/DOCX)"
 msgstr "Export {model_name} as document (PDF/DOCX)"
 
-#: apps/hrm/api/views/contract.py:377
+#: apps/hrm/api/views/contract.py:387
 msgid "Import mode must be either 'create' or 'update'"
 msgstr "Vui lòng chọn đúng chế độ import: 'Tạo mới' hoặc 'Cập nhật'."
 
@@ -3026,6 +3026,22 @@ msgstr "Đã xác nhận"
 #: apps/hrm/constants.py:237
 msgid "Not verified"
 msgstr "Không xác nhận"
+
+#: apps/hrm/constants.py:241
+msgid "Sale contract"
+msgstr "Mẫu hợp đồng kinh doanh"
+
+#: apps/hrm/constants.py:242
+msgid "Support contract"
+msgstr "Mẫu hợp đồng hỗ trợ"
+
+#: apps/hrm/constants.py:243
+msgid "Probation contract"
+msgstr "Mẫu hợp đồng thử việc"
+
+#: apps/hrm/constants.py:244
+msgid "Update contract"
+msgstr "Mẫu hợp đồng cập nhật"
 
 #: apps/hrm/import_handlers/contract_creation.py:277
 #: apps/hrm/import_handlers/contract_creation.py:295

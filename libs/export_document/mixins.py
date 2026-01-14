@@ -54,6 +54,19 @@ class ExportDocumentMixin:
 
     document_template_name: str | None = None
 
+    def get_document_template_name(self, request, instance):
+        """
+        Get the template name for the document export.
+
+        Args:
+            request: The request object
+            instance: The model instance to export
+
+        Returns:
+            str: Path to the HTML template
+        """
+        return self.document_template_name
+
     def get_export_context(self, instance):
         """
         Prepare context dictionary for template rendering.
@@ -128,13 +141,6 @@ class ExportDocumentMixin:
             - Direct (206): File download response
             - Link (200): JSON with presigned URL and metadata
         """
-        # Validate template name
-        if not self.document_template_name:
-            return Response(
-                {"error": _(ERROR_TEMPLATE_MISSING)},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            )
-
         # Get parameters
         file_type = request.query_params.get("type", DEFAULT_FILE_TYPE).lower()
         delivery = request.query_params.get("delivery", DEFAULT_DELIVERY).lower()
@@ -156,6 +162,16 @@ class ExportDocumentMixin:
         # Get object
         instance = self.get_object()
 
+        # Get template name
+        template_name = self.get_document_template_name(request, instance)
+
+        # Validate template name
+        if not template_name:
+            return Response(
+                {"error": _(ERROR_TEMPLATE_MISSING)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
         # Get context and filename from subclass
         try:
             context = self.get_export_context(instance)
@@ -169,9 +185,9 @@ class ExportDocumentMixin:
         # Convert HTML to document
         try:
             if file_type == FILE_TYPE_PDF:
-                file_info = convert_html_to_pdf(self.document_template_name, context, filename)
+                file_info = convert_html_to_pdf(template_name, context, filename)
             else:  # DOCX
-                file_info = convert_html_to_docx(self.document_template_name, context, filename)
+                file_info = convert_html_to_docx(template_name, context, filename)
         except Exception as e:
             return Response(
                 {"error": str(e)},
