@@ -18,6 +18,15 @@ class AttendanceExemptionFilterSet(django_filters.FilterSet):
         field_name="effective_date",
         lookup_expr="lte",
     )
+    end_date_from = django_filters.DateFilter(
+        field_name="end_date",
+        lookup_expr="gte",
+    )
+    end_date_to = django_filters.DateFilter(
+        field_name="end_date",
+        lookup_expr="lte",
+    )
+    status = django_filters.ChoiceFilter(choices=AttendanceExemption.Status.choices)
 
     class Meta:
         model = AttendanceExemption
@@ -28,4 +37,7 @@ class AttendanceExemptionFilterSet(django_filters.FilterSet):
             "position",
             "effective_date_from",
             "effective_date_to",
+            "end_date_from",
+            "end_date_to",
+            "status",
         ]

@@ -19,18 +19,38 @@ class AttendanceExemption(BaseModel):
         notes: Additional notes or remarks about the exemption
     """
 
-    employee = models.OneToOneField(
+    class Status(models.TextChoices):
+        ENABLED = "ENABLED", _("Enabled")
+        DISABLED = "DISABLED", _("Disabled")
+
+    employee = models.ForeignKey(
         "hrm.Employee",
         on_delete=models.CASCADE,
-        related_name="attendance_exemption",
+        related_name="attendance_exemptions",
         verbose_name=_("Employee"),
         help_text="Employee to be exempt from attendance tracking",
     )
     effective_date = models.DateField(
         null=True,
         blank=True,
+        db_index=True,
         verbose_name=_("Effective Date"),
         help_text="Date when exemption becomes active",
+    )
+    end_date = models.DateField(
+        null=True,
+        blank=True,
+        db_index=True,
+        verbose_name=_("End Date"),
+        help_text="Date when exemption ends",
+    )
+    status = models.CharField(
+        max_length=20,
+        choices=Status.choices,
+        default=Status.ENABLED,
+        db_index=True,
+        verbose_name=_("Status"),
+        help_text="Status of the exemption",
     )
     notes = models.TextField(
         blank=True,
@@ -47,7 +67,9 @@ class AttendanceExemption(BaseModel):
         indexes = [
             models.Index(fields=["employee"]),
             models.Index(fields=["effective_date"]),
+            models.Index(fields=["status"]),
+            models.Index(fields=["end_date"]),
         ]
 
     def __str__(self):
-        return f"{self.employee.code} - {self.employee.fullname}"
+        return f"{self.employee.code} - {self.employee.fullname} ({self.status})"

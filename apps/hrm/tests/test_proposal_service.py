@@ -76,13 +76,13 @@ class TestPaidLeaveProposal:
 
     def test_execute_paid_leave_single_day(self, test_employee):
         """Test executing a single-day paid leave proposal."""
-        # Create a paid leave proposal
+        # Use future dates so status is not finalized
         proposal = Proposal.objects.create(
             code="DX_LEAVE_001",
             proposal_type=ProposalType.PAID_LEAVE,
             proposal_status=ProposalStatus.APPROVED,
-            paid_leave_start_date=date(2025, 1, 15),
-            paid_leave_end_date=date(2025, 1, 15),
+            paid_leave_start_date=date(2027, 1, 15),
+            paid_leave_end_date=date(2027, 1, 15),
             paid_leave_shift="full_day",
             created_by=test_employee,
         )
@@ -92,7 +92,7 @@ class TestPaidLeaveProposal:
 
         # Verify timesheet entry was created with leave reason
         # Note: status is None until finalized (when is_finalizing=True)
-        entry = TimeSheetEntry.objects.get(employee=test_employee, date=date(2025, 1, 15))
+        entry = TimeSheetEntry.objects.get(employee=test_employee, date=date(2027, 1, 15))
         assert entry.status is None  # Not finalized yet
         assert entry.absent_reason == TimesheetReason.PAID_LEAVE
         assert entry.official_hours == 0
@@ -100,13 +100,13 @@ class TestPaidLeaveProposal:
 
     def test_execute_paid_leave_multiple_days(self, test_employee):
         """Test executing a multi-day paid leave proposal."""
-        # Create a 3-day paid leave proposal
+        # Use future dates so status is not finalized
         proposal = Proposal.objects.create(
             code="DX_LEAVE_002",
             proposal_type=ProposalType.PAID_LEAVE,
             proposal_status=ProposalStatus.APPROVED,
-            paid_leave_start_date=date(2025, 1, 20),
-            paid_leave_end_date=date(2025, 1, 22),
+            paid_leave_start_date=date(2027, 1, 20),
+            paid_leave_end_date=date(2027, 1, 22),
             paid_leave_shift="full_day",
             created_by=test_employee,
         )
@@ -117,7 +117,7 @@ class TestPaidLeaveProposal:
         # Verify all three days have leave reason set
         # Note: status is None until finalized (when is_finalizing=True)
         for day in [20, 21, 22]:
-            entry = TimeSheetEntry.objects.get(employee=test_employee, date=date(2025, 1, day))
+            entry = TimeSheetEntry.objects.get(employee=test_employee, date=date(2027, 1, day))
             assert entry.status is None  # Not finalized yet
             assert entry.absent_reason == TimesheetReason.PAID_LEAVE
             assert entry.official_hours == 0
@@ -128,13 +128,13 @@ class TestUnpaidLeaveProposal:
 
     def test_execute_unpaid_leave(self, test_employee):
         """Test executing an unpaid leave proposal."""
-        # Create an unpaid leave proposal
+        # Use future dates so status is not finalized
         proposal = Proposal.objects.create(
             code="DX_LEAVE_003",
             proposal_type=ProposalType.UNPAID_LEAVE,
             proposal_status=ProposalStatus.APPROVED,
-            unpaid_leave_start_date=date(2025, 2, 10),
-            unpaid_leave_end_date=date(2025, 2, 11),
+            unpaid_leave_start_date=date(2027, 2, 10),
+            unpaid_leave_end_date=date(2027, 2, 11),
             unpaid_leave_shift="full_day",
             created_by=test_employee,
         )
@@ -145,7 +145,7 @@ class TestUnpaidLeaveProposal:
         # Verify days have unpaid leave reason set
         # Note: status is None until finalized (when is_finalizing=True)
         for day in [10, 11]:
-            entry = TimeSheetEntry.objects.get(employee=test_employee, date=date(2025, 2, day))
+            entry = TimeSheetEntry.objects.get(employee=test_employee, date=date(2027, 2, day))
             assert entry.status is None  # Not finalized yet
             assert entry.absent_reason == TimesheetReason.UNPAID_LEAVE
 

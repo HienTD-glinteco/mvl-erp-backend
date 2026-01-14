@@ -668,7 +668,6 @@ class Proposal(ColoredValueMixin, AutoCodeMixin, BaseModel):
         # Auto-assign department leader as verifier for new proposals
         if is_new:
             self._assign_department_leader_as_verifier()
-            self._assign_to_timesheet_entry()
 
     def _assign_department_leader_as_verifier(self) -> None:
         """Auto-assign the department leader of the proposal creator as a verifier.
@@ -687,23 +686,20 @@ class Proposal(ColoredValueMixin, AutoCodeMixin, BaseModel):
                     defaults={"status": ProposalVerifierStatus.PENDING},
                 )
 
-    def _assign_to_timesheet_entry(self) -> None:
-        """Ensure exactly one ProposalTimeSheetEntry is created for this complaint proposal if possible."""
-        from apps.hrm.models import TimeSheetEntry
+    def assign_to_timesheet_entry(self) -> None:
+        """Assign the proposal to the corresponding timesheet entry.
 
-        # Only run for TIMESHEET_ENTRY_COMPLAINT proposals
+        This method should be called explicitly when needed.
+        """
         if self.proposal_type != ProposalType.TIMESHEET_ENTRY_COMPLAINT:
-            logger.info("Proposal type is not TIMESHEET_ENTRY_COMPLAINT")
             return
 
-        # Must have a complaint date and created_by
         if not self.timesheet_entry_complaint_complaint_date or not self.created_by_id:
-            logger.error("Missing complaint date or created_by for TIMESHEET_ENTRY_COMPLAINT proposal")
             return
 
-        # Find the timesheet entry for the complaint date and created_by
-        # It should not happened, but we need to handle for the case one day has multiple timesheet entries
-        # then we will use the latest one.
+        from apps.hrm.models import ProposalTimeSheetEntry, TimeSheetEntry
+
+        # Find timesheet entry for the complaint date
         timesheet_entry = (
             TimeSheetEntry.objects.filter(
                 employee_id=self.created_by_id,
@@ -712,22 +708,11 @@ class Proposal(ColoredValueMixin, AutoCodeMixin, BaseModel):
             .order_by("-id")
             .first()
         )
-        if not timesheet_entry:
-            logger.warning(
-                f"No TimeSheetEntry found for employee {self.created_by_id} on date {self.timesheet_entry_complaint_complaint_date}"
-            )
-            return
 
-        # Create the junction record - validation will be enforced in ProposalTimeSheetEntry.clean()
-        try:
-            # NOTE: use try-except to catch validation errors and log them, and not break saving flow.
+        if timesheet_entry:
             ProposalTimeSheetEntry.objects.get_or_create(
                 proposal=self,
                 timesheet_entry=timesheet_entry,
-            )
-        except ValidationError as ve:
-            logger.error(
-                f"Validation error when creating ProposalTimeSheetEntry for proposal {self.pk} and timesheet entry {timesheet_entry.pk}: {ve}"
             )
 
 

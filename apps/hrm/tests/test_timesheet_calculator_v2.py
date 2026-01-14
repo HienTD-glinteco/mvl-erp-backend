@@ -114,11 +114,14 @@ class TestTimesheetCalculatorV2:
 
     def test_exempt_logic(self, employee, work_schedule):
         d = date(2023, 1, 2)  # Monday
-        entry = TimeSheetEntry.objects.create(employee=employee, date=d, is_exempt=True)
+        # Create AttendanceExemption so snapshot picks it up
+        AttendanceExemption.objects.create(employee=employee, effective_date=date(2023, 1, 1))
+        entry = TimeSheetEntry.objects.create(employee=employee, date=d)
 
         calc = TimesheetCalculator(entry)
         calc.compute_all(is_finalizing=True)
 
+        assert entry.is_exempt is True
         assert entry.status == TimesheetStatus.ON_TIME
         assert entry.working_days == Decimal("1.00")
         assert entry.late_minutes == 0
@@ -128,11 +131,14 @@ class TestTimesheetCalculatorV2:
         today = timezone.localdate()
         future_date = today + timedelta(days=5)
 
-        entry = TimeSheetEntry.objects.create(employee=employee, date=future_date, is_exempt=True)
+        # Create AttendanceExemption so snapshot picks it up
+        AttendanceExemption.objects.create(employee=employee, effective_date=today)
+        entry = TimeSheetEntry.objects.create(employee=employee, date=future_date)
 
         calc = TimesheetCalculator(entry)
         calc.compute_all(is_finalizing=False)
 
+        assert entry.is_exempt is True
         assert entry.status is None
         assert entry.working_days is None
 
@@ -592,17 +598,22 @@ class TestTimesheetCalculatorV2:
         assert entry.day_type == TimesheetDayType.HOLIDAY
         assert entry.working_days == Decimal("1.00")
 
-    def test_paid_leave_working_days(self, employee):
+    def test_paid_leave_working_days(self, employee, work_schedule):
         """Test Paid Leave gives 1.0 working days."""
         d = date(2023, 1, 2)
-        entry = TimeSheetEntry.objects.create(
-            employee=employee,
-            date=d,
-            absent_reason=TimesheetReason.PAID_LEAVE
+        # Create a Paid Leave proposal so snapshot picks it up
+        Proposal.objects.create(
+            created_by=employee,
+            proposal_type=ProposalType.PAID_LEAVE,
+            proposal_status=ProposalStatus.APPROVED,
+            paid_leave_start_date=d,
+            paid_leave_end_date=d,
         )
+        entry = TimeSheetEntry.objects.create(employee=employee, date=d)
 
         calc = TimesheetCalculator(entry)
         calc.compute_all(is_finalizing=True)
 
+        assert entry.absent_reason == TimesheetReason.PAID_LEAVE
         assert entry.status == TimesheetStatus.ABSENT
         assert entry.working_days == Decimal("1.00")

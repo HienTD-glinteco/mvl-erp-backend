@@ -1,7 +1,10 @@
 from django.utils.translation import gettext as _
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiExample, extend_schema, extend_schema_view
+from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter
+from rest_framework.mixins import CreateModelMixin, ListModelMixin, RetrieveModelMixin
+from rest_framework.response import Response
 
 from apps.audit_logging.api.mixins import AuditLoggingMixin
 from apps.core.api.permissions import DataScopePermission, RoleBasedPermission
@@ -10,7 +13,7 @@ from apps.hrm.api.mixins import DataScopeCreateValidationMixin
 from apps.hrm.api.serializers import AttendanceExemptionExportSerializer, AttendanceExemptionSerializer
 from apps.hrm.models import AttendanceExemption
 from apps.hrm.utils.filters import RoleDataScopeFilterBackend
-from libs import BaseModelViewSet
+from libs.drf.base_viewset import BaseGenericViewSet
 from libs.drf.filtersets.search import PhraseSearchFilter
 from libs.export_xlsx import ExportXLSXMixin
 
@@ -133,26 +136,26 @@ from libs.export_xlsx import ExportXLSXMixin
         description="Retrieve detailed information about a specific attendance exemption",
         tags=["6.7: Attendance Exemption"],
     ),
-    update=extend_schema(
-        summary="Update exemption",
-        description="Update attendance exemption information",
+    disable=extend_schema(
+        summary="Disable exemption",
+        description="Disable an active attendance exemption",
         tags=["6.7: Attendance Exemption"],
-    ),
-    partial_update=extend_schema(
-        summary="Partially update exemption",
-        description="Partially update attendance exemption information",
-        tags=["6.7: Attendance Exemption"],
-    ),
-    destroy=extend_schema(
-        summary="Delete exemption",
-        description="Permanently remove an attendance exemption from the system",
-        tags=["6.7: Attendance Exemption"],
+        request=None,
+        responses={200: AttendanceExemptionSerializer},
     ),
     export=extend_schema(
         tags=["6.7: Attendance Exemption"],
     ),
 )
-class AttendanceExemptionViewSet(DataScopeCreateValidationMixin, ExportXLSXMixin, AuditLoggingMixin, BaseModelViewSet):
+class AttendanceExemptionViewSet(
+    DataScopeCreateValidationMixin,
+    ExportXLSXMixin,
+    AuditLoggingMixin,
+    ListModelMixin,
+    CreateModelMixin,
+    RetrieveModelMixin,
+    BaseGenericViewSet,
+):
     """ViewSet for AttendanceExemption model."""
 
     queryset = AttendanceExemption.objects.select_related(
@@ -164,7 +167,12 @@ class AttendanceExemptionViewSet(DataScopeCreateValidationMixin, ExportXLSXMixin
     ).all()
     serializer_class = AttendanceExemptionSerializer
     filterset_class = AttendanceExemptionFilterSet
-    filter_backends = [RoleDataScopeFilterBackend, DjangoFilterBackend, PhraseSearchFilter, OrderingFilter]
+    filter_backends = [
+        RoleDataScopeFilterBackend,
+        DjangoFilterBackend,
+        PhraseSearchFilter,
+        OrderingFilter,
+    ]
     search_fields = ["employee__code", "employee__fullname"]
     ordering_fields = ["employee__code", "effective_date", "created_at"]
     ordering = ["-employee__code"]
@@ -218,3 +226,12 @@ class AttendanceExemptionViewSet(DataScopeCreateValidationMixin, ExportXLSXMixin
                 }
             ]
         }
+
+    @action(detail=True, methods=["post"])
+    def disable(self, request, pk=None):
+        """Disable an attendance exemption."""
+        instance = self.get_object()
+        instance.status = AttendanceExemption.Status.DISABLED
+        instance.save()
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)

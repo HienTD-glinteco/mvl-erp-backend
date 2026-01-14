@@ -88,7 +88,7 @@ def process_exemption_change(exemption: AttendanceExemption):
         service.snapshot_data(entry)
 
         calc = TimesheetCalculator(entry)
-        calc.compute_all()
+        calc.compute_all(is_finalizing=entry.is_work_day_finalizing())
         recalc_updates.append(entry)
 
     if recalc_updates:

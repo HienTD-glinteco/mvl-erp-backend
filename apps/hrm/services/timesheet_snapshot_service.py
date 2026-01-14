@@ -18,8 +18,49 @@ class TimesheetSnapshotService:
     4. Applying Leave reasons (Paid/Unpaid/Maternity).
     """
 
+    def set_default_values(self, entry: TimeSheetEntry) -> None:
+        """Set default values for timesheet entry fields.
+
+        Unconditionally resets snapshot-related fields to their initial values.
+        This ensures a clean slate before snapshot operations, which is essential
+        when re-snapshotting an entry.
+
+        Note: Some fields are NOT reset here because they are set by external
+        processes or have specific preservation logic:
+        - absent_reason: Set by ProposalService when executing leave proposals
+        - is_full_salary: Handled by snapshot_contract_info with preservation logic
+        """
+        # Day type - default to OFFICIAL
+        entry.day_type = TimesheetDayType.OFFICIAL
+
+        # Contract info - reset contract reference, but NOT is_full_salary
+        # (is_full_salary is handled by snapshot_contract_info which checks for existing values)
+        entry.contract = None
+        entry.net_percentage = 100
+
+        # Exemption status
+        entry.is_exempt = False
+
+        # absent_reason is NOT reset here - it's set by ProposalService and
+        # should be preserved. snapshot_leave_reason only sets it if it's None.
+
+        # Allowed late minutes
+        entry.allowed_late_minutes = 0
+        entry.allowed_late_minutes_reason = AllowedLateMinutesReason.STANDARD
+
+        # Overtime data
+        entry.approved_ot_start_time = None
+        entry.approved_ot_end_time = None
+        entry.approved_ot_minutes = 0
+
+        # Payroll flag
+        entry.count_for_payroll = True
+
     def snapshot_data(self, entry: TimeSheetEntry) -> None:
         """Perform all snapshot operations for a timesheet entry."""
+        # 0. Set default values
+        self.set_default_values(entry)
+
         # 1. Determine Day Type (Holiday, Compensatory, Normal)
         self.determine_day_type(entry)
 
@@ -107,7 +148,7 @@ class TimesheetSnapshotService:
 
         # Fetch directly if not prefetched
         entry.is_exempt = AttendanceExemption.objects.filter(
-            employee_id=entry.employee_id, effective_date__lte=entry.date
+            employee_id=entry.employee_id, effective_date__lte=entry.date, status=AttendanceExemption.Status.ENABLED
         ).exists()
 
     def snapshot_leave_reason(self, entry: "TimeSheetEntry") -> None:

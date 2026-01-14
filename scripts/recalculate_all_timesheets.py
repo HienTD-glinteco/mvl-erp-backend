@@ -10,9 +10,9 @@ Uses 4 workers for parallel processing.
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from django.db import close_old_connections
+
 from apps.hrm.models import TimeSheetEntry
 from apps.hrm.services.timesheet_calculator import TimesheetCalculator
-from apps.hrm.services.timesheet_snapshot_service import TimesheetSnapshotService
 
 
 def process_entry(entry_id):
@@ -22,13 +22,9 @@ def process_entry(entry_id):
     try:
         entry = TimeSheetEntry.objects.get(id=entry_id)
 
-        # Snapshot data
-        snapshot_service = TimesheetSnapshotService()
-        snapshot_service.snapshot_data(entry)
-
         # Compute all metrics
         calc = TimesheetCalculator(entry)
-        calc.compute_all(is_finalizing=entry._is_work_day_finalizing())
+        calc.compute_all(is_finalizing=entry.is_work_day_finalizing())
 
         # Save changes
         entry.save()

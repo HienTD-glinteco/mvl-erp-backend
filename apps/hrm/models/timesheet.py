@@ -217,7 +217,7 @@ class TimeSheetEntry(ColoredValueMixin, AutoCodeMixin, BaseModel):
         calc.calculate_hours(work_schedule)
         calc.calculate_overtime()
 
-    def _is_work_day_finalizing(self) -> bool:
+    def is_work_day_finalizing(self) -> bool:
         """Determine if the work day should be finalized for calculation.
 
         Returns True if:
@@ -297,7 +297,7 @@ class TimeSheetEntry(ColoredValueMixin, AutoCodeMixin, BaseModel):
             self.working_days = Decimal("0.00")
 
         # Determine if the work day should be finalized
-        is_finalizing = self._is_work_day_finalizing()
+        is_finalizing = self.is_work_day_finalizing()
 
         # Run all calculations via calculator
         calculator = TimesheetCalculator(self)

@@ -1261,7 +1261,8 @@ class TestProposalVerifierSerializerCombinedFields:
             timesheet_entry_complaint_proposed_check_out_time=time(17, 45),
             created_by=employee,
         )
-        # Junction should be auto-created by Proposal.save()
+        # Junction is not auto-created by Proposal.save(), must be called explicitly
+        proposal.assign_to_timesheet_entry()
         verifier = ProposalVerifier.objects.create(proposal=proposal, employee=verifier_employee)
 
         url = reverse("hrm:proposal-verifier-detail", args=[verifier.id])

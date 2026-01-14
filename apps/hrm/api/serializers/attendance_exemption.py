@@ -53,12 +53,22 @@ class AttendanceExemptionSerializer(serializers.ModelSerializer):
             "employee",
             "employee_id",
             "effective_date",
+            "end_date",
+            "status",
             "notes",
             "created_at",
             "updated_at",
             "created_by",
         ]
-        read_only_fields = ["id", "employee", "created_at", "updated_at", "created_by"]
+        read_only_fields = [
+            "id",
+            "employee",
+            "created_at",
+            "updated_at",
+            "created_by",
+            "end_date",
+            "status",
+        ]
 
     def get_created_by(self, obj):
         """Get user who created the exemption."""
@@ -82,7 +92,9 @@ class AttendanceExemptionSerializer(serializers.ModelSerializer):
 
         # Check for duplicate exemption when creating
         if not self.instance and employee:
-            if AttendanceExemption.objects.filter(employee=employee).exists():
+            if AttendanceExemption.objects.filter(
+                employee=employee, status=AttendanceExemption.Status.ENABLED
+            ).exists():
                 raise serializers.ValidationError({"employee_id": _("Employee already has an active exemption.")})
 
         return attrs

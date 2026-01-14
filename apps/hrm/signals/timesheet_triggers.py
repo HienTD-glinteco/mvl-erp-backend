@@ -58,7 +58,7 @@ def calendar_event_changed_handler(sender, instance, **kwargs):
     transaction.on_commit(lambda: process_calendar_change.delay(start_date, end_date))
 
 
-@receiver([post_save, post_delete], sender=AttendanceExemption)
+@receiver(post_save, sender=AttendanceExemption)
 def exemption_changed_handler(sender, instance: AttendanceExemption, **kwargs):
     """
     Handle AttendanceExemption changes.

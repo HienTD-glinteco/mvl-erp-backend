@@ -191,22 +191,6 @@ class AttendanceExemptionAPITest(TransactionTestCase, APITestMixin):
         self.assertIsNone(data["effective_date"])
         self.assertEqual(data["notes"], "No specific effective date")
 
-    def test_create_duplicate_exemption(self):
-        """Test creating a duplicate exemption for the same employee."""
-        url = reverse("hrm:attendance-exemption-list")
-        payload = {
-            "employee_id": self.employee1.id,  # Already has exemption
-            "effective_date": "2025-03-01",
-            "notes": "Duplicate attempt",
-        }
-        response = self.client.post(url, payload, format="json")
-
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        content = json.loads(response.content.decode())
-        self.assertFalse(content["success"])
-        self.assertIn("employee_id", str(content["error"]))
-        self.assertIn("already has an active exemption", str(content["error"]).lower())
-
     def test_create_exemption_for_inactive_employee(self):
         """Test creating exemption for inactive employee."""
         inactive_employee = Employee.objects.create(
@@ -241,7 +225,7 @@ class AttendanceExemptionAPITest(TransactionTestCase, APITestMixin):
         self.assertFalse(content["success"])
 
     def test_update_exemption(self):
-        """Test updating an attendance exemption."""
+        """Test updating an attendance exemption is disabled."""
         url = reverse("hrm:attendance-exemption-detail", kwargs={"pk": self.exemption1.pk})
         payload = {
             "employee_id": self.employee1.id,
@@ -250,35 +234,98 @@ class AttendanceExemptionAPITest(TransactionTestCase, APITestMixin):
         }
         response = self.client.put(url, payload, format="json")
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        data = self.get_response_data(response)
-        self.assertEqual(data["effective_date"], "2025-02-01")
-        self.assertEqual(data["notes"], "Updated exemption")
+        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
     def test_partial_update_exemption(self):
-        """Test partially updating an attendance exemption."""
+        """Test partially updating an attendance exemption is disabled."""
         url = reverse("hrm:attendance-exemption-detail", kwargs={"pk": self.exemption1.pk})
         payload = {"notes": "Partially updated notes"}
         response = self.client.patch(url, payload, format="json")
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        data = self.get_response_data(response)
-        self.assertEqual(data["notes"], "Partially updated notes")
-        self.assertEqual(data["effective_date"], "2025-01-01")  # Unchanged
+        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
     def test_delete_exemption(self):
-        """Test hard deleting an attendance exemption."""
+        """Test that hard deletion is disabled."""
         url = reverse("hrm:attendance-exemption-detail", kwargs={"pk": self.exemption1.pk})
         response = self.client.delete(url)
 
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)  # Method not allowed
 
-        # Verify it's completely deleted (hard delete)
-        self.assertEqual(AttendanceExemption.objects.count(), 0)
-        list_url = reverse("hrm:attendance-exemption-list")
-        list_response = self.client.get(list_url)
-        data = self.get_response_data(list_response)
-        self.assertEqual(len(data), 0)
+    def test_disable_exemption(self):
+        """Test disabling an attendance exemption."""
+        url = reverse("hrm:attendance-exemption-disable", kwargs={"pk": self.exemption1.pk})
+        response = self.client.post(url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.exemption1.refresh_from_db()
+        self.assertEqual(self.exemption1.status, AttendanceExemption.Status.DISABLED)
+
+    def test_create_duplicate_exemption(self):
+        """Test creating a duplicate exemption checks for ENABLED status."""
+        url = reverse("hrm:attendance-exemption-list")
+        payload = {
+            "employee_id": self.employee1.id,  # Already has ENABLED exemption
+            "effective_date": "2025-03-01",
+            "notes": "Duplicate attempt",
+        }
+        response = self.client.post(url, payload, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        content = json.loads(response.content.decode())
+        self.assertFalse(content["success"])
+        self.assertIn("employee_id", str(content["error"]))
+        self.assertIn("already has an active exemption", str(content["error"]).lower())
+
+    def test_create_exemption_after_disabling(self):
+        """Test creating a new exemption after disabling the old one."""
+        # Create a new employee for this test to ensure isolation
+        employee = Employee.objects.create(
+            code_type=Employee.CodeType.MV,
+            code="EMP_TEST",
+            fullname="Test Employee",
+            username="testemp",
+            email="test.emp@example.com",
+            branch=self.branch,
+            block=self.block,
+            department=self.department,
+            position=self.position,
+            status=Employee.Status.ACTIVE,
+            start_date=date(2024, 1, 1),
+            citizen_id="000000001",
+            personal_email="test.personal@example.com",
+        )
+
+        # Create initial exemption
+        exemption = AttendanceExemption.objects.create(
+            employee=employee,
+            effective_date=date(2025, 1, 1),
+            status=AttendanceExemption.Status.ENABLED,
+            notes="Initial exemption",
+        )
+
+        # Disable it
+        exemption.status = AttendanceExemption.Status.DISABLED
+        exemption.save()
+        exemption.refresh_from_db()
+
+        url = reverse("hrm:attendance-exemption-list")
+        payload = {
+            "employee_id": employee.id,
+            "effective_date": "2025-03-01",
+            "notes": "New exemption after disable",
+        }
+        response = self.client.post(url, payload, format="json")
+
+        if response.status_code != status.HTTP_201_CREATED:
+            print(f"Response error: {response.content.decode()}")
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        data = self.get_response_data(response)
+        self.assertEqual(data["employee"]["code"], "EMP_TEST")
+        self.assertEqual(data["effective_date"], "2025-03-01")
+
+        # Should have 2 exemptions for EMP_TEST
+        self.assertEqual(AttendanceExemption.objects.filter(employee=employee).count(), 2)
 
     def test_search_exemptions_by_employee_code(self):
         """Test searching exemptions by employee code."""
@@ -317,6 +364,30 @@ class AttendanceExemptionAPITest(TransactionTestCase, APITestMixin):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = self.get_response_data(response)
         self.assertEqual(len(data), 1)
+
+    def test_filter_exemptions_by_status(self):
+        """Test filtering exemptions by status."""
+        # Create a disabled exemption
+        AttendanceExemption.objects.create(
+            employee=self.employee2,
+            effective_date=date(2025, 2, 1),
+            status=AttendanceExemption.Status.DISABLED,
+            notes="Disabled",
+        )
+
+        url = reverse("hrm:attendance-exemption-list")
+
+        # Filter ENABLED
+        response = self.client.get(url, {"status": "ENABLED"})
+        data = self.get_response_data(response)
+        self.assertEqual(len(data), 1)
+        self.assertEqual(data[0]["employee"]["code"], "EMP001")
+
+        # Filter DISABLED
+        response = self.client.get(url, {"status": "DISABLED"})
+        data = self.get_response_data(response)
+        self.assertEqual(len(data), 1)
+        self.assertEqual(data[0]["employee"]["code"], "EMP002")
 
     def test_filter_exemptions_by_effective_date_range(self):
         """Test filtering exemptions by effective date range."""
