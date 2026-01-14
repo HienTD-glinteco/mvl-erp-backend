@@ -3,7 +3,6 @@ from typing import Optional, Tuple
 
 from celery import shared_task
 from django.db import transaction
-from django.db.models.signals import post_save
 
 from apps.hrm.constants import ProposalType
 from apps.hrm.models import (
@@ -35,9 +34,8 @@ def process_contract_change(contract: Contract):
         updates.append(entry)
 
     if updates:
-        TimeSheetEntry.objects.bulk_update(updates, fields=["contract", "net_percentage", "is_full_salary"])
         for entry in updates:
-            post_save.send(sender=TimeSheetEntry, instance=entry, created=False)
+            entry.save(update_fields=["contract", "net_percentage", "is_full_salary"])
 
 
 @shared_task
@@ -73,9 +71,8 @@ def process_calendar_change(start_date: date, end_date: date):
             "overtime_hours",
             "is_punished",
         ]
-        TimeSheetEntry.objects.bulk_update(updates, fields=fields)
         for entry in updates:
-            post_save.send(sender=TimeSheetEntry, instance=entry, created=False)
+            entry.save(update_fields=fields)
 
 
 @shared_task
@@ -95,28 +92,25 @@ def process_exemption_change(exemption: AttendanceExemption):
         recalc_updates.append(entry)
 
     if recalc_updates:
-        TimeSheetEntry.objects.bulk_update(
-            recalc_updates,
-            fields=[
-                "is_exempt",
-                "status",
-                "working_days",
-                "late_minutes",
-                "early_minutes",
-                "is_punished",
-                "morning_hours",
-                "afternoon_hours",
-                "overtime_hours",
-                "ot_tc1_hours",
-                "ot_tc2_hours",
-                "ot_tc3_hours",
-                "absent_reason",
-                "allowed_late_minutes",
-                "allowed_late_minutes_reason",
-            ],
-        )
+        fields = [
+            "is_exempt",
+            "status",
+            "working_days",
+            "late_minutes",
+            "early_minutes",
+            "is_punished",
+            "morning_hours",
+            "afternoon_hours",
+            "overtime_hours",
+            "ot_tc1_hours",
+            "ot_tc2_hours",
+            "ot_tc3_hours",
+            "absent_reason",
+            "allowed_late_minutes",
+            "allowed_late_minutes_reason",
+        ]
         for entry in recalc_updates:
-            post_save.send(sender=TimeSheetEntry, instance=entry, created=False)
+            entry.save(update_fields=fields)
 
 
 @shared_task
@@ -172,29 +166,27 @@ def process_proposal_change(proposal: Proposal):
         updates.append(entry)
 
     if updates:
-        TimeSheetEntry.objects.bulk_update(
-            updates,
-            fields=[
-                "absent_reason",
-                "count_for_payroll",
-                "status",
-                "working_days",
-                "late_minutes",
-                "early_minutes",
-                "is_punished",
-                "overtime_hours",
-                "ot_tc1_hours",
-                "ot_tc2_hours",
-                "ot_tc3_hours",
-                "allowed_late_minutes",
-                "allowed_late_minutes_reason",
-                "approved_ot_start_time",
-                "approved_ot_end_time",
-                "approved_ot_minutes",
-            ],
-        )
+        fields = [
+            "absent_reason",
+            "count_for_payroll",
+            "status",
+            "working_days",
+            "late_minutes",
+            "early_minutes",
+            "is_punished",
+            "overtime_hours",
+            "ot_tc1_hours",
+            "ot_tc2_hours",
+            "ot_tc3_hours",
+            "allowed_late_minutes",
+            "allowed_late_minutes_reason",
+            "approved_ot_start_time",
+            "approved_ot_end_time",
+            "approved_ot_minutes",
+        ]
+
         for entry in updates:
-            post_save.send(sender=TimeSheetEntry, instance=entry, created=False)
+            entry.save(update_fields=fields)
 
 
 def _get_start_end_dates(proposal: Proposal) -> Tuple[Optional[date], Optional[date]]:

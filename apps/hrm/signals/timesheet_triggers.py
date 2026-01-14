@@ -2,7 +2,7 @@ from django.db import transaction
 from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
 
-from apps.hrm.constants import ProposalStatus, ProposalType
+from apps.hrm.constants import ProposalType
 from apps.hrm.models import (
     AttendanceExemption,
     CompensatoryWorkday,
@@ -75,9 +75,6 @@ def proposal_changed_handler(sender, instance: Proposal, **kwargs):
     Handle Proposal changes (Leaves, OT, etc).
     """
     if not instance.created_by_id:
-        return
-
-    if instance.proposal_status != ProposalStatus.APPROVED:
         return
 
     if instance.proposal_type not in [

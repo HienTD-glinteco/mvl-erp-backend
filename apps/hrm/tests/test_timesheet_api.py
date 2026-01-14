@@ -324,8 +324,12 @@ def test_create_entries_for_employee_month_sends_post_save(db):
         post_save.disconnect(handler, sender=TimeSheetEntry)
 
     assert len(created) == 31
-    # Check that signal was sent 31 times
-    assert handler.call_count == 31
+    created_signals = [
+        call
+        for call in handler.call_args_list
+        if call[1].get("created") is True and isinstance(call[1].get("instance"), TimeSheetEntry)
+    ]
+    assert len(created_signals) == 31
 
     # Verify call args for one of them
     call_args = handler.call_args_list[0]

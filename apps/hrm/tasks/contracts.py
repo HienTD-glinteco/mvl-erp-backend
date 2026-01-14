@@ -1,6 +1,7 @@
 """Celery tasks for HRM contract management."""
 
 import logging
+from collections import defaultdict
 
 from celery import shared_task
 from django.utils import timezone
@@ -36,8 +37,6 @@ def check_contract_status() -> dict[str, int]:
             - expired_count: int number changed to EXPIRED
             - not_effective_count: int number changed to NOT_EFFECTIVE
     """
-    from collections import defaultdict
-
     logger.info("Starting contract status update task")
 
     # Get all contracts except DRAFT status (DRAFT is preserved and not auto-updated)
@@ -60,7 +59,8 @@ def check_contract_status() -> dict[str, int]:
         contracts_by_employee[contract.employee_id].append(contract)
 
     # Process each employee's contracts
-    contracts_to_update: list[Contract] = []
+    contracts_to_save: list[Contract] = []
+    contracts_to_force_update: list[Contract] = []
     now = timezone.now()
 
     for employee_id, employee_contracts in contracts_by_employee.items():
@@ -72,9 +72,14 @@ def check_contract_status() -> dict[str, int]:
             if idx == 0:
                 # Most recent contract: calculate status from dates
                 new_status = contract.calculate_status()
+                # For most recent contract, we want to use save() to trigger signals and logic
+                target_list = contracts_to_save
             else:
                 # Older contracts: always expire them
                 new_status = Contract.ContractStatus.EXPIRED
+                # For older contracts, we MUST use update/bulk_update to bypass correct status calculation
+                # because save() would reset status to ACTIVE if dates are still valid.
+                target_list = contracts_to_force_update
 
             if old_status != new_status:
                 status_changes[new_status] += 1
@@ -90,13 +95,22 @@ def check_contract_status() -> dict[str, int]:
 
                 contract.status = new_status
                 contract.updated_at = now
-                contracts_to_update.append(contract)
+                target_list.append(contract)
 
-    # Bulk update all contracts that need status changes
-    updated_count = len(contracts_to_update)
-    if contracts_to_update:
-        Contract.objects.bulk_update(contracts_to_update, ["status", "updated_at"])
-        logger.info("Bulk updated %d contracts", updated_count)
+    # Process save list (triggers signals and internal logic like expire_previous_contracts)
+    saved_count = len(contracts_to_save)
+    if contracts_to_save:
+        for contract in contracts_to_save:
+            contract.save(update_fields=["status", "updated_at"])
+        logger.info("Updated (saved) %d active/recent contracts", saved_count)
+
+    # Process force update list (bypasses save logic to force expire)
+    force_updated_count = len(contracts_to_force_update)
+    if contracts_to_force_update:
+        Contract.objects.bulk_update(contracts_to_force_update, ["status", "updated_at"])
+        logger.info("Force updated (expired) %d older contracts", force_updated_count)
+
+    updated_count = saved_count + force_updated_count
 
     logger.info(
         "Contract status update complete: %d contracts updated out of %d",

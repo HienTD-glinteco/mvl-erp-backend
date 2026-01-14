@@ -63,8 +63,14 @@ def prepare_monthly_timesheets(
     # Update available leave days for eligible employees based on the calculated monthly timesheet
     updated_leave = 0
     if increment_leave:
-        for ts in timesheets:
-            Employee.objects.filter(pk=ts.employee_id).update(available_leave_days=ts.remaining_leave_days)
+        employees_to_update = Employee.objects.filter(pk__in=[ts.employee_id for ts in timesheets])
+        remaining_map = {ts.employee_id: ts.remaining_leave_days for ts in timesheets}
+
+        for employee in employees_to_update:
+            if employee.id in remaining_map:
+                employee.available_leave_days = remaining_map[employee.id]
+                employee.save(update_fields=["available_leave_days"])
+
         updated_leave = len(timesheets)
         logger.info("prepare_monthly_timesheets: updated leave days for %s employees", updated_leave)
 
@@ -261,19 +267,22 @@ def link_proposals_to_timesheet_entry_task(timesheet_entry_id: int) -> dict:
     to_add_ids = relevant_proposal_ids - existing_linked_ids
     to_remove_ids = existing_linked_ids - relevant_proposal_ids
 
-    # Bulk Delete
     if to_remove_ids:
-        deleted_count, _ = ProposalTimeSheetEntry.objects.filter(
-            timesheet_entry=entry, proposal_id__in=to_remove_ids
-        ).delete()
+        entries_to_delete = ProposalTimeSheetEntry.objects.filter(timesheet_entry=entry, proposal_id__in=to_remove_ids)
+        deleted_count = 0
+        for item in entries_to_delete:
+            item.delete()
+            deleted_count += 1
         logger.info("Unlinked %s proposals from entry %s", deleted_count, entry.id)
 
-    # Bulk Create
     if to_add_ids:
-        new_links = [ProposalTimeSheetEntry(proposal_id=pid, timesheet_entry=entry) for pid in to_add_ids]
-        # NOTE: ignore_conflicts=True to handle potential race conditions safely
-        objs = ProposalTimeSheetEntry.objects.bulk_create(new_links, ignore_conflicts=True)
-        logger.info("Linked %s proposals to entry %s", len(objs), entry.id)
+        added_count = 0
+        for pid in to_add_ids:
+            # Use get_or_create to handle potential race conditions safely similar to ignore_conflicts
+            ProposalTimeSheetEntry.objects.get_or_create(proposal_id=pid, timesheet_entry=entry)
+            added_count += 1
+
+        logger.info("Linked %s proposals to entry %s", added_count, entry.id)
 
     return {"success": True, "added": len(to_add_ids), "removed": len(to_remove_ids)}
 
@@ -332,18 +341,22 @@ def link_timesheet_entries_to_proposal_task(proposal_id: int) -> dict:
     to_add_ids = relevant_timesheet_ids - existing_linked_ids
     to_remove_ids = existing_linked_ids - relevant_timesheet_ids
 
-    # Bulk Delete
     if to_remove_ids:
-        deleted_count, _ = ProposalTimeSheetEntry.objects.filter(
+        items_to_delete = ProposalTimeSheetEntry.objects.filter(
             proposal=proposal, timesheet_entry_id__in=to_remove_ids
-        ).delete()
+        )
+        deleted_count = 0
+        for item in items_to_delete:
+            item.delete()
+            deleted_count += 1
         logger.info("Unlinked %s timesheet entries from proposal %s", deleted_count, proposal.id)
 
-    # Bulk Create
     if to_add_ids:
-        new_links = [ProposalTimeSheetEntry(proposal=proposal, timesheet_entry_id=tid) for tid in to_add_ids]
-        # NOTE: ignore_conflicts=True to handle potential race conditions safely
-        objs = ProposalTimeSheetEntry.objects.bulk_create(new_links, ignore_conflicts=True)
-        logger.info("Linked %s timesheet entries to proposal %s", len(objs), proposal.id)
+        added_count = 0
+        for tid in to_add_ids:
+            # Use get_or_create to handle potential race conditions safely
+            ProposalTimeSheetEntry.objects.get_or_create(proposal=proposal, timesheet_entry_id=tid)
+            added_count += 1
+        logger.info("Linked %s timesheet entries to proposal %s", added_count, proposal.id)
 
     return {"success": True, "added": len(to_add_ids), "removed": len(to_remove_ids)}

@@ -6,7 +6,6 @@ from typing import List, Optional
 
 from django.db import transaction
 from django.db.models import Max, Min, Q, Sum
-from django.db.models.signals import post_save
 
 from apps.hrm.models import AttendanceRecord, Contract, Employee, EmployeeMonthlyTimesheet, TimeSheetEntry
 from apps.hrm.services.day_type_service import get_day_type_map
@@ -56,48 +55,42 @@ def create_entries_for_employee_month(
             entries_to_create.append(TimeSheetEntry(employee_id=employee_id, date=entry_date, day_type=day_type))
 
     if entries_to_create:
-        TimeSheetEntry.objects.bulk_create(entries_to_create, ignore_conflicts=True)
+        for entry in entries_to_create:
+            entry.save()
 
-        # Re-fetch created entries to get their PKs (bulk_create with ignore_conflicts doesn't set PKs)
-        created_dates = [e.date for e in entries_to_create]
-        created = list(TimeSheetEntry.objects.filter(employee_id=employee_id, date__in=created_dates))
-
-        # Finalize past entries since bulk_create skips clean() -> compute_working_days()
+        # Finalize past entries
         # This ensures working_days, status, and other computed fields are set for past dates
         today = date.today()
-        past_entries = [e for e in created if e.date < today]
+        past_entries = [e for e in entries_to_create if e.date < today]
         if past_entries:
             snapshot_service = TimesheetSnapshotService()
             for entry in past_entries:
                 snapshot_service.snapshot_data(entry)
                 calculator = TimesheetCalculator(entry)
                 calculator.compute_all(is_finalizing=True)
+                # Save each entry to trigger signals/updates
+                entry.save(
+                    update_fields=[
+                        "working_days",
+                        "status",
+                        "day_type",
+                        "absent_reason",
+                        "morning_hours",
+                        "afternoon_hours",
+                        "official_hours",
+                        "overtime_hours",
+                        "total_worked_hours",
+                        "is_punished",
+                        "late_minutes",
+                        "early_minutes",
+                        "contract",
+                        "net_percentage",
+                        "is_full_salary",
+                        "is_exempt",
+                    ]
+                )
 
-            TimeSheetEntry.objects.bulk_update(
-                past_entries,
-                fields=[
-                    "working_days",
-                    "status",
-                    "day_type",
-                    "absent_reason",
-                    "morning_hours",
-                    "afternoon_hours",
-                    "official_hours",
-                    "overtime_hours",
-                    "total_worked_hours",
-                    "is_punished",
-                    "late_minutes",
-                    "early_minutes",
-                    "contract",
-                    "net_percentage",
-                    "is_full_salary",
-                    "is_exempt",
-                ],
-            )
-
-        for timesheet_entry in created:
-            post_save.send(sender=TimeSheetEntry, instance=timesheet_entry, created=True)
-        return created
+        return entries_to_create
 
     return []
 
@@ -336,4 +329,7 @@ def update_day_types_for_range(start_date: date, end_date: date) -> None:
     # Perform updates
     for d_type, dates in grouped_map.items():
         # d_type can be OFFICIAL, HOLIDAY, COMPENSATORY, or None
-        TimeSheetEntry.objects.filter(date__in=dates).update(day_type=d_type)
+        entries = TimeSheetEntry.objects.filter(date__in=dates)
+        for entry in entries:
+            entry.day_type = d_type
+            entry.save(update_fields=["day_type"])

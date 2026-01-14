@@ -105,12 +105,14 @@ def recalculate_daily_attendance_reports_task(report_date_str: str | None = None
             )
         )
 
-    # 3. Perform bulk update/create inside a transaction
+    # 3. Perform loop update/create inside a transaction
     with transaction.atomic():
-        # Delete existing reports for this date
-        AttendanceDailyReport.objects.filter(report_date=report_date).delete()
+        # Delete existing reports for this date - replaced with loop delete
+        existing_reports = AttendanceDailyReport.objects.filter(report_date=report_date)
+        for report in existing_reports:
+            report.delete()
 
-        # Bulk create new reports
-        AttendanceDailyReport.objects.bulk_create(new_reports, batch_size=1000)
+        for report in new_reports:
+            report.save()
 
     logger.info(f"Recalculated reports for {len(new_reports)} employees on {report_date}")

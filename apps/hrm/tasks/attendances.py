@@ -359,14 +359,14 @@ def _save_attendance_logs_to_database(device: AttendanceDevice, today_logs: list
     # Create new records
     records_to_create = _create_attendance_records_from_logs(device, today_logs, existing_set)
 
-    # Bulk create all missing records in batches
     if records_to_create:
-        created_records = AttendanceRecord.objects.bulk_create(records_to_create, batch_size=BULK_CREATE_BATCH_SIZE)
+        created_records = []
+        for record in records_to_create:
+            record.save()
+            created_records.append(record)
+
         logs_synced = len(created_records)
         logger.info(f"Created {logs_synced} new attendance records for device {device.name}")
-
-        # Post-processing: Trigger timesheet updates (since bulk_create doesn't fire signals)
-        trigger_timesheet_updates_from_records(created_records)
 
         return logs_synced
     else:
