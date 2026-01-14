@@ -284,3 +284,62 @@ class TestUpdateEmployeeStatusFromApprovedLeaveProposals:
 
         assert test_employee.status == Employee.Status.UNPAID_LEAVE
         assert second_employee.status == Employee.Status.MATERNITY_LEAVE
+
+    def test_employee_reactivated_after_unpaid_leave_end(self, test_employee):
+        """Test that employees on unpaid leave are reactivated after leave ends."""
+        today = timezone.localdate()
+
+        test_employee.status = Employee.Status.UNPAID_LEAVE
+        test_employee.resignation_start_date = today - timedelta(days=10)
+        test_employee.resignation_end_date = today - timedelta(days=1)
+        test_employee.save()
+
+        Proposal.objects.create(
+            code="DX_TASK_REACTIVATE_001",
+            proposal_type=ProposalType.UNPAID_LEAVE,
+            proposal_status=ProposalStatus.APPROVED,
+            unpaid_leave_start_date=today - timedelta(days=10),
+            unpaid_leave_end_date=today - timedelta(days=1),
+            created_by=test_employee,
+        )
+
+        update_employee_status_from_approved_leave_proposals()
+
+        test_employee.refresh_from_db()
+        assert test_employee.status == Employee.Status.ACTIVE
+        assert test_employee.resignation_start_date is None
+        assert test_employee.resignation_end_date is None
+
+    def test_employee_not_reactivated_when_active_leave_exists(self, test_employee):
+        """Test that employees remain on leave when a current leave proposal exists."""
+        today = timezone.localdate()
+
+        test_employee.status = Employee.Status.UNPAID_LEAVE
+        test_employee.resignation_start_date = today - timedelta(days=10)
+        test_employee.resignation_end_date = today - timedelta(days=2)
+        test_employee.save()
+
+        Proposal.objects.create(
+            code="DX_TASK_REACTIVATE_002",
+            proposal_type=ProposalType.UNPAID_LEAVE,
+            proposal_status=ProposalStatus.APPROVED,
+            unpaid_leave_start_date=today - timedelta(days=10),
+            unpaid_leave_end_date=today - timedelta(days=2),
+            created_by=test_employee,
+        )
+
+        Proposal.objects.create(
+            code="DX_TASK_REACTIVATE_003",
+            proposal_type=ProposalType.UNPAID_LEAVE,
+            proposal_status=ProposalStatus.APPROVED,
+            unpaid_leave_start_date=today - timedelta(days=1),
+            unpaid_leave_end_date=today + timedelta(days=2),
+            created_by=test_employee,
+        )
+
+        update_employee_status_from_approved_leave_proposals()
+
+        test_employee.refresh_from_db()
+        assert test_employee.status == Employee.Status.UNPAID_LEAVE
+        assert test_employee.resignation_start_date == today - timedelta(days=10)
+        assert test_employee.resignation_end_date == today - timedelta(days=2)
