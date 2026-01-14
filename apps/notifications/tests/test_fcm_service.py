@@ -136,8 +136,16 @@ class TestFCMService:
         # Assert
         assert result is False
 
-    def test_build_payload_default(self, notification):
+    def test_build_payload_default(self, actor, recipient_with_device):
         """Test building notification payload with default values."""
+        # Create notification with specific values for this test
+        notification = Notification.objects.create(
+            actor=actor,
+            recipient=recipient_with_device,
+            verb="commented on your post",
+            message="This is great!",
+        )
+
         # Act
         payload = FCMService._build_payload(notification)
 
