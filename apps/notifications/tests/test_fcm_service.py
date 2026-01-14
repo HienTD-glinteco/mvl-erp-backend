@@ -153,7 +153,7 @@ class TestFCMService:
         assert "notification" in payload
         assert "data" in payload
         assert payload["notification"]["title"] == "John Doe"  # last_name first_name format
-        assert payload["notification"]["body"] == "commented on your post This is great!"
+        assert payload["notification"]["body"] == "This is great!"
         assert payload["data"]["notification_id"] == str(notification.id)
         assert payload["data"]["actor_id"] == str(notification.actor.id)
         assert payload["data"]["verb"] == "commented on your post"
