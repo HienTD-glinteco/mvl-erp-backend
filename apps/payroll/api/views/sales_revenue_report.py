@@ -154,8 +154,13 @@ class SalesRevenueReportViewSet(ExportXLSXMixin, BaseGenericViewSet):
                 }
             )
 
-        # Sort by label in ascending order
-        result.sort(key=lambda x: x["label"])
+        # Sort by label (MM/YYYY) in chronological ascending order
+        def parse_month_key(label):
+            """Parse MM/YYYY to (year, month) tuple for sorting."""
+            month, year = label.split("/")
+            return (int(year), int(month))
+
+        result.sort(key=lambda x: parse_month_key(x["label"]))
 
         return Response(result)
 
@@ -207,8 +212,13 @@ class SalesRevenueReportViewSet(ExportXLSXMixin, BaseGenericViewSet):
                 }
             )
 
-        # Sort by month in ascending order
-        chart_data.sort(key=lambda x: x["month"])
+        # Sort by month (MM/YYYY) in chronological ascending order
+        def parse_month_key(month_val):
+            """Parse MM/YYYY to (year, month) tuple for sorting."""
+            month, year = month_val.split("/")
+            return (int(year), int(month))
+
+        chart_data.sort(key=lambda x: parse_month_key(x["month"]))
 
         response_data = {
             "labels": [_("Total Employees"), _("Employees with Revenue")],
