@@ -309,13 +309,26 @@ def on_contract_saved(sender, instance, created, **kwargs):
 
 
 @receiver(post_save, sender=EmployeeMonthlyTimesheet)
-def on_timesheet_saved(sender, instance, **kwargs):
+def on_timesheet_saved(sender, instance, created, **kwargs):
     """Recalculate payroll when timesheet changes.
 
     Timesheet changes affect attendance-based calculations in payroll.
+
+    NOTE: Only trigger recalculation when substantive fields change,
+    not when just marking need_refresh to avoid duplicate task triggers.
     """
     from apps.payroll.tasks import recalculate_payroll_slip_task
 
+    update_fields = kwargs.get("update_fields")
+
+    # If update_fields is specified and only contains 'need_refresh', skip recalculation
+    # This prevents duplicate triggers when attendance records are saved
+    if update_fields is not None:
+        updated_fields_set = set(update_fields) if not isinstance(update_fields, set) else update_fields
+        if updated_fields_set == {"need_refresh"}:
+            return
+
+    # Trigger recalculation for creation or substantive updates
     recalculate_payroll_slip_task.delay(str(instance.employee_id), instance.report_date.isoformat())
 
 

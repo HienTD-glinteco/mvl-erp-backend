@@ -210,10 +210,10 @@ jobs:
           # --dist=loadgroup: distribute tests by module for better caching
           # -n auto: use all available CPU cores
           # --maxfail=10: fail fast after 10 failures
-          ENVIRONMENT=test python -m pytest apps/ \
+          ENVIRONMENT=test python -m pytest \
             -v \
             --tb=short \
-            --cov=apps \
+            --cov=. \
             --cov-report=xml \
             -n auto \
             --dist=loadgroup \
