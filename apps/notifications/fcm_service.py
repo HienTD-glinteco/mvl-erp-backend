@@ -159,7 +159,7 @@ class FCMService:
         # Default body from verb and message
         if body is None:
             if notification.message:
-                body = f"{notification.verb} {notification.message}"
+                body = f"{notification.message}"
             else:
                 body = notification.verb
 
