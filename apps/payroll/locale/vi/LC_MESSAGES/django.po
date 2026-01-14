@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-13 17:27+0700\n"
+"POT-Creation-Date: 2026-01-14 11:05+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -917,7 +917,7 @@ msgid "Total Revenue"
 msgstr "Tổng doanh thu"
 
 #: apps/payroll/api/views/sales_revenue_report.py:148
-#: apps/payroll/api/views/sales_revenue_report.py:208
+#: apps/payroll/api/views/sales_revenue_report.py:214
 msgid "Employees with Revenue"
 msgstr "Nhân viên có doanh thu"
 
@@ -937,12 +937,12 @@ msgstr "Tỷ lệ nhân viên có doanh thu (%)"
 msgid "Average Revenue per Employee"
 msgstr "Doanh thu trung bình mỗi nhân viên"
 
-#: apps/payroll/api/views/sales_revenue_report.py:208
+#: apps/payroll/api/views/sales_revenue_report.py:214
 #: apps/payroll/models/salary_period.py:93
 msgid "Total Employees"
 msgstr "Tổng số nhân viên"
 
-#: apps/payroll/api/views/sales_revenue_report.py:224
+#: apps/payroll/api/views/sales_revenue_report.py:230
 #: apps/payroll/models/penalty_ticket.py:56
 #: apps/payroll/models/recovery_voucher.py:65
 #: apps/payroll/models/salary_period.py:69
@@ -950,7 +950,7 @@ msgstr "Tổng số nhân viên"
 msgid "Month"
 msgstr "Tháng"
 
-#: apps/payroll/api/views/sales_revenue_report.py:232
+#: apps/payroll/api/views/sales_revenue_report.py:238
 msgid "Sales Revenue Quality Report"
 msgstr "Báo cáo chất lượng doanh thu bán hàng"
 

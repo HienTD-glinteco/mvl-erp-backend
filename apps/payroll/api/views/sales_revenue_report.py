@@ -154,6 +154,9 @@ class SalesRevenueReportViewSet(ExportXLSXMixin, BaseGenericViewSet):
                 }
             )
 
+        # Sort by label in ascending order
+        result.sort(key=lambda x: x["label"])
+
         return Response(result)
 
     @extend_schema(
@@ -203,6 +206,9 @@ class SalesRevenueReportViewSet(ExportXLSXMixin, BaseGenericViewSet):
                     "percentage": percentage,
                 }
             )
+
+        # Sort by month in ascending order
+        chart_data.sort(key=lambda x: x["month"])
 
         response_data = {
             "labels": [_("Total Employees"), _("Employees with Revenue")],
