@@ -38,15 +38,12 @@ class TimesheetSnapshotService:
         # Exemption status
         entry.is_exempt = False
 
-        # Time logs
-        entry.morning_hours = 0
-        entry.afternoon_hours = 0
-        entry.official_hours = 0
-        entry.total_worked_hours = 0
-        entry.overtime_hours = 0
-        entry.ot_tc1_hours = 0
-        entry.ot_tc2_hours = 0
-        entry.ot_tc3_hours = 0
+        # NOTE: Calculated fields (morning_hours, afternoon_hours, official_hours,
+        # total_worked_hours, overtime_hours) are NOT reset here - they are
+        # calculated by TimesheetCalculator.calculate_hours() and calculate_overtime().
+        # Resetting them here would break tests that set hours manually.
+
+        # OT time markers (these are derived from calculation, reset by calculator)
         entry.ot_start_time = None
         entry.ot_end_time = None
 
@@ -70,10 +67,11 @@ class TimesheetSnapshotService:
         entry.day_type = TimesheetDayType.OFFICIAL
         entry.working_days = 0
         entry.status = None
-        entry.absent_reason = None
+        # NOTE: absent_reason is NOT reset here - it's set by ProposalService when executing leave proposals
 
         # Payroll flag
-        entry.is_full_salary = True
+        # NOTE: is_full_salary is NOT reset here - it has preservation logic in snapshot_contract_info
+        #       that keeps False values (more restrictive for probation)
         entry.count_for_payroll = True
 
     def snapshot_data(self, entry: TimeSheetEntry) -> None:

@@ -116,12 +116,13 @@ def test_maternity_leave_marks_on_time(settings):
     ts = TimeSheetEntry(employee=emp, date=d)
 
     # For future dates (is_finalizing=False), leave should show as None (gray/empty)
-    TimesheetCalculator(ts).compute_status(is_finalizing=False)
+    TimesheetCalculator(ts).compute_all(is_finalizing=False)
     assert ts.status is None
 
-    # For past/finalized dates (is_finalizing=True), leave should mark ABSENT
-    TimesheetCalculator(ts).compute_status(is_finalizing=True)
-    assert ts.status == TimesheetStatus.ABSENT
+    # For past/finalized dates (is_finalizing=True), maternity leave should keep status=None
+    # (employee is on approved leave, not "absent")
+    TimesheetCalculator(ts).compute_all(is_finalizing=True)
+    assert ts.status is None
 
 
 def test_maternity_leave_with_attendance_marks_on_time(settings):

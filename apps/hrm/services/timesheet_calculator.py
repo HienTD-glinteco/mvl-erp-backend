@@ -74,10 +74,15 @@ class TimesheetCalculator:
         # 3. Calculate Overtime (TC1/TC2/TC3)
         self.calculate_overtime()
 
-        # 4. Calculate Penalties
+        # 4. Recalculate total_worked_hours after OT is calculated
+        self.entry.total_worked_hours = quantize_decimal(
+            (self.entry.official_hours or Decimal(0)) + (self.entry.overtime_hours or Decimal(0))
+        )
+
+        # 5. Calculate Penalties
         self.calculate_penalties()
 
-        # 5. Compute Status & Working Days
+        # 6. Compute Status & Working Days
         self.compute_status(is_finalizing=is_finalizing)
         self.compute_working_days(is_finalizing=is_finalizing)
 
@@ -374,10 +379,10 @@ class TimesheetCalculator:
         2. Then check leave (no attendance)
         3. Then no logs
         4. Finally two punches
+
+        NOTE: This method assumes snapshot_data has already been called by compute_all().
+        It does NOT call snapshot_data to avoid resetting calculated values (late_minutes, etc.).
         """
-        # 0. Support for direct calls (tests): ensure snapshot and penalties are run
-        snapshot_service = TimesheetSnapshotService()
-        snapshot_service.snapshot_data(self.entry)
 
         # 1. Single Punch takes precedence over leave (has 1 attendance log)
         if self._is_single_punch():
@@ -409,7 +414,6 @@ class TimesheetCalculator:
         # BUT skip this check for COMPENSATORY days - they're always working days
         if self._get_schedule_max_days() == 0 and self.entry.day_type != TimesheetDayType.COMPENSATORY:
             # No schedule = no working days regardless of leave
-            self.entry.working_days = Decimal("0.00")
             self.entry.status = None
             return True
 
@@ -419,11 +423,20 @@ class TimesheetCalculator:
             TimesheetReason.MATERNITY_LEAVE,
         ]
         if self.entry.absent_reason in leave_reasons:
-            if is_finalizing:
-                self.entry.status = TimesheetStatus.ABSENT
-            else:
-                self.entry.status = None
+            # Full-day leave (absent_reason is set) → status = None
+            self.entry.status = None
             return True
+
+        # Check for half-day leave (absent_reason is NOT set, but there's a partial leave proposal)
+        if is_finalizing:
+            # TODO: cache active leave proposals to reuse, or store the snapshot to timesheet entry
+            proposals = Proposal.get_active_leave_proposals(self.entry.employee_id, self.entry.date)
+            has_partial_leave = any(p.is_morning_leave or p.is_afternoon_leave for p in proposals)
+            if has_partial_leave:
+                # Half-day leave with no attendance on other half → ABSENT
+                self.entry.status = TimesheetStatus.ABSENT
+                return True
+
         return False
 
     def _handle_no_logs_status(self, is_finalizing: bool) -> None:
@@ -465,66 +478,82 @@ class TimesheetCalculator:
             self.entry.status = TimesheetStatus.NOT_ON_TIME if self.entry.is_punished else TimesheetStatus.ON_TIME
 
     def compute_working_days(self, is_finalizing: bool = False) -> None:
-        """Compute working_days according to business rules."""
+        """Compute working_days according to business rules.
+
+        Priority order:
+        1. Real-time preview (not finalizing) → None
+        2. Holiday → 1.0
+        3. Full-day PAID_LEAVE → max based on schedule (0.5 or 1.0)
+        4. ABSENT status:
+           - With partial paid leave → partial credit (0.5)
+           - Compensatory day → negative debt
+           - Otherwise → 0
+        5. Normal calculation: worked hours + partial leave + maternity bonus
+        6. Single punch → 1/2 max days
+        """
         # Real-time preview: leave working_days as None until day is finalized
-        # This applies to all incomplete workdays (single punch or two punches)
         if not is_finalizing:
             self.entry.working_days = None
             return
 
         self.entry.working_days = Decimal("0.00")
 
-        # NEW: Handle Holiday - always get full credit
+        # 1. Holiday - always get full credit
         if self.entry.day_type == TimesheetDayType.HOLIDAY:
             self.entry.working_days = Decimal("1.00")
             return
 
-        # 1. Absolute Absence (Full Day)
-        if self.entry.status == TimesheetStatus.ABSENT:
-            if self.entry.absent_reason == TimesheetReason.PAID_LEAVE:
-                self.entry.working_days = Decimal("1.00")
-            elif self.entry.day_type == TimesheetDayType.COMPENSATORY:
-                # NEW: Absent on compensatory day = negative (debt)
-                max_days = self._get_schedule_max_days()
-                self.entry.working_days = -max_days
+        # 2. Full-day PAID_LEAVE (absent_reason set by snapshot) → max working days
+        if self.entry.absent_reason == TimesheetReason.PAID_LEAVE:
+            self.entry.working_days = self._get_schedule_max_days()
             return
 
-        # 2. Base worked hours calculation
+        # 3. ABSENT status - check for partial leave credits first
+        if self.entry.status == TimesheetStatus.ABSENT:
+            partial_credit = self._get_partial_leave_credits()
+            if partial_credit > 0:
+                self.entry.working_days = partial_credit
+                return
+
+            if self.entry.day_type == TimesheetDayType.COMPENSATORY:
+                # Absent on compensatory day = negative (debt)
+                max_days = self._get_schedule_max_days()
+                self.entry.working_days = -max_days
+            # Otherwise working_days stays 0
+            return
+
+        # 4. Base worked hours calculation
         wd = Decimal(self.entry.official_hours or 0) / Decimal(STANDARD_WORKING_HOURS_PER_DAY)
 
-        # 3. Partial Leave Credits
+        # 5. Partial Leave Credits (for half-day leave with attendance)
         wd += self._get_partial_leave_credits()
 
+        # 6. Single Punch - fixed at 1/2 max days, OT reset to 0
         if self.entry.status == TimesheetStatus.SINGLE_PUNCH:
-            # HARD RULE: Single Punch = 1/2 Max Days. OT = 0.
             max_cap = self._get_schedule_max_days()
             if not self.work_schedule:
                 max_cap = Decimal("1.00")
 
             self.entry.working_days = max_cap / 2
 
-            # Reset Overtime
+            # Reset Overtime for single punch
             self.entry.overtime_hours = Decimal("0.00")
             self.entry.ot_tc1_hours = Decimal("0.00")
             self.entry.ot_tc2_hours = Decimal("0.00")
             self.entry.ot_tc3_hours = Decimal("0.00")
-
-            # Remove previous estimation logic
             return
 
-        # 5. Maternity Bonus (+1 hour = 0.125 days)
+        # 7. Maternity Bonus (+1 hour = 0.125 days)
         wd += self._get_maternity_bonus()
 
         self.entry.working_days = quantize_decimal(wd)
 
-        # 6. Final Cap
+        # 8. Apply daily cap
         self._apply_working_days_cap()
 
-        # 7. Compensation Value Logic
+        # 9. Compensation Value for Compensatory days
         if self.entry.day_type == TimesheetDayType.COMPENSATORY:
             max_days = self._get_schedule_max_days()
-            # compensation_value = Actual - Standard
-            # Standard is max_days (usually 1.0 or 0.5)
             self.entry.compensation_value = self.entry.working_days - max_days
         else:
             self.entry.compensation_value = Decimal("0.00")

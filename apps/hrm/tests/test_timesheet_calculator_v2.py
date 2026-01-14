@@ -322,6 +322,30 @@ class TestTimesheetCalculatorV2:
 
         assert entry.working_days == Decimal("0.50")
 
+    def test_half_day_paid_leave_no_attendance(self, employee, work_schedule):
+        """Test half-day paid leave with no attendance still gives 0.5 working days."""
+        d = date(2023, 1, 2)
+        # Morning paid leave, but employee doesn't come to work at all
+        Proposal.objects.create(
+            created_by=employee,
+            proposal_type=ProposalType.PAID_LEAVE,
+            proposal_status=ProposalStatus.APPROVED,
+            paid_leave_shift=ProposalWorkShift.MORNING,
+            paid_leave_start_date=d,
+            paid_leave_end_date=d,
+        )
+
+        # No attendance logs at all
+        entry = TimeSheetEntry.objects.create(employee=employee, date=d)
+
+        calc = TimesheetCalculator(entry)
+        calc.compute_all(is_finalizing=True)
+
+        # Status should be ABSENT (for the afternoon half they didn't work)
+        assert entry.status == TimesheetStatus.ABSENT
+        # But working_days should still include the paid leave credit
+        assert entry.working_days == Decimal("0.50")
+
     def test_maternity_bonus_quantization(self, employee, work_schedule):
         d = date(2023, 1, 2)
         Proposal.objects.create(
@@ -599,9 +623,10 @@ class TestTimesheetCalculatorV2:
         assert entry.working_days == Decimal("1.00")
 
     def test_paid_leave_working_days(self, employee, work_schedule):
-        """Test Paid Leave gives 1.0 working days."""
+        """Test full-day paid leave gives max working days based on schedule (1.0 for full-day schedule)."""
         d = date(2023, 1, 2)
         # Create a Paid Leave proposal so snapshot picks it up
+        # Note: No paid_leave_shift = full day leave
         Proposal.objects.create(
             created_by=employee,
             proposal_type=ProposalType.PAID_LEAVE,
@@ -615,5 +640,35 @@ class TestTimesheetCalculatorV2:
         calc.compute_all(is_finalizing=True)
 
         assert entry.absent_reason == TimesheetReason.PAID_LEAVE
-        assert entry.status == TimesheetStatus.ABSENT
+        # Paid leave: status is None (employee is on approved leave, not "absent")
+        assert entry.status is None
+        # Full-day schedule (work_schedule fixture) = 1.0 max working days
         assert entry.working_days == Decimal("1.00")
+
+    def test_paid_leave_half_day_schedule(self, employee):
+        """Test paid leave on half-day schedule gives 0.5 working days."""
+        d = date(2023, 1, 7)  # Saturday (weekday=7)
+        # Create half-day schedule for Saturday (morning only)
+        WorkSchedule.objects.create(
+            weekday=WorkSchedule.Weekday.SATURDAY,
+            morning_start_time=time(8, 0),
+            morning_end_time=time(12, 0),
+            # No afternoon
+        )
+        # Create a Paid Leave proposal
+        Proposal.objects.create(
+            created_by=employee,
+            proposal_type=ProposalType.PAID_LEAVE,
+            proposal_status=ProposalStatus.APPROVED,
+            paid_leave_start_date=d,
+            paid_leave_end_date=d,
+        )
+        entry = TimeSheetEntry.objects.create(employee=employee, date=d)
+
+        calc = TimesheetCalculator(entry)
+        calc.compute_all(is_finalizing=True)
+
+        assert entry.absent_reason == TimesheetReason.PAID_LEAVE
+        assert entry.status is None
+        # Half-day schedule (morning only) = 0.5 max working days
+        assert entry.working_days == Decimal("0.50")
