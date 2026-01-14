@@ -3,6 +3,7 @@
 import logging
 
 from celery import shared_task
+from django.db.models import Exists, OuterRef, Q
 from django.utils import timezone
 
 from apps.hrm.constants import ProposalStatus, ProposalType
@@ -28,7 +29,8 @@ def update_employee_status_from_approved_leave_proposals() -> None:
     """
     today = timezone.localdate()
 
-    employees_to_update: list[Employee] = []
+    updated_count = 0
+    leave_statuses = [Employee.Status.UNPAID_LEAVE, Employee.Status.MATERNITY_LEAVE]
 
     # Find approved UNPAID_LEAVE proposals where today is within the leave period
     unpaid_leave_proposals = Proposal.objects.filter(
@@ -44,7 +46,8 @@ def update_employee_status_from_approved_leave_proposals() -> None:
             employee.status = Employee.Status.UNPAID_LEAVE
             employee.resignation_start_date = proposal.unpaid_leave_start_date
             employee.resignation_end_date = proposal.unpaid_leave_end_date
-            employees_to_update.append(employee)
+            employee.save(update_fields=["status", "resignation_start_date", "resignation_end_date"])
+            updated_count += 1
             logger.info(
                 "Marking employee %s for UNPAID_LEAVE status update from proposal %s",
                 employee.id,
@@ -65,21 +68,54 @@ def update_employee_status_from_approved_leave_proposals() -> None:
             employee.status = Employee.Status.MATERNITY_LEAVE
             employee.resignation_start_date = proposal.maternity_leave_start_date
             employee.resignation_end_date = proposal.maternity_leave_end_date
-            employees_to_update.append(employee)
+            employee.save(update_fields=["status", "resignation_start_date", "resignation_end_date"])
+            updated_count += 1
             logger.info(
                 "Marking employee %s for MATERNITY_LEAVE status update from proposal %s",
                 employee.id,
                 proposal.code,
             )
 
-    # Bulk update all employees at once
-    if employees_to_update:
-        Employee.objects.bulk_update(
-            employees_to_update,
-            fields=["status", "resignation_start_date", "resignation_end_date"],
+    active_leave_subquery = Proposal.objects.filter(
+        proposal_status=ProposalStatus.APPROVED,
+        created_by=OuterRef("pk"),
+    ).filter(
+        Q(
+            proposal_type=ProposalType.UNPAID_LEAVE,
+            unpaid_leave_start_date__lte=today,
+            unpaid_leave_end_date__gte=today,
         )
+        | Q(
+            proposal_type=ProposalType.MATERNITY_LEAVE,
+            maternity_leave_start_date__lte=today,
+            maternity_leave_end_date__gte=today,
+        )
+    )
+
+    ended_leave_subquery = Proposal.objects.filter(
+        proposal_status=ProposalStatus.APPROVED,
+        created_by=OuterRef("pk"),
+    ).filter(
+        Q(proposal_type=ProposalType.UNPAID_LEAVE, unpaid_leave_end_date__lt=today)
+        | Q(proposal_type=ProposalType.MATERNITY_LEAVE, maternity_leave_end_date__lt=today)
+    )
+
+    employees_to_reactivate = (
+        Employee.objects.filter(status__in=leave_statuses)
+        .annotate(has_active_leave=Exists(active_leave_subquery), has_ended_leave=Exists(ended_leave_subquery))
+        .filter(has_active_leave=False, has_ended_leave=True)
+    )
+
+    for employee in employees_to_reactivate.iterator():
+        employee.status = Employee.Status.ACTIVE
+        employee.resignation_start_date = None
+        employee.resignation_end_date = None
+        employee.resignation_reason = None
+        employee.save(update_fields=["status", "resignation_start_date", "resignation_end_date", "resignation_reason"])
+        updated_count += 1
+        logger.info("Marking employee %s for ACTIVE status update after leave end", employee.id)
 
     logger.info(
         "Employee status update task completed: %d employees updated",
-        len(employees_to_update),
+        updated_count,
     )
