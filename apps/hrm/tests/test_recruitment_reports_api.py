@@ -9,6 +9,7 @@ from rest_framework import status
 
 from apps.hrm.constants import RecruitmentSourceType
 from apps.hrm.models import (
+    Department,
     Employee,
     HiredCandidateReport,
     JobDescription,
@@ -102,12 +103,18 @@ class TestRecruitmentReportsAPI(APITestMixin):
 
     def test_staff_growth_report_month_aggregation(self):
         """Test staff growth report with monthly aggregation"""
-        # Arrange: Create test data
+        # Arrange: Create test data for two different departments in the same month
+        # This verifies that the API aggregates across organizational units
+        month_key = self.first_day_month.strftime("%m/%Y")
+
+        # Report for Department 1
         StaffGrowthReport.objects.create(
             report_date=self.first_day_month,
             branch=self.branch,
             block=self.block,
             department=self.department,
+            timeframe_type=StaffGrowthReport.TimeframeType.MONTH,
+            timeframe_key=month_key,
             num_introductions=5,
             num_returns=2,
             num_recruitment_source=10,
@@ -115,12 +122,21 @@ class TestRecruitmentReportsAPI(APITestMixin):
             num_resignations=1,
         )
 
-        # Add another day's data
+        # Report for Department 2 (create a dummy department for test)
+        other_dept = Department.objects.create(
+            name="Other Dept",
+            code="OTH",
+            block=self.block,
+            branch=self.branch,
+        )
+
         StaffGrowthReport.objects.create(
-            report_date=self.first_day_month + timedelta(days=1),
+            report_date=self.first_day_month, # Same month
             branch=self.branch,
             block=self.block,
-            department=self.department,
+            department=other_dept,
+            timeframe_type=StaffGrowthReport.TimeframeType.MONTH,
+            timeframe_key=month_key,
             num_introductions=3,
             num_returns=1,
             num_recruitment_source=5,
@@ -138,7 +154,7 @@ class TestRecruitmentReportsAPI(APITestMixin):
         assert isinstance(data, list)
         assert len(data) > 0
 
-        # Verify aggregated values
+        # Verify aggregated values (Sum of both departments)
         report = data[0]
         assert report["period_type"] == "month"
         assert report["num_introductions"] == 8  # 5 + 3
@@ -471,11 +487,14 @@ class TestRecruitmentReportsAPI(APITestMixin):
     def test_staff_growth_report_with_filters(self):
         """Test staff growth report with branch, block, and department filters"""
         # Arrange: Create test data
+        month_key = self.first_day_month.strftime("%m/%Y")
         StaffGrowthReport.objects.create(
             report_date=self.first_day_month,
             branch=self.branch,
             block=self.block,
             department=self.department,
+            timeframe_type=StaffGrowthReport.TimeframeType.MONTH,
+            timeframe_key=month_key,
             num_recruitment_source=10,
         )
 

@@ -138,11 +138,14 @@ class RecruitmentReportsViewSet(DataScopeReportFilterMixin, BaseGenericViewSet):
             period_param="period_type",
         )
 
-        # Group by period (week or month)
+        # Map period_type to timeframe_type and filter
         if period_type == ReportPeriodType.WEEK.value:
-            period_field = "week_key"
+            timeframe_type = StaffGrowthReport.TimeframeType.WEEK
         else:
-            period_field = "month_key"
+            timeframe_type = StaffGrowthReport.TimeframeType.MONTH
+
+        queryset = queryset.filter(timeframe_type=timeframe_type)
+        period_field = "timeframe_key"
 
         aggregated = (
             queryset.values(period_field)
