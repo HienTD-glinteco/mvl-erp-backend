@@ -4,7 +4,7 @@ This module contains all helper functions used by both event-driven and batch ta
 """
 
 import logging
-from datetime import date
+from datetime import date, timedelta
 from typing import Any, cast
 
 from django.db.models import Exists, F, OuterRef, Q, QuerySet, Value, Window
@@ -81,186 +81,368 @@ def _should_process_employee(data: dict[str, Any]) -> bool:
     return employee_code_type != Employee.CodeType.OS
 
 
+def _get_timeframe_range(event_date: date, timeframe_type: str) -> tuple[date, date]:
+    """Get start and end dates for a timeframe."""
+    if timeframe_type == StaffGrowthReport.TimeframeType.WEEK:
+        # ISO week: Monday to Sunday
+        start = event_date - timedelta(days=event_date.weekday())
+        end = start + timedelta(days=6)
+    else:  # MONTH
+        start = event_date.replace(day=1)
+        # Last day of month
+        if event_date.month == 12:
+            end = date(event_date.year, 12, 31)
+        else:
+            end = date(event_date.year, event_date.month + 1, 1) - timedelta(days=1)
+    return start, end
+
+
+def _get_event_history_filter(event_type: str) -> dict:
+    """Map event_type to EmployeeWorkHistory filter kwargs."""
+    filters = {
+        "resignation": {
+            "name": EmployeeWorkHistory.EventType.CHANGE_STATUS,
+            "status": Employee.Status.RESIGNED,
+        },
+        "transfer": {"name": EmployeeWorkHistory.EventType.TRANSFER},
+        "return": {
+            "name": EmployeeWorkHistory.EventType.CHANGE_STATUS,
+            "status": Employee.Status.ACTIVE,
+        },
+    }
+
+    # Check if event types exist before adding them
+    if hasattr(EmployeeWorkHistory.EventType, "INTRODUCTION"):
+        filters["introduction"] = {"name": EmployeeWorkHistory.EventType.INTRODUCTION}
+
+    if hasattr(EmployeeWorkHistory.EventType, "RECRUITMENT_SOURCE"):
+        filters["recruitment_source"] = {"name": EmployeeWorkHistory.EventType.RECRUITMENT_SOURCE}
+
+    return filters.get(event_type, {})
+
+
+def _employee_already_counted_in_timeframe(
+    employee_id: int,
+    event_type: str,
+    current_event_id: int | None,
+    timeframe_start: date,
+    timeframe_end: date,
+    department_id: int,
+) -> bool:
+    """Check if employee already has this event type in timeframe (excluding current event).
+
+    Returns True if there's ANOTHER event of same type for this employee
+    in the same timeframe (meaning we should skip counting).
+    """
+    event_filter = _get_event_history_filter(event_type)
+    if not event_filter:
+        return False
+
+    qs = EmployeeWorkHistory.objects.filter(
+        employee_id=employee_id,
+        department_id=department_id,
+        date__range=(timeframe_start, timeframe_end),
+        **event_filter,
+    )
+
+    if current_event_id:
+        qs = qs.exclude(id=current_event_id)
+
+    return qs.exists()
+
+
+def _record_staff_growth_event(
+    employee: Employee,
+    event_type: str,
+    event_date: date,
+    event_id: int,
+    branch: Branch,
+    block: Block,
+    department: Department,
+) -> None:
+    """Record a staff growth event with deduplication via EmployeeWorkHistory.
+
+    Updates BOTH weekly and monthly reports. Uses EmployeeWorkHistory to check
+    if employee was already counted in the timeframe (excluding current event).
+    """
+    # Calculate timeframe keys
+    week_number = event_date.isocalendar()[1]
+    year = event_date.isocalendar()[0]  # ISO year for week
+    week_key = f"W{week_number:02d}-{year}"
+    month_key = event_date.strftime("%m/%Y")
+
+    # Map event_type to counter field
+    counter_field_map = {
+        "resignation": "num_resignations",
+        "transfer": "num_transfers",
+        "return": "num_returns",
+        "introduction": "num_introductions",
+        "recruitment_source": "num_recruitment_source",
+    }
+    counter_field = counter_field_map.get(event_type)
+    if not counter_field:
+        logger.warning(f"Unknown event type for staff growth: {event_type}")
+        return
+
+    # Process BOTH weekly and monthly timeframes
+    timeframes = [
+        (StaffGrowthReport.TimeframeType.WEEK, week_key),
+        (StaffGrowthReport.TimeframeType.MONTH, month_key),
+    ]
+
+    for timeframe_type, timeframe_key in timeframes:
+        # Get timeframe date range
+        start_date, end_date = _get_timeframe_range(event_date, timeframe_type)
+
+        # Check if employee already counted in this timeframe (excluding current event)
+        if _employee_already_counted_in_timeframe(
+            employee.id, event_type, event_id, start_date, end_date, department.id
+        ):
+            logger.debug(
+                f"Skipped duplicate {event_type} for {employee.code} in {timeframe_key}"
+            )
+            continue
+
+        # First event for this employee in timeframe → count it
+        report, created = StaffGrowthReport.objects.get_or_create(
+            timeframe_type=timeframe_type,
+            timeframe_key=timeframe_key,
+            branch=branch,
+            block=block,
+            department=department,
+            defaults={
+                "report_date": event_date, # BaseReportModel requires report_date
+            }
+        )
+
+        setattr(report, counter_field, getattr(report, counter_field) + 1)
+        report.save(update_fields=[counter_field])
+        logger.debug(
+            f"Recorded {event_type} for {employee.code} in {timeframe_key}"
+        )
+
+
+def _remove_staff_growth_event(
+    employee_id: int,
+    event_type: str,
+    event_date: date,
+    branch_id: int,
+    block_id: int,
+    department_id: int,
+    current_event_id: int | None = None,
+) -> None:
+    """Remove a staff growth event (when deleted/reverted).
+
+    Decrements counter only if no OTHER events of same type exist
+    for this employee in the timeframe.
+    """
+    week_number = event_date.isocalendar()[1]
+    year = event_date.isocalendar()[0]
+    week_key = f"W{week_number:02d}-{year}"
+    month_key = event_date.strftime("%m/%Y")
+
+    counter_field_map = {
+        "resignation": "num_resignations",
+        "transfer": "num_transfers",
+        "return": "num_returns",
+        "introduction": "num_introductions",
+        "recruitment_source": "num_recruitment_source",
+    }
+    counter_field = counter_field_map.get(event_type)
+    if not counter_field:
+        return
+
+    timeframes = [
+        (StaffGrowthReport.TimeframeType.WEEK, week_key),
+        (StaffGrowthReport.TimeframeType.MONTH, month_key),
+    ]
+
+    for timeframe_type, timeframe_key in timeframes:
+        start_date, end_date = _get_timeframe_range(event_date, timeframe_type)
+
+        # Check if any OTHER events exist for this employee in timeframe
+        # We pass current_event_id to exclude the event being deleted (if it's still visible)
+        other_events_exist = _employee_already_counted_in_timeframe(
+             employee_id, event_type, current_event_id, start_date, end_date, department_id
+        )
+
+        if not other_events_exist:
+            # No more events → decrement counter
+            try:
+                report = StaffGrowthReport.objects.get(
+                    timeframe_type=timeframe_type,
+                    timeframe_key=timeframe_key,
+                    branch_id=branch_id,
+                    block_id=block_id,
+                    department_id=department_id,
+                )
+                current_value = getattr(report, counter_field)
+                if current_value > 0:
+                    setattr(report, counter_field, current_value - 1)
+                    report.save(update_fields=[counter_field])
+                    logger.debug(
+                        f"Decremented {event_type} for employee {employee_id} in {timeframe_key}"
+                    )
+            except StaffGrowthReport.DoesNotExist:
+                pass
+
+
+def _update_staff_growth_event(
+    employee: Employee,
+    event_type: str,
+    old_event_date: date,
+    new_event_date: date,
+    event_id: int,
+    old_branch_id: int,
+    new_branch: Branch,
+    old_block_id: int,
+    new_block: Block,
+    old_department_id: int,
+    new_department: Department,
+) -> None:
+    """Handle event update - may need to move count between timeframes.
+
+    Called when an EmployeeWorkHistory record is updated (date or org changed).
+    """
+    # Helper to compare timeframe keys
+    def get_keys(d: date) -> tuple[str, str]:
+        wn = d.isocalendar()[1]
+        y = d.isocalendar()[0]
+        return f"W{wn:02d}-{y}", d.strftime("%m/%Y")
+
+    old_week_key, old_month_key = get_keys(old_event_date)
+    new_week_key, new_month_key = get_keys(new_event_date)
+
+    # Check if anything relevant changed
+    week_changed = (old_week_key != new_week_key) or (old_department_id != new_department.id)
+    month_changed = (old_month_key != new_month_key) or (old_department_id != new_department.id)
+
+    # If strictly within same timeframe and same org, nothing to do (deduplication handles it)
+    if not week_changed and not month_changed:
+        return
+
+    # If changed, treat as remove + add
+    _remove_staff_growth_event(
+        employee.id, event_type, old_event_date,
+        old_branch_id, old_block_id, old_department_id,
+        current_event_id=event_id
+    )
+    _record_staff_growth_event(
+        employee, event_type, new_event_date, event_id,
+        new_branch, new_block, new_department
+    )
+
+
 def _increment_staff_growth(event_type: str, snapshot: dict[str, Any]) -> None:
     """Incrementally update staff growth report based on event snapshot.
 
     Handles transfers correctly by updating both source and destination departments.
 
     Event Processing Logic:
-    - CREATE: Increment counters for new work history (+1)
-    - UPDATE: Revert old values (-1), apply new values (+1)
-    - DELETE: Decrement counters for deleted work history (-1)
-
-    Transfer Handling:
-    - For transfers, BOTH source and destination departments are affected
-    - Destination department: increment by delta
-    - Source department: decrement by delta (opposite sign)
+    - CREATE: Record new event with deduplication
+    - UPDATE: Revert old event and record new one
+    - DELETE: Remove event if no others exist
 
     Args:
         event_type: "create", "update", or "delete"
-        snapshot: Dict with previous and current state:
-            - previous: Old state (None for create, dict for update/delete)
-            - current: New state (dict for create/update, None for delete)
+        snapshot: Dict with previous and current state
     """
     previous = snapshot.get("previous")
     current = snapshot.get("current")
 
-    # Process based on event type
-    if event_type == "create":
-        # New work history record - increment counters
-        # Skip if employee has code_type="OS"
-        if isinstance(current, dict) and _should_process_employee(current):
-            _process_staff_growth_change(cast(dict[str, Any], current), delta=1)
-
-    elif event_type == "update":
-        # Updated work history - revert old values and apply new values
-        # Skip if employee has code_type="OS"
-        if isinstance(previous, dict) and _should_process_employee(previous):
-            _process_staff_growth_change(cast(dict[str, Any], previous), delta=-1)
-        if isinstance(current, dict) and _should_process_employee(current):
-            _process_staff_growth_change(cast(dict[str, Any], current), delta=1)
-
-    elif event_type == "delete":
-        # Deleted work history - decrement counters
-        # Skip if employee has code_type="OS"
-        if isinstance(previous, dict) and _should_process_employee(previous):
-            _process_staff_growth_change(cast(dict[str, Any], previous), delta=-1)
-
-
-def _process_staff_growth_change(data: dict[str, Any], delta: int) -> None:
-    """Process a single staff growth change (increment or decrement).
-
-    Calculation Rules:
-    - New Hire: Increment num_new_hires when event = ONBOARDING
-    - Resignation: Increment num_resignations when event = RESIGNATION
-    - Transfer: Increment destination dept, decrement source dept when event = TRANSFER
-
-    All counters are updated atomically using F() expressions for thread safety.
-
-    Args:
-        data: Work history data snapshot containing:
-            - date: Report date
-            - name: Event name (ONBOARDING, RESIGNATION, TRANSFER, etc.)
-            - branch_id, block_id, department_id: Org unit identifiers
-            - previous_data: Dict with old org unit IDs (for transfers)
-        delta: +1 for increment, -1 for decrement
-    """
-    report_date = data["date"]
-    event_name = data["name"]
-    status = data.get("status")
-    previous_data = data.get("previous_data", {})
-
-    # Calculate month and week keys
-    month_key = report_date.strftime("%m/%Y")
-    week_number = report_date.isocalendar()[1]
-    week_key = f"Week {week_number} - {month_key}"
-
-    # Handle transfers - affects both source and destination departments
-    if event_name == EmployeeWorkHistory.EventType.TRANSFER:
-        # Increment for current (destination) department
-        _update_staff_growth_counter(
-            report_date,
-            data["branch_id"],
-            data["block_id"],
-            data["department_id"],
-            "num_transfers",
-            delta,
-            month_key,
-            week_key,
+    # Helper to extract IDs and objects
+    def get_org_objects(data_dict: dict[str, Any]) -> tuple[Branch, Block, Department]:
+        return (
+            Branch.objects.get(id=data_dict["branch_id"]),
+            Block.objects.get(id=data_dict["block_id"]),
+            Department.objects.get(id=data_dict["department_id"]),
         )
 
-        # If there's previous org data, decrement from source department
-        if previous_data:
-            old_branch_id = previous_data.get("branch_id")
-            old_block_id = previous_data.get("block_id")
-            old_department_id = previous_data.get("department_id")
+    # Determine specific event type (resignation, transfer, etc.)
+    # We look at 'current' for create/update, 'previous' for delete
+    data_for_type = current if current else previous
+    if not data_for_type:
+        return
 
-            if old_branch_id and old_block_id and old_department_id:
-                # Different from current? Then update source department
-                if (
-                    old_branch_id != data["branch_id"]
-                    or old_block_id != data["block_id"]
-                    or old_department_id != data["department_id"]
-                ):
-                    # Source department loses a transfer (opposite sign of delta)
-                    _update_staff_growth_counter(
-                        report_date,
-                        old_branch_id,
-                        old_block_id,
-                        old_department_id,
-                        "num_transfers",
-                        -delta,
-                        month_key,
-                        week_key,
-                    )
+    staff_event_type = None
+    if data_for_type["name"] == EmployeeWorkHistory.EventType.TRANSFER:
+        staff_event_type = "transfer"
+    elif data_for_type["name"] == EmployeeWorkHistory.EventType.CHANGE_STATUS:
+        if data_for_type.get("status") == Employee.Status.RESIGNED:
+            staff_event_type = "resignation"
+        elif data_for_type.get("status") == Employee.Status.ACTIVE:
+             # Check return logic
+            prev_data = data_for_type.get("previous_data", {})
+            if prev_data and prev_data.get("status") in Employee.Status.get_leave_statuses():
+                staff_event_type = "return"
+    elif hasattr(EmployeeWorkHistory.EventType, "INTRODUCTION") and data_for_type["name"] == EmployeeWorkHistory.EventType.INTRODUCTION:
+        staff_event_type = "introduction"
+    elif hasattr(EmployeeWorkHistory.EventType, "RECRUITMENT_SOURCE") and data_for_type["name"] == EmployeeWorkHistory.EventType.RECRUITMENT_SOURCE:
+        staff_event_type = "recruitment_source"
 
-    # Handle status changes
-    elif event_name == EmployeeWorkHistory.EventType.CHANGE_STATUS:
-        branch_id = data["branch_id"]
-        block_id = data["block_id"]
-        department_id = data["department_id"]
+    if not staff_event_type:
+        return
 
-        if status == Employee.Status.RESIGNED:
-            _update_staff_growth_counter(
-                report_date, branch_id, block_id, department_id, "num_resignations", delta, month_key, week_key
-            )
-        elif status == Employee.Status.ACTIVE:
-            # Check if it's a return (from onboarding or unpaid leave)
-            old_status = previous_data.get("status")
-            if old_status in Employee.Status.get_leave_statuses():
-                _update_staff_growth_counter(
-                    report_date, branch_id, block_id, department_id, "num_returns", delta, month_key, week_key
+    # Process based on event type
+    if event_type == "create":
+        if isinstance(current, dict) and _should_process_employee(current):
+            try:
+                branch, block, department = get_org_objects(current)
+
+                emp_id = current.get("employee_id")
+                if not emp_id:
+                     logger.warning("Employee ID missing in snapshot")
+                     return
+
+                employee = Employee.objects.get(id=emp_id)
+
+                # We need event_id for deduplication exception
+                event_id = current.get("id", 0)
+
+                _record_staff_growth_event(
+                    employee, staff_event_type, current["date"], event_id,
+                    branch, block, department
                 )
 
+            except (Branch.DoesNotExist, Block.DoesNotExist, Department.DoesNotExist, Employee.DoesNotExist) as e:
+                logger.warning(f"Missing related objects for staff growth create: {e}")
 
-def _update_staff_growth_counter(
-    report_date: date,
-    branch_id: int,
-    block_id: int,
-    department_id: int,
-    counter_field: str,
-    delta: int,
-    month_key: str,
-    week_key: str,
-) -> None:
-    """Update a specific counter in StaffGrowthReport.
+    elif event_type == "update":
+        # Handle update via _update_staff_growth_event
+        if isinstance(previous, dict) and isinstance(current, dict):
+             # Check if we should process
+            if not _should_process_employee(current) and not _should_process_employee(previous):
+                return
 
-    Args:
-        report_date: Date of the report
-        branch_id: Branch ID
-        block_id: Block ID
-        department_id: Department ID
-        counter_field: Field name to update (e.g., "num_transfers")
-        delta: Value to add (positive or negative)
-        month_key: Month key for the report
-        week_key: Week key for the report
-    """
-    report, _ = StaffGrowthReport.objects.get_or_create(
-        report_date=report_date,
-        branch_id=branch_id,
-        block_id=block_id,
-        department_id=department_id,
-        defaults={
-            "month_key": month_key,
-            "week_key": week_key,
-            "num_transfers": 0,
-            "num_resignations": 0,
-            "num_returns": 0,
-            "num_introductions": 0,
-            "num_recruitment_source": 0,
-        },
-    )
+            try:
+                emp_id = current.get("employee_id") or previous.get("employee_id")
+                if not emp_id:
+                    logger.warning("Employee ID missing in snapshot for update")
+                    return
 
-    # Update the specific counter using F() for atomic operation
-    StaffGrowthReport.objects.filter(pk=report.pk).update(
-        **{counter_field: Greatest(F(counter_field) + Value(delta), Value(0))}
-    )
-    # Refresh instance for accurate logging
-    report.refresh_from_db(fields=[counter_field])
+                employee = Employee.objects.get(id=emp_id)
+                event_id = current.get("id", 0)
 
-    logger.debug(
-        f"Updated {counter_field} by {delta} for {report_date} - Branch{branch_id}/Block{block_id}/Dept{department_id}"
-    )
+                new_branch, new_block, new_department = get_org_objects(current)
+
+                _update_staff_growth_event(
+                    employee, staff_event_type,
+                    previous["date"], current["date"],
+                    event_id,
+                    previous["branch_id"], new_branch,
+                    previous["block_id"], new_block,
+                    previous["department_id"], new_department
+                )
+            except (Branch.DoesNotExist, Block.DoesNotExist, Department.DoesNotExist, Employee.DoesNotExist) as e:
+                logger.warning(f"Missing related objects for staff growth update: {e}")
+
+    elif event_type == "delete":
+        if isinstance(previous, dict) and _should_process_employee(previous):
+            _remove_staff_growth_event(
+                previous.get("employee_id"), staff_event_type, previous["date"],
+                previous["branch_id"], previous["block_id"], previous["department_id"],
+                current_event_id=previous.get("id")
+            )
 
 
 def _increment_employee_status(event_type: str, snapshot: dict[str, Any]) -> None:
@@ -340,69 +522,11 @@ def _increment_employee_resigned_reason(event_type: str, snapshot: dict[str, Any
 def _aggregate_staff_growth_for_date(report_date: date, branch, block, department) -> None:
     """Full re-aggregation of staff growth report for batch processing.
 
-    Args:
-        report_date: Date to aggregate
-        branch: Branch instance
-        block: Block instance
-        department: Department instance
+    DEPRECATED: StaffGrowthReport is now updated incrementally via events.
+    This function is kept for backward compatibility if needed, but logic
+    has been moved to event-based tracking.
     """
-    # Calculate month and week keys
-    month_key = report_date.strftime("%m/%Y")
-    week_number = report_date.isocalendar()[1]
-    week_key = f"Week {week_number} - {month_key}"
-
-    # Count work history events using aggregation
-    # Uses helper function to apply common exclusions
-    work_histories = _get_work_history_queryset(
-        filters={
-            "date": report_date,
-            "branch": branch,
-            "block": block,
-            "department": department,
-        }
-    )
-
-    # Count different event types
-    num_transfers = work_histories.filter(name=EmployeeWorkHistory.EventType.TRANSFER).count()
-
-    num_resignations = work_histories.filter(
-        name=EmployeeWorkHistory.EventType.CHANGE_STATUS,
-        status=Employee.Status.RESIGNED,
-    ).count()
-
-    num_returns = (
-        work_histories.filter(
-            name=EmployeeWorkHistory.EventType.CHANGE_STATUS,
-            status=Employee.Status.ACTIVE,
-        )
-        .filter(
-            Q(previous_data__status=Employee.Status.ONBOARDING) | Q(previous_data__status=Employee.Status.UNPAID_LEAVE)
-        )
-        .count()
-    )
-
-    # Update or create the report record
-    StaffGrowthReport.objects.update_or_create(
-        report_date=report_date,
-        branch=branch,
-        block=block,
-        department=department,
-        defaults={
-            "month_key": month_key,
-            "week_key": week_key,
-            "num_transfers": num_transfers,
-            "num_resignations": num_resignations,
-            "num_returns": num_returns,
-            # Note: num_introductions and num_recruitment_source are set by other tasks
-            # and should not be overwritten here
-        },
-    )
-
-    logger.debug(
-        f"Aggregated staff growth for {report_date} - "
-        f"{branch.name}/{block.name}/{department.name}: "
-        f"transfers={num_transfers}, resignations={num_resignations}, returns={num_returns}"
-    )
+    pass
 
 
 def _aggregate_employee_status_for_date(report_date: date, branch, block, department) -> None:

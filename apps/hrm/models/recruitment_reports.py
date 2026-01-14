@@ -44,28 +44,56 @@ class BaseReportDepartmentModel(BaseReportModel):
         unique_together = [["report_date", "branch", "block", "department"]]
 
 
-class StaffGrowthReport(BaseReportDepartmentModel):
-    """Daily staff growth statistics report.
+class StaffGrowthReport(BaseReportModel):
+    """Staff growth statistics by timeframe (week/month).
 
-    Stores data about staff changes including introductions, returns,
-    new hires, transfers, and resignations for a specific date and organizational unit.
-    Each record represents data for one day.
+    Each record stores DISTINCT employee counts for a specific timeframe.
+    No aggregation needed at query time.
     """
 
-    month_key = models.CharField(
-        max_length=7,
-        verbose_name=_("Month key"),
-        help_text="Format: MM/YYYY for monthly aggregation",
+    class TimeframeType(models.TextChoices):
+        WEEK = "week", _("Week")
+        MONTH = "month", _("Month")
+
+    timeframe_type = models.CharField(
+        max_length=10,
+        choices=TimeframeType.choices,
+        verbose_name=_("Timeframe type"),
+    )
+    timeframe_key = models.CharField(
+        max_length=20,
+        verbose_name=_("Timeframe key"),
+        help_text="Format: 'W01-2026' for week or '01/2026' for month",
         db_index=True,
     )
-    week_key = models.CharField(
-        max_length=20,
-        verbose_name=_("Week key"),
-        help_text="Format: Week W - MM/YYYY for weekly aggregation",
-        db_index=True,
+
+    # Organizational structure
+    branch = models.ForeignKey(
+        Branch,
+        on_delete=models.CASCADE,
+        related_name="%(class)s_reports",
+        verbose_name=_("Branch"),
         null=True,
         blank=True,
     )
+    block = models.ForeignKey(
+        Block,
+        on_delete=models.CASCADE,
+        related_name="%(class)s_reports",
+        verbose_name=_("Block"),
+        null=True,
+        blank=True,
+    )
+    department = models.ForeignKey(
+        Department,
+        on_delete=models.CASCADE,
+        related_name="%(class)s_reports",
+        verbose_name=_("Department"),
+        null=True,
+        blank=True,
+    )
+
+    # Statistics (DISTINCT employee counts)
     num_introductions = models.PositiveIntegerField(default=0, verbose_name=_("Number of introductions"))
     num_returns = models.PositiveIntegerField(default=0, verbose_name=_("Number of returns"))
     num_recruitment_source = models.PositiveIntegerField(default=0, verbose_name=_("Number of new recruitment source"))
@@ -75,9 +103,12 @@ class StaffGrowthReport(BaseReportDepartmentModel):
     class Meta:
         verbose_name = _("Staff Growth Report")
         verbose_name_plural = _("Staff Growth Reports")
+        unique_together = [
+            ["timeframe_type", "timeframe_key", "branch", "block", "department"]
+        ]
 
     def __str__(self):
-        return f"Staff Growth Report - {self.report_date}"
+        return f"Staff Growth Report - {self.timeframe_key} ({self.timeframe_type})"
 
 
 class RecruitmentSourceReport(BaseReportDepartmentModel):
