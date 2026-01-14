@@ -1,6 +1,7 @@
 """Tests for mobile timesheet views."""
 
 from datetime import date
+from decimal import Decimal
 
 import pytest
 from django.urls import reverse
@@ -183,18 +184,25 @@ class TestMyTimesheetEntryViewSet(APITestMixin):
     @pytest.fixture
     def timesheet_entry(self, employee):
         """Create a test timesheet entry."""
-        return TimeSheetEntry.objects.create(
+        formatted_date = date(2026, 1, 15)
+        entry = TimeSheetEntry.objects.create(
             employee=employee,
-            date=date(2026, 1, 15),
-            start_time="2026-01-15T08:00:00Z",
-            end_time="2026-01-15T17:00:00Z",
-            morning_hours=4.0,
-            afternoon_hours=4.0,
+            date=formatted_date,
+            start_time=f"{formatted_date}T08:00:00Z",
+            end_time=f"{formatted_date}T17:00:00Z",
+        )
+
+        # Bypass snapshot reset by updating directly
+        TimeSheetEntry.objects.filter(pk=entry.pk).update(
+            morning_hours=Decimal("4.00"),
+            afternoon_hours=Decimal("4.00"),
             official_hours=8.0,
             working_days=1.0,
             status=TimesheetStatus.ON_TIME,
             note="Regular workday",
         )
+        entry.refresh_from_db()
+        return entry
 
     def test_retrieve_my_timesheet_entry(self, timesheet_entry):
         """Test retrieving a specific timesheet entry."""

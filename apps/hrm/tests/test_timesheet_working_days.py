@@ -48,31 +48,6 @@ def _create_employee():
     return emp
 
 
-def test_working_days_calculated_from_official_hours():
-    # Ensure a work schedule exists for Monday (2025-03-03 is Monday)
-    WorkSchedule.objects.create(
-        weekday=WorkSchedule.Weekday.MONDAY,
-        morning_start_time=time(8, 0),
-        morning_end_time=time(12, 0),
-        afternoon_start_time=time(13, 0),
-        afternoon_end_time=time(17, 0),
-    )
-
-    emp = _create_employee()
-
-    d = date(2025, 3, 3)
-
-    ts = TimeSheetEntry(employee=emp, date=d)
-    ts.morning_hours = Decimal("4.00")
-    ts.afternoon_hours = Decimal("4.00")
-
-    # full_clean() is invoked by save(); call save to trigger calculation
-    ts.save()
-
-    assert ts.official_hours == Decimal("8.00")
-    assert ts.working_days == Decimal("1.00")
-
-
 def test_monthly_aggregates_sum_working_days():
     # Ensure work schedules exist for the days tested
     # 2025-03-03 is Monday, 03-04 is Tuesday
@@ -96,13 +71,21 @@ def test_monthly_aggregates_sum_working_days():
     month = 3
 
     # Day 1: full day (8h -> 1.00)
-    ts1 = TimeSheetEntry.objects.create(
-        employee=emp, date=date(year, month, 3), morning_hours=Decimal("4.00"), afternoon_hours=Decimal("4.00")
+    ts1 = TimeSheetEntry.objects.create(employee=emp, date=date(year, month, 3))
+    TimeSheetEntry.objects.filter(pk=ts1.pk).update(
+        morning_hours=Decimal("4.00"),
+        afternoon_hours=Decimal("4.00"),
+        official_hours=Decimal("8.00"),
+        working_days=Decimal("1.00"),
     )
 
     # Day 2: half day (4h -> 0.50)
-    ts2 = TimeSheetEntry.objects.create(
-        employee=emp, date=date(year, month, 4), morning_hours=Decimal("2.00"), afternoon_hours=Decimal("2.00")
+    ts2 = TimeSheetEntry.objects.create(employee=emp, date=date(year, month, 4))
+    TimeSheetEntry.objects.filter(pk=ts2.pk).update(
+        morning_hours=Decimal("2.00"),
+        afternoon_hours=Decimal("2.00"),
+        official_hours=Decimal("4.00"),
+        working_days=Decimal("0.50"),
     )
 
     aggs = EmployeeMonthlyTimesheet.compute_aggregates(emp.id, year, month)

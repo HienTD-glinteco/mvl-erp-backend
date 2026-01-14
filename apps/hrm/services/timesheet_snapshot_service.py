@@ -1,8 +1,17 @@
 import logging
 
-from apps.hrm.constants import AllowedLateMinutesReason, ProposalType, TimesheetDayType, TimesheetReason
-from apps.hrm.models import AttendanceExemption, Proposal, TimeSheetEntry
+from apps.hrm.constants import (
+    AllowedLateMinutesReason,
+    ProposalType,
+    ProposalWorkShift,
+    TimesheetDayType,
+    TimesheetReason,
+)
+from apps.hrm.models import AttendanceExemption, TimeSheetEntry
+from apps.hrm.models.contract import Contract
+from apps.hrm.models.contract_type import ContractType
 from apps.hrm.models.holiday import CompensatoryWorkday, Holiday
+from apps.hrm.models.proposal import Proposal, ProposalOvertimeEntry, ProposalStatus
 from apps.hrm.utils.work_schedule_cache import get_work_schedule_by_weekday
 
 logger = logging.getLogger(__name__)
@@ -38,12 +47,15 @@ class TimesheetSnapshotService:
         # Exemption status
         entry.is_exempt = False
 
-        # NOTE: Calculated fields (morning_hours, afternoon_hours, official_hours,
-        # total_worked_hours, overtime_hours) are NOT reset here - they are
-        # calculated by TimesheetCalculator.calculate_hours() and calculate_overtime().
-        # Resetting them here would break tests that set hours manually.
-
-        # OT time markers (these are derived from calculation, reset by calculator)
+        # Time logs
+        entry.morning_hours = 0
+        entry.afternoon_hours = 0
+        entry.official_hours = 0
+        entry.total_worked_hours = 0
+        entry.overtime_hours = 0
+        entry.ot_tc1_hours = 0
+        entry.ot_tc2_hours = 0
+        entry.ot_tc3_hours = 0
         entry.ot_start_time = None
         entry.ot_end_time = None
 
@@ -67,11 +79,10 @@ class TimesheetSnapshotService:
         entry.day_type = TimesheetDayType.OFFICIAL
         entry.working_days = 0
         entry.status = None
-        # NOTE: absent_reason is NOT reset here - it's set by ProposalService when executing leave proposals
+        entry.absent_reason = None
 
         # Payroll flag
-        # NOTE: is_full_salary is NOT reset here - it has preservation logic in snapshot_contract_info
-        #       that keeps False values (more restrictive for probation)
+        entry.is_full_salary = True
         entry.count_for_payroll = True
 
     def snapshot_data(self, entry: TimeSheetEntry) -> None:
@@ -122,9 +133,6 @@ class TimesheetSnapshotService:
 
     def snapshot_contract_info(self, entry: "TimeSheetEntry") -> None:
         """Snapshot current contract status (Probation vs Official)."""
-        from apps.hrm.models.contract import Contract
-        from apps.hrm.models.contract_type import ContractType
-
         if not entry.employee_id:
             return
 
@@ -171,8 +179,6 @@ class TimesheetSnapshotService:
 
     def snapshot_leave_reason(self, entry: "TimeSheetEntry") -> None:
         """Populate absent_reason if an approved PAID_LEAVE or UNPAID_LEAVE proposal exists."""
-        from apps.hrm.models.proposal import Proposal, ProposalType
-
         if entry.absent_reason:
             return
 
@@ -180,8 +186,16 @@ class TimesheetSnapshotService:
         leave = Proposal.get_active_leave_proposals(entry.employee_id, entry.date).first()
 
         if leave:
-            # Only set absent_reason if it's a full day leave (no partial shift specified)
-            if not leave.paid_leave_shift and not leave.unpaid_leave_shift:
+            # Check if it's a full day leave
+            is_full_day = False
+            if leave.proposal_type == ProposalType.MATERNITY_LEAVE:
+                is_full_day = True
+            elif leave.proposal_type == ProposalType.PAID_LEAVE:
+                is_full_day = not leave.paid_leave_shift or leave.paid_leave_shift == ProposalWorkShift.FULL_DAY
+            elif leave.proposal_type == ProposalType.UNPAID_LEAVE:
+                is_full_day = not leave.unpaid_leave_shift or leave.unpaid_leave_shift == ProposalWorkShift.FULL_DAY
+
+            if is_full_day:
                 if leave.proposal_type == ProposalType.MATERNITY_LEAVE:
                     entry.absent_reason = TimesheetReason.MATERNITY_LEAVE
                 elif leave.proposal_type == ProposalType.PAID_LEAVE:
@@ -232,8 +246,6 @@ class TimesheetSnapshotService:
         - approved_ot_end_time: Max end time
         - approved_ot_minutes: Total duration in minutes
         """
-        from apps.hrm.models.proposal import ProposalOvertimeEntry, ProposalStatus
-
         # Find all approved overtime entries for this employee and date
         # Note: Filtering by proposal__created_by and proposal__proposal_status=APPROVED
         # which is the logic used in TimesheetCalculator previously.
