@@ -30,9 +30,6 @@ class TimesheetSnapshotService:
         - absent_reason: Set by ProposalService when executing leave proposals
         - is_full_salary: Handled by snapshot_contract_info with preservation logic
         """
-        # Day type - default to OFFICIAL
-        entry.day_type = TimesheetDayType.OFFICIAL
-
         # Contract info - reset contract reference, but NOT is_full_salary
         # (is_full_salary is handled by snapshot_contract_info which checks for existing values)
         entry.contract = None
@@ -41,8 +38,17 @@ class TimesheetSnapshotService:
         # Exemption status
         entry.is_exempt = False
 
-        # absent_reason is NOT reset here - it's set by ProposalService and
-        # should be preserved. snapshot_leave_reason only sets it if it's None.
+        # Time logs
+        entry.morning_hours = 0
+        entry.afternoon_hours = 0
+        entry.official_hours = 0
+        entry.total_worked_hours = 0
+        entry.overtime_hours = 0
+        entry.ot_tc1_hours = 0
+        entry.ot_tc2_hours = 0
+        entry.ot_tc3_hours = 0
+        entry.ot_start_time = None
+        entry.ot_end_time = None
 
         # Allowed late minutes
         entry.allowed_late_minutes = 0
@@ -53,7 +59,21 @@ class TimesheetSnapshotService:
         entry.approved_ot_end_time = None
         entry.approved_ot_minutes = 0
 
+        # Compensation & Penalties
+        entry.compensation_value = 0
+        entry.paid_leave_hours = 0
+        entry.late_minutes = 0
+        entry.early_minutes = 0
+        entry.is_punished = False
+
+        # Day type - default to OFFICIAL
+        entry.day_type = TimesheetDayType.OFFICIAL
+        entry.working_days = 0
+        entry.status = None
+        entry.absent_reason = None
+
         # Payroll flag
+        entry.is_full_salary = True
         entry.count_for_payroll = True
 
     def snapshot_data(self, entry: TimeSheetEntry) -> None:
