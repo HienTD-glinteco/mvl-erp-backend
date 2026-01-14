@@ -9,7 +9,7 @@ class EmployeeRoleListSerializer(serializers.ModelSerializer):
     """Serializer for listing employees with their roles and organizational information"""
 
     employee_code = serializers.CharField(source="employee.code", read_only=True)
-    employee_name = serializers.CharField(source="get_full_name", read_only=True)
+    employee_name = serializers.CharField(source="employee.fullname", read_only=True)
     role_name = serializers.CharField(source="role.name", read_only=True)
     branch_name = serializers.SerializerMethodField()
     block_name = serializers.SerializerMethodField()
