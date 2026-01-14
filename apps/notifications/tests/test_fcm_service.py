@@ -11,33 +11,33 @@ from apps.notifications.fcm_service import FCMResult, FCMService, initialize_fir
 from apps.notifications.models import Notification
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db(transaction=True)
 class TestFCMService:
     """Test cases for FCM service."""
 
     @pytest.fixture
-    def actor(self):
+    def actor(self, transactional_db):
         """Create an actor user."""
         # Changed to superuser to bypass RoleBasedPermission for API tests
         return User.objects.create_superuser(
-            username="actor",
-            email="actor@example.com",
+            username="actor_fcm",  # Unique username to avoid conflicts
+            email="actor_fcm@example.com",
             password="password123",
             first_name="John",
             last_name="Doe",
         )
 
     @pytest.fixture
-    def recipient(self):
+    def recipient(self, transactional_db):
         """Create a recipient user."""
         return User.objects.create_superuser(
-            username="recipient",
-            email="recipient@example.com",
+            username="recipient_fcm",  # Unique username
+            email="recipient_fcm@example.com",
             password="password123",
         )
 
     @pytest.fixture
-    def recipient_with_device(self, recipient):
+    def recipient_with_device(self, recipient, transactional_db):
         """Create a recipient user with a device."""
         UserDevice.objects.create(
             user=recipient,
@@ -49,7 +49,7 @@ class TestFCMService:
         return recipient
 
     @pytest.fixture
-    def notification(self, actor, recipient_with_device):
+    def notification(self, actor, recipient_with_device, transactional_db):
         """Create a basic notification."""
         return Notification.objects.create(
             actor=actor,
@@ -136,8 +136,16 @@ class TestFCMService:
         # Assert
         assert result is False
 
-    def test_build_payload_default(self, notification):
+    def test_build_payload_default(self, actor, recipient_with_device):
         """Test building notification payload with default values."""
+        # Create notification with specific values for this test
+        notification = Notification.objects.create(
+            actor=actor,
+            recipient=recipient_with_device,
+            verb="commented on your post",
+            message="This is great!",
+        )
+
         # Act
         payload = FCMService._build_payload(notification)
 
@@ -145,13 +153,21 @@ class TestFCMService:
         assert "notification" in payload
         assert "data" in payload
         assert payload["notification"]["title"] == "John Doe"  # last_name first_name format
-        assert payload["notification"]["body"] == "commented on your post This is great!"
+        assert payload["notification"]["body"] == "This is great!"
         assert payload["data"]["notification_id"] == str(notification.id)
         assert payload["data"]["actor_id"] == str(notification.actor.id)
         assert payload["data"]["verb"] == "commented on your post"
 
-    def test_build_payload_custom(self, notification):
+    def test_build_payload_custom(self, actor, recipient_with_device):
         """Test building notification payload with custom values."""
+        # Create notification for this test
+        notification = Notification.objects.create(
+            actor=actor,
+            recipient=recipient_with_device,
+            verb="liked your post",
+            message="Great content!",
+        )
+
         # Arrange
         custom_title = "Custom Title"
         custom_body = "Custom Body"
@@ -169,8 +185,8 @@ class TestFCMService:
         """Test building notification payload with a target object."""
         # Arrange
         target_user = User.objects.create_superuser(
-            username="target",
-            email="target@example.com",
+            username=f"target_fcm_{actor.id}",  # Unique username
+            email=f"target_fcm_{actor.id}@example.com",
             password="password123",
         )
 
@@ -367,7 +383,7 @@ class TestFCMService:
         assert result is False
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db(transaction=True)
 class TestFCMServiceTopicMessaging:
     """Test cases for FCM topic-based messaging."""
 

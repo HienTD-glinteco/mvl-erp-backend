@@ -86,13 +86,14 @@ def test_attendance_takes_precedence_over_paid_leave(settings):
 
     d = date(2025, 3, 3)  # Monday
 
-    # Create an approved full-day paid leave
+    # Create an approved full-day paid leave with shift specified
     Proposal.objects.create(
         created_by=emp,
         proposal_status=ProposalStatus.APPROVED,
         proposal_type=ProposalType.PAID_LEAVE,
         paid_leave_start_date=d,
         paid_leave_end_date=d,
+        paid_leave_shift="full_day",
     )
 
     # Also create a compensatory workday for the same date

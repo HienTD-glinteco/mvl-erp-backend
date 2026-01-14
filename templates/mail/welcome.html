@@ -205,7 +205,7 @@
                     <div class="list-item">- Nghỉ trưa: 12h00 đến 13h30</div>
 
                     <div class="sub-section italic underline" style="margin-top: 10px;">* Về việc đi muộn, xin phép nghỉ, đi tiếp khách, đồng phục:</div>
-                    <div class="list-item bg-green" style="padding: 5px;">- Các trường hợp vắng mặt tại văn phòng trong thời gian làm việc đều phải được sự đồng ý của trưởng phòng phụ trách trực tiếp, sau đó làm phiếu trên phần mềm</div>
+                    <div class="list-item" style="padding: 5px;">- Các trường hợp vắng mặt tại văn phòng trong thời gian làm việc đều phải được sự đồng ý của trưởng phòng phụ trách trực tiếp, sau đó làm phiếu trên phần mềm</div>
 
                     <div class="list-item">- User đăng nhập: <span class="highlight-red bold italic">{{ employee_username }}</span></div>
                     <div class="list-item">- Pass đăng nhập: <span class="highlight-red bold italic">{{ new_password }}</span></div>
@@ -255,12 +255,6 @@
                     </div>
                     <div class="list-item">
                         * Thông báo về việc chấm công bằng vân tay: <a href="https://drive.google.com/file/d/1dVeJATpdROFygDgfGPu9kb_SrdX8sFwn/view" target="_blank">Link</a>
-                    </div>
-                    <div class="list-item bg-green" style="padding: 5px;">
-                        * Hướng dẫn cách làm phiếu trên phần mềm TaViCo: <a href="https://docs.google.com/document/d/1d1aVX5Px8udG0c6VNnT4SXoX1dVPTNjR8KdY-RWjYJY/edit" target="_blank">Link</a>
-                    </div>
-                    <div class="list-item bg-green" style="padding: 5px;">
-                        * Hướng dẫn sử dụng chức năng theo dõi & CSKH trên phần mềm TaViCo: <a href="https://drive.google.com/file/d/1_AGY5VonWjpVlYDBYDWr2_X9XiIewqyI/view?usp=sharing" target="_blank">Link</a>
                     </div>
 
                     <!-- Section 4 -->
@@ -336,24 +330,30 @@
 
                     {% if branch_contact_infos %}
                     <div class="sub-section underline" style="margin-top: 10px;">* Thông tin liên hệ Phòng Hành chính Nhân sự:</div>
-                        <table class="data-table">
+                    <table class="data-table">
+                        <tr>
+                            <th width="30%">Nghiệp vụ</th>
+                            <th width="25%">Họ tên</th>
+                            <th width="20%">Số điện thoại</th>
+                            <th width="25%">Email</th>
+                        </tr>
+                        {% for branch_contact_info in branch_contact_infos %}
                             <tr>
-                                <th width="30%">Nghiệp vụ</th>
-                                <th width="25%">Họ tên</th>
-                                <th width="20%">Số điện thoại</th>
-                                <th width="25%">Email</th>
+                                <td>- {{ branch_contact_info.business_line }}</td>
+                                <td>{{ branch_contact_info.name }}</td>
+                                <td>{{ branch_contact_info.phone_number }}</td>
+                                <td>{{ branch_contact_info.email }}</td>
                             </tr>
-                            {% for branch_contact_info in branch_contact_infos %}
-                                <tr>
-                                    <td>- {{ branch_contact_info.business_line }}</td>
-                                    <td>{{ branch_contact_info.name }}</td>
-                                    <td>{{ branch_contact_info.phone_number }}</td>
-                                    <td>{{ branch_contact_info.email }}</td>
-                                </tr>
-                            {% endfor %}
-                        </table>
+                        {% endfor %}
+                    </table>
                     {% endif %}
 
+                    <div style="margin-top: 20px;">
+                        Anh/chị lưu ý nội quy và thực hiện đúng theo quy định. Chúc anh/chị có khởi đầu công việc tại Mai Việt thuận lợi, đạt kết quả tốt và đồng hành cùng Mai Việt phát triển trong thời gian tới.
+                    </div>
+                    <div style="margin-top: 20px">
+                        Trân trọng!
+                    </div>
                 </td>
             </tr>
         </table>

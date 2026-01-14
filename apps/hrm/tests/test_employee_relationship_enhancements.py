@@ -58,6 +58,7 @@ class EmployeeRelationshipEnhancementsAPITest(TransactionTestCase):
             fullname="John Doe",
             username="johndoe_rel",
             email="johndoe_rel@example.com",
+            personal_email="johndoe_rel_personal@example.com",
             code_type="MV",
             branch=self.branch,
             block=self.block,

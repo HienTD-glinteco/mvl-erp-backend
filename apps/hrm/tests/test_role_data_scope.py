@@ -336,13 +336,17 @@ class TestFilterQuerysetByRoleDataScope:
 
     def test_superuser_returns_all(self, superuser, department_a, department_b):
         """Superuser should see all departments"""
-        qs = Department.objects.all()
+        # Filter by test departments only to avoid race conditions with parallel tests
+        test_dept_ids = [department_a.id, department_b.id]
+        qs = Department.objects.filter(id__in=test_dept_ids)
         filtered = filter_queryset_by_role_data_scope(qs, superuser)
         assert filtered.count() == 2
 
     def test_branch_scope_filters_correctly(self, user_branch, department_a, department_b, branch_a, branch_b):
         """Branch scope should only show departments in allowed branches"""
-        qs = Department.objects.all()
+        # Filter by test departments only to avoid race conditions with parallel tests
+        test_dept_ids = [department_a.id, department_b.id]
+        qs = Department.objects.filter(id__in=test_dept_ids)
         config = {"branch_field": "branch", "block_field": "block", "department_field": "id"}
         filtered = filter_queryset_by_role_data_scope(qs, user_branch, config)
 
@@ -352,7 +356,9 @@ class TestFilterQuerysetByRoleDataScope:
 
     def test_block_scope_filters_correctly(self, user_block, department_a, department_b):
         """Block scope should only show departments in allowed blocks"""
-        qs = Department.objects.all()
+        # Filter by test departments only to avoid race conditions with parallel tests
+        test_dept_ids = [department_a.id, department_b.id]
+        qs = Department.objects.filter(id__in=test_dept_ids)
         config = {"branch_field": "branch", "block_field": "block", "department_field": "id"}
         filtered = filter_queryset_by_role_data_scope(qs, user_block, config)
 
@@ -362,7 +368,9 @@ class TestFilterQuerysetByRoleDataScope:
 
     def test_department_scope_filters_correctly(self, user_department, department_a, department_b):
         """Department scope should only show assigned departments"""
-        qs = Department.objects.all()
+        # Filter by test departments only to avoid race conditions with parallel tests
+        test_dept_ids = [department_a.id, department_b.id]
+        qs = Department.objects.filter(id__in=test_dept_ids)
         # When filtering departments by department scope, we use "id" as the department_field
         # since we're filtering the Department model itself
         config = {"branch_field": "branch", "block_field": "block", "department_field": ""}
@@ -374,7 +382,10 @@ class TestFilterQuerysetByRoleDataScope:
 
     def test_no_role_returns_empty(self, user_no_role, department_a, department_b):
         """User without role should see nothing"""
-        qs = Department.objects.all()
+        # Create a queryset with only our test departments to avoid race conditions
+        # with other parallel tests
+        test_dept_ids = [department_a.id, department_b.id]
+        qs = Department.objects.filter(id__in=test_dept_ids)
         filtered = filter_queryset_by_role_data_scope(qs, user_no_role)
         assert filtered.count() == 0
 

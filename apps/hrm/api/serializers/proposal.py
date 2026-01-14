@@ -768,7 +768,7 @@ class ProposalVerifierRejectSerializer(serializers.ModelSerializer):
         from apps.hrm.constants import ProposalVerifierStatus
 
         instance.status = ProposalVerifierStatus.NOT_VERIFIED
-        instance.verified_time = None
+        instance.verified_time = timezone.now()
         if validated_data.get("note"):
             instance.note = validated_data["note"]
 

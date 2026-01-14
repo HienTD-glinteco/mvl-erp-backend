@@ -617,12 +617,10 @@ class TestProposalVerifierAPI:
         result = response.json()
         assert result["success"] is True
         assert result["data"]["colored_status"]["value"] == ProposalVerifierStatus.NOT_VERIFIED
-        assert result["data"]["verified_time"] is None
         assert result["data"]["note"] == "Rejected due to insufficient evidence"
 
         proposal_verifier_for_verify.refresh_from_db()
         assert proposal_verifier_for_verify.status == ProposalVerifierStatus.NOT_VERIFIED
-        assert proposal_verifier_for_verify.verified_time is None
         assert proposal_verifier_for_verify.note == "Rejected due to insufficient evidence"
 
     def test_reject_proposal_without_note(self, api_client, superuser_with_employee, proposal_verifier_for_verify):
@@ -654,7 +652,6 @@ class TestProposalVerifierAPI:
 
         proposal_verifier_for_verify.refresh_from_db()
         assert proposal_verifier_for_verify.status == ProposalVerifierStatus.NOT_VERIFIED
-        assert proposal_verifier_for_verify.verified_time is None
 
 
 class TestProposalAutoAssignVerifier:
