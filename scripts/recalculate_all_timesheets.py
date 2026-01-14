@@ -9,6 +9,7 @@ Uses 4 workers for parallel processing.
 
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
+from django.db import close_old_connections
 from apps.hrm.models import TimeSheetEntry
 from apps.hrm.services.timesheet_calculator import TimesheetCalculator
 from apps.hrm.services.timesheet_snapshot_service import TimesheetSnapshotService
@@ -16,8 +17,9 @@ from apps.hrm.services.timesheet_snapshot_service import TimesheetSnapshotServic
 
 def process_entry(entry_id):
     """Process a single entry - run snapshot and compute_all."""
+    # Close stale connections at start of thread execution
+    close_old_connections()
     try:
-        # Close stale connections for thread safety
         entry = TimeSheetEntry.objects.get(id=entry_id)
 
         # Snapshot data
@@ -34,6 +36,9 @@ def process_entry(entry_id):
         return entry_id, True, None
     except Exception as e:
         return entry_id, False, str(e)
+    finally:
+        # Close connections when returning to pool
+        close_old_connections()
 
 
 def recalculate_all_timesheets(num_workers=4):
