@@ -3,6 +3,8 @@ from decimal import Decimal
 from fractions import Fraction
 from typing import Optional
 
+from django.utils import timezone
+
 from apps.hrm.constants import (
     STANDARD_WORKING_HOURS_PER_DAY,
     AllowedLateMinutesReason,
@@ -82,6 +84,12 @@ class TimesheetCalculator:
     def handle_exemption(self) -> bool:
         """Check if employee is exempt. If so, grant full credit and exit."""
         if self.entry.is_exempt:
+            # NEW: Don't finalize future dates
+            if self.entry.date > timezone.localdate():
+                self.entry.status = None
+                self.entry.working_days = None
+                return True
+
             self.entry.status = TimesheetStatus.ON_TIME
             self.entry.working_days = self._get_max_working_days()
             # Reset penalties/absent reasons just in case
@@ -359,43 +367,51 @@ class TimesheetCalculator:
     # ---------------------------------------------------------------------------
 
     def compute_status(self, is_finalizing: bool = False) -> None:
-        """Compute status: ABSENT, SINGLE_PUNCH, ON_TIME, NOT_ON_TIME."""
+        """Compute status: ABSENT, SINGLE_PUNCH, ON_TIME, NOT_ON_TIME.
+
+        PRIORITY ORDER (per PR1 plan Task 1.4):
+        1. Single Punch takes precedence over leave
+        2. Then check leave (no attendance)
+        3. Then no logs
+        4. Finally two punches
+        """
         # 0. Support for direct calls (tests): ensure snapshot and penalties are run
         snapshot_service = TimesheetSnapshotService()
         snapshot_service.snapshot_data(self.entry)
 
-        # 1. Leave Logic (High Precedence)
-        if self._handle_leave_status(is_finalizing):
-            return
-
-        # 2. No Logs
-        if not self.entry.start_time and not self.entry.end_time:
-            self._handle_no_logs_status(is_finalizing)
-            return
-
-        # 3. Single Punch
+        # 1. Single Punch takes precedence over leave (has 1 attendance log)
         if self._is_single_punch():
+            # Clear absent_reason since attendance wins over leave
+            self.entry.absent_reason = None
             self._handle_single_punch_status(is_finalizing)
             return
 
-        # 4. Two Logs - use pre-calculated penalty status
-        self.entry.status = TimesheetStatus.NOT_ON_TIME if self.entry.is_punished else TimesheetStatus.ON_TIME
+        # 2. Two Logs - attendance wins, clear leave and use penalty status
+        if self.entry.start_time and self.entry.end_time:
+            self.entry.absent_reason = None
+            self.entry.status = TimesheetStatus.NOT_ON_TIME if self.entry.is_punished else TimesheetStatus.ON_TIME
+            return
+
+        # 3. No Logs - check leave status
+        if self._handle_leave_status(is_finalizing):
+            return
+
+        # 4. No Logs, No Leave - handle as absent or pending
+        self._handle_no_logs_status(is_finalizing)
 
     def _handle_leave_status(self, is_finalizing: bool) -> bool:
         """Return True if status was set due to leave.
 
-        For leave reasons (paid/unpaid/maternity leave), status is only set to ABSENT
-        when is_finalizing=True. For future dates (is_finalizing=False), status remains
-        None to show gray/empty in the timesheet grid.
-
-        If employee has attendance records, skip leave logic - they worked despite
-        having approved leave, so calculate status from actual attendance.
+        NOTE: This method is only called when there's NO attendance logs.
+        The attendance priority rule is handled in compute_status() before this is called.
         """
-        # If employee has attendance records, don't apply leave logic
-        # (they worked despite having approved leave)
-        has_attendance = self.entry.start_time or self.entry.end_time
-        if has_attendance:
-            return False
+        # Check if day has no work schedule (e.g., Sunday)
+        # BUT skip this check for COMPENSATORY days - they're always working days
+        if self._get_schedule_max_days() == 0 and self.entry.day_type != TimesheetDayType.COMPENSATORY:
+            # No schedule = no working days regardless of leave
+            self.entry.working_days = Decimal("0.00")
+            self.entry.status = None
+            return True
 
         leave_reasons = [
             TimesheetReason.PAID_LEAVE,
@@ -458,10 +474,19 @@ class TimesheetCalculator:
 
         self.entry.working_days = Decimal("0.00")
 
+        # NEW: Handle Holiday - always get full credit
+        if self.entry.day_type == TimesheetDayType.HOLIDAY:
+            self.entry.working_days = Decimal("1.00")
+            return
+
         # 1. Absolute Absence (Full Day)
         if self.entry.status == TimesheetStatus.ABSENT:
             if self.entry.absent_reason == TimesheetReason.PAID_LEAVE:
                 self.entry.working_days = Decimal("1.00")
+            elif self.entry.day_type == TimesheetDayType.COMPENSATORY:
+                # NEW: Absent on compensatory day = negative (debt)
+                max_days = self._get_schedule_max_days()
+                self.entry.working_days = -max_days
             return
 
         # 2. Base worked hours calculation

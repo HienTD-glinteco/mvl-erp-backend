@@ -6,7 +6,7 @@ import pytest
 from django.utils import timezone
 
 from apps.core.models import AdministrativeUnit, Province
-from apps.hrm.constants import ProposalStatus, ProposalType, TimesheetReason, TimesheetStatus
+from apps.hrm.constants import ProposalStatus, ProposalType, TimesheetStatus
 from apps.hrm.models.employee import Employee
 from apps.hrm.models.holiday import CompensatoryWorkday
 from apps.hrm.models.organization import Block, Branch, Department
@@ -75,7 +75,12 @@ def _create_monday_schedule():
     )
 
 
-def test_full_day_paid_leave_takes_precedence_over_compensatory(settings):
+def test_attendance_takes_precedence_over_paid_leave(settings):
+    """Test that attendance takes precedence over paid leave per PR1 priority rule.
+
+    When an employee has both an approved leave proposal AND attendance logs,
+    attendance wins - they should be calculated as a normal working day.
+    """
     emp = _create_employee()
     _create_monday_schedule()
 
@@ -90,23 +95,22 @@ def test_full_day_paid_leave_takes_precedence_over_compensatory(settings):
         paid_leave_end_date=d,
     )
 
-    # Also create a compensatory workday for the same date (should not override leave)
-    # CompensatoryWorkday requires a Holiday FK
+    # Also create a compensatory workday for the same date
     holiday = __import__("apps.hrm.models.holiday", fromlist=["Holiday"]).Holiday.objects.create(
         name="H", start_date=d, end_date=d
     )
     CompensatoryWorkday.objects.create(holiday=holiday, date=d, session=CompensatoryWorkday.Session.FULL_DAY)
 
     ts = TimeSheetEntry(employee=emp, date=d)
-    # Employee did punch in (but leave should still take precedence)
+    # Employee DID punch in - attendance wins over leave per PR1 priority rule
     ts.start_time = make_datetime(d, time(8, 0))
     ts.end_time = make_datetime(d, time(17, 0))
-    # Need is_finalizing=True for leave status to be ABSENT (not None)
     TimesheetCalculator(ts).compute_status(is_finalizing=True)
 
-    assert ts.status == TimesheetStatus.ABSENT
-    assert ts.absent_reason == TimesheetReason.PAID_LEAVE
-    assert ts.count_for_payroll is False
+    # PR1 Priority Rule: Attendance > Events > Proposals
+    # Since employee has attendance logs, leave proposal is OVERRIDDEN
+    assert ts.status == TimesheetStatus.ON_TIME
+    assert ts.absent_reason is None  # Cleared because attendance wins
 
 
 def test_timezone_aware_start_times_respect_schedule(settings):

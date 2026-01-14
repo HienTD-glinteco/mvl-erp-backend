@@ -4,7 +4,7 @@ from unittest.mock import patch
 import pytest
 from django.utils import timezone
 
-from apps.hrm.constants import ProposalStatus, ProposalType, TimesheetReason, TimesheetStatus
+from apps.hrm.constants import ProposalStatus, ProposalType, TimesheetReason
 from apps.hrm.models import (
     AttendanceRecord,
     Block,
@@ -90,9 +90,10 @@ class TestPaidLeaveProposal:
         # Execute the proposal
         ProposalService.execute_approved_proposal(proposal)
 
-        # Verify timesheet entry was created and marked as absent
+        # Verify timesheet entry was created with leave reason
+        # Note: status is None until finalized (when is_finalizing=True)
         entry = TimeSheetEntry.objects.get(employee=test_employee, date=date(2025, 1, 15))
-        assert entry.status == TimesheetStatus.ABSENT
+        assert entry.status is None  # Not finalized yet
         assert entry.absent_reason == TimesheetReason.PAID_LEAVE
         assert entry.official_hours == 0
         assert entry.overtime_hours == 0
@@ -113,10 +114,11 @@ class TestPaidLeaveProposal:
         # Execute the proposal
         ProposalService.execute_approved_proposal(proposal)
 
-        # Verify all three days are marked as absent
+        # Verify all three days have leave reason set
+        # Note: status is None until finalized (when is_finalizing=True)
         for day in [20, 21, 22]:
             entry = TimeSheetEntry.objects.get(employee=test_employee, date=date(2025, 1, day))
-            assert entry.status == TimesheetStatus.ABSENT
+            assert entry.status is None  # Not finalized yet
             assert entry.absent_reason == TimesheetReason.PAID_LEAVE
             assert entry.official_hours == 0
 
@@ -140,10 +142,11 @@ class TestUnpaidLeaveProposal:
         # Execute the proposal
         ProposalService.execute_approved_proposal(proposal)
 
-        # Verify days are marked as unpaid leave
+        # Verify days have unpaid leave reason set
+        # Note: status is None until finalized (when is_finalizing=True)
         for day in [10, 11]:
             entry = TimeSheetEntry.objects.get(employee=test_employee, date=date(2025, 2, day))
-            assert entry.status == TimesheetStatus.ABSENT
+            assert entry.status is None  # Not finalized yet
             assert entry.absent_reason == TimesheetReason.UNPAID_LEAVE
 
 

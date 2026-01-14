@@ -1,7 +1,6 @@
 # TÀI LIỆU QUY TẮC NGHIỆP VỤ: TÍNH TOÁN VÀ LƯU TRỮ NGÀY CÔNG (WORKING DAY)
 
-# TÀI LIỆU QUY TẮC NGHIỆP VỤ: TÍNH TOÁN VÀ LƯU TRỮ NGÀY CÔNG (WORKING DAY)
-**Phiên bản:** 3.0 (Cập nhật logic is_finalizing & sửa lỗi mapping)
+**Phiên bản:** 3.1 (Cập nhật Priority Rule & logic hoàn phép)
 **Mục đích:** Chuẩn hóa logic xử lý dữ liệu chấm công thô thành dữ liệu tính lương (Snapshot Data).
 
 * * *
@@ -141,18 +140,51 @@ Hệ thống lưu trữ độc lập **Giá trị ngày công (****`working_day
 *   **Giới hạn:** `working_days` = Min(`working_days` + 0.125, `Max định mức`).
     *   _Ví dụ:_ Ngày Thứ 7 (định mức 0.5), nhân viên làm 3 giờ thực tế (0.375) -> Cộng 1 giờ thành 4 giờ -> Đạt đủ **0.5 công**.
 * * *
-## 5\. Ma Trận Ưu Tiên Dữ Liệu (Conflict Handling)
+## 5\. Thứ Tự Ưu Tiên Dữ Liệu (Priority Rule)
+
+### 5.1. Nguyên tắc chung
+```
+Đề xuất (Proposal) < Sự kiện (Events) < Lịch sử chấm công (Attendance)
+```
+
+| Layer | Ví dụ | Ý nghĩa |
+|-------|-------|---------|
+| Đề xuất | Xin nghỉ phép, WFH, OT | Kế hoạch - có thể thay đổi |
+| Sự kiện | Thay đổi HĐ, miễn CC | Thực tế đã xảy ra |
+| Chấm công | Log check-in/out | Bằng chứng đi làm |
+
+### 5.2. Quy tắc xử lý xung đột
+
+| Trường hợp | Xử lý | Kết quả |
+|------------|-------|---------|
+| Nghỉ phép + Có chấm công | Attendance wins | Tính công bình thường |
+| Nghỉ phép CÓ LƯƠNG + Có CC | Clear absent_reason | Phép tự động hoàn |
+| Nghỉ phép KHÔNG lương + Có CC | Clear absent_reason | Tính công bình thường |
+
+### 5.3. Cơ chế hoàn phép tự động
+
+Khi nhân viên có đề xuất nghỉ phép được duyệt nhưng vẫn đi làm:
+
+1. `TimesheetCalculator` phát hiện có attendance logs
+2. Xóa `absent_reason` khỏi entry
+3. Khi `EmployeeMonthlyTimesheet.refresh_for_employee_month()` chạy:
+   - `consumed_leave_days` = COUNT(absent_reason = PAID_LEAVE)
+   - Entry không còn PAID_LEAVE → không bị count
+   - `remaining_leave_days` tự động tăng
+4. **Kết quả:** Phép được hoàn mà không cần xử lý riêng
+
+## 6\. Ma Trận Ưu Tiên Dữ Liệu (Legacy Conflict Handling)
 Khi một buổi làm việc có nhiều loại dữ liệu chồng lấn, áp dụng thứ tự ưu tiên sau để đạt **Giá trị tối đa được hưởng**:
 
 | Loại dữ liệu chồng lấn | Ưu tiên tính Công | Giải thích |
 | ---| ---| --- |
 | Lễ trùng ngày nghỉ (chủ nhật) | Ngày nghỉ (Chủ nhật) | `day_type` = Trống. `working_days` = 0. |
-| Đi làm trùng ngày Phép | Nghỉ phép | `paid_leave_hours` được ưu tiên để đảm bảo đủ công. |
+| Đi làm trùng ngày Phép | Chấm công | Tính công bình thường, xóa absent_reason, phép tự động hoàn |
 | Làm bù trùng Nghỉ phép | Nghỉ phép (P) | Dùng P để triệt tiêu giá trị âm của ngày làm bù (`1.0 - 1.0 = 0`). |
 | Miễn trừ trễ trùng Đi muộn | Miễn trừ | Không đánh dấu lỗi (`is_punished` = False), nhưng công vẫn trừ theo phút thực tế. |
 
 * * *
-## 6\. Cấu Trúc Dữ Liệu Lưu Trữ "Snapshot" (TimeSheetEntry)
+## 7\. Cấu Trúc Dữ Liệu Lưu Trữ "Snapshot" (TimeSheetEntry)
 Bảng ngày công (`hrm_timesheet`) cần lưu trữ giá trị tĩnh tại thời điểm tính. Các field cần tuân thủ convention của model `TimeSheetEntry`.
 
 | Field Name | Data Type | Logic / Nguồn Dữ Liệu | Mapping với TimeSheetEntry |
@@ -187,7 +219,7 @@ Bảng ngày công (`hrm_timesheet`) cần lưu trữ giá trị tĩnh tại th�
 | `is_exempt` | Boolean | True nếu thuộc diện Miễn chấm công. | `is_exempt` |
 
 * * *
-### 6.1. Chi tiết Logic Mapping & Tính toán Field
+### 7.1. Chi tiết Logic Mapping & Tính toán Field
 Dưới đây là công thức cụ thể để populate (điền dữ liệu) cho từng field trong quá trình xử lý (ETL/Calculation Job):
 #### Nhóm 1: Field Định danh & Phân loại
 *   **`contract_id`**:
@@ -236,8 +268,8 @@ Dưới đây là công thức cụ thể để populate (điền dữ liệu) c
 *   **`ot_tc3_hours`**:
     *   Overlap(Log, Đề xuất OT) nếu `day_type == holiday`.
 * * *
-## 7\. Luồng Dữ Liệu & Trigger (Data Flow)
-### 7.1. Input & Output
+## 8\. Luồng Dữ Liệu & Trigger (Data Flow)
+### 8.1. Input & Output
 *   **Input (Đầu vào):**
     1. **Static Data:** Cấu hình Lịch làm việc, Ngày lễ, Ngày làm bù.
     2. **HR Data:** Hợp đồng, Phụ lục hợp đồng, Hồ sơ nhân viên.
@@ -246,7 +278,7 @@ Dưới đây là công thức cụ thể để populate (điền dữ liệu) c
     *   Payroll **KHÔNG** đọc trực tiếp từ `TimeSheetEntry`.
     *   `TimeSheetEntry` sau khi tính toán xong sẽ đẩy dữ liệu tổng hợp sang **`EmployeeMonthlyTimesheet`**.
     *   Payroll Service sẽ sử dụng `EmployeeMonthlyTimesheet` làm nguồn dữ liệu đầu vào duy nhất.
-### 7.2. Luồng Tạo Mới (Create Flow)
+### 8.2. Luồng Tạo Mới (Create Flow)
 1. **Batch Job Hàng Tháng (****`prepare_monthly_timesheets`****):**
     *   **Thời điểm:** Chạy vào đầu tháng (VD: 00:00 ngày mùng 1).
     *   **Đối tượng:** Tất cả nhân viên có trạng thái `ACTIVE` hoặc `ONBOARDING`.
@@ -254,7 +286,7 @@ Dưới đây là công thức cụ thể để populate (điền dữ liệu) c
 2. **Ad-hoc Trigger (Nhân sự mới/Active lại):**
     *   **Sự kiện:** Khi tạo mới nhân viên hoặc chuyển từ 1 trong các trạng thái sau \[`Resigned`, `Maternity Leave`, `Unpaid Leave`\] -> `Active`.
     *   **Hành động:** Trigger chạy job tạo `TimeSheetEntry` cho tháng hiện tại.
-### 7.3. Luồng Cập Nhật (Update Flow)
+### 8.3. Luồng Cập Nhật (Update Flow)
 Nguyên tắc: **Real-time Recalculation & Propagation**.
 1. **Trigger Update** **`TimeSheetEntry`****:**
     *   Khi Log chấm công thay đổi.
@@ -265,9 +297,9 @@ Nguyên tắc: **Real-time Recalculation & Propagation**.
     *   Mỗi khi `TimeSheetEntry` được `save()`, hệ thống sẽ kích hoạt job (hoặc signal) để tính toán lại Aggregate cho tháng tương ứng.
     *   Cập nhật các cột tổng (Total Working Days, Total OT, Leave Balance) trong `EmployeeMonthlyTimesheet`.
 * * *
-## 8\. Cấu Trúc Tổng Hợp Tháng (EmployeeMonthlyTimesheet)
+## 9\. Cấu Trúc Tổng Hợp Tháng (EmployeeMonthlyTimesheet)
 Đây là bảng Input trực tiếp cho Module Tính Lương.
-### 8.1. Logic Mapping Field
+### 9.1. Logic Mapping Field
 
 | Field (Monthly) | Logic Tổng Hợp (Aggregation) |
 | ---| --- |
@@ -287,8 +319,8 @@ Nguyên tắc: **Real-time Recalculation & Propagation**.
 | `early_leaving_minutes` | `Sum(early_minutes)` (New Field - Cần thêm vào Model) |
 | `total_penalty_count` | `Count(date)` WHERE `is_punished = True` (New Field) |
 
-### 8.2. Yêu cầu update Model `EmployeeMonthlyTimesheet`
+### 9.2. Yêu cầu update Model `EmployeeMonthlyTimesheet`
 Hiện tại Model đang thiếu các field phạt chuyên cần để phục vụ trừ lương. Cần bổ sung:
 *   `late_coming_minutes` (Integer/Decimal)
 *   `early_leaving_minutes` (Integer/Decimal)
-*   `total_penalty_count` (Integer) - Số lần vi phạm để xét thưởng chuyên cần.
+*   `total_penalty_count` (Integer) - Số lần vi phạm để xét thưởng/phạt.

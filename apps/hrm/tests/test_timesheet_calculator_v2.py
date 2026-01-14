@@ -9,6 +9,7 @@ from apps.hrm.constants import (
     ProposalType,
     ProposalWorkShift,
     TimesheetDayType,
+    TimesheetReason,
     TimesheetStatus,
 )
 from apps.hrm.models import (
@@ -116,11 +117,29 @@ class TestTimesheetCalculatorV2:
         entry = TimeSheetEntry.objects.create(employee=employee, date=d, is_exempt=True)
 
         calc = TimesheetCalculator(entry)
-        calc.compute_all()
+        calc.compute_all(is_finalizing=True)
 
         assert entry.status == TimesheetStatus.ON_TIME
         assert entry.working_days == Decimal("1.00")
         assert entry.late_minutes == 0
+
+    def test_exempt_logic_future_date(self, employee, work_schedule):
+        """Test exemption for future date - should NOT finalize."""
+        today = timezone.localdate()
+        future_date = today + timedelta(days=5)
+
+        entry = TimeSheetEntry.objects.create(employee=employee, date=future_date, is_exempt=True)
+
+        calc = TimesheetCalculator(entry)
+        calc.compute_all(is_finalizing=False)
+
+        assert entry.status is None
+        assert entry.working_days is None
+
+        # Even if we try to force finalize (though tasks usually don't), the calc handles it
+        calc.compute_all(is_finalizing=True)
+        assert entry.status is None
+        assert entry.working_days is None
 
     def test_single_punch_logic(self, employee, work_schedule):
         d = date(2023, 1, 2)  # Monday
@@ -399,6 +418,34 @@ class TestTimesheetCalculatorV2:
         assert entry.working_days == Decimal("1.00")
         assert entry.compensation_value == Decimal("0.00")
 
+    def test_compensatory_day_absent(self, employee):
+        """Test Absent on Compensatory Day - should result in debt (negative days)."""
+        d = date(2023, 1, 8)  # Sunday
+
+        WorkSchedule.objects.create(
+            weekday=WorkSchedule.Weekday.SUNDAY,
+            morning_start_time=time(8, 0),
+            morning_end_time=time(12, 0),
+            afternoon_start_time=time(13, 30),
+            afternoon_end_time=time(17, 30),
+        )
+
+        h_date = date(2023, 1, 1)
+        holiday = Holiday.objects.create(start_date=h_date, end_date=h_date, name="New YearHoliday")
+        CompensatoryWorkday.objects.create(holiday=holiday, date=d)
+
+        entry = TimeSheetEntry.objects.create(employee=employee, date=d)
+
+        # Ensure it's detected as Compensatory
+        snapshot_service = TimesheetSnapshotService()
+        snapshot_service.snapshot_data(entry)
+
+        calc = TimesheetCalculator(entry)
+        calc.compute_all(is_finalizing=True)
+
+        assert entry.status == TimesheetStatus.ABSENT
+        assert entry.working_days == Decimal("-1.00")
+
     def test_finalization_status_absent(self, employee, work_schedules):
         # Use a future Thursday so is_finalizing=False initially
         today = timezone.localdate()
@@ -497,3 +544,65 @@ class TestTimesheetCalculatorV2:
         assert entry.late_minutes == 30
         assert entry.is_punished is True
         assert entry.status == TimesheetStatus.NOT_ON_TIME
+
+    def test_attendance_priority_over_leave(self, employee, work_schedule):
+        """Test that Attendance takes priority over Leave (Paid Leave)."""
+        d = date(2023, 1, 2)
+        Proposal.objects.create(
+            created_by=employee,
+            proposal_type=ProposalType.PAID_LEAVE,
+            proposal_status=ProposalStatus.APPROVED,
+            paid_leave_start_date=d,
+            paid_leave_end_date=d,
+        )
+
+        # Entry created with absent_reason (simulating execution of proposal)
+        entry = TimeSheetEntry.objects.create(
+            employee=employee,
+            date=d,
+            absent_reason=TimesheetReason.PAID_LEAVE,
+            check_in_time=combine_datetime(d, time(8, 0)),
+            check_out_time=combine_datetime(d, time(17, 30)),
+            start_time=combine_datetime(d, time(8, 0)),
+            end_time=combine_datetime(d, time(17, 30)),
+        )
+
+        calc = TimesheetCalculator(entry)
+        calc.compute_all(is_finalizing=True)
+
+        # Should be ON_TIME, absent_reason cleared, full working days
+        assert entry.status == TimesheetStatus.ON_TIME
+        assert entry.absent_reason is None
+        assert entry.working_days == Decimal("1.00")
+
+    def test_holiday_working_days(self, employee):
+        """Test Holiday gives 1.0 working days even if absent."""
+        d = date(2023, 1, 2)
+        Holiday.objects.create(start_date=d, end_date=d, name="New Year")
+
+        entry = TimeSheetEntry.objects.create(employee=employee, date=d)
+
+        # Snapshot service sets day_type
+        snapshot_service = TimesheetSnapshotService()
+        snapshot_service.snapshot_data(entry)
+
+        calc = TimesheetCalculator(entry)
+        calc.compute_all(is_finalizing=True)
+
+        assert entry.day_type == TimesheetDayType.HOLIDAY
+        assert entry.working_days == Decimal("1.00")
+
+    def test_paid_leave_working_days(self, employee):
+        """Test Paid Leave gives 1.0 working days."""
+        d = date(2023, 1, 2)
+        entry = TimeSheetEntry.objects.create(
+            employee=employee,
+            date=d,
+            absent_reason=TimesheetReason.PAID_LEAVE
+        )
+
+        calc = TimesheetCalculator(entry)
+        calc.compute_all(is_finalizing=True)
+
+        assert entry.status == TimesheetStatus.ABSENT
+        assert entry.working_days == Decimal("1.00")
