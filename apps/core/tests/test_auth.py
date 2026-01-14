@@ -334,6 +334,67 @@ class TestAuthentication:
         envelope = resp.json()
         assert not envelope["success"]  # error envelope
 
+    def test_password_reset_invalidates_sessions_and_tokens(self):
+        """Test that password reset invalidates all sessions and JWT tokens"""
+        from django.contrib.sessions.models import Session
+
+        # Create a session for the user
+        self.client.force_login(self.user)
+
+        # Generate some JWT tokens
+        refresh1 = RefreshToken.for_user(self.user)
+        refresh2 = RefreshToken.for_user(self.user)
+
+        # Verify tokens exist
+        from rest_framework_simplejwt.token_blacklist.models import OutstandingToken
+
+        initial_token_count = OutstandingToken.objects.filter(user=self.user).count()
+        assert initial_token_count >= 2, "Should have outstanding tokens"
+
+        # Complete password reset flow
+        # Step 1: Request password reset (already tested elsewhere)
+        reset_request, otp_code = PasswordResetOTP.objects.create_request(self.user, channel="email")
+
+        # Step 2: Verify OTP
+        url_verify = reverse("core:forgot_password_verify_otp")
+        resp2 = self.client.post(
+            url_verify,
+            {"reset_token": reset_request.reset_token, "otp_code": otp_code},
+            format="json",
+        )
+        assert resp2.status_code == status.HTTP_200_OK
+        access = resp2.json()["data"]["tokens"]["access"]
+
+        # Step 3: Change password
+        new_password = "NewSecure123!"
+        url_change = reverse("core:forgot_password_change_password")
+        client = APIClient()
+        client.credentials(HTTP_AUTHORIZATION=f"Bearer {access}")
+        resp3 = client.post(
+            url_change,
+            {"new_password": new_password, "confirm_password": new_password},
+            format="json",
+        )
+
+        assert resp3.status_code == status.HTTP_200_OK
+
+        # Verify all sessions are deleted
+        user_sessions_count = sum(
+            1 for session in Session.objects.all() if session.get_decoded().get("_auth_user_id") == str(self.user.pk)
+        )
+        assert user_sessions_count == 0, "All sessions should be deleted after password reset"
+
+        # Verify active_session_key is cleared
+        self.user.refresh_from_db()
+        assert self.user.active_session_key == "", "active_session_key should be empty"
+
+        # Verify all tokens are blacklisted
+        from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken
+
+        blacklisted_count = BlacklistedToken.objects.filter(token__user=self.user).count()
+        # Note: The count might be higher than initial because step 2 also creates a token
+        assert blacklisted_count >= initial_token_count, "All tokens should be blacklisted"
+
     def test_routing_web_and_mobile_login_endpoints_exist(self):
         """Web endpoints remain unchanged; mobile endpoints exist with /mobile/ prefix."""
         assert self.login_url == "/api/auth/login/"
@@ -573,3 +634,48 @@ class TestPasswordChangeValidation:
         # Verify field attribution
         assert "old_password" in errors
         assert "incorrect" in str(errors["old_password"]).lower()
+
+    @patch("apps.core.api.views.auth.password_change.PasswordChangeView.throttle_classes", new=[])
+    def test_password_change_invalidates_sessions_and_tokens(self):
+        """Test that password change invalidates all sessions and JWT tokens"""
+        from django.contrib.sessions.models import Session
+        from rest_framework_simplejwt.tokens import RefreshToken
+
+        # Create a session for the user
+        self.client.login(username="testuser_pwd_val", password="OldPassword123!")
+
+        # Generate JWT tokens
+        refresh = RefreshToken.for_user(self.user)
+        old_refresh_token = str(refresh)
+
+        # Verify tokens exist
+        from rest_framework_simplejwt.token_blacklist.models import OutstandingToken
+
+        initial_token_count = OutstandingToken.objects.filter(user=self.user).count()
+        assert initial_token_count > 0, "Should have outstanding tokens"
+
+        # Change password
+        data = {
+            "old_password": "OldPassword123!",
+            "new_password": "NewPassword123!",
+            "confirm_password": "NewPassword123!",
+        }
+        response = self.client.post(self.url, data, format="json")
+
+        assert response.status_code == status.HTTP_200_OK
+
+        # Verify all sessions are deleted
+        user_sessions_count = sum(
+            1 for session in Session.objects.all() if session.get_decoded().get("_auth_user_id") == str(self.user.pk)
+        )
+        assert user_sessions_count == 0, "All sessions should be deleted"
+
+        # Verify active_session_key is cleared
+        self.user.refresh_from_db()
+        assert self.user.active_session_key == "", "active_session_key should be empty"
+
+        # Verify all tokens are blacklisted
+        from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken
+
+        blacklisted_count = BlacklistedToken.objects.filter(token__user=self.user).count()
+        assert blacklisted_count == initial_token_count, "All tokens should be blacklisted"

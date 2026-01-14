@@ -5,6 +5,8 @@ from django.core.exceptions import ValidationError
 from django.utils.translation import gettext as _
 from rest_framework import serializers
 
+from apps.core.utils.jwt import revoke_user_outstanding_tokens
+
 logger = logging.getLogger(__name__)
 
 
@@ -94,7 +96,16 @@ class PasswordChangeSerializer(serializers.Serializer):
         return attrs
 
     def save(self):
-        """Change user password and send notification"""
+        """
+        Change user password and invalidate all existing sessions/tokens.
+
+        This will:
+        1. Set new password
+        2. Invalidate all Django sessions
+        3. Revoke all outstanding JWT tokens
+
+        The user will need to login again with the new password.
+        """
         user = self.validated_data["user"]
         new_password = self.validated_data["new_password"]
 
@@ -102,9 +113,12 @@ class PasswordChangeSerializer(serializers.Serializer):
         user.set_password(new_password)
         user.save()
 
-        # Invalidate all other sessions except current one
+        # Invalidate all Django sessions (logout from web sessions)
         user.invalidate_all_sessions()
 
-        logger.info(f"Password successfully changed for user {user}")
+        # Revoke all outstanding JWT refresh tokens (logout from mobile/API)
+        revoke_user_outstanding_tokens(user)
+
+        logger.info(f"Password successfully changed for user {user}. All sessions and tokens invalidated.")
 
         return user
