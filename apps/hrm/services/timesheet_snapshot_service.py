@@ -181,28 +181,33 @@ class TimesheetSnapshotService:
         if entry.absent_reason:
             return
 
+        # Check for Public Holiday first as it has high priority
+        if entry.day_type == TimesheetDayType.HOLIDAY:
+            entry.absent_reason = TimesheetReason.PUBLIC_HOLIDAY
+            return
+
         # Use Proposal model directly to avoid circular dependency
         leave = Proposal.get_active_leave_proposals(entry.employee_id, entry.date).first()
 
-        if leave:
-            # Check if it's a full day leave
-            is_full_day = False
-            if leave.proposal_type == ProposalType.MATERNITY_LEAVE:
-                is_full_day = True
-            elif leave.proposal_type == ProposalType.PAID_LEAVE:
-                is_full_day = not leave.paid_leave_shift or leave.paid_leave_shift == ProposalWorkShift.FULL_DAY
-            elif leave.proposal_type == ProposalType.UNPAID_LEAVE:
-                is_full_day = not leave.unpaid_leave_shift or leave.unpaid_leave_shift == ProposalWorkShift.FULL_DAY
+        if not leave:
+            return
 
-            if is_full_day:
-                if leave.proposal_type == ProposalType.MATERNITY_LEAVE:
-                    entry.absent_reason = TimesheetReason.MATERNITY_LEAVE
-                elif leave.proposal_type == ProposalType.PAID_LEAVE:
-                    entry.absent_reason = TimesheetReason.PAID_LEAVE
-                elif leave.proposal_type == ProposalType.UNPAID_LEAVE:
-                    entry.absent_reason = TimesheetReason.UNPAID_LEAVE
-        # We don't clear it here; unexcused absence is handled by the calculator if status is ABSENT
-        # and no reason was found.
+        # Check if it's a full day leave
+        is_full_day = False
+        if leave.proposal_type == ProposalType.MATERNITY_LEAVE:
+            is_full_day = True
+        elif leave.proposal_type == ProposalType.PAID_LEAVE:
+            is_full_day = not leave.paid_leave_shift or leave.paid_leave_shift == ProposalWorkShift.FULL_DAY
+        elif leave.proposal_type == ProposalType.UNPAID_LEAVE:
+            is_full_day = not leave.unpaid_leave_shift or leave.unpaid_leave_shift == ProposalWorkShift.FULL_DAY
+
+        if is_full_day:
+            reason_map = {
+                ProposalType.MATERNITY_LEAVE: TimesheetReason.MATERNITY_LEAVE,
+                ProposalType.PAID_LEAVE: TimesheetReason.PAID_LEAVE,
+                ProposalType.UNPAID_LEAVE: TimesheetReason.UNPAID_LEAVE,
+            }
+            entry.absent_reason = reason_map.get(leave.proposal_type) or TimesheetReason.UNPAID_LEAVE
 
     def snapshot_allowed_late_minutes(self, entry: TimeSheetEntry) -> None:
         """Calculate and store allowed_late_minutes (grace period)."""
