@@ -148,7 +148,7 @@ class PayrollCalculationService:
                     employee=self.employee,
                     effective_date__lte=end_of_month,
                 )
-                .order_by("-effective_date")
+                .order_by("-effective_date", "-sign_date", "-created_at")
                 .first()
             )
 
@@ -159,7 +159,7 @@ class PayrollCalculationService:
                 status=Contract.ContractStatus.ACTIVE,
                 effective_date__lte=end_of_month,
             )
-            .order_by("-effective_date")
+            .order_by("-effective_date", "-sign_date", "-created_at")
             .first()
         )
 
