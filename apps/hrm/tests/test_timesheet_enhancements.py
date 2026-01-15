@@ -539,7 +539,9 @@ class TestLeaveCalculation:
         # Total Consumed Jan-Mar = 1+1+0 = 2.
         # Unused Carried = 5 - 2 = 3.
         # Prev Remaining (Mar) = 4.
-        # Opening (Apr) = Prev Remaining - Unused Carried = 4 - 3 = 1.
+        # Base Opening (Apr) = Prev Remaining - Unused Carried = 4 - 3 = 1.
+        # Generated (Apr) = 1 (from contract: 12 annual leave days / 12 months).
+        # Opening (Apr) = Base Opening + Generated = 1 + 1 = 2.
 
-        assert ts_apr.opening_balance_leave_days == Decimal("1.00")
+        assert ts_apr.opening_balance_leave_days == Decimal("2.00")
         assert ts_apr.carried_over_leave == Decimal("0.00")

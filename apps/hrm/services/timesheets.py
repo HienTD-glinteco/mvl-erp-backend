@@ -177,7 +177,8 @@ def create_monthly_timesheet_for_employee(
         prev = EmployeeMonthlyTimesheet.objects.filter(employee_id=employee_id, month_key=f"{year - 1:04d}12").first()
         carried = prev.remaining_leave_days if prev else DECIMAL_ZERO
         obj.carried_over_leave = quantize_decimal(carried)
-        obj.opening_balance_leave_days = DECIMAL_ZERO
+        # Opening = carried_over + generated (leave is added at start of month)
+        obj.opening_balance_leave_days = quantize_decimal(carried + obj.generated_leave_days)
     elif month == 4:
         # April: Expire unused carried over
         prev = EmployeeMonthlyTimesheet.objects.filter(
@@ -200,22 +201,22 @@ def create_monthly_timesheet_for_employee(
         # Unused Carried Over
         unused_carried = max(initial_carried - consumed_jan_mar, DECIMAL_ZERO)
 
-        # Opening Balance = Prev Remaining - Unused Carried
-        obj.opening_balance_leave_days = quantize_decimal(max(prev_remaining - unused_carried, DECIMAL_ZERO))
+        # Opening Balance = (Prev Remaining - Unused Carried) + Generated (leave is added at start of month)
+        base_opening = max(prev_remaining - unused_carried, DECIMAL_ZERO)
+        obj.opening_balance_leave_days = quantize_decimal(base_opening + obj.generated_leave_days)
         obj.carried_over_leave = DECIMAL_ZERO
     else:
         # Other months
         prev = EmployeeMonthlyTimesheet.objects.filter(
             employee_id=employee_id, month_key=f"{year:04d}{month - 1:02d}"
         ).first()
-        opening = prev.remaining_leave_days if prev else DECIMAL_ZERO
-        obj.opening_balance_leave_days = quantize_decimal(opening)
+        base_opening = prev.remaining_leave_days if prev else DECIMAL_ZERO
+        # Opening = prev remaining + generated (leave is added at start of month)
+        obj.opening_balance_leave_days = quantize_decimal(base_opening + obj.generated_leave_days)
         obj.carried_over_leave = DECIMAL_ZERO
 
-    # Update Remaining locally
-    obj.remaining_leave_days = quantize_decimal(
-        obj.carried_over_leave + obj.opening_balance_leave_days + obj.generated_leave_days - obj.consumed_leave_days
-    )
+    # Update Remaining: simplified formula since opening already includes generated
+    obj.remaining_leave_days = quantize_decimal(obj.opening_balance_leave_days - obj.consumed_leave_days)
 
     obj.save()
 

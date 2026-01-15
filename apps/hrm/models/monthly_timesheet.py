@@ -275,16 +275,13 @@ class EmployeeMonthlyTimesheet(BaseReportModel):
             aggregates = {field: value for field, value in aggregates.items() if field in fields}
 
         # Handle leave balance calculations
+        # Note: opening_balance_leave_days already includes generated_leave_days
+        # so remaining = opening - consumed
         if "paid_leave_days" in aggregates:
             consumed_leave_days: Decimal = quantize_decimal(cast(Decimal, aggregates["paid_leave_days"]))
             aggregates["consumed_leave_days"] = consumed_leave_days
-            delta = quantize_decimal(
-                obj.carried_over_leave
-                + obj.opening_balance_leave_days
-                + obj.generated_leave_days
-                - consumed_leave_days
-            )
-            aggregates["remaining_leave_days"] = max(delta, DECIMAL_ZERO)
+            remaining = quantize_decimal(obj.opening_balance_leave_days - consumed_leave_days)
+            aggregates["remaining_leave_days"] = max(remaining, DECIMAL_ZERO)
 
         # Apply aggregates to object fields
         for field, value in aggregates.items():
