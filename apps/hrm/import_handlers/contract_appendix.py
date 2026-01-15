@@ -3,6 +3,7 @@
 import logging
 
 from django.db import transaction
+from django.utils.translation import gettext as _
 from rest_framework import serializers
 
 from apps.hrm.models import Contract, ContractType, Employee
@@ -60,7 +61,7 @@ class ContractAppendixImportSerializer(serializers.Serializer):
         effective_date = attrs.get("effective_date")
 
         if sign_date and effective_date and sign_date > effective_date:
-            raise serializers.ValidationError({"sign_date": "Sign date must be on or before effective date"})
+            raise serializers.ValidationError({"sign_date": _("Sign date must be on or before effective date")})
 
         return attrs
 
@@ -121,7 +122,7 @@ def import_handler(row_index: int, row: list, import_job_id: str, options: dict)
             return {
                 "ok": False,
                 "row_index": row_index,
-                "error": "Headers not provided in options",
+                "error": _("Headers not provided in options"),
                 "action": "skipped",
             }
 
@@ -144,14 +145,14 @@ def import_handler(row_index: int, row: list, import_job_id: str, options: dict)
                 "ok": True,
                 "row_index": row_index,
                 "action": "skipped",
-                "warnings": ["Missing required field: employee code"],
+                "warnings": [_("Missing required field: employee code")],
             }
 
         if not contract_type:
             return {
                 "ok": False,
                 "row_index": row_index,
-                "error": "System configuration error: No default 'Appendix' Contract Type found.",
+                "error": _("System configuration error: No default 'Appendix' Contract Type found."),
                 "action": "skipped",
             }
 
@@ -159,7 +160,8 @@ def import_handler(row_index: int, row: list, import_job_id: str, options: dict)
             return {
                 "ok": False,
                 "row_index": row_index,
-                "error": "Invalid contract type category. Expected 'appendix', got '%s'" % contract_type.category,
+                "error": _("Invalid contract type category. Expected 'appendix', got '%(category)s'")
+                % {"category": contract_type.category},
                 "action": "skipped",
             }
 
@@ -172,7 +174,7 @@ def import_handler(row_index: int, row: list, import_job_id: str, options: dict)
                 return {
                     "ok": False,
                     "row_index": row_index,
-                    "error": "Employee with code '%s' not found" % employee_code,
+                    "error": _("Employee with code '%(code)s' not found") % {"code": employee_code},
                     "action": "skipped",
                 }
 
@@ -182,7 +184,7 @@ def import_handler(row_index: int, row: list, import_job_id: str, options: dict)
             return {
                 "ok": False,
                 "row_index": row_index,
-                "error": "Parent contract number is required for appendices",
+                "error": _("Parent contract number is required for appendices"),
                 "action": "skipped",
             }
 
@@ -191,7 +193,7 @@ def import_handler(row_index: int, row: list, import_job_id: str, options: dict)
             return {
                 "ok": False,
                 "row_index": row_index,
-                "error": "Parent contract with number '%s' not found" % parent_contract_number,
+                "error": _("Parent contract with number '%(number)s' not found") % {"number": parent_contract_number},
                 "action": "skipped",
             }
 
@@ -200,7 +202,8 @@ def import_handler(row_index: int, row: list, import_job_id: str, options: dict)
             return {
                 "ok": False,
                 "row_index": row_index,
-                "error": "Parent contract %s belongs to a different employee" % parent_contract_number,
+                "error": _("Parent contract %(number)s belongs to a different employee")
+                % {"number": parent_contract_number},
                 "action": "skipped",
             }
 
@@ -282,8 +285,8 @@ def import_handler(row_index: int, row: list, import_job_id: str, options: dict)
                     return {
                         "ok": False,
                         "row_index": row_index,
-                        "error": "Cannot update appendix %s: only DRAFT appendices can be updated"
-                        % existing_contract.code,
+                        "error": _("Cannot update appendix %(code)s: only DRAFT appendices can be updated")
+                        % {"code": existing_contract.code},
                         "action": "skipped",
                     }
 

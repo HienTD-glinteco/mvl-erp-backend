@@ -5,6 +5,7 @@ from datetime import date, datetime
 from typing import Any
 
 from django.db import transaction
+from django.utils.translation import gettext as _
 
 from apps.hrm.constants import RelationType
 from apps.hrm.models import Employee, EmployeeRelationship
@@ -94,7 +95,7 @@ def parse_date_field(value: Any, field_name: str) -> tuple[date | None, str | No
         except ValueError:
             continue
 
-    return None, f"Invalid date format for {field_name}: {value}"
+    return None, _("Invalid date format for %(field)s: %(value)s") % {"field": field_name, "value": value}
 
 
 def parse_relation_type(value: Any) -> tuple[str | None, str | None]:
@@ -108,7 +109,7 @@ def parse_relation_type(value: Any) -> tuple[str | None, str | None]:
         Tuple of (relation_type_value, error_message)
     """
     if value is None or str(value).strip() == "":
-        return None, "Relation type is required"
+        return None, _("Relation type is required")
 
     value_str = normalize_value(value).lower()
 
@@ -122,7 +123,11 @@ def parse_relation_type(value: Any) -> tuple[str | None, str | None]:
     if value_upper in valid_values:
         return value_upper, None
 
-    return None, f"Invalid relation type: {value}. Valid values: {', '.join(valid_values)}"
+    return (
+        None,
+        _("Invalid relation type: %(value)s. Valid values: %(valid)s")
+        % {"value": value, "valid": ", ".join(valid_values)},
+    )
 
 
 def _validate_required_fields(
@@ -136,10 +141,10 @@ def _validate_required_fields(
         Tuple of (relation_type, error_message)
     """
     if not employee_code:
-        return None, "Employee code is required"
+        return None, _("Employee code is required")
 
     if not relative_name:
-        return None, "Relative name is required"
+        return None, _("Relative name is required")
 
     return parse_relation_type(relation_type_raw)
 
@@ -156,7 +161,10 @@ def _validate_citizen_id(citizen_id: str) -> tuple[str, str | None]:
     # Remove any non-digit characters for validation
     citizen_id_clean = "".join(c for c in citizen_id if c.isdigit())
     if citizen_id_clean and len(citizen_id_clean) not in (9, 12):
-        return "", f"Invalid citizen ID length: {len(citizen_id_clean)}. Must be 9 or 12 digits."
+        return (
+            "",
+            _("Invalid citizen ID length: %(length)d. Must be 9 or 12 digits.") % {"length": len(citizen_id_clean)},
+        )
 
     return citizen_id_clean, None
 
@@ -226,7 +234,7 @@ def import_handler(
             return {
                 "ok": False,
                 "row_index": row_index,
-                "error": "Headers not provided in options",
+                "error": _("Headers not provided in options"),
                 "action": "skipped",
             }
 
@@ -246,7 +254,7 @@ def import_handler(
         # STEP 3: Find Employee
         employee = Employee.objects.filter(code=employee_code).first()
         if not employee:
-            return {"ok": False, "error": f"Employee with code '{employee_code}' not found"}
+            return {"ok": False, "error": _("Employee with code '%(code)s' not found") % {"code": employee_code}}
 
         # STEP 4: Parse and Validate Optional Fields
         date_of_birth, date_error = parse_date_field(row_data.get("date_of_birth"), "date_of_birth")

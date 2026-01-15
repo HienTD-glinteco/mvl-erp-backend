@@ -6,13 +6,13 @@ from datetime import date, datetime
 from typing import Any
 
 from django.db import transaction
+from django.utils.translation import gettext as _
 
 from apps.hrm.models import (
     Block,
     Branch,
     Department,
     Employee,
-    JobDescription,
     RecruitmentCandidate,
     RecruitmentChannel,
     RecruitmentRequest,
@@ -124,15 +124,15 @@ def parse_integer_field(
         int_value = int(value)
 
         if min_value is not None and int_value < min_value:
-            return None, f"{field_name} must be at least {min_value}"
+            return None, _("%(field)s must be at least %(min)d") % {"field": field_name, "min": min_value}
 
         if max_value is not None and int_value > max_value:
-            return None, f"{field_name} must be at most {max_value}"
+            return None, _("%(field)s must be at most %(max)d") % {"field": field_name, "max": max_value}
 
         return int_value, None
 
     except (ValueError, TypeError):
-        return None, f"Invalid integer value for {field_name}: {value}"
+        return None, _("Invalid integer value for %(field)s: %(value)s") % {"field": field_name, "value": value}
 
 
 def parse_date_field(value: Any, field_name: str) -> tuple[date | None, str | None]:
@@ -172,7 +172,11 @@ def parse_date_field(value: Any, field_name: str) -> tuple[date | None, str | No
         parsed = datetime.strptime(value_str, "%Y-%m-%d")
         return parsed.date(), None
     except (ValueError, TypeError):
-        return None, f"Invalid date format for {field_name}. Expected YYYY-MM-DD, got: {value_str}"
+        return (
+            None,
+            _("Invalid date format for %(field)s. Expected YYYY-MM-DD, got: %(value)s")
+            % {"field": field_name, "value": value_str},
+        )
 
 
 def validate_citizen_id(citizen_id: str) -> str | None:
@@ -192,13 +196,13 @@ def validate_citizen_id(citizen_id: str) -> str | None:
         "Citizen ID must be exactly 12 digits..."
     """
     if not citizen_id:
-        return "Citizen ID is required"
+        return _("Citizen ID is required")
 
     # Strip non-digits
     digits_only = re.sub(r"\D", "", citizen_id)
 
     if len(digits_only) != 12:
-        return f"Citizen ID must be exactly 12 digits (column 2), got {len(digits_only)} digits"
+        return _("Citizen ID must be exactly 12 digits (column 3), got %(count)d digits") % {"count": len(digits_only)}
 
     return None
 
@@ -214,12 +218,12 @@ def validate_email(email: str) -> str | None:
         Error message if invalid, None if valid
     """
     if not email:
-        return "Email is required (column 3)"
+        return _("Email is required (column 4)")
 
     # Simple email validation
     email_pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
     if not re.match(email_pattern, email.strip()):
-        return f"Invalid email format (column 3): {email}"
+        return _("Invalid email format (column 4): %(email)s") % {"email": email}
 
     return None
 
@@ -265,7 +269,7 @@ def get_or_create_recruitment_source(name: str, cache: dict) -> tuple[Recruitmen
         Tuple of (source_instance, error_message)
     """
     if not name:
-        return None, "Recruitment source name is required (column 6)"
+        return None, _("Recruitment source name is required (column 7)")
 
     normalized_name = normalize_text(name)
 
@@ -287,7 +291,10 @@ def get_or_create_recruitment_source(name: str, cache: dict) -> tuple[Recruitmen
             )
             logger.info(f"Created new recruitment source: {source.code} - {source.name}")
         except Exception as e:
-            return None, f"Failed to create recruitment source '{name}': {str(e)}"
+            return None, _("Failed to create recruitment source '%(name)s': %(error)s") % {
+                "name": name,
+                "error": str(e),
+            }
 
     # Cache for future lookups
     cache[cache_key] = source
@@ -306,7 +313,7 @@ def get_or_create_recruitment_channel(name: str, cache: dict) -> tuple[Recruitme
         Tuple of (channel_instance, error_message)
     """
     if not name:
-        return None, "Recruitment channel name is required (column 7)"
+        return None, _("Recruitment channel name is required (column 8)")
 
     normalized_name = normalize_text(name)
 
@@ -328,7 +335,10 @@ def get_or_create_recruitment_channel(name: str, cache: dict) -> tuple[Recruitme
             )
             logger.info(f"Created new recruitment channel: {channel.code} - {channel.name}")
         except Exception as e:
-            return None, f"Failed to create recruitment channel '{name}': {str(e)}"
+            return None, _("Failed to create recruitment channel '%(name)s': %(error)s") % {
+                "name": name,
+                "error": str(e),
+            }
 
     # Cache for future lookups
     cache[cache_key] = channel
@@ -351,20 +361,18 @@ def find_or_create_recruitment_request(
     name: str, department: Department, cache: dict
 ) -> tuple[RecruitmentRequest | None, str | None]:
     """
-    Find or create RecruitmentRequest by name.
-
-    If not found, creates a new request with a blank JobDescription.
+    Find RecruitmentRequest by name.
 
     Args:
         name: Request name
         department: Department for the request
-        cache: Cache dictionary for storing created requests
+        cache: Cache dictionary for storing found requests
 
     Returns:
         Tuple of (request_instance, error_message)
     """
     if not name:
-        return None, "Recruitment request name is required (column 5)"
+        return None, _("Recruitment request name is required (column 6)")
 
     # Normalize for cache lookup
     normalized_name = normalize_text(name)
@@ -378,37 +386,7 @@ def find_or_create_recruitment_request(
     request = RecruitmentRequest.objects.filter(name__iexact=name.strip()).first()
 
     if not request:
-        # Create new JobDescription with minimal fields
-        try:
-            job_description = JobDescription.objects.create(
-                title=name.strip(),
-                position_title=name.strip(),
-                responsibility="",
-                requirement="",
-                benefit="",
-                proposed_salary="Negotiable",
-            )
-
-            # Get default proposer
-            proposer = get_default_proposer()
-            if not proposer:
-                return None, "No active employees found to set as proposer for recruitment request"
-
-            # Create new RecruitmentRequest
-            request = RecruitmentRequest.objects.create(
-                name=name.strip(),
-                job_description=job_description,
-                department=department,
-                proposer=proposer,
-                recruitment_type=RecruitmentRequest.RecruitmentType.NEW_HIRE,
-                status=RecruitmentRequest.Status.DRAFT,
-                proposed_salary="Negotiable",
-                number_of_positions=1,
-            )
-            logger.info(f"Created new recruitment request: {request.code} - {request.name}")
-
-        except Exception as e:
-            return None, f"Failed to create recruitment request '{name}': {str(e)}"
+        return None, _("Recruitment request '%(name)s' not found (column 6)") % {"name": name.strip()}
 
     # Cache for future lookups
     cache[cache_key] = request
@@ -445,7 +423,7 @@ def import_handler(row_index: int, row: list, import_job_id: str, options: dict)
             return {
                 "ok": False,
                 "row_index": row_index,
-                "error": "Headers not provided in options",
+                "error": _("Headers not provided in options"),
                 "action": "skipped",
             }
 
@@ -483,11 +461,11 @@ def import_handler(row_index: int, row: list, import_job_id: str, options: dict)
                 "ok": True,
                 "row_index": row_index,
                 "action": "skipped",
-                "warnings": ["Missing required field (name)"],
+                "warnings": [_("Missing required field (name)")],
             }
 
         if not citizen_id:
-            return {"ok": False, "error": "Citizen ID is required"}
+            return {"ok": False, "error": _("Citizen ID is required")}
 
         # Validate citizen ID format (exactly 12 digits)
         citizen_id_error = validate_citizen_id(citizen_id)
@@ -507,7 +485,10 @@ def import_handler(row_index: int, row: list, import_job_id: str, options: dict)
                 "row_index": row_index,
                 "action": "skipped",
                 "candidate_code": existing_candidate.code,
-                "warnings": [f"Candidate with Citizen ID '{citizen_id_clean}' already exists (allow_update=False)"],
+                "warnings": [
+                    _("Candidate with Citizen ID '%(citizen_id)s' already exists (allow_update=False)")
+                    % {"citizen_id": citizen_id_clean}
+                ],
             }
 
         # Validate email
@@ -516,44 +497,44 @@ def import_handler(row_index: int, row: list, import_job_id: str, options: dict)
             return {"ok": False, "error": email_error}
 
         if not phone:
-            return {"ok": False, "error": "Phone number is required (column 4)"}
+            return {"ok": False, "error": _("Phone number is required (column 5)")}
 
         # Parse months of experience
-        months, months_error = parse_integer_field(months_raw, "Months of experience", min_value=0)
+        months, months_error = parse_integer_field(months_raw, _("Months of experience"), min_value=0)
         if months_error:
-            return {"ok": False, "error": f"{months_error} (column 12)"}
+            return {"ok": False, "error": _("%(error)s (column 13)") % {"error": months_error}}
 
         if months is None:
             months = 0  # Default to 0 if not provided
 
         # Parse submission date
-        submitted_date, date_error = parse_date_field(submitted_date_raw, "Submission date")
+        submitted_date, date_error = parse_date_field(submitted_date_raw, _("Submission date"))
         if date_error:
-            return {"ok": False, "error": f"{date_error} (column 13)"}
+            return {"ok": False, "error": _("%(error)s (column 14)") % {"error": date_error}}
 
         if not submitted_date:
-            return {"ok": False, "error": "Submission date is required (column 13)"}
+            return {"ok": False, "error": _("Submission date is required (column 14)")}
 
         # Parse and validate status code
-        status_code, status_error = parse_integer_field(status_code_raw, "Status code", min_value=1, max_value=7)
+        status_code, status_error = parse_integer_field(status_code_raw, _("Status code"), min_value=1, max_value=7)
         if status_error:
-            return {"ok": False, "error": f"{status_error} (column 14)"}
+            return {"ok": False, "error": _("%(error)s (column 15)") % {"error": status_error}}
 
         if status_code is None:
-            return {"ok": False, "error": "Status code is required (column 14)"}
+            return {"ok": False, "error": _("Status code is required (column 15)")}
 
         # Map status code to Status enum
         status = STATUS_CODE_MAPPING.get(status_code)
         if not status:
             return {
                 "ok": False,
-                "error": f"Invalid status code. Must be 1-7, got {status_code}",
+                "error": _("Invalid status code. Must be 1-7, got %(code)d") % {"code": status_code},
             }
 
         # Parse onboard_date (required if status is HIRED)
         onboard_date = None
         if onboard_date_raw:
-            onboard_date, onboard_date_error = parse_date_field(onboard_date_raw, "Onboard date")
+            onboard_date, onboard_date_error = parse_date_field(onboard_date_raw, _("Onboard date"))
             if onboard_date_error:
                 return {"ok": False, "error": onboard_date_error}
 
@@ -561,39 +542,41 @@ def import_handler(row_index: int, row: list, import_job_id: str, options: dict)
         if status_code == 6 and not onboard_date:
             return {
                 "ok": False,
-                "error": "Onboard date is required when status is HIRED (status code 6)",
+                "error": _("Onboard date is required when status is HIRED (status code 6)"),
             }
 
         # STEP 3: Find Organizational Structure (Must Exist)
 
         # Find Branch
         if not branch_name:
-            return {"ok": False, "error": "Branch name is required (column 10)"}
+            return {"ok": False, "error": _("Branch name is required (column 11)")}
 
         branch = Branch.objects.filter(name__iexact=branch_name).first()
         if not branch:
-            return {"ok": False, "error": f"Branch '{branch_name}' not found (column 10)"}
+            return {"ok": False, "error": _("Branch '%(name)s' not found (column 11)") % {"name": branch_name}}
 
         # Find Block within Branch
         if not block_name:
-            return {"ok": False, "error": "Block name is required (column 9)"}
+            return {"ok": False, "error": _("Block name is required (column 10)")}
 
         block = Block.objects.filter(name__iexact=block_name, branch=branch).first()
         if not block:
             return {
                 "ok": False,
-                "error": f"Block '{block_name}' not found in branch '{branch_name}' (column 9)",
+                "error": _("Block '%(block)s' not found in branch '%(branch)s' (column 10)")
+                % {"block": block_name, "branch": branch_name},
             }
 
         # Find Department within Block
         if not department_name:
-            return {"ok": False, "error": "Department name is required (column 8)"}
+            return {"ok": False, "error": _("Department name is required (column 9)")}
 
         department = Department.objects.filter(name__iexact=department_name, block=block).first()
         if not department:
             return {
                 "ok": False,
-                "error": f"Department '{department_name}' not found in block '{block_name}' (column 8)",
+                "error": _("Department '%(dept)s' not found in block '%(block)s' (column 9)")
+                % {"dept": department_name, "block": block_name},
             }
 
         # STEP 4: Get or Create Recruitment Source

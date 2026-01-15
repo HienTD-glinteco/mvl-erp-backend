@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-15 10:48+0700\n"
+"POT-Creation-Date: 2026-01-15 13:23+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -3043,24 +3043,339 @@ msgstr "Mẫu hợp đồng thử việc"
 msgid "Update contract"
 msgstr "Mẫu hợp đồng cập nhật"
 
-#: apps/hrm/import_handlers/contract_creation.py:277
-#: apps/hrm/import_handlers/contract_creation.py:295
-#, python-format
-msgid "Imported contract %s"
-msgstr "Đã import hợp đồng %s"
-
+#: apps/hrm/import_handlers/contract_appendix.py:64
 #: apps/hrm/import_handlers/contract_update.py:109
 msgid "Sign date must be on or before effective date"
 msgstr "Ngày ký phải trước hoặc vào ngày hiệu lực"
+
+#: apps/hrm/import_handlers/contract_appendix.py:125
+#: apps/hrm/import_handlers/contract_creation.py:115
+#: apps/hrm/import_handlers/contract_update.py:143
+#: apps/hrm/import_handlers/employee.py:1077
+#: apps/hrm/import_handlers/employee_relationship.py:238
+#: apps/hrm/import_handlers/recruitment_candidate.py:426
+msgid "Headers not provided in options"
+msgstr ""
+
+#: apps/hrm/import_handlers/contract_appendix.py:148
+#: apps/hrm/import_handlers/contract_creation.py:134
+msgid "Missing required field: employee code"
+msgstr ""
+
+#: apps/hrm/import_handlers/contract_appendix.py:155
+msgid "System configuration error: No default 'Appendix' Contract Type found."
+msgstr ""
+
+#: apps/hrm/import_handlers/contract_appendix.py:164
+#, fuzzy, python-format
+#| msgid ""
+#| "No contract type with category 'appendix' found. Please create one first."
+msgid "Invalid contract type category. Expected 'appendix', got '%(category)s'"
+msgstr "Không tìm thấy phụ lục hợp đồng. Vui lòng tạo trước."
+
+#: apps/hrm/import_handlers/contract_appendix.py:179
+#: apps/hrm/import_handlers/contract_creation.py:157
+#: apps/hrm/import_handlers/employee_relationship.py:258
+#, python-format
+msgid "Employee with code '%(code)s' not found"
+msgstr ""
+
+#: apps/hrm/import_handlers/contract_appendix.py:189
+#, fuzzy
+#| msgid "Parent contract is required for appendices."
+msgid "Parent contract number is required for appendices"
+msgstr "Hợp đồng gốc là bắt buộc đối với phụ lục."
+
+#: apps/hrm/import_handlers/contract_appendix.py:198
+#, python-format
+msgid "Parent contract with number '%(number)s' not found"
+msgstr ""
+
+#: apps/hrm/import_handlers/contract_appendix.py:208
+#, python-format
+msgid "Parent contract %(number)s belongs to a different employee"
+msgstr ""
+
+#: apps/hrm/import_handlers/contract_appendix.py:292
+#, python-format
+msgid "Cannot update appendix %(code)s: only DRAFT appendices can be updated"
+msgstr ""
+
+#: apps/hrm/import_handlers/contract_creation.py:142
+msgid "Missing required field: contract type code"
+msgstr ""
+
+#: apps/hrm/import_handlers/contract_creation.py:170
+#, python-format
+msgid "Contract type with code '%(code)s' not found"
+msgstr ""
+
+#: apps/hrm/import_handlers/contract_creation.py:179
+#, python-format
+msgid "Invalid contract type category. Expected 'contract', got '%(category)s'"
+msgstr ""
+
+#: apps/hrm/import_handlers/contract_creation.py:232
+msgid "Duplicate contract found for Employee + ContractType + EffectiveDate"
+msgstr ""
+
+#: apps/hrm/import_handlers/contract_creation.py:280
+#: apps/hrm/import_handlers/contract_creation.py:298
+#, python-format
+msgid "Imported contract %s"
+msgstr "Đã import hợp đồng %s"
 
 #: apps/hrm/import_handlers/contract_update.py:113
 msgid "Expiration date must be on or after effective date"
 msgstr "Ngày hết hạn phải sau hoặc vào ngày hiệu lực"
 
+#: apps/hrm/import_handlers/contract_update.py:175
+msgid "Cannot identify contract: missing contract number or employee/type code"
+msgstr ""
+
+#: apps/hrm/import_handlers/contract_update.py:199
+#, fuzzy
+#| msgid "Invalid request ID format."
+msgid "Invalid effective date format"
+msgstr "Mã yêu cầu không hợp lệ."
+
+#: apps/hrm/import_handlers/contract_update.py:213
+#, fuzzy
+#| msgid "Contract type code"
+msgid "Contract not found"
+msgstr "Mã Loại Hợp Đồng"
+
+#: apps/hrm/import_handlers/contract_update.py:222
+msgid "Found contract is not a standard contract (it is an appendix)"
+msgstr ""
+
+#: apps/hrm/import_handlers/contract_update.py:232
+#, python-format
+msgid "Only DRAFT contracts can be updated. Current status: %(status)s"
+msgstr ""
+
 #: apps/hrm/import_handlers/employee.py:677
 #: apps/hrm/import_handlers/employee.py:1194
 msgid "Imported from file"
 msgstr "Đã nhập từ tệp"
+
+#: apps/hrm/import_handlers/employee.py:1098
+msgid "Section header row, skipped"
+msgstr ""
+
+#: apps/hrm/import_handlers/employee.py:1110
+msgid "Missing required fields (code or fullname)"
+msgstr ""
+
+#: apps/hrm/import_handlers/employee.py:1122
+#, fuzzy
+#| msgid "An employee with this email already exists."
+msgid "Employee with this code already exists (allow_update=False)"
+msgstr "Nhân viên với email này đã tồn tại."
+
+#: apps/hrm/import_handlers/employee.py:1167
+msgid "Internal error: row data is missing"
+msgstr ""
+
+#: apps/hrm/import_handlers/employee_relationship.py:98
+#, python-format
+msgid "Invalid date format for %(field)s: %(value)s"
+msgstr ""
+
+#: apps/hrm/import_handlers/employee_relationship.py:112
+#, fuzzy
+#| msgid "Relation type"
+msgid "Relation type is required"
+msgstr "Mối quan hệ"
+
+#: apps/hrm/import_handlers/employee_relationship.py:128
+#, python-format
+msgid "Invalid relation type: %(value)s. Valid values: %(valid)s"
+msgstr ""
+
+#: apps/hrm/import_handlers/employee_relationship.py:144
+#, fuzzy
+#| msgid "Employee code"
+msgid "Employee code is required"
+msgstr "Mã Nhân Viên"
+
+#: apps/hrm/import_handlers/employee_relationship.py:147
+#, fuzzy
+#| msgid "Relative name"
+msgid "Relative name is required"
+msgstr "Tên người thân"
+
+#: apps/hrm/import_handlers/employee_relationship.py:166
+#, python-format
+msgid "Invalid citizen ID length: %(length)d. Must be 9 or 12 digits."
+msgstr ""
+
+#: apps/hrm/import_handlers/recruitment_candidate.py:127
+#, python-format
+msgid "%(field)s must be at least %(min)d"
+msgstr ""
+
+#: apps/hrm/import_handlers/recruitment_candidate.py:130
+#, python-format
+msgid "%(field)s must be at most %(max)d"
+msgstr ""
+
+#: apps/hrm/import_handlers/recruitment_candidate.py:135
+#, python-format
+msgid "Invalid integer value for %(field)s: %(value)s"
+msgstr ""
+
+#: apps/hrm/import_handlers/recruitment_candidate.py:177
+#, python-format
+msgid "Invalid date format for %(field)s. Expected YYYY-MM-DD, got: %(value)s"
+msgstr ""
+
+#: apps/hrm/import_handlers/recruitment_candidate.py:199
+#: apps/hrm/import_handlers/recruitment_candidate.py:468
+#, fuzzy
+#| msgid "Citizen ID issued date"
+msgid "Citizen ID is required"
+msgstr "Ngày Cấp CMND/CCCD"
+
+#: apps/hrm/import_handlers/recruitment_candidate.py:205
+#, python-format
+msgid "Citizen ID must be exactly 12 digits (column 3), got %(count)d digits"
+msgstr ""
+
+#: apps/hrm/import_handlers/recruitment_candidate.py:221
+msgid "Email is required (column 4)"
+msgstr ""
+
+#: apps/hrm/import_handlers/recruitment_candidate.py:226
+#, python-format
+msgid "Invalid email format (column 4): %(email)s"
+msgstr ""
+
+#: apps/hrm/import_handlers/recruitment_candidate.py:272
+msgid "Recruitment source name is required (column 7)"
+msgstr ""
+
+#: apps/hrm/import_handlers/recruitment_candidate.py:294
+#, python-format
+msgid "Failed to create recruitment source '%(name)s': %(error)s"
+msgstr ""
+
+#: apps/hrm/import_handlers/recruitment_candidate.py:316
+msgid "Recruitment channel name is required (column 8)"
+msgstr ""
+
+#: apps/hrm/import_handlers/recruitment_candidate.py:338
+#, python-format
+msgid "Failed to create recruitment channel '%(name)s': %(error)s"
+msgstr ""
+
+#: apps/hrm/import_handlers/recruitment_candidate.py:375
+msgid "Recruitment request name is required (column 6)"
+msgstr ""
+
+#: apps/hrm/import_handlers/recruitment_candidate.py:389
+#, python-format
+msgid "Recruitment request '%(name)s' not found (column 6)"
+msgstr ""
+
+#: apps/hrm/import_handlers/recruitment_candidate.py:464
+msgid "Missing required field (name)"
+msgstr ""
+
+#: apps/hrm/import_handlers/recruitment_candidate.py:489
+#, python-format
+msgid ""
+"Candidate with Citizen ID '%(citizen_id)s' already exists "
+"(allow_update=False)"
+msgstr ""
+
+#: apps/hrm/import_handlers/recruitment_candidate.py:500
+msgid "Phone number is required (column 5)"
+msgstr ""
+
+#: apps/hrm/import_handlers/recruitment_candidate.py:503
+#, fuzzy
+#| msgid "Years of experience"
+msgid "Months of experience"
+msgstr "Số năm kinh nghiệm"
+
+#: apps/hrm/import_handlers/recruitment_candidate.py:505
+#, python-format
+msgid "%(error)s (column 13)"
+msgstr ""
+
+#: apps/hrm/import_handlers/recruitment_candidate.py:511
+#, fuzzy
+#| msgid "Submitted date"
+msgid "Submission date"
+msgstr "Ngày gửi"
+
+#: apps/hrm/import_handlers/recruitment_candidate.py:513
+#, python-format
+msgid "%(error)s (column 14)"
+msgstr ""
+
+#: apps/hrm/import_handlers/recruitment_candidate.py:516
+msgid "Submission date is required (column 14)"
+msgstr ""
+
+#: apps/hrm/import_handlers/recruitment_candidate.py:519
+#, fuzzy
+#| msgid "Status"
+msgid "Status code"
+msgstr "Trạng Thái"
+
+#: apps/hrm/import_handlers/recruitment_candidate.py:521
+#, python-format
+msgid "%(error)s (column 15)"
+msgstr ""
+
+#: apps/hrm/import_handlers/recruitment_candidate.py:524
+msgid "Status code is required (column 15)"
+msgstr ""
+
+#: apps/hrm/import_handlers/recruitment_candidate.py:531
+#, python-format
+msgid "Invalid status code. Must be 1-7, got %(code)d"
+msgstr ""
+
+#: apps/hrm/import_handlers/recruitment_candidate.py:537
+#: apps/hrm/models/recruitment_candidate.py:117
+msgid "Onboard date"
+msgstr "Ngày onboard"
+
+#: apps/hrm/import_handlers/recruitment_candidate.py:545
+#, fuzzy
+#| msgid "Onboard date is required when status is HIRED."
+msgid "Onboard date is required when status is HIRED (status code 6)"
+msgstr "Ngày nhận việc là bắt buộc khi trạng thái là Đã nhận việc."
+
+#: apps/hrm/import_handlers/recruitment_candidate.py:552
+msgid "Branch name is required (column 11)"
+msgstr ""
+
+#: apps/hrm/import_handlers/recruitment_candidate.py:556
+#, python-format
+msgid "Branch '%(name)s' not found (column 11)"
+msgstr ""
+
+#: apps/hrm/import_handlers/recruitment_candidate.py:560
+msgid "Block name is required (column 10)"
+msgstr ""
+
+#: apps/hrm/import_handlers/recruitment_candidate.py:566
+#, python-format
+msgid "Block '%(block)s' not found in branch '%(branch)s' (column 10)"
+msgstr ""
+
+#: apps/hrm/import_handlers/recruitment_candidate.py:572
+msgid "Department name is required (column 9)"
+msgstr ""
+
+#: apps/hrm/import_handlers/recruitment_candidate.py:578
+#, python-format
+msgid "Department '%(dept)s' not found in block '%(block)s' (column 9)"
+msgstr ""
 
 #: apps/hrm/models/attendance_device.py:39
 msgid "Attendance Device"
@@ -4926,10 +5241,6 @@ msgstr "Số năm kinh nghiệm"
 #: apps/hrm/models/recruitment_candidate.py:107
 msgid "Submitted date"
 msgstr "Ngày gửi"
-
-#: apps/hrm/models/recruitment_candidate.py:117
-msgid "Onboard date"
-msgstr "Ngày onboard"
 
 #: apps/hrm/models/recruitment_candidate.py:126
 #: apps/hrm/models/recruitment_expense.py:63

@@ -1074,7 +1074,7 @@ def _validate_row(row_index: int, row: list, options: dict) -> tuple[dict | None
         return None, {
             "ok": False,
             "row_index": row_index,
-            "error": "Headers not provided in options",
+            "error": _("Headers not provided in options"),
             "action": "skipped",
         }
 
@@ -1095,7 +1095,7 @@ def _validate_row(row_index: int, row: list, options: dict) -> tuple[dict | None
             "row_index": row_index,
             "action": "skipped",
             "employee_code": None,
-            "warnings": ["Section header row, skipped"],
+            "warnings": [_("Section header row, skipped")],
         }
 
     # Required fields
@@ -1107,7 +1107,7 @@ def _validate_row(row_index: int, row: list, options: dict) -> tuple[dict | None
             "row_index": row_index,
             "action": "skipped",
             "employee_code": code or None,
-            "warnings": ["Missing required fields (code or fullname)"],
+            "warnings": [_("Missing required fields (code or fullname)")],
         }
 
     # Check existing
@@ -1119,7 +1119,7 @@ def _validate_row(row_index: int, row: list, options: dict) -> tuple[dict | None
                 "row_index": row_index,
                 "action": "skipped",
                 "employee_code": code,
-                "warnings": ["Employee with this code already exists (allow_update=False)"],
+                "warnings": [_("Employee with this code already exists (allow_update=False)")],
             }
 
     return row_dict, None
@@ -1164,7 +1164,7 @@ def import_handler(row_index: int, row: list, import_job_id: str, options: dict)
             return error_result
 
         if row_dict is None:
-            return {"ok": False, "row_index": row_index, "error": "Internal error: row data is missing"}
+            return {"ok": False, "row_index": row_index, "error": _("Internal error: row data is missing")}
 
         code = normalize_value(row_dict.get("code", ""))
 

@@ -140,7 +140,7 @@ def import_handler(row_index: int, row: list, import_job_id: str, options: dict)
             return {
                 "ok": False,
                 "row_index": row_index,
-                "error": "Headers not provided in options",
+                "error": _("Headers not provided in options"),
                 "action": "skipped",
             }
 
@@ -172,7 +172,7 @@ def import_handler(row_index: int, row: list, import_job_id: str, options: dict)
                     "ok": True,  # Skipped technically
                     "row_index": row_index,
                     "action": "skipped",
-                    "warnings": ["Cannot identify contract: missing contract number or employee/type code"],
+                    "warnings": [_("Cannot identify contract: missing contract number or employee/type code")],
                 }
 
             employees_by_code = options.get("_employees_by_code", {})
@@ -196,7 +196,7 @@ def import_handler(row_index: int, row: list, import_job_id: str, options: dict)
                 return {
                     "ok": False,
                     "row_index": row_index,
-                    "error": "Invalid effective date format",
+                    "error": _("Invalid effective date format"),
                     "action": "skipped",
                 }
             effective_date = date_serializer.validated_data.get("effective_date")
@@ -210,7 +210,7 @@ def import_handler(row_index: int, row: list, import_job_id: str, options: dict)
             return {
                 "ok": False,
                 "row_index": row_index,
-                "error": "Contract not found",
+                "error": _("Contract not found"),
                 "action": "skipped",
             }
 
@@ -219,7 +219,7 @@ def import_handler(row_index: int, row: list, import_job_id: str, options: dict)
             return {
                 "ok": False,
                 "row_index": row_index,
-                "error": "Found contract is not a standard contract (it is an appendix)",
+                "error": _("Found contract is not a standard contract (it is an appendix)"),
                 "action": "skipped",
             }
 
@@ -228,7 +228,8 @@ def import_handler(row_index: int, row: list, import_job_id: str, options: dict)
             return {
                 "ok": False,
                 "row_index": row_index,
-                "error": "Only DRAFT contracts can be updated. Current status: %s" % existing_contract.status,
+                "error": _("Only DRAFT contracts can be updated. Current status: %(status)s")
+                % {"status": existing_contract.status},
                 "action": "skipped",
             }
 
