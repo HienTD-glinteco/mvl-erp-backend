@@ -551,10 +551,12 @@ class TimesheetCalculator:
         # 8. Apply daily cap
         self._apply_working_days_cap()
 
-        # 9. Compensation Value for Compensatory days
+        # 9. Compensatory days: working_days is the debt (worked - max)
+        # If employee works less than max, they owe time (negative working_days)
         if self.entry.day_type == TimesheetDayType.COMPENSATORY:
             max_days = self._get_schedule_max_days()
-            self.entry.compensation_value = self.entry.working_days - max_days
+            self.entry.working_days = self.entry.working_days - max_days
+            self.entry.compensation_value = self.entry.working_days
         else:
             self.entry.compensation_value = Decimal("0.00")
 
@@ -633,16 +635,31 @@ class TimesheetCalculator:
         )
 
     def _get_schedule_max_days(self) -> Decimal:
-        """Return 1.0 for Full Day schedule, 0.5 for Half Day."""
+        """Return max working days for the day.
+
+        For compensatory days: uses CompensatoryWorkday.session (full_day=1.0, morning/afternoon=0.5)
+        For normal days: uses WorkSchedule.get_max_working_days()
+        """
+        # For compensatory days, use the session from CompensatoryWorkday
+        if self.entry.day_type == TimesheetDayType.COMPENSATORY:
+            return self._get_compensatory_max_days()
+
+        # For normal days, use work schedule helper method
         ws = self.work_schedule
         if not ws:
             return Decimal("0.00")
 
-        has_morning = bool(ws.morning_start_time and ws.morning_end_time)
-        has_afternoon = bool(ws.afternoon_start_time and ws.afternoon_end_time)
+        return ws.get_max_working_days()
 
-        if has_morning and has_afternoon:
-            return Decimal("1.00")
-        elif has_morning or has_afternoon:
-            return Decimal("0.50")
-        return Decimal("0.00")
+    def _get_compensatory_max_days(self) -> Decimal:
+        """Return max working days for compensatory day based on session."""
+        from apps.hrm.models.holiday import CompensatoryWorkday
+
+        comp = CompensatoryWorkday.objects.filter(date=self.entry.date).first()
+        if comp:
+            if comp.session == CompensatoryWorkday.Session.FULL_DAY:
+                return Decimal("1.00")
+            else:  # MORNING or AFTERNOON
+                return Decimal("0.50")
+        # Fallback if no CompensatoryWorkday found (shouldn't happen)
+        return Decimal("1.00")

@@ -27,7 +27,7 @@ def process_entry(entry_id):
         calc.compute_all(is_finalizing=entry.is_work_day_finalizing())
 
         # Save changes
-        entry.save()
+        entry.save(need_clean=False)
 
         return entry_id, True, None
     except Exception as e:

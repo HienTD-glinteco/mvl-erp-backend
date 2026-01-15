@@ -75,6 +75,18 @@ class WorkSchedule(BaseModel):
         help_text="Number of minutes late allowed",
     )
 
+    is_morning_required = models.BooleanField(
+        default=True,
+        verbose_name=_("Morning required"),
+        help_text="Whether morning attendance is required",
+    )
+
+    is_afternoon_required = models.BooleanField(
+        default=True,
+        verbose_name=_("Afternoon required"),
+        help_text="Whether afternoon attendance is required",
+    )
+
     note = models.CharField(
         max_length=255,
         null=True,
@@ -91,6 +103,24 @@ class WorkSchedule(BaseModel):
 
     def __str__(self):
         return f"{self.get_weekday_display()}"
+
+    def is_working_day(self) -> bool:
+        """Return True if this is a working day (morning OR afternoon required)."""
+        return self.is_morning_required or self.is_afternoon_required
+
+    def is_half_day(self) -> bool:
+        """Return True if exactly one session is required."""
+        return self.is_morning_required != self.is_afternoon_required
+
+    def get_max_working_days(self):
+        """Return max working days: 1.0 for full day, 0.5 for half day, 0.0 for off day."""
+        from decimal import Decimal
+
+        if self.is_morning_required and self.is_afternoon_required:
+            return Decimal("1.00")
+        elif self.is_morning_required or self.is_afternoon_required:
+            return Decimal("0.50")
+        return Decimal("0.00")
 
     @property
     def morning_time(self):

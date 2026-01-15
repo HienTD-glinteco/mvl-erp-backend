@@ -443,9 +443,9 @@ class TestTimesheetCalculatorV2:
         entry.save()
 
         calc = TimesheetCalculator(entry)
-        calc.compute_all(is_finalizing=True)  # Past date with complete attendance
-
-        assert entry.working_days == Decimal("1.00")
+        # Compensatory day: working_days = worked - max
+        # Full day worked (1.0) - max (1.0) = 0.00 (no debt, no credit)
+        assert entry.working_days == Decimal("0.00")
         assert entry.compensation_value == Decimal("0.00")
 
     def test_compensatory_day_absent(self, employee):
@@ -653,7 +653,7 @@ class TestTimesheetCalculatorV2:
             weekday=WorkSchedule.Weekday.SATURDAY,
             morning_start_time=time(8, 0),
             morning_end_time=time(12, 0),
-            # No afternoon
+            is_afternoon_required=False,  # Half-day: only morning required
         )
         # Create a Paid Leave proposal
         Proposal.objects.create(

@@ -3133,7 +3133,7 @@ msgstr "Lần đồng bộ cuối"
 #: apps/hrm/models/proposal.py:920 apps/hrm/models/recruitment_candidate.py:119
 #: apps/hrm/models/recruitment_candidate_contact_log.py:20
 #: apps/hrm/models/recruitment_expense.py:73 apps/hrm/models/timesheet.py:160
-#: apps/hrm/models/work_schedule.py:82
+#: apps/hrm/models/work_schedule.py:94
 msgid "Note"
 msgstr "Ghi Chú"
 
@@ -5330,45 +5330,57 @@ msgstr "Chủ Nhật"
 msgid "Weekday"
 msgstr "Ngày trong tuần"
 
-#: apps/hrm/models/work_schedule.py:32 apps/hrm/models/work_schedule.py:144
+#: apps/hrm/models/work_schedule.py:32 apps/hrm/models/work_schedule.py:174
 msgid "Morning start time"
 msgstr "Bắt đầu ca sáng"
 
-#: apps/hrm/models/work_schedule.py:39 apps/hrm/models/work_schedule.py:145
+#: apps/hrm/models/work_schedule.py:39 apps/hrm/models/work_schedule.py:175
 msgid "Morning end time"
 msgstr "Kết thúc ca sáng"
 
-#: apps/hrm/models/work_schedule.py:46 apps/hrm/models/work_schedule.py:146
+#: apps/hrm/models/work_schedule.py:46 apps/hrm/models/work_schedule.py:176
 msgid "Noon start time"
 msgstr "Bắt đầu nghỉ trưa"
 
-#: apps/hrm/models/work_schedule.py:53 apps/hrm/models/work_schedule.py:147
+#: apps/hrm/models/work_schedule.py:53 apps/hrm/models/work_schedule.py:177
 msgid "Noon end time"
 msgstr "Kết thúc nghỉ trưa"
 
-#: apps/hrm/models/work_schedule.py:60 apps/hrm/models/work_schedule.py:148
+#: apps/hrm/models/work_schedule.py:60 apps/hrm/models/work_schedule.py:178
 msgid "Afternoon start time"
 msgstr "Bắt đầu ca chiều"
 
-#: apps/hrm/models/work_schedule.py:67 apps/hrm/models/work_schedule.py:149
+#: apps/hrm/models/work_schedule.py:67 apps/hrm/models/work_schedule.py:179
 msgid "Afternoon end time"
 msgstr "Kết thúc ca chiều"
 
-#: apps/hrm/models/work_schedule.py:87
+#: apps/hrm/models/work_schedule.py:80
+#, fuzzy
+#| msgid "Morning hours"
+msgid "Morning required"
+msgstr "Buổi sáng"
+
+#: apps/hrm/models/work_schedule.py:86
+#, fuzzy
+#| msgid "Afternoon hours"
+msgid "Afternoon required"
+msgstr "Buổi chiều"
+
+#: apps/hrm/models/work_schedule.py:99
 msgid "Work schedule"
 msgstr "Lịch làm việc"
 
-#: apps/hrm/models/work_schedule.py:88
+#: apps/hrm/models/work_schedule.py:100
 msgid "Work schedules"
 msgstr "Lịch làm việc"
 
-#: apps/hrm/models/work_schedule.py:122
+#: apps/hrm/models/work_schedule.py:152
 msgid "Invalid weekday value. Must be one of the predefined weekdays."
 msgstr ""
 "Giá trị ngày trong tuần không hợp lệ. Phải là một trong các ngày trong tuần "
 "đã định nghĩa."
 
-#: apps/hrm/models/work_schedule.py:161
+#: apps/hrm/models/work_schedule.py:191
 #, python-format
 msgid ""
 "For weekdays Monday-Friday, all working time fields must be provided. "
@@ -5377,7 +5389,7 @@ msgstr ""
 "Trong các ngày từ Thứ Hai đến Thứ Sáu, tất cả các trường thời gian làm việc "
 "phải được cung cấp. Thiếu: %(fields)s"
 
-#: apps/hrm/models/work_schedule.py:193
+#: apps/hrm/models/work_schedule.py:223
 #, python-format
 msgid ""
 "%(next_field)s (%(next_time)s) must be greater than or equal to "
