@@ -261,38 +261,14 @@ class TestEntityCreation:
         assert request.id == existing_request.id
 
     def test_find_or_create_recruitment_request_new(self, sample_department, sample_branch, sample_block):
-        """Test creating new recruitment request."""
-        # Create proposer
-        proposer = Employee.objects.create(
-            code="MV0001",
-            fullname="Test Proposer",
-            username="proposer",
-            email="proposer@test.com",
-            phone="0966666666",
-            citizen_id="666666666666",  # Unique citizen ID
-            start_date=date.today(),
-            status=Employee.Status.ACTIVE,
-            branch=sample_branch,
-            block=sample_block,
-            department=sample_department,
-            personal_email="proposer.new.personal@test.com",
-        )
-
+        """Test finding non-existent recruitment request returns error."""
         cache = {}
         request, error = find_or_create_recruitment_request("Tuyển Frontend Developer", sample_department, cache)
 
-        assert error is None
-        assert request is not None
-        assert request.name == "Tuyển Frontend Developer"
-        assert request.department == sample_department
-        assert request.proposer == proposer
-        assert request.recruitment_type == RecruitmentRequest.RecruitmentType.NEW_HIRE
-        assert request.status == RecruitmentRequest.Status.DRAFT
-        assert request.code.startswith("RR")
-
-        # Check job description was created
-        assert request.job_description is not None
-        assert request.job_description.title == "Tuyển Frontend Developer"
+        # Should return error since request doesn't exist
+        assert request is None
+        assert error is not None
+        assert "Recruitment request 'Tuyển Frontend Developer' not found" in error
 
 
 @pytest.mark.django_db
@@ -303,6 +279,26 @@ class TestImportHandler:
         self, sample_branch, sample_block, sample_department, sample_proposer, template_headers
     ):
         """Test successful candidate import."""
+        # Create recruitment request
+        job_desc = JobDescription.objects.create(
+            title="Backend Developer",
+            position_title="Backend Developer",
+            responsibility="Coding",
+            requirement="Python",
+            benefit="Salary",
+            proposed_salary="Negotiable",
+        )
+        RecruitmentRequest.objects.create(
+            name="Tuyển Backend Developer Senior",
+            job_description=job_desc,
+            department=sample_department,
+            proposer=sample_proposer,
+            recruitment_type=RecruitmentRequest.RecruitmentType.NEW_HIRE,
+            status=RecruitmentRequest.Status.OPEN,
+            proposed_salary="Negotiable",
+            number_of_positions=2,
+        )
+
         row = [
             1,  # row_number
             "Nguyễn Văn An",  # name
@@ -352,6 +348,26 @@ class TestImportHandler:
         self, sample_branch, sample_block, sample_department, sample_proposer, template_headers
     ):
         """Test candidate import with referrer."""
+        # Create recruitment request
+        job_desc = JobDescription.objects.create(
+            title="DevOps Engineer",
+            position_title="DevOps Engineer",
+            responsibility="DevOps",
+            requirement="Docker, K8s",
+            benefit="Salary",
+            proposed_salary="Negotiable",
+        )
+        RecruitmentRequest.objects.create(
+            name="Tuyển DevOps Engineer",
+            job_description=job_desc,
+            department=sample_department,
+            proposer=sample_proposer,
+            recruitment_type=RecruitmentRequest.RecruitmentType.NEW_HIRE,
+            status=RecruitmentRequest.Status.OPEN,
+            proposed_salary="Negotiable",
+            number_of_positions=1,
+        )
+
         # Create referrer employee
         referrer = Employee.objects.create(
             code="MV0005",
@@ -590,6 +606,26 @@ class TestImportHandler:
         self, sample_branch, sample_block, sample_department, sample_proposer, template_headers
     ):
         """Test that entities are cached across multiple imports."""
+        # Create recruitment request
+        job_desc = JobDescription.objects.create(
+            title="Backend Developer",
+            position_title="Backend Developer",
+            responsibility="Coding",
+            requirement="Python",
+            benefit="Salary",
+            proposed_salary="Negotiable",
+        )
+        RecruitmentRequest.objects.create(
+            name="Tuyển Backend Developer",
+            job_description=job_desc,
+            department=sample_department,
+            proposer=sample_proposer,
+            recruitment_type=RecruitmentRequest.RecruitmentType.NEW_HIRE,
+            status=RecruitmentRequest.Status.OPEN,
+            proposed_salary="Negotiable",
+            number_of_positions=2,
+        )
+
         options = {"headers": template_headers}
 
         # First import
@@ -682,6 +718,26 @@ class TestImportHandler:
         self, sample_branch, sample_block, sample_department, sample_proposer, template_headers
     ):
         """Test import with HIRED status and onboard_date."""
+        # Create recruitment request
+        job_desc = JobDescription.objects.create(
+            title="Backend Developer",
+            position_title="Backend Developer",
+            responsibility="Coding",
+            requirement="Python",
+            benefit="Salary",
+            proposed_salary="Negotiable",
+        )
+        RecruitmentRequest.objects.create(
+            name="Tuyển Backend Developer",
+            job_description=job_desc,
+            department=sample_department,
+            proposer=sample_proposer,
+            recruitment_type=RecruitmentRequest.RecruitmentType.NEW_HIRE,
+            status=RecruitmentRequest.Status.OPEN,
+            proposed_salary="Negotiable",
+            number_of_positions=1,
+        )
+
         row = [
             1,
             "Test Candidate",
@@ -714,10 +770,30 @@ class TestImportHandler:
         self, sample_branch, sample_block, sample_department, sample_proposer, template_headers
     ):
         """Test import with allow_update=True updates existing candidate."""
+        # Create recruitment request first
+        job_desc = JobDescription.objects.create(
+            title="Backend Developer",
+            position_title="Backend Developer",
+            responsibility="Coding",
+            requirement="Python",
+            benefit="Salary",
+            proposed_salary="Negotiable",
+        )
+        new_request = RecruitmentRequest.objects.create(
+            name="Tuyển Backend Developer",
+            job_description=job_desc,
+            department=sample_department,
+            proposer=sample_proposer,
+            recruitment_type=RecruitmentRequest.RecruitmentType.NEW_HIRE,
+            status=RecruitmentRequest.Status.OPEN,
+            proposed_salary="Negotiable",
+            number_of_positions=1,
+        )
+
         # Create existing candidate
         source = RecruitmentSource.objects.create(name="Test Source")
         channel = RecruitmentChannel.objects.create(name="Test Channel")
-        job_desc = JobDescription.objects.create(
+        job_desc_old = JobDescription.objects.create(
             title="Test Job",
             position_title="Test Job",
             responsibility="",
@@ -727,7 +803,7 @@ class TestImportHandler:
         )
         request = RecruitmentRequest.objects.create(
             name="Test Request",
-            job_description=job_desc,
+            job_description=job_desc_old,
             department=sample_department,
             proposer=sample_proposer,
             recruitment_type=RecruitmentRequest.RecruitmentType.NEW_HIRE,

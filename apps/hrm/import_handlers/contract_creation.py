@@ -112,7 +112,7 @@ def import_handler(row_index: int, row: list, import_job_id: str, options: dict)
             return {
                 "ok": False,
                 "row_index": row_index,
-                "error": "Headers not provided in options",
+                "error": _("Headers not provided in options"),
                 "action": "skipped",
             }
 
@@ -131,7 +131,7 @@ def import_handler(row_index: int, row: list, import_job_id: str, options: dict)
                 "ok": True,
                 "row_index": row_index,
                 "action": "skipped",
-                "warnings": ["Missing required field: employee code"],
+                "warnings": [_("Missing required field: employee code")],
             }
 
         if not contract_type_code:
@@ -139,7 +139,7 @@ def import_handler(row_index: int, row: list, import_job_id: str, options: dict)
                 "ok": True,
                 "row_index": row_index,
                 "action": "skipped",
-                "warnings": ["Missing required field: contract type code"],
+                "warnings": [_("Missing required field: contract type code")],
             }
 
         employees_by_code = options.get("_employees_by_code", {})
@@ -154,7 +154,7 @@ def import_handler(row_index: int, row: list, import_job_id: str, options: dict)
                 return {
                     "ok": False,
                     "row_index": row_index,
-                    "error": "Employee with code '%s' not found" % employee_code,
+                    "error": _("Employee with code '%(code)s' not found") % {"code": employee_code},
                     "action": "skipped",
                 }
 
@@ -167,7 +167,7 @@ def import_handler(row_index: int, row: list, import_job_id: str, options: dict)
                 return {
                     "ok": False,
                     "row_index": row_index,
-                    "error": "Contract type with code '%s' not found" % contract_type_code,
+                    "error": _("Contract type with code '%(code)s' not found") % {"code": contract_type_code},
                     "action": "skipped",
                 }
 
@@ -175,7 +175,8 @@ def import_handler(row_index: int, row: list, import_job_id: str, options: dict)
             return {
                 "ok": False,
                 "row_index": row_index,
-                "error": "Invalid contract type category. Expected 'contract', got '%s'" % contract_type.category,
+                "error": _("Invalid contract type category. Expected 'contract', got '%(category)s'")
+                % {"category": contract_type.category},
                 "action": "skipped",
             }
 
@@ -226,7 +227,7 @@ def import_handler(row_index: int, row: list, import_job_id: str, options: dict)
             return {
                 "ok": False,
                 "row_index": row_index,
-                "error": "Duplicate contract found for Employee + ContractType + EffectiveDate",
+                "error": _("Duplicate contract found for Employee + ContractType + EffectiveDate"),
                 "action": "skipped",
             }
 
