@@ -104,14 +104,27 @@ class TestTimesheetContractIntegration:
     @pytest.fixture
     def work_schedule(self):
         """Create a work schedule for weekdays."""
-        return WorkSchedule.objects.create(
-            weekday=WorkSchedule.Weekday.MONDAY,
-            morning_start_time=time(8, 0),
-            morning_end_time=time(12, 0),
-            afternoon_start_time=time(13, 0),
-            afternoon_end_time=time(17, 0),
-            allowed_late_minutes=15,
-        )
+        # Create schedules for common weekdays to handle dynamic date tests
+        schedules = []
+        for weekday in [
+            WorkSchedule.Weekday.MONDAY,
+            WorkSchedule.Weekday.TUESDAY,
+            WorkSchedule.Weekday.WEDNESDAY,
+            WorkSchedule.Weekday.THURSDAY,
+            WorkSchedule.Weekday.FRIDAY,
+        ]:
+            schedule, _ = WorkSchedule.objects.get_or_create(
+                weekday=weekday,
+                defaults={
+                    "morning_start_time": time(8, 0),
+                    "morning_end_time": time(12, 0),
+                    "afternoon_start_time": time(13, 0),
+                    "afternoon_end_time": time(17, 0),
+                    "allowed_late_minutes": 15,
+                },
+            )
+            schedules.append(schedule)
+        return schedules[0]  # Return first one for compatibility
 
     def test_timesheet_is_full_salary_with_probation_contract(self, employee, contract_type_probation, work_schedule):
         """Test that timesheet entry sets is_full_salary=False when employee has 85% probation contract."""
@@ -193,12 +206,22 @@ class TestTimesheetContractIntegration:
         assert entry.is_full_salary is True
 
     def test_timesheet_is_full_salary_without_contract(self, employee, work_schedule):
-        """Test that timesheet entry defaults to is_full_salary=True when no active contract exists."""
+        """Test that timesheet entry sets is_full_salary based on employee_type when no active contract exists.
+
+        Per business logic: When no active contract exists, is_full_salary is True ONLY for
+        UNPAID_OFFICIAL employee_type, otherwise False.
+        """
         # Use dates relative to today
         from datetime import timedelta
 
+        from apps.hrm.constants import EmployeeType
+
         today = date.today()
         entry_date = today - timedelta(days=15)
+
+        # Set employee_type to UNPAID_OFFICIAL to test is_full_salary=True logic
+        employee.employee_type = EmployeeType.UNPAID_OFFICIAL
+        employee.save(update_fields=["employee_type"])
 
         # Create a timesheet entry without any contract
         entry = TimeSheetEntry.objects.create(
@@ -211,7 +234,7 @@ class TestTimesheetContractIntegration:
         # Refresh from database to get updated values
         entry.refresh_from_db()
 
-        # Assert that is_full_salary defaults to True when no contract exists
+        # Assert that is_full_salary is True for UNPAID_OFFICIAL employee_type
         assert entry.is_full_salary is True
 
     def test_timesheet_is_full_salary_with_expired_probation_contract(

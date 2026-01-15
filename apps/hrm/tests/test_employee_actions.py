@@ -123,6 +123,7 @@ class EmployeeActionAPITest(TestCase):
             "start_date": "2024-02-01",
             "department_id": self.department.id,
             "position_id": new_position.id,
+            "employee_type": "PROBATION",
         }
         response = self.client.post(url, payload, format="json")
 
@@ -130,6 +131,7 @@ class EmployeeActionAPITest(TestCase):
         self.onboarding_employee.refresh_from_db()
         self.assertEqual(self.onboarding_employee.status, Employee.Status.ACTIVE)
         self.assertEqual(str(self.onboarding_employee.start_date), "2024-02-01")
+        self.assertEqual(self.onboarding_employee.employee_type, "PROBATION")
         # Verify department and position update
         self.assertEqual(self.onboarding_employee.department, self.department)
         self.assertEqual(self.onboarding_employee.position, new_position)
@@ -151,6 +153,7 @@ class EmployeeActionAPITest(TestCase):
             "start_date": "2024-02-01",
             "department_id": self.department.id,
             "position_id": self.active_employee.position.id,
+            "employee_type": "OFFICIAL",
             "description": "Promoted from internship",
         }
         response = self.client.post(url, payload, format="json")
@@ -179,9 +182,11 @@ class EmployeeActionAPITest(TestCase):
             error_attrs = [err.get("attr") for err in errors]
             self.assertIn("department_id", error_attrs)
             self.assertIn("position_id", error_attrs)
+            self.assertIn("employee_type", error_attrs)
         else:
             self.assertIn("department_id", data)
             self.assertIn("position_id", data)
+            self.assertIn("employee_type", data)
 
     def test_active_action_inactive_department_fails(self):
         """Test activation fails if department is inactive"""
@@ -197,6 +202,7 @@ class EmployeeActionAPITest(TestCase):
             "start_date": "2024-02-01",
             "department_id": inactive_dept.id,
             "position_id": self.active_employee.position.id,
+            "employee_type": "PROBATION",
         }
         response = self.client.post(url, payload, format="json")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -213,6 +219,7 @@ class EmployeeActionAPITest(TestCase):
             "start_date": "2024-02-01",
             "department_id": self.department.id,
             "position_id": inactive_position.id,
+            "employee_type": "PROBATION",
         }
         response = self.client.post(url, payload, format="json")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -223,6 +230,7 @@ class EmployeeActionAPITest(TestCase):
             "start_date": "2024-02-01",
             "department_id": self.department.id,
             "position_id": self.active_employee.position.id,
+            "employee_type": "PROBATION",
         }
         response = self.client.post(url, payload, format="json")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

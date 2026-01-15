@@ -2,6 +2,7 @@ import logging
 
 from apps.hrm.constants import (
     AllowedLateMinutesReason,
+    EmployeeType,
     ProposalType,
     ProposalWorkShift,
     TimesheetDayType,
@@ -132,7 +133,11 @@ class TimesheetSnapshotService:
         entry.day_type = TimesheetDayType.OFFICIAL
 
     def snapshot_contract_info(self, entry: "TimeSheetEntry") -> None:
-        """Snapshot current contract status (Probation vs Official)."""
+        """Snapshot current contract status (Probation vs Official).
+
+        Note: If re-snapshotting an old entry where the original contract is now
+        inactive/expired, we preserve the existing contract to avoid data loss.
+        """
         if not entry.employee_id:
             return
 
@@ -149,20 +154,14 @@ class TimesheetSnapshotService:
 
         if contract:
             entry.contract = contract
-            # Only overwrite if currently default/None
-            if entry.net_percentage == 100 or entry.net_percentage == 0:
-                entry.net_percentage = contract.net_percentage
-
-            # For is_full_salary, if it's already False, keep it False (more restrictive)
-            if entry.is_full_salary:
-                entry.is_full_salary = contract.net_percentage == ContractType.NetPercentage.FULL
-        else:
-            entry.contract = None
-            # Don't overwrite if it was manually set to something else
-            if entry.net_percentage == 0:
-                entry.net_percentage = 100
-            if entry.is_full_salary is None:
-                entry.is_full_salary = True
+            entry.net_percentage = contract.net_percentage
+            entry.is_full_salary = contract.net_percentage == ContractType.NetPercentage.FULL
+        elif entry.contract_id is None:
+            # In case no active contract is found and no existing contract exists, the employee
+            # is considered unpaid. For UNPAID_OFFICIAL types, we set is_full_salary to True
+            # to ensure the entry is treated as an OFFICIAL_DAY.
+            entry.net_percentage = 0
+            entry.is_full_salary = entry.employee.employee_type == EmployeeType.UNPAID_OFFICIAL
 
     def snapshot_exemption_status(self, entry: "TimeSheetEntry") -> None:
         """Snapshot if employee is exempt from time tracking on this day."""

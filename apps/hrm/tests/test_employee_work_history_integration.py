@@ -171,6 +171,7 @@ class EmployeeWorkHistoryIntegrationTest(TransactionTestCase):
                 "description": "Status changed to active",
                 "department_id": self.department.id,
                 "position_id": self.position.id,
+                "employee_type": "PROBATION",
             },
             format="json",
         )
@@ -179,11 +180,13 @@ class EmployeeWorkHistoryIntegrationTest(TransactionTestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         # Check that work history was created
+        # Note: 2 histories are created - one for status change, one for employee_type change
         work_histories = EmployeeWorkHistory.objects.filter(employee=employee)
-        self.assertEqual(work_histories.count(), 1)
+        self.assertEqual(work_histories.count(), 2)
 
-        work_history = work_histories.first()
-        self.assertEqual(work_history.name, EmployeeWorkHistory.EventType.CHANGE_STATUS)
+        # Get the status change history
+        work_history = work_histories.filter(name=EmployeeWorkHistory.EventType.CHANGE_STATUS).first()
+        self.assertIsNotNone(work_history)
         self.assertEqual(work_history.status, Employee.Status.ACTIVE)
 
     def test_update_employee_position_creates_work_history(self):
@@ -313,6 +316,7 @@ class EmployeeWorkHistoryIntegrationTest(TransactionTestCase):
                 "description": "Completed onboarding",
                 "department_id": self.department.id,
                 "position_id": self.position.id,
+                "employee_type": "OFFICIAL",
             },
             format="json",
         )
@@ -321,11 +325,13 @@ class EmployeeWorkHistoryIntegrationTest(TransactionTestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         # Check that work history was created
+        # Note: 2 histories are created - one for status change, one for employee_type change
         work_histories = EmployeeWorkHistory.objects.filter(employee=employee)
-        self.assertEqual(work_histories.count(), 1)
+        self.assertEqual(work_histories.count(), 2)
 
-        work_history = work_histories.first()
-        self.assertEqual(work_history.name, EmployeeWorkHistory.EventType.CHANGE_STATUS)
+        # Get the status change history
+        work_history = work_histories.filter(name=EmployeeWorkHistory.EventType.CHANGE_STATUS).first()
+        self.assertIsNotNone(work_history)
         self.assertEqual(work_history.status, Employee.Status.ACTIVE)
         self.assertEqual(work_history.date, date(2024, 2, 1))
         self.assertEqual(work_history.note, "Completed onboarding")

@@ -452,6 +452,7 @@ class EmployeeActiveActionSerializer(EmployeeBaseStatusActionSerializer):
         queryset=Position.objects.filter(is_active=True),
         required=True,
     )
+    employee_type = serializers.ChoiceField(choices=EmployeeType.choices, required=True)
 
     def validate(self, attrs):
         if self.employee.status != Employee.Status.ONBOARDING:
@@ -463,22 +464,29 @@ class EmployeeActiveActionSerializer(EmployeeBaseStatusActionSerializer):
         self.employee.status = Employee.Status.ACTIVE
         self.employee.department = attrs["department_id"]
         self.employee.position = attrs["position_id"]
+        self.employee.employee_type = attrs["employee_type"]
 
         # Explicitly update block and branch from department to ensure data consistency
         if self.employee.department:
             self.employee.block = self.employee.department.block
             self.employee.branch = self.employee.department.branch
 
-        self.employee_update_fields.extend(["start_date", "status", "department", "position", "block", "branch"])
+        self.employee_update_fields.extend(
+            ["start_date", "status", "department", "position", "block", "branch", "employee_type"]
+        )
         return super().validate(attrs)
 
     def _create_work_history(self):
         """Create work history record for activation."""
         department = self.validated_data["department_id"]
         position = self.validated_data["position_id"]
-        extra_detail = _("Assigned to {department} - {position}").format(
+        employee_type = self.validated_data["employee_type"]
+
+        employee_type_label = EmployeeType.get_label(employee_type)
+        extra_detail = _("Assigned to {department} - {position} ({employee_type})").format(
             department=department.name,
             position=position.name,
+            employee_type=employee_type_label,
         )
 
         create_state_change_event(
