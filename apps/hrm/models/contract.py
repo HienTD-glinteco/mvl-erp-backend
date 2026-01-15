@@ -216,9 +216,9 @@ class Contract(ColoredValueMixin, AutoCodeMixin, BaseModel):
 
     annual_leave_days = models.PositiveIntegerField(
         default=12,
-        validators=[MinValueValidator(0), MaxValueValidator(12)],
+        validators=[MinValueValidator(0), MaxValueValidator(30)],
         verbose_name=_("Annual leave days"),
-        help_text="Number of annual leave days (maximum 12)",
+        help_text="Number of annual leave days (maximum 30)",
     )
 
     has_social_insurance = models.BooleanField(

@@ -1,4 +1,5 @@
 import logging
+import math
 from calendar import monthrange
 from datetime import date
 from decimal import Decimal
@@ -105,7 +106,17 @@ def create_entries_for_month_all(year: int | None = None, month: int | None = No
 
 
 def calculate_generated_leave(employee_id: int, year: int, month: int) -> Decimal:
-    """Calculate the leave days generated for the employee in the given month."""
+    """Calculate the leave days generated for the employee in the given month.
+
+    Logic: Add ceil(annual_leave_days / 12) days per month until reaching max.
+    - monthly_rate = ceil(annual_leave_days / 12)
+    - Each month adds monthly_rate days (or remaining to reach max, whichever is smaller)
+
+    Examples:
+    - annual_leave_days = 12: monthly_rate = 1, each month gets 1 day
+    - annual_leave_days = 14: monthly_rate = 2, each month gets 2 days until total = 14
+    - annual_leave_days = 20: monthly_rate = 2, each month gets 2 days until total = 20
+    """
     start_of_month = date(year, month, 1)
     _, last_day = monthrange(year, month)
     end_of_month = date(year, month, last_day)
@@ -129,9 +140,34 @@ def calculate_generated_leave(employee_id: int, year: int, month: int) -> Decima
         if contract.effective_date.day > 1:
             return DECIMAL_ZERO
 
-    # Calculate generated amount: annual_leave_days / 12
-    generated = Decimal(contract.annual_leave_days) / Decimal(12)
-    return quantize_decimal(generated)
+    max_leave = contract.annual_leave_days
+    if max_leave == 0:
+        return DECIMAL_ZERO
+
+    # Calculate monthly rate: ceil(annual_leave_days / 12)
+    monthly_rate = math.ceil(max_leave / 12)
+
+    # Calculate how many months of leave have been generated this year up to (not including) current month
+    contract_start_year = contract.effective_date.year
+    contract_start_month = contract.effective_date.month
+
+    if contract_start_year == year:
+        # Contract started this year - count months from contract start
+        months_generated_before = max(0, month - contract_start_month)
+    else:
+        # Contract started before this year - count from January
+        months_generated_before = month - 1
+
+    # Calculate already generated: monthly_rate * months, capped at max_leave
+    already_generated = min(months_generated_before * monthly_rate, max_leave)
+
+    # Generate up to monthly_rate days, but don't exceed max_leave
+    remaining = max_leave - already_generated
+    if remaining > 0:
+        generated = min(monthly_rate, remaining)
+        return Decimal(str(generated))
+    else:
+        return DECIMAL_ZERO
 
 
 def create_monthly_timesheet_for_employee(

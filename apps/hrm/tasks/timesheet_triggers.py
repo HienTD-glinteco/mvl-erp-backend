@@ -13,21 +13,60 @@ from apps.hrm.models import (
 )
 from apps.hrm.services.timesheet_calculator import TimesheetCalculator
 from apps.hrm.services.timesheet_snapshot_service import TimesheetSnapshotService
+from apps.hrm.services.timesheets import (
+    create_entries_for_employee_month,
+    create_monthly_timesheet_for_employee,
+)
 
 
 @shared_task
 def process_contract_change(contract: Contract):
     """
-    Update future timesheets to reflect new contract data.
+    Update timesheets to reflect new contract data.
+    - For backdated contracts: create timesheet entries for past months
+    - Update monthly timesheets to calculate leave balances
     """
     effective_date = contract.effective_date
-    query = TimeSheetEntry.objects.filter(employee_id=contract.employee_id, date__gte=effective_date)
+    today = date.today()
+    employee_id = contract.employee_id
 
-    service = TimesheetSnapshotService()
+    # For expired contracts, only update existing entries (no new creation)
+    if contract.status == Contract.ContractStatus.EXPIRED:
+        query = TimeSheetEntry.objects.filter(employee_id=employee_id, date__gte=effective_date)
+        service = TimesheetSnapshotService()
+        for entry in query:
+            service.snapshot_contract_info(entry)
+            entry.save(need_clean=False)
+        return
 
-    for entry in query:
-        service.snapshot_contract_info(entry)
-        entry.save(need_clean=False)
+    # For active/about_to_expire contracts with backdated effective_date
+    if contract.status in [Contract.ContractStatus.ACTIVE, Contract.ContractStatus.ABOUT_TO_EXPIRE]:
+        start_year, start_month = effective_date.year, effective_date.month
+        end_year, end_month = today.year, today.month
+
+        # 1. Create timesheet entries for past months (from effective_date to current month)
+        for year in range(start_year, end_year + 1):
+            first_month = start_month if year == start_year else 1
+            last_month = end_month if year == end_year else 12
+
+            for month in range(first_month, last_month + 1):
+                create_entries_for_employee_month(employee_id, year, month)
+
+        # 2. Update existing entries with contract info
+        query = TimeSheetEntry.objects.filter(employee_id=employee_id, date__gte=effective_date)
+        service = TimesheetSnapshotService()
+        for entry in query:
+            service.snapshot_contract_info(entry)
+            entry.save(need_clean=False)
+
+        # 3. Update monthly timesheets (for leave balance calculations)
+        # Process in chronological order to ensure correct carry-over
+        for year in range(start_year, end_year + 1):
+            first_month = start_month if year == start_year else 1
+            last_month = end_month if year == end_year else 12
+
+            for month in range(first_month, last_month + 1):
+                create_monthly_timesheet_for_employee(employee_id, year, month)
 
 
 @shared_task
