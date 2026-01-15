@@ -52,7 +52,7 @@ class PayrollCalculationService:
         - If slip is HOLD, calculate values but DON'T change status
         """
         # Skip if already delivered - data is frozen
-        if self.slip.status == self.slip.Status.DELIVERED:
+        if self.slip.status == self.slip.Status.DELIVERED and self.period.status == self.period.Status.COMPLETED:
             return
 
         # Store original status if HOLD to preserve it

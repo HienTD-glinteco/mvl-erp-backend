@@ -1283,7 +1283,7 @@ class TestPayrollSlipStatusDetermination:
         assert payroll_slip.status == payroll_slip.Status.HOLD
 
     def test_status_skip_calculation_when_delivered(self, payroll_slip, contract, timesheet, employee):
-        """Test that calculation is skipped when status is DELIVERED."""
+        """Test that calculation is skipped when status is DELIVERED and period is COMPLETED."""
         # Arrange
         employee.employee_type = EmployeeType.OFFICIAL
         employee.save()
@@ -1295,13 +1295,15 @@ class TestPayrollSlipStatusDetermination:
         calculator = PayrollCalculationService(payroll_slip)
         calculator.calculate()
 
-        # Change to DELIVERED
+        # Change to DELIVERED and period to COMPLETED
         payroll_slip.status = payroll_slip.Status.DELIVERED
         payroll_slip.save()
+        payroll_slip.salary_period.status = payroll_slip.salary_period.Status.COMPLETED
+        payroll_slip.salary_period.save()
 
         original_net_salary = payroll_slip.net_salary
 
-        # Change contract (should not affect delivered slip)
+        # Change contract (should not affect delivered slip in completed period)
         contract.base_salary = Decimal("30000000")
         contract.save()
 
@@ -1313,6 +1315,72 @@ class TestPayrollSlipStatusDetermination:
         payroll_slip.refresh_from_db()
         assert payroll_slip.net_salary == original_net_salary
         assert payroll_slip.status == payroll_slip.Status.DELIVERED
+
+    def test_delivered_slip_can_recalculate_in_ongoing_period(self, payroll_slip, contract, timesheet, employee):
+        """Test that DELIVERED slips in ONGOING period can be recalculated."""
+        # Arrange
+        employee.employee_type = EmployeeType.OFFICIAL
+        employee.save()
+
+        contract.base_salary = Decimal("20000000")
+        contract.save()
+
+        # First calculate to get some values
+        calculator = PayrollCalculationService(payroll_slip)
+        calculator.calculate()
+
+        # Change to DELIVERED but keep period ONGOING
+        payroll_slip.status = payroll_slip.Status.DELIVERED
+        payroll_slip.save()
+
+        original_net_salary = payroll_slip.net_salary
+
+        # Change contract (should affect delivered slip in ongoing period)
+        contract.base_salary = Decimal("30000000")
+        contract.save()
+
+        # Act - Recalculate
+        calculator = PayrollCalculationService(payroll_slip)
+        calculator.calculate()
+
+        # Assert - Values should be updated
+        payroll_slip.refresh_from_db()
+        assert payroll_slip.net_salary != original_net_salary
+        assert payroll_slip.net_salary > original_net_salary
+
+    def test_non_delivered_slip_can_recalculate_in_completed_period(self, payroll_slip, contract, timesheet, employee):
+        """Test that non-DELIVERED slips can be recalculated even in COMPLETED period."""
+        # Arrange
+        employee.employee_type = EmployeeType.OFFICIAL
+        employee.save()
+
+        contract.base_salary = Decimal("20000000")
+        contract.save()
+
+        # First calculate to get some values
+        calculator = PayrollCalculationService(payroll_slip)
+        calculator.calculate()
+
+        # Keep status as READY but set period to COMPLETED
+        payroll_slip.status = payroll_slip.Status.READY
+        payroll_slip.save()
+        payroll_slip.salary_period.status = payroll_slip.salary_period.Status.COMPLETED
+        payroll_slip.salary_period.save()
+
+        original_net_salary = payroll_slip.net_salary
+
+        # Change contract
+        contract.base_salary = Decimal("30000000")
+        contract.save()
+
+        # Act - Recalculate
+        calculator = PayrollCalculationService(payroll_slip)
+        calculator.calculate()
+
+        # Assert - Values should be updated (only DELIVERED + COMPLETED is frozen)
+        payroll_slip.refresh_from_db()
+        assert payroll_slip.net_salary != original_net_salary
+        assert payroll_slip.net_salary > original_net_salary
 
 
 @pytest.mark.django_db

@@ -471,8 +471,6 @@ class PayrollSlip(AutoCodeMixin, ColoredValueMixin, BaseModel):
         """
         from django.core.exceptions import ValidationError
 
-        from .salary_period import SalaryPeriod
-
         if self.status != self.Status.HOLD:
             raise ValidationError(f"Cannot unhold slip with status {self.status}")
 
@@ -482,30 +480,9 @@ class PayrollSlip(AutoCodeMixin, ColoredValueMixin, BaseModel):
         self.held_at = None
         self.held_by = None
 
-        # Handle based on whether salary period is ongoing or completed
-        if self.salary_period.status == SalaryPeriod.Status.COMPLETED:
-            # Old period case: need to move to current period
-            self._handle_unhold_from_completed_period(user)
-        else:
-            # Current period case: just recalculate
-            self._recalculate_and_update_status()
+        self._recalculate_and_update_status()
 
         self.save()
-
-    def _handle_unhold_from_completed_period(self, user=None):
-        """Handle unhold for slip from a completed period.
-
-        Does NOT set payment_period - leave it null.
-        The slip will appear in Table 1 (SalaryPeriodReadySlipsViewSet) of the
-        current ONGOING period because that view queries all READY slips.
-        payment_period will be set when the current period is completed.
-        """
-        # Don't set payment_period - leave it null
-        # SalaryPeriodReadySlipsViewSet will show all READY slips for ONGOING period
-        # payment_period will be set when period.complete() is called
-
-        # Recalculate status
-        self._recalculate_and_update_status()
 
     def _recalculate_and_update_status(self):
         """Recalculate and determine new status."""
