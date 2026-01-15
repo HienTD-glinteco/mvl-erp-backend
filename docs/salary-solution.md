@@ -366,35 +366,9 @@ def unhold(self, user=None):
     self.held_at = None
     self.held_by = None
 
-    # Handle based on whether salary period is ongoing or completed
-    if self.salary_period.status == SalaryPeriod.Status.COMPLETED:
-        # Old period case: need to move to current period
-        self._handle_unhold_from_completed_period(user)
-    else:
-        # Current period case: just recalculate
-        self._recalculate_and_update_status()
+    self._recalculate_and_update_status()
 
     self.save()
-
-def _handle_unhold_from_completed_period(self, user=None):
-    """Handle unhold for slip from a completed period.
-
-    Sets payment_period to current ONGOING period so slip appears in Table 1.
-    The is_carried_over property will automatically return True since
-    payment_period != salary_period.
-    """
-    # Find current ONGOING period
-    current_period = SalaryPeriod.objects.filter(
-        status=SalaryPeriod.Status.ONGOING
-    ).order_by('-month').first()
-
-    if current_period:
-        # Set payment_period to current period (Table 1 of new period)
-        # is_carried_over property will automatically be True
-        self.payment_period = current_period
-
-    # Recalculate status
-    self._recalculate_and_update_status()
 
 def _recalculate_and_update_status(self):
     """Recalculate and determine new status."""
