@@ -1,6 +1,7 @@
 from django.db.models import Exists, OuterRef
 from django_filters import rest_framework as filters
 
+from apps.hrm.constants import ProposalType
 from apps.hrm.models import Proposal, ProposalTimeSheetEntry, ProposalVerifier
 
 
@@ -32,6 +33,10 @@ class ProposalFilterSet(filters.FilterSet):
         method="filter_timesheet_entry",
         help_text="Filter by TimeSheetEntry ID",
     )
+    exclude_proposal_type = filters.MultipleChoiceFilter(
+        choices=ProposalType.choices,
+        method="filter_exclude_proposal_type",
+    )
 
     def filter_timesheet_entry(self, queryset, name, value):
         """Filter proposals that have a specific timesheet entry using EXISTS subquery."""
@@ -44,6 +49,11 @@ class ProposalFilterSet(filters.FilterSet):
             timesheet_entry=value,
         )
         return queryset.filter(Exists(subquery))
+
+    def filter_exclude_proposal_type(self, queryset, name, value):
+        if not value:
+            return queryset
+        return queryset.exclude(proposal_type__in=value)
 
     class Meta:
         model = Proposal

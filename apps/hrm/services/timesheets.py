@@ -136,8 +136,9 @@ def calculate_generated_leave(employee_id: int, year: int, month: int) -> Decima
         return DECIMAL_ZERO
 
     # Check start date logic for partial months
+    # Only skip leave generation if contract starts after the 15th of the month
     if contract.effective_date.year == year and contract.effective_date.month == month:
-        if contract.effective_date.day > 1:
+        if contract.effective_date.day > 15:
             return DECIMAL_ZERO
 
     max_leave = contract.annual_leave_days

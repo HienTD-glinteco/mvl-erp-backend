@@ -229,7 +229,15 @@ class TimesheetCalculator:
                 TimesheetDayType.COMPENSATORY,
             ]:
                 morning_start, morning_end, afternoon_start, afternoon_end = self._get_schedule_times()
-                for s_start, s_end in filter(None, [(morning_start, morning_end), (afternoon_start, afternoon_end)]):
+                # Only consider REQUIRED shifts for overlap subtraction
+                # This ensures half-day schedules (e.g., Saturday morning only) don't
+                # incorrectly subtract non-required shift times from valid OT
+                shifts_to_check = []
+                if self.work_schedule.is_morning_required and morning_start and morning_end:
+                    shifts_to_check.append((morning_start, morning_end))
+                if self.work_schedule.is_afternoon_required and afternoon_start and afternoon_end:
+                    shifts_to_check.append((afternoon_start, afternoon_end))
+                for s_start, s_end in shifts_to_check:
                     overlap_start = max(actual_ot_start, s_start or actual_ot_start)
                     overlap_end = min(actual_ot_end, s_end or actual_ot_end)
                     if overlap_start < overlap_end:

@@ -472,17 +472,17 @@ class TestLeaveCalculation:
     """Test specific leave calculation logic."""
 
     def test_start_date_partial_month(self, test_employee):
-        """Test that generated leave is 0 if start date is in same month and day > 1."""
-        # Modify contract effective date to mid-month
+        """Test that generated leave is 0 if start date is in same month and day > 15."""
+        # Modify contract effective date to after mid-month (day 16+)
         contract = test_employee.contracts.first()
-        contract.effective_date = date(2025, 3, 15)
+        contract.effective_date = date(2025, 3, 16)
         contract.save()
 
-        # Check March 2025
+        # Check March 2025 - should be 0 since start date is after the 15th
         gen = calculate_generated_leave(test_employee.id, 2025, 3)
         assert gen == Decimal("0.00")
 
-        # Check April 2025
+        # Check April 2025 - should get leave
         gen_apr = calculate_generated_leave(test_employee.id, 2025, 4)
         assert gen_apr == Decimal("1.00")
 
@@ -493,6 +493,16 @@ class TestLeaveCalculation:
         contract.save()
 
         # Check March 2025
+        gen = calculate_generated_leave(test_employee.id, 2025, 3)
+        assert gen == Decimal("1.00")
+
+    def test_start_date_on_15th_gets_leave(self, test_employee):
+        """Test that generated leave is calculated if start date is 15th of month."""
+        contract = test_employee.contracts.first()
+        contract.effective_date = date(2025, 3, 15)
+        contract.save()
+
+        # Check March 2025 - should get leave since day <= 15
         gen = calculate_generated_leave(test_employee.id, 2025, 3)
         assert gen == Decimal("1.00")
 

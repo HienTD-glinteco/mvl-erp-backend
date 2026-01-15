@@ -672,3 +672,56 @@ class TestTimesheetCalculatorV2:
         assert entry.status is None
         # Half-day schedule (morning only) = 0.5 max working days
         assert entry.working_days == Decimal("0.50")
+
+    def test_overtime_saturday_half_day(self, employee):
+        """Test OT on Saturday half-day schedule uses only required morning shift.
+
+        Bug fix: Previously OT was calculated incorrectly because it subtracted
+        overlap with afternoon shift even when is_afternoon_required=False.
+        """
+        d = date(2023, 1, 7)  # Saturday (weekday=7)
+        # Create half-day schedule for Saturday (morning only)
+        WorkSchedule.objects.create(
+            weekday=WorkSchedule.Weekday.SATURDAY,
+            morning_start_time=time(8, 0),
+            morning_end_time=time(12, 0),
+            # No afternoon times - half-day schedule
+            is_morning_required=True,
+            is_afternoon_required=False,
+        )
+
+        # Create approved OT from 17:21 to 20:21
+        p = Proposal.objects.create(
+            created_by=employee,
+            proposal_type=ProposalType.OVERTIME_WORK,
+            proposal_status=ProposalStatus.APPROVED,
+        )
+        from apps.hrm.models.proposal import ProposalOvertimeEntry
+
+        ProposalOvertimeEntry.objects.create(proposal=p, date=d, start_time=time(17, 21), end_time=time(20, 21))
+
+        # Actual attendance: 17:00 to 20:00
+        entry = TimeSheetEntry.objects.create(
+            employee=employee,
+            date=d,
+            check_in_time=combine_datetime(d, time(17, 0)),
+            check_out_time=combine_datetime(d, time(20, 0)),
+            is_manually_corrected=True,
+            start_time=combine_datetime(d, time(17, 0)),
+            end_time=combine_datetime(d, time(20, 0)),
+        )
+
+        snapshot_service = TimesheetSnapshotService()
+        snapshot_service.snapshot_overtime_data(entry)
+        entry.save()
+
+        calc = TimesheetCalculator(entry)
+        calc.compute_all()
+
+        # OT should be from 17:21 to 20:00 (intersection of approved and actual)
+        # = 2 hours 39 minutes = 2.65 hours
+        # Should NOT subtract afternoon shift overlap because is_afternoon_required=False
+        assert entry.ot_start_time == combine_datetime(d, time(17, 21))
+        assert entry.ot_end_time == combine_datetime(d, time(20, 0))
+        assert entry.overtime_hours == Decimal("2.65")
+        assert entry.ot_tc1_hours == Decimal("2.65")  # Saturday = TC1
