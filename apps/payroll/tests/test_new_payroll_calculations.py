@@ -64,8 +64,8 @@ class TestActualWorkingDaysIncome:
     """Test actual working days income calculation."""
 
     def test_sales_staff_income_calculation(self, payroll_slip, contract, timesheet, employee, position):
-        """Test income calculation for sales staff (NVKD position)."""
-        # Arrange - Set position as sales staff
+        """Test income calculation - new unified formula applies to all employees."""
+        # Arrange
         position.name = "Nhân viên Kinh doanh (NVKD)"
         position.save()
         employee.position = position
@@ -73,9 +73,11 @@ class TestActualWorkingDaysIncome:
         employee.save()
 
         contract.base_salary = Decimal("20000000")
+        contract.has_social_insurance = True
         contract.save()
 
-        timesheet.total_working_days = Decimal("20.00")
+        timesheet.official_working_days = Decimal("20.00")
+        timesheet.probation_working_days = Decimal("0.00")
         timesheet.save()
 
         payroll_slip.salary_period.standard_working_days = Decimal("22.00")
@@ -88,8 +90,11 @@ class TestActualWorkingDaysIncome:
 
         # Assert
         payroll_slip.refresh_from_db()
-        # For sales staff: (total_working_days / standard_working_days) * total_position_income
-        expected_income = (Decimal("20.00") / Decimal("22.00")) * payroll_slip.total_position_income
+        # New formula: (official_days * income + probation_days * income * factor) / standard_days
+        total_position_income = payroll_slip.total_position_income
+        official_income = Decimal("20.00") * total_position_income
+        probation_income = Decimal("0.00") * total_position_income
+        expected_income = (official_income + probation_income) / Decimal("22.00")
         assert payroll_slip.actual_working_days_income == expected_income.quantize(Decimal("1"))
 
     def test_non_sales_official_days_only(self, payroll_slip, contract, timesheet, employee):
@@ -458,12 +463,15 @@ class TestPersonalIncomeTaxBasedOnEmployeeType:
             assert tax_rate != Decimal("0.10")
 
     def test_non_official_employee_flat_10_percent_tax(self, payroll_slip, contract, timesheet, employee):
-        """Test that non-official employees pay 10% flat tax."""
+        """Test that employees with FLAT_10 tax method pay 10% flat tax."""
         # Arrange
+        from apps.hrm.models import ContractType
+
         employee.employee_type = EmployeeType.PROBATION
         employee.save()
 
         contract.base_salary = Decimal("20000000")
+        contract.tax_calculation_method = ContractType.TaxCalculationMethod.FLAT_10
         contract.save()
 
         calculator = PayrollCalculationService(payroll_slip)
@@ -473,19 +481,22 @@ class TestPersonalIncomeTaxBasedOnEmployeeType:
 
         # Assert
         payroll_slip.refresh_from_db()
-        # Non-official: taxable_income_base = gross_income
+        # FLAT_10 tax method: taxable_income_base = gross_income
         assert payroll_slip.taxable_income_base == payroll_slip.gross_income
         # Tax = gross_income * 10%
         expected_tax = (payroll_slip.gross_income * Decimal("0.10")).quantize(Decimal("1"))
         assert payroll_slip.personal_income_tax == expected_tax
 
     def test_intern_employee_flat_10_percent_tax(self, payroll_slip, contract, timesheet, employee):
-        """Test that intern employees pay 10% flat tax."""
+        """Test that employees with FLAT_10 tax method pay 10% flat tax."""
         # Arrange
+        from apps.hrm.models import ContractType
+
         employee.employee_type = EmployeeType.INTERN
         employee.save()
 
         contract.base_salary = Decimal("15000000")
+        contract.tax_calculation_method = ContractType.TaxCalculationMethod.FLAT_10
         contract.save()
 
         calculator = PayrollCalculationService(payroll_slip)

@@ -33,6 +33,7 @@ class PersonalIncomeTaxSerializer(serializers.Serializer):
 
     standard_deduction = serializers.IntegerField()
     dependent_deduction = serializers.IntegerField()
+    minimum_flat_tax_threshold = serializers.IntegerField(default=2000000)
     progressive_levels = ProgressiveTaxLevelSerializer(many=True)
 
 

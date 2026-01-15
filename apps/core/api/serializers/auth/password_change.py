@@ -5,7 +5,7 @@ from django.core.exceptions import ValidationError
 from django.utils.translation import gettext as _
 from rest_framework import serializers
 
-from apps.core.utils.jwt import revoke_user_outstanding_tokens
+from apps.core.utils.jwt import bump_user_mobile_token_version, revoke_user_outstanding_tokens
 
 logger = logging.getLogger(__name__)
 
@@ -102,7 +102,8 @@ class PasswordChangeSerializer(serializers.Serializer):
         This will:
         1. Set new password
         2. Invalidate all Django sessions
-        3. Revoke all outstanding JWT tokens
+        3. Bump mobile token version (invalidates all access tokens)
+        4. Revoke all outstanding JWT refresh tokens
 
         The user will need to login again with the new password.
         """
@@ -115,6 +116,9 @@ class PasswordChangeSerializer(serializers.Serializer):
 
         # Invalidate all Django sessions (logout from web sessions)
         user.invalidate_all_sessions()
+
+        # Bump mobile token version (invalidates all access tokens immediately)
+        bump_user_mobile_token_version(user)
 
         # Revoke all outstanding JWT refresh tokens (logout from mobile/API)
         revoke_user_outstanding_tokens(user)

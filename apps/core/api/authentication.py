@@ -33,14 +33,13 @@ class ClientAwareJWTAuthentication(JWTAuthentication):
         if token_client != route_client:
             raise AuthenticationFailed(_("Token client does not match endpoint client."))
 
-        if route_client == settings.MOBILE_CLIENT_IDENTIFIER:
-            tv = token.get("tv")
-            if tv is None:
-                raise AuthenticationFailed(_("Missing token version."))
+        # Check token version for both mobile and web clients
+        tv = token.get("tv")
+        if tv is not None:  # Only check if token has version (for backward compatibility)
             try:
                 tv_int = int(tv)
             except (TypeError, ValueError):
-                raise AuthenticationFailed("Invalid token version.")
+                raise AuthenticationFailed(_("Invalid token version."))
             user_id = str(getattr(user_any, "id", "") or getattr(user_any, "pk", ""))
             current_tv = get_mobile_token_version(user_id=user_id)
             if tv_int != current_tv:

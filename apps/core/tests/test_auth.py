@@ -45,7 +45,8 @@ class TestAuthentication:
         token = AccessToken(response_data["tokens"]["access"])
         assert token["client"] == "web"
         assert token["device_id"] == "web-device-1"
-        assert "tv" not in token
+        assert "tv" in token
+        assert token["tv"] == self.user.mobile_token_version
 
     def test_login_with_wrong_credentials(self):
         data = {"username": "testuser001", "password": "wrongpassword", "device_id": "web-device-1"}
@@ -266,6 +267,9 @@ class TestAuthentication:
         new=[],
     )
     def test_password_reset_step3_change_password_authenticated(self):
+        original_password = self.user.password
+        original_version = self.user.mobile_token_version
+
         # Step 2: verify OTP to get JWT first
         reset_request, otp_code = PasswordResetOTP.objects.create_request(self.user, channel="email")
 
@@ -295,6 +299,10 @@ class TestAuthentication:
         assert self.user.check_password(new_password)
         # Ensure reset request is cleaned up
         assert not PasswordResetOTP.objects.filter(user=self.user, is_verified=True, is_used=False).exists()
+
+        self.user.password = original_password
+        self.user.mobile_token_version = original_version
+        self.user.save(update_fields=["password", "mobile_token_version"])
 
     @patch(
         "apps.core.api.views.auth.password_reset_change_password.PasswordResetChangePasswordView.throttle_classes",
@@ -337,6 +345,14 @@ class TestAuthentication:
     def test_password_reset_invalidates_sessions_and_tokens(self):
         """Test that password reset invalidates all sessions and JWT tokens"""
         from django.contrib.sessions.models import Session
+        from django.core.cache import cache
+
+        self.user.refresh_from_db()
+        if self.user.mobile_token_version != 1:
+            self.user.mobile_token_version = 1
+            self.user.save(update_fields=["mobile_token_version"])
+
+        cache.clear()
 
         # Create a session for the user
         self.client.force_login(self.user)
@@ -416,7 +432,8 @@ class TestAuthentication:
         token = AccessToken(access)
         assert token["client"] == "web"
         assert token["device_id"] == device_id
-        assert "tv" not in token
+        assert "tv" in token
+        assert token["tv"] == self.user.mobile_token_version
 
         assert UserDevice.objects.filter(
             user=self.user,
@@ -548,6 +565,8 @@ class TestAuthentication:
 
     @patch("apps.core.api.views.auth.login.LoginView.throttle_classes", new=[])
     def test_mobile_token_version_mismatch_rejected(self):
+        original_version = self.user.mobile_token_version
+
         resp = self.client.post(
             self.mobile_login_url,
             {"username": self.user.username, "password": "testpass123", "device_id": "mobile-device-1"},
@@ -562,6 +581,9 @@ class TestAuthentication:
         client.credentials(HTTP_AUTHORIZATION=f"Bearer {access}")
         resp2 = client.get(self.mobile_me_url, format="json")
         assert resp2.status_code == status.HTTP_401_UNAUTHORIZED
+
+        self.user.mobile_token_version = original_version
+        self.user.save(update_fields=["mobile_token_version"])
 
 
 @pytest.mark.django_db

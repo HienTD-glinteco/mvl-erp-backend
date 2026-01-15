@@ -38,6 +38,7 @@ class SalaryConfigAPITest(APITestCase):
             "personal_income_tax": {
                 "standard_deduction": 11000000,
                 "dependent_deduction": 4400000,
+                "minimum_flat_tax_threshold": 2000000,
                 "progressive_levels": [
                     {"up_to": 5000000, "rate": 0.05},
                     {"up_to": 10000000, "rate": 0.10},

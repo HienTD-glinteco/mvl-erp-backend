@@ -161,14 +161,12 @@ class OTPVerificationSerializer(serializers.Serializer):
         refresh = RefreshToken.for_user(user)
         refresh["client"] = client
         refresh["device_id"] = device_id
+        refresh["tv"] = user.mobile_token_version  # Add for both web and mobile
 
         access = refresh.access_token
         access["client"] = client
         access["device_id"] = device_id
-
-        if client == UserDevice.Client.MOBILE:
-            refresh["tv"] = user.mobile_token_version
-            access["tv"] = user.mobile_token_version
+        access["tv"] = user.mobile_token_version  # Add for both web and mobile
 
         user.clear_otp()
 

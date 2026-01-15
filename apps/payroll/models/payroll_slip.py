@@ -113,6 +113,23 @@ class PayrollSlip(AutoCodeMixin, ColoredValueMixin, BaseModel):
     # ========== Contract Information ==========
     contract_id = models.UUIDField(null=True, blank=True, verbose_name=_("Contract ID"))
 
+    # Contract snapshot fields
+    tax_calculation_method = models.CharField(
+        max_length=20, blank=True, default="", verbose_name=_("Tax Calculation Method")
+    )
+
+    net_percentage = models.IntegerField(null=True, blank=True, verbose_name=_("Net Percentage"))
+
+    has_social_insurance = models.BooleanField(
+        default=True, verbose_name=_("Has Social Insurance"), help_text="Snapshot from contract"
+    )
+
+    is_sale_employee = models.BooleanField(
+        default=False,
+        verbose_name=_("Is Sale Employee"),
+        help_text="True if Department.function == BUSINESS, False otherwise",
+    )
+
     base_salary = models.DecimalField(max_digits=20, decimal_places=0, default=0, verbose_name=_("Base Salary"))
 
     kpi_salary = models.DecimalField(max_digits=20, decimal_places=0, default=0, verbose_name=_("KPI Salary"))

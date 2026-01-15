@@ -175,14 +175,17 @@ class TestNonTaxableAllowance:
         assert payroll_slip.non_taxable_allowance == expected_allowance
 
     def test_non_taxable_allowance_for_probation_employee_is_zero(self, payroll_slip, contract, timesheet, employee):
-        """Test non-taxable allowance is zero for probation employees."""
+        """Test non-taxable allowance is zero for employees with FLAT_10 or NONE tax method."""
         # Arrange
+        from apps.hrm.models import ContractType
+
         employee.employee_type = EmployeeType.PROBATION
         employee.save()
 
         contract.base_salary = Decimal("20000000")
         contract.lunch_allowance = Decimal("1000000")
         contract.phone_allowance = Decimal("500000")
+        contract.tax_calculation_method = ContractType.TaxCalculationMethod.FLAT_10
         contract.save()
 
         timesheet.probation_working_days = Decimal("22.00")
@@ -201,14 +204,17 @@ class TestNonTaxableAllowance:
         assert payroll_slip.non_taxable_allowance == Decimal("0")
 
     def test_non_taxable_allowance_for_intern_is_zero(self, payroll_slip, contract, timesheet, employee):
-        """Test non-taxable allowance is zero for intern employees."""
+        """Test non-taxable allowance is zero for employees with FLAT_10 or NONE tax method."""
         # Arrange
+        from apps.hrm.models import ContractType
+
         employee.employee_type = EmployeeType.INTERN
         employee.save()
 
         contract.base_salary = Decimal("15000000")
         contract.lunch_allowance = Decimal("1000000")
         contract.phone_allowance = Decimal("500000")
+        contract.tax_calculation_method = ContractType.TaxCalculationMethod.FLAT_10
         contract.save()
 
         calculator = PayrollCalculationService(payroll_slip)
@@ -296,14 +302,17 @@ class TestTaxableIncomeWithNonTaxableAllowance:
     def test_probation_employee_taxable_income_base_no_non_taxable_allowance(
         self, payroll_slip, contract, timesheet, employee
     ):
-        """Test taxable income base for probation employees doesn't include non-taxable allowance."""
+        """Test taxable income base for employees with FLAT_10 tax method doesn't include non-taxable allowance."""
         # Arrange
+        from apps.hrm.models import ContractType
+
         employee.employee_type = EmployeeType.PROBATION
         employee.save()
 
         contract.base_salary = Decimal("20000000")
         contract.lunch_allowance = Decimal("1000000")
         contract.phone_allowance = Decimal("500000")
+        contract.tax_calculation_method = ContractType.TaxCalculationMethod.FLAT_10
         contract.save()
 
         timesheet.probation_working_days = Decimal("22.00")
@@ -322,7 +331,7 @@ class TestTaxableIncomeWithNonTaxableAllowance:
         # Verify non_taxable_allowance is zero
         assert payroll_slip.non_taxable_allowance == Decimal("0")
 
-        # For probation: taxable_income_base = gross_income (flat 10% tax)
+        # For FLAT_10: taxable_income_base = gross_income (flat 10% tax)
         assert payroll_slip.taxable_income_base == payroll_slip.gross_income
 
     def test_official_employee_lower_tax_with_non_taxable_allowance(self, payroll_slip, contract, timesheet, employee):
