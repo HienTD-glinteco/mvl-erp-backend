@@ -84,10 +84,6 @@ class EmployeeTimesheetViewSet(AuditLoggingMixin, BaseReadOnlyModelViewSet):
             "name_template": _("History detail of timesheets"),
             "description_template": _("View history detail of timesheets"),
         },
-        # "mine": {
-        #     "name_template": _("List timesheets of current employee"),
-        #     "description_template": _("List timesheets of current employee"),
-        # },
     }
 
     def list(self, request, *args, **kwargs):
@@ -148,78 +144,6 @@ class EmployeeTimesheetViewSet(AuditLoggingMixin, BaseReadOnlyModelViewSet):
 
         return Response(serialized)
 
-    # @extend_schema(
-    #     summary="List timesheets of current employee",
-    #     description=("Retrieve timesheet summaries for current employee."),
-    #     tags=["6.6: Timesheet - For Mobile"],
-    #     parameters=[
-    #         OpenApiParameter(
-    #             name="month",
-    #             description="Month in MM/YYYY format, e.g. 03/2025",
-    #             required=False,
-    #             type=str,
-    #         ),
-    #     ],
-    #     responses={
-    #         200: EmployeeTimesheetSerializer,
-    #     },
-    # )
-    # @action(detail=False, methods=["get"], url_path="mine", filterset_class=MineTimesheetFilterSet)
-    # def mine(self, request, *args, **kwargs):
-    #     employee = getattr(request.user, "employee", None)
-    #     if not employee:
-    #         return Response(
-    #             {
-    #                 "success": False,
-    #                 "data": None,
-    #                 "error": _("The current user is not associated with any employee."),
-    #             },
-    #             status=400,
-    #         )
-
-    #     # Determine month/year from filterset (fallback to current month)
-    #     first_day, last_day, month_key, __ = self._get_timesheet_params(request)
-
-    #     # Bulk fetch TimeSheetEntries for the set of employees to avoid N+1 queries
-    #     all_entries = TimeSheetEntry.objects.filter(
-    #         employee=employee,
-    #         date__range=(first_day, last_day),
-    #     ).order_by("employee_id", "date")
-
-    #     entries_by_employee = defaultdict(list)
-    #     all_entries_ids = []
-    #     for e in all_entries:
-    #         entries_by_employee[e.employee_id].append(e)
-    #         all_entries_ids.append(e.id)
-
-    #     # Identify which timesheet entries have complaints
-    #     complaint_entry_ids = set(
-    #         ProposalTimeSheetEntry.objects.filter(
-    #             timesheet_entry_id__in=all_entries_ids,
-    #             proposal__proposal_type=ProposalType.TIMESHEET_ENTRY_COMPLAINT,
-    #             proposal__proposal_status=ProposalStatus.PENDING,
-    #         )
-    #         .values_list("timesheet_entry_id", flat=True)
-    #         .distinct()
-    #     )
-
-    #     # Bulk fetch monthly timesheets for the given month_key and map to employees
-    #     monthly_qs = EmployeeMonthlyTimesheet.objects.filter(employee=employee, month_key=month_key)
-    #     monthly_map = {m.employee_id: m for m in monthly_qs}
-
-    #     entries = entries_by_employee.get(employee.id, [])
-    #     monthly = monthly_map.get(employee.id)
-    #     payload = self._prepare_employee_data(
-    #         employee, entries, monthly, first_day, last_day, complaint_entry_ids=complaint_entry_ids
-    #     )
-
-    #     # Serialize the results to ensure Decimal fields are handled and types match
-    #     context = self.get_serializer_context()
-    #     context["complaint_entry_ids"] = complaint_entry_ids
-    #     serialized = EmployeeTimesheetSerializer(payload, context=context).data
-
-    #     return Response(serialized)
-
     def _get_timesheet_params(self, request):
         # Determine month/year from filterset (fallback to current month)
         filterset = self.filterset_class(data=request.GET)
@@ -273,6 +197,10 @@ class EmployeeTimesheetViewSet(AuditLoggingMixin, BaseReadOnlyModelViewSet):
             "annual_leave_days": 0,
             "initial_leave_balance": 0,
             "remaining_leave_balance": 0,
+            "overtime_hours": 0,
+            "tc1_overtime_hours": 0,
+            "tc2_overtime_hours": 0,
+            "tc3_overtime_hours": 0,
         }
 
         # Build a full list of dates for the month. If first_day/last_day are not provided,
@@ -312,6 +240,10 @@ class EmployeeTimesheetViewSet(AuditLoggingMixin, BaseReadOnlyModelViewSet):
             payload["annual_leave_days"] = monthly_timesheet.paid_leave_days
             payload["initial_leave_balance"] = monthly_timesheet.opening_balance_leave_days
             payload["remaining_leave_balance"] = monthly_timesheet.remaining_leave_days
+            payload["overtime_hours"] = monthly_timesheet.overtime_hours
+            payload["tc1_overtime_hours"] = monthly_timesheet.tc1_overtime_hours
+            payload["tc2_overtime_hours"] = monthly_timesheet.tc2_overtime_hours
+            payload["tc3_overtime_hours"] = monthly_timesheet.tc3_overtime_hours
 
         return payload
 

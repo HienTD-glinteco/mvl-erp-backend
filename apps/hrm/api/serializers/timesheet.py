@@ -67,6 +67,19 @@ class TimeSheetEntryDetailSerializer(serializers.ModelSerializer):
     employee = EmployeeSerializer(read_only=True)
     manually_corrected_by = EmployeeSerializer(read_only=True)
 
+    tc1_overtime_hours = serializers.SerializerMethodField(help_text="TC1 overtime hours (Weekday)")
+    tc2_overtime_hours = serializers.SerializerMethodField(help_text="TC2 overtime hours (Weekend)")
+    tc3_overtime_hours = serializers.SerializerMethodField(help_text="TC3 overtime hours (Holiday)")
+
+    def get_tc1_overtime_hours(self, obj):
+        return obj.ot_tc1_hours
+
+    def get_tc2_overtime_hours(self, obj):
+        return obj.ot_tc2_hours
+
+    def get_tc3_overtime_hours(self, obj):
+        return obj.ot_tc3_hours
+
     class Meta:
         model = TimeSheetEntry
         fields = read_only_fields = [
@@ -85,6 +98,9 @@ class TimeSheetEntryDetailSerializer(serializers.ModelSerializer):
             "working_days",
             "official_hours",
             "overtime_hours",
+            "tc1_overtime_hours",
+            "tc2_overtime_hours",
+            "tc3_overtime_hours",
             "total_worked_hours",
             "status",
             "absent_reason",
@@ -166,4 +182,16 @@ class EmployeeTimesheetSerializer(serializers.Serializer):
     )
     remaining_leave_balance = serializers.DecimalField(
         max_digits=8, decimal_places=2, default=Decimal("0.00"), help_text="Remaining leave balance"
+    )
+    overtime_hours = serializers.DecimalField(
+        max_digits=8, decimal_places=2, default=Decimal("0.00"), help_text="Total overtime hours"
+    )
+    tc1_overtime_hours = serializers.DecimalField(
+        max_digits=8, decimal_places=2, default=Decimal("0.00"), help_text="TC1 overtime hours (Weekday)"
+    )
+    tc2_overtime_hours = serializers.DecimalField(
+        max_digits=8, decimal_places=2, default=Decimal("0.00"), help_text="TC2 overtime hours (Weekend)"
+    )
+    tc3_overtime_hours = serializers.DecimalField(
+        max_digits=8, decimal_places=2, default=Decimal("0.00"), help_text="TC3 overtime hours (Holiday)"
     )
