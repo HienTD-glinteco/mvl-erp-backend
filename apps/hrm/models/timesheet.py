@@ -180,9 +180,12 @@ class TimeSheetEntry(ColoredValueMixin, AutoCodeMixin, BaseModel):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    def save(self, *args, **kwargs):
-        # Validate and ensure quantization before saving
-        self.full_clean()
+    def save(self, need_clean=True, *args, **kwargs):
+        # this flag is used to prevent resnapshot, recalculate when the entry is saved from timesheet_triggers
+        if need_clean:
+            # Validate and ensure quantization before saving
+            self.full_clean()
+
         super().save(*args, **kwargs)
 
     def update_times(self, start_time: datetime | None, end_time: datetime | None) -> None:

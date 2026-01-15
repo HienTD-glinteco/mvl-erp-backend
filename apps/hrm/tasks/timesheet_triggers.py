@@ -23,19 +23,11 @@ def process_contract_change(contract: Contract):
     effective_date = contract.effective_date
     query = TimeSheetEntry.objects.filter(employee_id=contract.employee_id, date__gte=effective_date)
 
-    # Prepare data for bulk update
-    updates = []
     service = TimesheetSnapshotService()
 
-    # To use bulk_update efficiently, we need to gather objects.
-    entries = list(query)
-    for entry in entries:
+    for entry in query:
         service.snapshot_contract_info(entry)
-        updates.append(entry)
-
-    if updates:
-        for entry in updates:
-            entry.save(update_fields=["contract", "net_percentage", "is_full_salary"])
+        entry.save(need_clean=False)
 
 
 @shared_task
@@ -46,71 +38,22 @@ def process_calendar_change(start_date: date, end_date: date):
     """
     entries = TimeSheetEntry.objects.filter(date__range=(start_date, end_date))
 
-    service = TimesheetSnapshotService()
-    updates = []
-
     for entry in entries:
-        # 1. Re-snapshot Day Type
-        service.determine_day_type(entry)
-
-        # 2. Recalculate
         calc = TimesheetCalculator(entry)
-        calc.compute_all()
+        calc.compute_all(is_finalizing=entry.is_work_day_finalizing())
 
-        updates.append(entry)
-
-    if updates:
-        # Update all relevant fields
-        fields = [
-            "day_type",
-            "working_days",
-            "status",
-            "ot_tc1_hours",
-            "ot_tc2_hours",
-            "ot_tc3_hours",
-            "overtime_hours",
-            "is_punished",
-        ]
-        for entry in updates:
-            entry.save(update_fields=fields)
+        entry.save(need_clean=False)
 
 
 @shared_task
 def process_exemption_change(exemption: AttendanceExemption):
     query = TimeSheetEntry.objects.filter(employee_id=exemption.employee_id, date__gte=exemption.effective_date)
 
-    service = TimesheetSnapshotService()
-
-    recalc_updates = []
-
     entries = list(query)
     for entry in entries:
-        service.snapshot_data(entry)
-
         calc = TimesheetCalculator(entry)
         calc.compute_all(is_finalizing=entry.is_work_day_finalizing())
-        recalc_updates.append(entry)
-
-    if recalc_updates:
-        fields = [
-            "is_exempt",
-            "status",
-            "working_days",
-            "late_minutes",
-            "early_minutes",
-            "is_punished",
-            "morning_hours",
-            "afternoon_hours",
-            "overtime_hours",
-            "ot_tc1_hours",
-            "ot_tc2_hours",
-            "ot_tc3_hours",
-            "absent_reason",
-            "allowed_late_minutes",
-            "allowed_late_minutes_reason",
-        ]
-        for entry in recalc_updates:
-            entry.save(update_fields=fields)
+        entry.save(need_clean=False)
 
 
 @shared_task
@@ -130,63 +73,11 @@ def process_proposal_change(proposal: Proposal):
 
     entries = TimeSheetEntry.objects.filter(employee_id=proposal.created_by_id, date__range=(start_date, end_date))
 
-    snapshot_service = TimesheetSnapshotService()
-    updates = []
-
-    is_leave_proposal = proposal.proposal_type in [
-        ProposalType.PAID_LEAVE,
-        ProposalType.UNPAID_LEAVE,
-        ProposalType.MATERNITY_LEAVE,
-    ]
-    is_late_exemption_proposal = proposal.proposal_type in [
-        ProposalType.LATE_EXEMPTION,
-        ProposalType.POST_MATERNITY_BENEFITS,
-    ]
-    is_overtime_proposal = proposal.proposal_type == ProposalType.OVERTIME_WORK
-
     for entry in entries:
-        # Snapshot overtime data for OT proposals
-        if is_overtime_proposal:
-            snapshot_service.snapshot_overtime_data(entry)
-
-        # Snapshot leave reason and count_for_payroll for leave proposals
-        if is_leave_proposal:
-            # Clear existing absent_reason to allow re-snapshotting
-            entry.absent_reason = None
-            snapshot_service.snapshot_leave_reason(entry)
-            snapshot_service.set_count_for_payroll(entry)
-
-        # Snapshot allowed late minutes for late exemption/post maternity
-        if is_late_exemption_proposal:
-            snapshot_service.snapshot_allowed_late_minutes(entry)
-
         # Recalculate
         calculator = TimesheetCalculator(entry)
-        calculator.compute_all()
-        updates.append(entry)
-
-    if updates:
-        fields = [
-            "absent_reason",
-            "count_for_payroll",
-            "status",
-            "working_days",
-            "late_minutes",
-            "early_minutes",
-            "is_punished",
-            "overtime_hours",
-            "ot_tc1_hours",
-            "ot_tc2_hours",
-            "ot_tc3_hours",
-            "allowed_late_minutes",
-            "allowed_late_minutes_reason",
-            "approved_ot_start_time",
-            "approved_ot_end_time",
-            "approved_ot_minutes",
-        ]
-
-        for entry in updates:
-            entry.save(update_fields=fields)
+        calculator.compute_all(is_finalizing=entry.is_work_day_finalizing())
+        entry.save(need_clean=False)
 
 
 def _get_start_end_dates(proposal: Proposal) -> Tuple[Optional[date], Optional[date]]:
