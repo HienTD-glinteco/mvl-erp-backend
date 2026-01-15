@@ -26,12 +26,15 @@ class S3FileUploadService:
 
     def __init__(self):
         """Initialize S3 client with AWS credentials from settings."""
-        self.s3_client = boto3.client(
-            "s3",
-            aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-            aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
-            region_name=settings.AWS_REGION_NAME,
-        )
+        kwargs = {
+            "aws_access_key_id": settings.AWS_ACCESS_KEY_ID,
+            "aws_secret_access_key": settings.AWS_SECRET_ACCESS_KEY,
+            "region_name": settings.AWS_REGION_NAME,
+        }
+        if hasattr(settings, "AWS_S3_ENDPOINT_URL") and settings.AWS_S3_ENDPOINT_URL:
+            kwargs["endpoint_url"] = settings.AWS_S3_ENDPOINT_URL
+
+        self.s3_client = boto3.client("s3", **kwargs)
         self.bucket_name = settings.AWS_STORAGE_BUCKET_NAME
 
     def generate_presigned_url(
