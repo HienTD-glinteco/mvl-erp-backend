@@ -343,32 +343,47 @@ class TimesheetCalculator:
             self.entry.is_punished = True
 
     def _determine_adjusted_schedule_boundaries(self, morning_start, morning_end, afternoon_start, afternoon_end):
-        """Determine effective schedule start/end based on leave proposals."""
+        """Determine effective schedule start/end based on leave proposals.
+
+        Also respects `is_morning_required` and `is_afternoon_required` flags from schedule.
+        """
         # Check for Leave Proposals
         proposals = Proposal.get_active_leave_proposals(self.entry.employee_id, self.entry.date)
         has_morning_leave = any(p.is_morning_leave for p in proposals)
         has_afternoon_leave = any(p.is_afternoon_leave for p in proposals)
 
-        # Baseline Schedule Boundaries
-        sched_start = morning_start or afternoon_start
-        sched_end = afternoon_end or morning_end
+        work_schedule = self.work_schedule
+        is_morning_required = work_schedule.is_morning_required if work_schedule else True
+        is_afternoon_required = work_schedule.is_afternoon_required if work_schedule else True
 
-        # Adjust Start Boundary (Expected Check-in)
-        if has_morning_leave:
-            # If Morning is excused, expected start shifts to Afternoon
-            sched_start = afternoon_start
+        # Baseline Schedule Boundaries - Filter by Requirement
+        # If Morning is NOT required, start time effectively moves to Afternoon
+        eff_morning_start = morning_start if is_morning_required else None
+        eff_morning_end = morning_end if is_morning_required else None
 
-        if has_afternoon_leave and sched_start == afternoon_start:
+        # If Afternoon is NOT required, end time effectively moves to Morning
+        eff_afternoon_start = afternoon_start if is_afternoon_required else None
+        eff_afternoon_end = afternoon_end if is_afternoon_required else None
+
+        sched_start = eff_morning_start or eff_afternoon_start
+        sched_end = eff_afternoon_end or eff_morning_end
+
+        # Adjust Start Boundary (Expected Check-in) based on Leave
+        if has_morning_leave and sched_start == eff_morning_start:
+            # If Morning is excused, expected start shifts to Afternoon (if required)
+            sched_start = eff_afternoon_start
+
+        if has_afternoon_leave and sched_start == eff_afternoon_start:
             # If Afternoon is ALSO excused (and we were expecting to start then),
             # then we have NO expected start time.
             sched_start = None
 
-        # Adjust End Boundary (Expected Check-out)
-        if has_afternoon_leave:
-            # If Afternoon is excused, expected end shifts to Morning
-            sched_end = morning_end
+        # Adjust End Boundary (Expected Check-out) based on Leave
+        if has_afternoon_leave and sched_end == eff_afternoon_end:
+            # If Afternoon is excused, expected end shifts to Morning (if required)
+            sched_end = eff_morning_end
 
-        if has_morning_leave and sched_end == morning_end:
+        if has_morning_leave and sched_end == eff_morning_end:
             # If Morning is ALSO excused (and we were expecting to end then),
             # then we have NO expected end time.
             sched_end = None
