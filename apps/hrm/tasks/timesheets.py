@@ -90,7 +90,7 @@ def update_monthly_timesheet_async(
         return {"success": True, "employee_id": employee_id, "year": year, "month": month}
 
     # process all flagged rows
-    qs = EmployeeMonthlyTimesheet.objects.filter(need_refresh=True)
+    qs = EmployeeMonthlyTimesheet.objects.filter(need_refresh=True).order_by("report_date")
     count = 0
     for row in qs.iterator():
         try:
