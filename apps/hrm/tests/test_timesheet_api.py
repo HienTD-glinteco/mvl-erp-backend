@@ -298,6 +298,7 @@ def test_create_entries_for_employee_month_sends_post_save(db):
         fullname="Signal Tester",
         username="signaltester",
         email="signaltester@example.com",
+        personal_email="signaltester.personal@example.com",
         phone="0900100999",
         attendance_code="00999",
         citizen_id="000000000999",

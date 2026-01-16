@@ -98,6 +98,62 @@ class TestSalaryPeriodUpdateAPI:
         assert salary_period.proposal_deadline == date(2024, 2, 10)
         assert salary_period.kpi_assessment_deadline == date(2024, 2, 15)
 
+    def test_future_kpi_deadline_unfinalizes_employee_assessments(
+        self, api_client, salary_period, kpi_assessment_period, employee
+    ):
+        """If KPI deadline is moved to the future, finalized assessments are unlocked."""
+        from datetime import timedelta
+
+        from django.utils import timezone
+
+        from apps.payroll.models import EmployeeKPIAssessment
+
+        assessment = EmployeeKPIAssessment.objects.create(
+            period=kpi_assessment_period,
+            employee=employee,
+            finalized=True,
+        )
+
+        new_deadline = timezone.now().date() + timedelta(days=3)
+
+        response = api_client.patch(
+            f"/api/payroll/salary-periods/{salary_period.id}/",
+            {"kpi_assessment_deadline": new_deadline.isoformat()},
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        assessment.refresh_from_db()
+        assert assessment.finalized is False
+
+    def test_past_kpi_deadline_finalizes_employee_assessments(
+        self, api_client, salary_period, kpi_assessment_period, employee
+    ):
+        """If KPI deadline is moved to the past, assessments are locked."""
+        from datetime import timedelta
+
+        from django.utils import timezone
+
+        from apps.payroll.models import EmployeeKPIAssessment
+
+        assessment = EmployeeKPIAssessment.objects.create(
+            period=kpi_assessment_period,
+            employee=employee,
+            finalized=False,
+        )
+
+        new_deadline = timezone.now().date() - timedelta(days=3)
+
+        response = api_client.patch(
+            f"/api/payroll/salary-periods/{salary_period.id}/",
+            {"kpi_assessment_deadline": new_deadline.isoformat()},
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        assessment.refresh_from_db()
+        assert assessment.finalized is True
+
 
 @pytest.mark.django_db
 class TestSalaryPeriodRecalculateAPI:
