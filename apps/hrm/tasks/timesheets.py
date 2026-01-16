@@ -20,7 +20,6 @@ from apps.hrm.models import (
     ProposalTimeSheetEntry,
 )
 from apps.hrm.models.timesheet import TimeSheetEntry
-from apps.hrm.services.proposal_sync import ProposalSyncService
 from apps.hrm.services.timesheet_calculator import TimesheetCalculator
 from apps.hrm.services.timesheets import (
     create_entries_for_employee_month,
@@ -265,21 +264,3 @@ def link_proposals_to_timesheet_entry_task(timesheet_entry_id: int) -> dict:
         logger.info("Linked %s proposals to entry %s", added_count, entry.id)
 
     return {"success": True, "added": len(to_add_ids), "removed": len(to_remove_ids)}
-
-
-@shared_task
-def link_timesheet_entries_to_proposal_task(proposal_id: int) -> dict:
-    """Link existing timesheet entries to a newly created/updated proposal.
-
-    This task searches for timesheet entries for the proposal's creator within
-    the proposal's effective date range and syncs ProposalTimeSheetEntry records.
-    """
-    try:
-        proposal = Proposal.objects.get(pk=proposal_id)
-    except Proposal.DoesNotExist:
-        logger.warning("Proposal %s not found.", proposal_id)
-        return {"success": False, "error": "Proposal not found"}
-
-    result = ProposalSyncService.sync_entries_for_proposal(proposal)
-
-    return {"success": True, **result}

@@ -13,10 +13,8 @@ from apps.hrm.models.proposal import Proposal, ProposalOvertimeEntry, ProposalTi
 from apps.hrm.models.timesheet import TimeSheetEntry
 from apps.hrm.models.work_schedule import WorkSchedule
 from apps.hrm.services.timesheet_calculator import TimesheetCalculator
-from apps.hrm.tasks.timesheets import (
-    link_proposals_to_timesheet_entry_task,
-    link_timesheet_entries_to_proposal_task,
-)
+from apps.hrm.signals.proposal_timesheet_entry import link_timesheet_entries_to_proposal_task
+from apps.hrm.tasks.timesheets import link_proposals_to_timesheet_entry_task
 
 pytestmark = pytest.mark.django_db
 
@@ -412,7 +410,7 @@ class TestProposalToTimeSheetEntryLinking:
     def test_proposal_signal_triggers_task(self, employee, django_capture_on_commit_callbacks):
         today = timezone.localdate()
 
-        with patch("apps.hrm.tasks.timesheets.link_timesheet_entries_to_proposal_task.delay") as mock_delay:
+        with patch("apps.hrm.signals.proposal_timesheet_entry.link_timesheet_entries_to_proposal_task") as mock_task:
             with django_capture_on_commit_callbacks(execute=True):
                 proposal = Proposal.objects.create(
                     created_by=employee,
@@ -422,4 +420,4 @@ class TestProposalToTimeSheetEntryLinking:
                     paid_leave_end_date=today,
                 )
 
-            mock_delay.assert_called_with(proposal.id)
+            mock_task.assert_called_with(proposal.id)

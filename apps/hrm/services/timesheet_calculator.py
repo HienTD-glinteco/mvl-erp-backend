@@ -95,8 +95,17 @@ class TimesheetCalculator:
                 self.entry.working_days = None
                 return True
 
-            self.entry.status = TimesheetStatus.ON_TIME
-            self.entry.working_days = self._get_max_working_days()
+            max_days = self._get_schedule_max_days()
+
+            # Non-working day (no schedule): empty status, 0 working days
+            if max_days == 0:
+                self.entry.status = None
+                self.entry.working_days = Decimal("0.00")
+            else:
+                # Working day: ON_TIME status, grant days based on schedule
+                self.entry.status = TimesheetStatus.ON_TIME
+                self.entry.working_days = max_days
+
             # Reset penalties/absent reasons just in case
             self.entry.late_minutes = 0
             self.entry.early_minutes = 0
@@ -104,10 +113,6 @@ class TimesheetCalculator:
             self.entry.absent_reason = None
             return True
         return False
-
-    def _get_max_working_days(self) -> Decimal:
-        """Return max working days for the day (usually 1.0 or 0.5 based on schedule)."""
-        return Decimal("1.00")
 
     # ---------------------------------------------------------------------------
     # Hours Calculation

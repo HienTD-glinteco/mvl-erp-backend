@@ -247,14 +247,6 @@ class ProposalTimesheetEntryComplaintApproveSerializer(ProposalApproveSerializer
         fields = ["approved_check_in_time", "approved_check_out_time"] + ProposalApproveSerializer.Meta.fields
 
     def validate(self, attrs):
-        # Ensure the proposal is linked to a timesheet entry before approval
-        if self.instance:
-            junction_exists = ProposalTimeSheetEntry.objects.filter(proposal_id=self.instance.id).exists()
-            if not junction_exists:
-                raise serializers.ValidationError(
-                    _("This complaint proposal is not linked to a timesheet entry. Please try again later.")
-                )
-
         attrs["timesheet_entry_complaint_approved_check_in_time"] = attrs.pop("approved_check_in_time")
         attrs["timesheet_entry_complaint_approved_check_out_time"] = attrs.pop("approved_check_out_time")
         return super().validate(attrs)

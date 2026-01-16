@@ -147,6 +147,40 @@ class TestTimesheetCalculatorV2:
         assert entry.status is None
         assert entry.working_days is None
 
+    def test_exempt_half_day_schedule(self, employee):
+        """Test exempt employee on half-day schedule (e.g. Saturday) -> 0.5 working days."""
+        d = date(2023, 1, 7)  # Saturday
+        # Create half-day schedule for Saturday
+        WorkSchedule.objects.create(
+            weekday=WorkSchedule.Weekday.SATURDAY,
+            morning_start_time=time(8, 0),
+            morning_end_time=time(12, 0),
+            is_afternoon_required=False,
+        )
+        AttendanceExemption.objects.create(employee=employee, effective_date=date(2023, 1, 1))
+        entry = TimeSheetEntry.objects.create(employee=employee, date=d)
+
+        calc = TimesheetCalculator(entry)
+        calc.compute_all(is_finalizing=True)
+
+        assert entry.is_exempt is True
+        assert entry.status == TimesheetStatus.ON_TIME
+        assert entry.working_days == Decimal("0.50")
+
+    def test_exempt_no_schedule_day(self, employee):
+        """Test exempt employee on day with NO schedule (e.g. Sunday) -> 0 working days, empty status."""
+        d = date(2023, 1, 8)  # Sunday
+        # No WorkSchedule for Sunday
+        AttendanceExemption.objects.create(employee=employee, effective_date=date(2023, 1, 1))
+        entry = TimeSheetEntry.objects.create(employee=employee, date=d)
+
+        calc = TimesheetCalculator(entry)
+        calc.compute_all(is_finalizing=True)
+
+        assert entry.is_exempt is True
+        assert entry.status is None
+        assert entry.working_days == Decimal("0.00")
+
     def test_single_punch_logic(self, employee, work_schedule):
         d = date(2023, 1, 2)  # Monday
         entry = TimeSheetEntry.objects.create(
