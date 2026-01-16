@@ -3,6 +3,7 @@ XLSX generator for creating Excel files from schema definitions.
 """
 
 import logging
+import re
 import time
 from io import BytesIO
 
@@ -10,6 +11,7 @@ from django.conf import settings
 from openpyxl import Workbook, load_workbook
 from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
 from openpyxl.utils import get_column_letter
+from openpyxl.workbook.child import INVALID_TITLE_REGEX
 from openpyxl.worksheet.worksheet import Worksheet
 
 from .constants import (
@@ -184,7 +186,7 @@ class XLSXGenerator:
         This is mutual function for both template-based and schema-based sheet creation.
         """
 
-        title = sheet_def.get("name", "Sheet1")
+        title = re.sub(INVALID_TITLE_REGEX, "-", sheet_def.get("name", "Sheet1"))
         headers = sheet_def.get("headers", [])
         field_names = sheet_def.get("field_names", headers)
         data = sheet_def.get("data", [])
