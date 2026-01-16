@@ -65,10 +65,17 @@ Updated the payroll calculation system to support flexible tax calculation metho
 ### 4. Test Updates
 
 Updated tests to reflect new logic:
-- `test_new_payroll_calculations.py`: Updated sales staff and tax method tests
+- `test_new_payroll_calculations.py`: Updated sales staff and tax method tests, added snapshot field assertions
 - `test_family_deduction_and_allowance.py`: Updated to use `tax_calculation_method` instead of `employee_type`
 - `test_salary_config_serializers.py`: Added `minimum_flat_tax_threshold` to test data
 - `test_salary_config_api.py`: Added `minimum_flat_tax_threshold` to test data
+
+### 5. API Serializers
+
+Updated serializers to return new fields to client:
+- `apps/payroll/api/serializers/payroll_slip.py`:
+  - **PayrollSlipSerializer**: Added `tax_calculation_method`, `net_percentage`, `has_social_insurance`, `is_sale_employee` fields
+  - **PayrollSlipExportSerializer**: Added same fields for XLSX export functionality
 
 ## Business Logic Changes
 
@@ -108,3 +115,41 @@ The `minimum_flat_tax_threshold` is now included in SalaryConfig API responses. 
 - The new snapshot fields ensure that payroll calculations remain consistent even if contract or department settings change after calculation
 - The `is_sale_employee` flag is determined by the employee's department function at calculation time
 - Tax method is now contract-driven rather than employee-type-driven, providing more flexibility
+
+## 6. Excel Export Updates
+
+**File**: `apps/payroll/api/views/salary_period.py`
+
+Updated the `payrollslips_export` action to include all new snapshot fields in the XLSX export:
+
+### New Columns Added
+- **Column G**: is_sale_employee (True/False)
+- **Column X**: net_percentage (0.85 or 1.0)
+- **Column AK**: has_social_insurance (True/False)
+- **Column AW**: tax_calculation_method (progressive/flat_10/none - translated)
+- **Column BA**: minimum_flat_tax_threshold (from salary config)
+
+### Formula Updates
+All Excel formulas updated to use snapshot fields instead of employment_status:
+- **Column Y** (Actual working days income): Now uses net_percentage (X) → `=(W*S+V*S*X)/T`
+- **Column AD** (Hourly rate): Uses net_percentage (X) → `=IF(X=0.85,S*0.85/T/8,S/T/8)`
+- **Column AL** (Insurance base): Uses has_social_insurance (AK) → `=IF(AK=TRUE,K,0)`
+- **Column AZ** (Non-taxable allowance): Uses net_percentage → `=SUM(L:M)/T*(V*X+W)`
+- **Column BB** (Taxable income): Conditional based on tax_calculation_method (AW)
+  - progressive: `=IF(AJ-SUM(AR:AT)-AY-AI-AZ>0,AJ-SUM(AR:AT)-AY-AI-AZ,0)`
+  - flat_10: `=AJ`
+  - none: `=0`
+- **Column BC** (Personal income tax): Conditional based on tax_calculation_method (AW)
+  - progressive: Full progressive tax bracket formula
+  - flat_10: `=IF(BB>=BA,BB*0.1,0)`
+  - none: `=0`
+
+### Helper Functions Added
+- `_get_tax_method_display()`: Translates tax_calculation_method for Excel display
+- `_get_tax_formulas()`: Generates conditional tax formulas based on tax method
+
+### Export Structure
+- Total columns: 67 (was 62, added 5 new)
+- Column range: A-BG
+- Two sheets: "Ready Slips" and "Not Ready Slips"
+- All formulas maintain Excel compatibility

@@ -7,12 +7,20 @@ import pytest
 from apps.payroll.services.payroll_calculation import PayrollCalculationService
 
 
+@pytest.fixture
+def position_nvkd(position):
+    """Position with code NVKD for business progressive salary tests."""
+    position.code = "NVKD"
+    position.save()
+    return position
+
+
 @pytest.mark.django_db
 class TestBusinessProgressiveSalaryCalculation:
     """Test business progressive salary calculation logic."""
 
     def test_business_progressive_salary_subtracts_base_and_kpi(
-        self, payroll_slip, contract, timesheet, employee, salary_period
+        self, payroll_slip, contract, timesheet, employee, salary_period, position_nvkd
     ):
         """Test that business progressive salary = tier_amount - base_salary - kpi_salary - allowances - travel.
 
@@ -84,7 +92,7 @@ class TestBusinessProgressiveSalaryCalculation:
         assert payroll_slip.sales_transaction_count == 6
 
     def test_business_progressive_salary_zero_when_tier_amount_less_than_base_plus_kpi(
-        self, payroll_slip, contract, timesheet, employee, salary_period
+        self, payroll_slip, contract, timesheet, employee, salary_period, position_nvkd
     ):
         """Test that business progressive salary is 0 when tier_amount < base_salary + kpi_salary."""
         # Arrange - M0 tier amount equals base + kpi
@@ -129,7 +137,7 @@ class TestBusinessProgressiveSalaryCalculation:
         assert payroll_slip.business_progressive_salary == Decimal("0")
 
     def test_business_progressive_salary_zero_when_tier_amount_less_than_components(
-        self, payroll_slip, contract, timesheet, employee, salary_period
+        self, payroll_slip, contract, timesheet, employee, salary_period, position_nvkd
     ):
         """Test floor at 0 when tier_amount < (base_salary + kpi_salary)."""
         # Arrange - Tier amount less than base + kpi
@@ -173,7 +181,7 @@ class TestBusinessProgressiveSalaryCalculation:
         assert payroll_slip.business_progressive_salary == Decimal("0")
 
     def test_business_progressive_salary_no_sales_data(
-        self, payroll_slip, contract, timesheet, employee, salary_period
+        self, payroll_slip, contract, timesheet, employee, salary_period, position_nvkd
     ):
         """Test business progressive salary when employee has no sales."""
         # Arrange
@@ -215,7 +223,7 @@ class TestBusinessProgressiveSalaryCalculation:
         assert payroll_slip.business_progressive_salary == Decimal("0")
 
     def test_business_progressive_salary_tier_selection_by_highest_qualified(
-        self, payroll_slip, contract, timesheet, employee, salary_period
+        self, payroll_slip, contract, timesheet, employee, salary_period, position_nvkd
     ):
         """Test that highest qualifying tier is selected."""
         # Arrange - Multiple tiers, employee qualifies for M2
@@ -295,7 +303,7 @@ class TestBusinessProgressiveSalaryCalculation:
         assert payroll_slip.business_progressive_salary == expected_progressive
 
     def test_business_progressive_salary_uses_sales_revenue_data(
-        self, payroll_slip, contract, timesheet, employee, salary_period
+        self, payroll_slip, contract, timesheet, employee, salary_period, position_nvkd
     ):
         """Test that calculation uses SalesRevenue model data."""
         # Arrange
@@ -352,7 +360,7 @@ class TestBusinessProgressiveSalaryCalculation:
         assert payroll_slip.business_progressive_salary == Decimal("0")
 
     def test_business_progressive_salary_included_in_total_position_income(
-        self, payroll_slip, contract, timesheet, employee, salary_period
+        self, payroll_slip, contract, timesheet, employee, salary_period, position_nvkd
     ):
         """Test that business progressive salary is included in total position income."""
         # Arrange
@@ -428,7 +436,7 @@ class TestBusinessProgressiveSalaryCalculation:
         )
 
     def test_business_progressive_salary_with_different_base_kpi_values(
-        self, payroll_slip, contract, timesheet, employee, salary_period
+        self, payroll_slip, contract, timesheet, employee, salary_period, position_nvkd
     ):
         """Test calculation with various base_salary and kpi_salary combinations.
 

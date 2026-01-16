@@ -5,53 +5,62 @@ cột C: Họ và tên, fill data - employee_name
 cột D: Phòng/Ban, fill data - department_name
 cột E: Vị trí/chức danh, fill - position_name
 cột F: Tình trạng HD, fill - employment_status
-cột G: Email, fill - employee_email
-cột H: Doanh số, fill - sales_revenue
-cột I: Doanh số, fill - sales_transaction_count
-cột J: Lương vị trí, fill - base_salary
-cột K: ăn trưa, fill - lunch_allowance
-cột L: điện thoại, fill - phone_allowance
-cột M: công tác, fill - travel_expense_by_working_days
-cột N: lương KPI, fill - kpi_salary
-cột O: mức KPI, fill - kpi_grade
-cột P: lương đạt KPI, fill - kpi_bonus
-cột Q: thưởng doanh số, fill - business_progressive_salary
-cột R: tổng, formular = J5+K5+L5+M5+N5+P5+Q5
-cột S: ngày công tiêu chuẩn, fill - standard_working_days
-cột T: ngày công thực tế, fill - total_working_days
-cột U: ngày công thử việc, fill - probation_working_days
-cột V: ngày công chính thức, fill - official_working_days
-cột W: Thu nhập theo ngày công thực tế, formular = IF(E5="NVKD";(V5*R5+U5*R5)/S5;(V5*R5+U5*R5*0,85)/S5)
-cột X: làm thêm thứ 7 và trong tuần, fill - tc1_overtime_hours
-cột Y: làm thêm chủ nhật, fill - tc2_overtime_hours
-cột Z: làm thêm ngày lễ, fill - tc3_overtime_hours
-cột AA: tổng giờ làm thêm, fill - total_overtime_hours
-cột AB: đơn giá giờ lương (hourly_rate), formular =IF(F5="Thử việc";R5*0,85/S5/8;R5/S5/8)
-cột AC: Tổng tiền ngoài giờ tham chiếu, formular =(X5*150%+Y5*200%+Z5*300%)*AB5
-cột AD: phụ cấp vượt tiến độ tham chiếu, formular =AC5-AF5
-cột AE: số giờ làm thêm, formular =AA5
-cột AF: Lương ngoài giờ chịu thuế, formular =AE5*AB5
-cột AG: Lương ngoài giờ k chịu thuế, formular =IF(AD5>AF5*2;AF5*2;(AC5-AF5))
-cột AH: tổng thu nhập, formular =W5+AF5+AG5
-cột AI: Lương đóng BHXH, formular =IF(F5="Chính thức";J5;0)
-cột AJ: BHXH trích DN, formular =AI5*17% (% này lấy trong salary config)
-cột AK: BHYT trích DN, formular =AI5*3% (% này lấy trong salary config)
-cột AL: BH TNLĐ-BNN(0,5%) trích DN, formular =AI5*0.5% (% này lấy trong salary config)
-cột AM: BHTN trích DN, formular =AI5*1% (% này lấy trong salary config)
-cột AN: Đoàn phí Công đoàn (2%) trích DN, formular =AI5*2% (% này lấy trong salary config)
-cột AO: BHXH trích lương, formular =AI5*8% (% này lấy trong salary config)
-cột AP: BHYT trích lương, formular =AI5*1.5% (% này lấy trong salary config)
-cột AQ: BHTN trích DN, formular =AI5*1% (% này lấy trong salary config)
-cột AR: Đoàn phí Công đoàn (1%) trích lương, formular =AI5*1% (% này lấy trong salary config)
-cột AS: mã số thuế, fill - tax_code
-cột AT: số người phụ thuộc, fill - dependent_count
-cột AU: tổng giảm trừ, formular =11000000+AT5*4400000 (số tiền giảm trừ lấy trong salary config)
-cột AV: phục cấp không tính thuế TNCN, formular =SUM(K5:L5)/S5*(U5*0,85+V5)
-cột AW: thu nhập tính thuế, formular, cột F là chính thức, thì điền =IF(AH5-SUM(AO5:AQ5)-AU5-AG5-AV5>0;AH5-SUM(AO5:AQ5)-AU5-AG5-AV5;IF(AH5-SUM(AO5:AQ5)-AU5-AG5-AV5<0;0;0)), nếu cột F khác chính thức, điền   =AH5
-cột AX: Thuế TNCN, formular, nếu cột F chính thức điền formular =IF(AW8<=5000000;AW8*0,05;IF(AW8<=10000000;AW8*0,1-250000;IF(AW8<=18000000;AW8*0,15-750000;IF(AW8<=32000000;AW8*0,2-1650000;IF(AW8<=52000000;AW8*0,25-3250000;IF(AW8<=80000000;AW8*0,3-5850000;AW8*0,35-9850000)))))), nếu cột F khác chính thức, điền formular =IF(AW9>=2000000;AW9*10%;0)
-cột AY: truy lĩnh, fill - back_pay_amount
-cột AZ: truy thu, fill - recovery_amount
-cột BA: tổng lương, formular =ROUND(AH5-SUM(AO5:AQ5)-AR5+AY5-AZ5-AX5;0)
-cột BB: STK, fill - employee.default_bank_account.account_number or ""
-
-từ export trên thì cần cập nhật công thức tính cho personal_income_tax, trong trường hợp # Non-official employee: taxable_income_base = gross_income, tax = 10% thì phải check số tiền >= 2000000 thì mới tính 10% còn không thì là 0
+cột G: Nhân viên sale, fill - is_sale_employee (True/False)
+cột H: Email, fill - employee_email
+cột I: Doanh số, fill - sales_revenue
+cột J: số giao dịch, fill - sales_transaction_count
+cột K: Lương vị trí, fill - base_salary
+cột L: ăn trưa, fill - lunch_allowance
+cột M: điện thoại, fill - phone_allowance
+cột N: công tác, fill - travel_expense_by_working_days
+cột O: lương KPI, fill - kpi_salary
+cột P: mức KPI, fill - kpi_grade
+cột Q: lương đạt KPI, fill - kpi_bonus
+cột R: thưởng doanh số, fill - business_progressive_salary
+cột S: tổng, formular = K5+L5+M5+N5+O5+Q5+R5
+cột T: ngày công tiêu chuẩn, fill - standard_working_days
+cột U: ngày công thực tế, fill - total_working_days
+cột V: ngày công thử việc, fill - probation_working_days
+cột W: ngày công chính thức, fill - official_working_days
+cột X: % lương thử việc, fill - net_percentage == 85 ? 0.85 : 1
+cột Y: Thu nhập theo ngày công thực tế, formular = (W5*S5+V5*S5*X5)/T5
+cột Z: làm thêm thứ 7 và trong tuần, fill - tc1_overtime_hours
+cột AA: làm thêm chủ nhật, fill - tc2_overtime_hours
+cột AB: làm thêm ngày lễ, fill - tc3_overtime_hours
+cột AC: tổng giờ làm thêm, fill - total_overtime_hours
+cột AD: đơn giá giờ lương (hourly_rate), formular =IF(F="PROBATION";S5*0.85/T5/8;S5/T5/8)
+cột AE: Tổng tiền ngoài giờ tham chiếu, formular =(Z5*1.5+AA5*2+AB5*3)*AD5
+cột AF: phụ cấp vượt tiến độ tham chiếu, formular =AE5-AH5
+cột AG: số giờ làm thêm, formular =AC5
+cột AH: Lương ngoài giờ chịu thuế, formular =AG5*AD5
+cột AI: Lương ngoài giờ k chịu thuế, formular =IF(AF5>AH5*2;AH5*2;AE5-AH5)
+cột AJ: tổng thu nhập, formular =Y5+AH5+AI5
+cột AK: có đóng BHXH?, fill - has_social_insurance (True/False)
+cột AL: Lương đóng BHXH, formular =IF(AK5=TRUE;K5;0)
+cột AM: BHXH trích DN, formular =AL5*17% (% này lấy trong salary config)
+cột AN: BHYT trích DN, formular =AL5*3% (% này lấy trong salary config)
+cột AO: BH TNLĐ-BNN(0.5%) trích DN, formular =AL5*0.5% (% này lấy trong salary config)
+cột AP: BHTN trích DN, formular =AL5*1% (% này lấy trong salary config)
+cột AQ: Đoàn phí Công đoàn (2%) trích DN, formular =AL5*2% (% này lấy trong salary config)
+cột AR: BHXH trích lương, formular =AL5*8% (% này lấy trong salary config)
+cột AS: BHYT trích lương, formular =AL5*1.5% (% này lấy trong salary config)
+cột AT: BHTN trích lương, formular =AL5*1% (% này lấy trong salary config)
+cột AU: Đoàn phí Công đoàn (1%) trích lương, formular =AL5*1% (% này lấy trong salary config)
+cột AV: mã số thuế, fill - tax_code
+cột AW: Cách tính thuế, fill - tax_calculation_method (nhớ dùng gettext để translate)
+cột AX: số người phụ thuộc, fill - dependent_count
+cột AY: tổng giảm trừ, formular =11000000+AX5*4400000 (số tiền giảm trừ lấy trong salary config)
+cột AZ: phụ cấp không tính thuế TNCN, formular =SUM(L5:M5)/T5*(V5*X5+W5)
+cột BA: mức min khấu trừ 10%, fill - salary_period.salary_config_snapshot.personal_income_tax.minimum_flat_tax_threshold
+cột BB: thu nhập tính thuế, formular:
+   - nếu cột AW là "progressive" =IF(AJ5-SUM(AR5:AT5)-AY5-AI5-AZ5>0;AJ5-SUM(AR5:AT5)-AY5-AI5-AZ5;0)
+   - nếu cột AW là "flat_10" điền =AJ5 (tổng thu nhập - gross)
+   - nếu cột AW là "none" = 0
+cột BC: Thuế TNCN, formular:
+   - nếu cột AW là "progressive" =IF(BB5<=5000000;BB5*0.05;IF(BB5<=10000000;BB5*0.1-250000;IF(BB5<=18000000;BB5*0.15-750000;IF(BB5<=32000000;BB5*0.2-1650000;IF(BB5<=52000000;BB5*0.25-3250000;IF(BB5<=80000000;BB5*0.3-5850000;BB5*0.35-9850000))))))
+   - nếu cột AW là "flat_10" điền =IF(BB5>=BA5;BB5*10%;0)
+   - nếu cột AW là "none" = 0
+cột BD: truy lĩnh, fill - back_pay_amount
+cột BE: truy thu, fill - recovery_amount
+cột BF: tổng lương, formular =ROUND(AJ5-SUM(AR5:AT5)-AU5+BD5-BE5-BC5;0)
+cột BG: STK, fill - employee.default_bank_account.account_number or ""

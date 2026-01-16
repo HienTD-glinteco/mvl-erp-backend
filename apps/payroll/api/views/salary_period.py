@@ -715,7 +715,7 @@ class SalaryPeriodViewSet(AuditLoggingMixin, BaseModelViewSet):
         ],
     )
     @action(detail=True, methods=["get"], url_path="payrollslips-export")
-    def payrollslips_export(self, request, pk=None):
+    def payrollslips_export(self, request, pk=None):  # noqa C901
         """Export payroll slips for this salary period to XLSX with 2 sheets (Ready and Not Ready)."""
         from django.conf import settings
 
@@ -737,66 +737,71 @@ class SalaryPeriodViewSet(AuditLoggingMixin, BaseModelViewSet):
             "",  # D: Department - already in group
             "",  # E: Position - already in group
             "",  # F: Employment status - already in group
-            "",  # G: Email - already in group
-            "",  # H: Sales revenue - already in group
-            "",  # I: Transaction count - already in group
+            "",  # G: Is sale employee - already in group
+            "",  # H: Email - already in group
+            "",  # I: Sales revenue - already in group
+            "",  # J: Transaction count - already in group
             # Position income (9 columns) - need sub-headers
-            _("Base salary"),  # J
-            _("Lunch allowance"),  # K
-            _("Phone allowance"),  # L
-            _("Travel allowance"),  # M
-            _("KPI salary"),  # N
-            _("KPI grade"),  # O - Changed from KPI percentage
-            _("KPI bonus"),  # P
-            _("Business bonus"),  # Q
-            _("Total"),  # R
-            # Working days (4 columns) - need sub-headers
-            _("Standard"),  # S
-            _("Actual"),  # T
-            _("Probation"),  # U
-            _("Official"),  # V
+            _("Base salary"),  # K
+            _("Lunch allowance"),  # L
+            _("Phone allowance"),  # M
+            _("Travel allowance"),  # N
+            _("KPI salary"),  # O
+            _("KPI grade"),  # P
+            _("KPI bonus"),  # Q
+            _("Business bonus"),  # R
+            _("Total"),  # S
+            # Working days (5 columns) - need sub-headers
+            _("Standard"),  # T
+            _("Actual"),  # U
+            _("Probation"),  # V
+            _("Official"),  # W
+            _("Probation %"),  # X - NEW: net_percentage
             # Income by working days
-            "",  # W: Already in group
+            "",  # Y: Already in group
             # Overtime (10 columns) - need sub-headers
-            _("Weekday/Saturday"),  # X
-            _("Sunday"),  # Y
-            _("Holiday"),  # Z
-            _("Total"),  # AA
-            _("Hourly rate"),  # AB
-            _("Reference overtime pay"),  # AC
-            _("Progress allowance"),  # AD
-            _("Hours for calculation"),  # AE
-            _("Taxable overtime"),  # AF
-            _("Non-taxable overtime"),  # AG
+            _("Weekday/Saturday"),  # Z
+            _("Sunday"),  # AA
+            _("Holiday"),  # AB
+            _("Total"),  # AC
+            _("Hourly rate"),  # AD
+            _("Reference overtime pay"),  # AE
+            _("Progress allowance"),  # AF
+            _("Hours for calculation"),  # AG
+            _("Taxable overtime"),  # AH
+            _("Non-taxable overtime"),  # AI
             # Total income
-            "",  # AH: Already in group
-            # Insurance base
-            "",  # AI: Already in group
+            "",  # AJ: Already in group
+            # Insurance
+            "",  # AK: Has social insurance - already in group
+            "",  # AL: Insurance base - already in group
             # Employer contributions (5 columns) - need sub-headers
-            _("Social insurance (17%)"),  # AJ
-            _("Health insurance (3%)"),  # AK
-            _("Accident insurance (0.5%)"),  # AL
-            _("Unemployment insurance (1%)"),  # AM
-            _("Union fee (2%)"),  # AN
+            _("Social insurance (17%)"),  # AM
+            _("Health insurance (3%)"),  # AN
+            _("Accident insurance (0.5%)"),  # AO
+            _("Unemployment insurance (1%)"),  # AP
+            _("Union fee (2%)"),  # AQ
             # Employee deductions (4 columns) - need sub-headers
-            _("Social insurance (8%)"),  # AO
-            _("Health insurance (1.5%)"),  # AP
-            _("Unemployment insurance (1%)"),  # AQ
-            _("Union fee (1%)"),  # AR
-            # Tax (6 columns) - need sub-headers
-            _("Tax code"),  # AS
-            _("Dependents count"),  # AT
-            _("Total deduction"),  # AU
-            _("Non-taxable allowance"),  # AV
-            _("Taxable income"),  # AW
-            _("Personal income tax"),  # AX
+            _("Social insurance (8%)"),  # AR
+            _("Health insurance (1.5%)"),  # AS
+            _("Unemployment insurance (1%)"),  # AT
+            _("Union fee (1%)"),  # AU
+            # Tax (8 columns) - need sub-headers
+            _("Tax code"),  # AV
+            _("Tax method"),  # AW - NEW
+            _("Dependents count"),  # AX
+            _("Total deduction"),  # AY
+            _("Non-taxable allowance"),  # AZ
+            _("Min threshold 10%"),  # BA - NEW
+            _("Taxable income"),  # BB
+            _("Personal income tax"),  # BC
             # Adjustments
-            "",  # AY: Back pay - already in group
-            "",  # AZ: Recovery - already in group
+            "",  # BD: Back pay - already in group
+            "",  # BE: Recovery - already in group
             # Net salary
-            "",  # BA: Already in group
+            "",  # BF: Already in group
             # Bank account
-            "",  # BB: Already in group
+            "",  # BG: Already in group
         ]
 
         # Define groups for colspan headers
@@ -807,18 +812,20 @@ class SalaryPeriodViewSet(AuditLoggingMixin, BaseModelViewSet):
             {"title": _("Department"), "span": 1},
             {"title": _("Position"), "span": 1},
             {"title": _("Employment status"), "span": 1},
+            {"title": _("Is sale employee"), "span": 1},  # NEW
             {"title": _("Email"), "span": 1},
             {"title": _("Sales revenue"), "span": 1},
             {"title": _("Transaction count"), "span": 1},
             {"title": _("Position income"), "span": 9},
-            {"title": _("Working days"), "span": 4},
+            {"title": _("Working days"), "span": 5},  # Changed from 4 to 5
             {"title": _("Actual working days income"), "span": 1},
             {"title": _("Overtime"), "span": 10},
             {"title": _("Gross income"), "span": 1},
+            {"title": _("Has social insurance"), "span": 1},  # NEW
             {"title": _("Insurance base"), "span": 1},
             {"title": _("Employer contributions"), "span": 5},
             {"title": _("Employee deductions"), "span": 4},
-            {"title": _("Tax information"), "span": 6},  # Changed from 5 to 6
+            {"title": _("Tax information"), "span": 8},  # Changed from 6 to 8
             {"title": _("Back pay"), "span": 1},
             {"title": _("Recovery"), "span": 1},
             {"title": _("Net salary"), "span": 1},
@@ -832,66 +839,71 @@ class SalaryPeriodViewSet(AuditLoggingMixin, BaseModelViewSet):
             "department_name",  # D
             "position_name",  # E
             "employment_status",  # F
-            "employee_email",  # G
-            "sales_revenue",  # H
-            "sales_transaction_count",  # I
+            "is_sale_employee",  # G - NEW
+            "employee_email",  # H
+            "sales_revenue",  # I
+            "sales_transaction_count",  # J
             # Position income (9 fields)
-            "base_salary",  # J
-            "lunch_allowance",  # K
-            "phone_allowance",  # L
-            "travel_expense_by_working_days",  # M
-            "kpi_salary",  # N
-            "kpi_grade",  # O
-            "kpi_bonus",  # P
-            "business_progressive_salary",  # Q
-            "total_position_income",  # R
-            # Working days (4 fields)
-            "standard_working_days",  # S
-            "total_working_days",  # T
-            "probation_working_days",  # U
-            "official_working_days",  # V
+            "base_salary",  # K
+            "lunch_allowance",  # L
+            "phone_allowance",  # M
+            "travel_expense_by_working_days",  # N
+            "kpi_salary",  # O
+            "kpi_grade",  # P
+            "kpi_bonus",  # Q
+            "business_progressive_salary",  # R
+            "total_position_income",  # S
+            # Working days (5 fields)
+            "standard_working_days",  # T
+            "total_working_days",  # U
+            "probation_working_days",  # V
+            "official_working_days",  # W
+            "net_percentage",  # X - NEW
             # Income by working days (1 field)
-            "actual_working_days_income",  # W
+            "actual_working_days_income",  # Y
             # Overtime (10 fields)
-            "tc1_overtime_hours",  # X
-            "tc2_overtime_hours",  # Y
-            "tc3_overtime_hours",  # Z
-            "total_overtime_hours",  # AA
-            "hourly_rate",  # AB
-            "overtime_pay_reference",  # AC - Reference overtime pay
-            "overtime_progress_allowance",  # AD
-            "overtime_hours_for_calculation",  # AE
-            "taxable_overtime_salary",  # AF
-            "non_taxable_overtime_salary",  # AG
+            "tc1_overtime_hours",  # Z
+            "tc2_overtime_hours",  # AA
+            "tc3_overtime_hours",  # AB
+            "total_overtime_hours",  # AC
+            "hourly_rate",  # AD
+            "overtime_pay_reference",  # AE
+            "overtime_progress_allowance",  # AF
+            "overtime_hours_for_calculation",  # AG
+            "taxable_overtime_salary",  # AH
+            "non_taxable_overtime_salary",  # AI
             # Total income (1 field)
-            "gross_income",  # AH
-            # Insurance base (1 field)
-            "social_insurance_base",  # AI
+            "gross_income",  # AJ
+            # Insurance (2 fields)
+            "has_social_insurance",  # AK - NEW
+            "social_insurance_base",  # AL
             # Employer contributions (5 fields)
-            "employer_social_insurance",  # AJ
-            "employer_health_insurance",  # AK
-            "employer_accident_insurance",  # AL
-            "employer_unemployment_insurance",  # AM
-            "employer_union_fee",  # AN
+            "employer_social_insurance",  # AM
+            "employer_health_insurance",  # AN
+            "employer_accident_insurance",  # AO
+            "employer_unemployment_insurance",  # AP
+            "employer_union_fee",  # AQ
             # Employee deductions (4 fields)
-            "employee_social_insurance",  # AO
-            "employee_health_insurance",  # AP
-            "employee_unemployment_insurance",  # AQ
-            "employee_union_fee",  # AR
-            # Tax (5 fields)
-            "tax_code",  # AS
-            "dependent_count",  # AT
-            "total_deduction",  # AU
-            "non_taxable_allowance",  # AV
-            "taxable_income",  # AW
-            "personal_income_tax",  # AX
+            "employee_social_insurance",  # AR
+            "employee_health_insurance",  # AS
+            "employee_unemployment_insurance",  # AT
+            "employee_union_fee",  # AU
+            # Tax (8 fields)
+            "tax_code",  # AV
+            "tax_calculation_method",  # AW - NEW
+            "dependent_count",  # AX
+            "total_deduction",  # AY
+            "non_taxable_allowance",  # AZ
+            "minimum_flat_tax_threshold",  # BA - NEW
+            "taxable_income",  # BB
+            "personal_income_tax",  # BC
             # Adjustments (2 fields)
-            "back_pay_amount",  # AY
-            "recovery_amount",  # AZ
+            "back_pay_amount",  # BD
+            "recovery_amount",  # BE
             # Net salary (1 field)
-            "net_salary",  # BA
+            "net_salary",  # BF
             # Bank account (1 field)
-            "bank_account",  # BB
+            "bank_account",  # BG
         ]
 
         # Sheet 1: Ready slips (based on SalaryPeriodReadySlipsViewSet logic)
@@ -928,6 +940,46 @@ class SalaryPeriodViewSet(AuditLoggingMixin, BaseModelViewSet):
             )
 
         # Build data for both sheets
+        def _get_tax_method_display(slip):
+            """Get tax calculation method display value."""
+            from apps.hrm.models import ContractType
+
+            tax_method_display = ""
+            if slip.tax_calculation_method:
+                tax_method_display = dict(ContractType.TaxCalculationMethod.choices).get(
+                    slip.tax_calculation_method, slip.tax_calculation_method
+                )
+            return {"tax_calculation_method": str(tax_method_display)}
+
+        def _get_tax_formulas(slip, excel_row):
+            """Get taxable income and tax formulas based on tax_calculation_method."""
+            tax_method = slip.tax_calculation_method or ""
+
+            # BB: Taxable income
+            if tax_method == "progressive":
+                # =IF(AJ-SUM(AR:AT)-AY-AI-AZ>0,AJ-SUM(AR:AT)-AY-AI-AZ,0)
+                taxable_income_formula = f"=IF(AJ{excel_row}-SUM(AR{excel_row}:AT{excel_row})-AY{excel_row}-AI{excel_row}-AZ{excel_row}>0,AJ{excel_row}-SUM(AR{excel_row}:AT{excel_row})-AY{excel_row}-AI{excel_row}-AZ{excel_row},0)"
+            elif tax_method == "flat_10":
+                # =AJ (gross income)
+                taxable_income_formula = f"=AJ{excel_row}"
+            else:  # none or empty
+                taxable_income_formula = "=0"
+
+            # BC: Personal income tax
+            if tax_method == "progressive":
+                # Progressive tax brackets
+                tax_formula = f"=IF(BB{excel_row}<=5000000,BB{excel_row}*0.05,IF(BB{excel_row}<=10000000,BB{excel_row}*0.1-250000,IF(BB{excel_row}<=18000000,BB{excel_row}*0.15-750000,IF(BB{excel_row}<=32000000,BB{excel_row}*0.2-1650000,IF(BB{excel_row}<=52000000,BB{excel_row}*0.25-3250000,IF(BB{excel_row}<=80000000,BB{excel_row}*0.3-5850000,BB{excel_row}*0.35-9850000))))))"
+            elif tax_method == "flat_10":
+                # =IF(BB>=BA,BB*10%,0)
+                tax_formula = f"=IF(BB{excel_row}>=BA{excel_row},BB{excel_row}*0.1,0)"
+            else:  # none or empty
+                tax_formula = "=0"
+
+            return {
+                "taxable_income": taxable_income_formula,
+                "personal_income_tax": tax_formula,
+            }
+
         def build_sheet_data(slips):
             """Build sheet data with Excel formulas for calculated fields."""
             data = []
@@ -972,84 +1024,88 @@ class SalaryPeriodViewSet(AuditLoggingMixin, BaseModelViewSet):
                     "position_name": slip.position_name or "",
                     # F: Employment status
                     "employment_status": slip.employment_status or "",
-                    # G: Email
+                    # G: Is sale employee
+                    "is_sale_employee": slip.is_sale_employee,
+                    # H: Email
                     "employee_email": slip.employee_email or "",
-                    # H: Sales revenue
+                    # I: Sales revenue
                     "sales_revenue": slip.sales_revenue or 0,
-                    # I: Transaction count
+                    # J: Transaction count
                     "sales_transaction_count": slip.sales_transaction_count or 0,
-                    # Position income (J-R)
-                    "base_salary": slip.base_salary or 0,  # J
-                    "lunch_allowance": slip.lunch_allowance or 0,  # K
-                    "phone_allowance": slip.phone_allowance or 0,  # L
-                    "travel_expense_by_working_days": slip.travel_expense_by_working_days or 0,  # M
-                    "kpi_salary": slip.kpi_salary or 0,  # N
-                    "kpi_grade": slip.kpi_grade or "",  # O
-                    "kpi_bonus": slip.kpi_bonus or 0,  # P
-                    "business_progressive_salary": slip.business_progressive_salary or 0,  # Q
-                    # R: Total position income = J+K+L+M+N+P+Q
-                    "total_position_income": f"=J{excel_row}+K{excel_row}+L{excel_row}+M{excel_row}+N{excel_row}+P{excel_row}+Q{excel_row}",
-                    # Working days (S-V)
-                    "standard_working_days": slip.standard_working_days or 0,  # S
-                    "total_working_days": slip.total_working_days or 0,  # T
-                    "probation_working_days": slip.probation_working_days or 0,  # U
-                    "official_working_days": slip.official_working_days or 0,  # V
-                    # W: Actual working days income
-                    # Formula: IF(E{row}="NVKD",(V{row}*R{row}+U{row}*R{row})/S{row},(V{row}*R{row}+U{row}*R{row}*0.85)/S{row})
-                    "actual_working_days_income": f'=IF(E{excel_row}="NVKD",(V{excel_row}*R{excel_row}+U{excel_row}*R{excel_row})/S{excel_row},(V{excel_row}*R{excel_row}+U{excel_row}*R{excel_row}*0.85)/S{excel_row})',
-                    # Overtime (X-AG)
-                    "tc1_overtime_hours": slip.tc1_overtime_hours or 0,  # X
-                    "tc2_overtime_hours": slip.tc2_overtime_hours or 0,  # Y
-                    "tc3_overtime_hours": slip.tc3_overtime_hours or 0,  # Z
-                    "total_overtime_hours": slip.total_overtime_hours or 0,  # AA - fill data, not formula
-                    # AB: Hourly rate = IF(F="PROBATION",R*0.85/S/8,R/S/8)
-                    "hourly_rate": f'=IF(F{excel_row}="{probation_status}",R{excel_row}*0.85/S{excel_row}/8,R{excel_row}/S{excel_row}/8)',
-                    # AC: Reference overtime pay = (X*1.5+Y*2+Z*3)*AB
-                    "overtime_pay_reference": f"=(X{excel_row}*1.5+Y{excel_row}*2+Z{excel_row}*3)*AB{excel_row}",
-                    # AD: Progress allowance = AC-AF
-                    "overtime_progress_allowance": f"=AC{excel_row}-AF{excel_row}",
-                    # AE: Hours for calculation = AA
-                    "overtime_hours_for_calculation": f"=AA{excel_row}",
-                    # AF: Taxable overtime = AE*AB
-                    "taxable_overtime_salary": f"=AE{excel_row}*AB{excel_row}",
-                    # AG: Non-taxable overtime = IF(AD>AF*2,AF*2,AC-AF)
-                    "non_taxable_overtime_salary": f"=IF(AD{excel_row}>AF{excel_row}*2,AF{excel_row}*2,AC{excel_row}-AF{excel_row})",
-                    # AH: Gross income = W+AF+AG
-                    "gross_income": f"=W{excel_row}+AF{excel_row}+AG{excel_row}",
-                    # AI: Insurance base = IF(F="OFFICIAL",J,0)
-                    "social_insurance_base": f'=IF(F{excel_row}="{official_status}",J{excel_row},0)',
-                    # Employer contributions (AJ-AN)
-                    "employer_social_insurance": f"=AI{excel_row}*{employer_si_rate}",  # AJ
-                    "employer_health_insurance": f"=AI{excel_row}*{employer_hi_rate}",  # AK
-                    "employer_accident_insurance": f"=AI{excel_row}*{employer_ai_rate}",  # AL
-                    "employer_unemployment_insurance": f"=AI{excel_row}*{employer_ui_rate}",  # AM
-                    "employer_union_fee": f"=AI{excel_row}*{employer_uf_rate}",  # AN
-                    # Employee deductions (AO-AR)
-                    "employee_social_insurance": f"=AI{excel_row}*{employee_si_rate}",  # AO
-                    "employee_health_insurance": f"=AI{excel_row}*{employee_hi_rate}",  # AP
-                    "employee_unemployment_insurance": f"=AI{excel_row}*{employee_ui_rate}",  # AQ
-                    "employee_union_fee": f"=AI{excel_row}*{employee_uf_rate}",  # AR
-                    # Tax information (AS-AX)
-                    "tax_code": slip.tax_code or "",  # AS
-                    "dependent_count": slip.dependent_count or 0,  # AT
-                    # AU: Total deduction = personal_deduction + dependent_count * dependent_deduction
-                    "total_deduction": f"={personal_deduction}+AT{excel_row}*{dependent_deduction}",
-                    # AV: Non-taxable allowance = SUM(K:L)/S*(U*0.85+V)
-                    "non_taxable_allowance": f"=SUM(K{excel_row}:L{excel_row})/S{excel_row}*(U{excel_row}*0.85+V{excel_row})",
-                    # AW: Taxable income - depends on employment status
-                    # If F="OFFICIAL": =IF(AH-SUM(AO:AQ)-AU-AG-AV>0,AH-SUM(AO:AQ)-AU-AG-AV,0)
-                    # Else: =AH
-                    "taxable_income": f'=IF(F{excel_row}="{official_status}",IF(AH{excel_row}-SUM(AO{excel_row}:AQ{excel_row})-AU{excel_row}-AG{excel_row}-AV{excel_row}>0,AH{excel_row}-SUM(AO{excel_row}:AQ{excel_row})-AU{excel_row}-AG{excel_row}-AV{excel_row},0),AH{excel_row})',
-                    # AX: Personal income tax
-                    # If F="OFFICIAL": Progressive tax brackets
-                    # Else: =IF(AW>=2000000,AW*10%,0)
-                    "personal_income_tax": f'=IF(F{excel_row}="{official_status}",IF(AW{excel_row}<=5000000,AW{excel_row}*0.05,IF(AW{excel_row}<=10000000,AW{excel_row}*0.1-250000,IF(AW{excel_row}<=18000000,AW{excel_row}*0.15-750000,IF(AW{excel_row}<=32000000,AW{excel_row}*0.2-1650000,IF(AW{excel_row}<=52000000,AW{excel_row}*0.25-3250000,IF(AW{excel_row}<=80000000,AW{excel_row}*0.3-5850000,AW{excel_row}*0.35-9850000)))))),IF(AW{excel_row}>=2000000,AW{excel_row}*0.1,0))',
-                    # Adjustments (AY-AZ)
-                    "back_pay_amount": slip.back_pay_amount or 0,  # AY
-                    "recovery_amount": slip.recovery_amount or 0,  # AZ
-                    # BA: Net salary = ROUND(AH-SUM(AO:AQ)-AR+AY-AZ-AX,0)
-                    "net_salary": f"=ROUND(AH{excel_row}-SUM(AO{excel_row}:AQ{excel_row})-AR{excel_row}+AY{excel_row}-AZ{excel_row}-AX{excel_row},0)",
-                    # BB: Bank account
+                    # Position income (K-S)
+                    "base_salary": slip.base_salary or 0,  # K
+                    "lunch_allowance": slip.lunch_allowance or 0,  # L
+                    "phone_allowance": slip.phone_allowance or 0,  # M
+                    "travel_expense_by_working_days": slip.travel_expense_by_working_days or 0,  # N
+                    "kpi_salary": slip.kpi_salary or 0,  # O
+                    "kpi_grade": slip.kpi_grade or "",  # P
+                    "kpi_bonus": slip.kpi_bonus or 0,  # Q
+                    "business_progressive_salary": slip.business_progressive_salary or 0,  # R
+                    # S: Total position income = K+L+M+N+O+Q+R
+                    "total_position_income": f"=K{excel_row}+L{excel_row}+M{excel_row}+N{excel_row}+O{excel_row}+Q{excel_row}+R{excel_row}",
+                    # Working days (T-X)
+                    "standard_working_days": slip.standard_working_days or 0,  # T
+                    "total_working_days": slip.total_working_days or 0,  # U
+                    "probation_working_days": slip.probation_working_days or 0,  # V
+                    "official_working_days": slip.official_working_days or 0,  # W
+                    # X: Net percentage (0.85 or 1)
+                    "net_percentage": 0.85 if slip.net_percentage == 85 else 1.0,
+                    # Y: Actual working days income = (W*S+V*S*X)/T
+                    "actual_working_days_income": f"=(W{excel_row}*S{excel_row}+V{excel_row}*S{excel_row}*X{excel_row})/T{excel_row}",
+                    # Overtime (Z-AI)
+                    "tc1_overtime_hours": slip.tc1_overtime_hours or 0,  # Z
+                    "tc2_overtime_hours": slip.tc2_overtime_hours or 0,  # AA
+                    "tc3_overtime_hours": slip.tc3_overtime_hours or 0,  # AB
+                    "total_overtime_hours": slip.total_overtime_hours or 0,  # AC
+                    # AD: Hourly rate = IF(F="PROBATION",S*0.85/T/8,S/T/8)
+                    "hourly_rate": f'=IF(F{excel_row}="PROBATION",S{excel_row}*0.85/T{excel_row}/8,S{excel_row}/T{excel_row}/8)',
+                    # AE: Reference overtime pay = (Z*1.5+AA*2+AB*3)*AD
+                    "overtime_pay_reference": f"=(Z{excel_row}*1.5+AA{excel_row}*2+AB{excel_row}*3)*AD{excel_row}",
+                    # AF: Progress allowance = AE-AH
+                    "overtime_progress_allowance": f"=AE{excel_row}-AH{excel_row}",
+                    # AG: Hours for calculation = AC
+                    "overtime_hours_for_calculation": f"=AC{excel_row}",
+                    # AH: Taxable overtime = AG*AD
+                    "taxable_overtime_salary": f"=AG{excel_row}*AD{excel_row}",
+                    # AI: Non-taxable overtime = IF(AF>AH*2,AH*2,AE-AH)
+                    "non_taxable_overtime_salary": f"=IF(AF{excel_row}>AH{excel_row}*2,AH{excel_row}*2,AE{excel_row}-AH{excel_row})",
+                    # AJ: Gross income = Y+AH+AI
+                    "gross_income": f"=Y{excel_row}+AH{excel_row}+AI{excel_row}",
+                    # Insurance (AK-AL)
+                    # AK: Has social insurance
+                    "has_social_insurance": slip.has_social_insurance,
+                    # AL: Insurance base = IF(AK=TRUE,K,0)
+                    "social_insurance_base": f"=IF(AK{excel_row}=TRUE,K{excel_row},0)",
+                    # Employer contributions (AM-AQ)
+                    "employer_social_insurance": f"=AL{excel_row}*{employer_si_rate}",  # AM
+                    "employer_health_insurance": f"=AL{excel_row}*{employer_hi_rate}",  # AN
+                    "employer_accident_insurance": f"=AL{excel_row}*{employer_ai_rate}",  # AO
+                    "employer_unemployment_insurance": f"=AL{excel_row}*{employer_ui_rate}",  # AP
+                    "employer_union_fee": f"=AL{excel_row}*{employer_uf_rate}",  # AQ
+                    # Employee deductions (AR-AU)
+                    "employee_social_insurance": f"=AL{excel_row}*{employee_si_rate}",  # AR
+                    "employee_health_insurance": f"=AL{excel_row}*{employee_hi_rate}",  # AS
+                    "employee_unemployment_insurance": f"=AL{excel_row}*{employee_ui_rate}",  # AT
+                    "employee_union_fee": f"=AL{excel_row}*{employee_uf_rate}",  # AU
+                    # Tax information (AV-BC)
+                    "tax_code": slip.tax_code or "",  # AV
+                    # AW: Tax calculation method (translate)
+                    **_get_tax_method_display(slip),  # AW
+                    "dependent_count": slip.dependent_count or 0,  # AX
+                    # AY: Total deduction = personal_deduction + dependent_count * dependent_deduction
+                    "total_deduction": f"={personal_deduction}+AX{excel_row}*{dependent_deduction}",
+                    # AZ: Non-taxable allowance = SUM(L:M)/T*(V*X+W)
+                    "non_taxable_allowance": f"=SUM(L{excel_row}:M{excel_row})/T{excel_row}*(V{excel_row}*X{excel_row}+W{excel_row})",
+                    # BA: Minimum flat tax threshold
+                    "minimum_flat_tax_threshold": tax_config.get("minimum_flat_tax_threshold", 2000000),
+                    # BB-BC: Taxable income and tax - conditional based on tax_calculation_method
+                    **_get_tax_formulas(slip, excel_row),
+                    # Adjustments (BD-BE)
+                    "back_pay_amount": slip.back_pay_amount or 0,  # BD
+                    "recovery_amount": slip.recovery_amount or 0,  # BE
+                    # BF: Net salary = ROUND(AJ-SUM(AR:AT)-AU+BD-BE-BC,0)
+                    "net_salary": f"=ROUND(AJ{excel_row}-SUM(AR{excel_row}:AT{excel_row})-AU{excel_row}+BD{excel_row}-BE{excel_row}-BC{excel_row},0)",
+                    # BG: Bank account
                     "bank_account": (
                         slip.employee.default_bank_account.account_number
                         if slip.employee and slip.employee.default_bank_account

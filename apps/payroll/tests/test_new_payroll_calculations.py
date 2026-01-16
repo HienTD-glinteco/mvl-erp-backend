@@ -127,10 +127,13 @@ class TestActualWorkingDaysIncome:
     def test_non_sales_mixed_official_and_probation_days(self, payroll_slip, contract, timesheet, employee):
         """Test income for non-sales staff with mixed official and probation days."""
         # Arrange
+        from apps.hrm.models import ContractType
+
         employee.employee_type = EmployeeType.OFFICIAL
         employee.save()
 
         contract.base_salary = Decimal("20000000")
+        contract.net_percentage = ContractType.NetPercentage.REDUCED  # 85%
         contract.save()
 
         timesheet.official_working_days = Decimal("15.00")
@@ -147,7 +150,8 @@ class TestActualWorkingDaysIncome:
 
         # Assert
         payroll_slip.refresh_from_db()
-        # Formula: ((official_days * income) + (probation_days * income * 0.85)) / standard_days
+        # New formula: ((official_days * income) + (probation_days * income * 0.85)) / standard_days
+        # Only applies 0.85 if net_percentage == REDUCED (85)
         total_position_income = payroll_slip.total_position_income
         official_income = Decimal("15.00") * total_position_income
         probation_income = Decimal("7.00") * total_position_income * Decimal("0.85")
@@ -736,11 +740,14 @@ class TestTravelExpenseCalculations:
         assert payroll_slip.total_position_income == expected
 
     def test_by_working_days_expense_in_business_progressive_calculation(
-        self, payroll_slip, contract, timesheet, employee, travel_expense_factory, sales_revenue_factory
+        self, payroll_slip, contract, timesheet, employee, position, travel_expense_factory, sales_revenue_factory
     ):
         """Test that by working days expense is deducted in business progressive salary calculation."""
         # Arrange
         from apps.payroll.models import TravelExpense
+
+        position.code = "NVKD"
+        position.save()
 
         employee.employee_type = EmployeeType.OFFICIAL
         employee.save()
@@ -845,9 +852,12 @@ class TestTravelExpenseCalculations:
 class TestBusinessProgressiveSalaryCalculation:
     """Test business progressive salary calculation logic."""
 
-    def test_no_sales_revenue_returns_m0_grade(self, payroll_slip, contract, timesheet, employee):
+    def test_no_sales_revenue_returns_m0_grade(self, payroll_slip, contract, timesheet, employee, position):
         """Test that no sales revenue results in M0 grade and zero progressive salary."""
         # Arrange
+        position.code = "NVKD"
+        position.save()
+
         employee.employee_type = EmployeeType.OFFICIAL
         employee.save()
 
@@ -866,9 +876,14 @@ class TestBusinessProgressiveSalaryCalculation:
         assert payroll_slip.sales_revenue == 0
         assert payroll_slip.sales_transaction_count == 0
 
-    def test_sales_revenue_below_threshold(self, payroll_slip, contract, timesheet, employee, sales_revenue_factory):
+    def test_sales_revenue_below_threshold(
+        self, payroll_slip, contract, timesheet, employee, position, sales_revenue_factory
+    ):
         """Test sales revenue below tier threshold."""
         # Arrange
+        position.code = "NVKD"
+        position.save()
+
         employee.employee_type = EmployeeType.OFFICIAL
         employee.save()
 
@@ -888,9 +903,14 @@ class TestBusinessProgressiveSalaryCalculation:
         assert payroll_slip.business_grade == "M0"
         assert payroll_slip.business_progressive_salary == Decimal("0")
 
-    def test_sales_revenue_meets_tier_m1(self, payroll_slip, contract, timesheet, employee, sales_revenue_factory):
+    def test_sales_revenue_meets_tier_m1(
+        self, payroll_slip, contract, timesheet, employee, position, sales_revenue_factory
+    ):
         """Test sales revenue that meets M1 tier criteria."""
         # Arrange
+        position.code = "NVKD"
+        position.save()
+
         employee.employee_type = EmployeeType.OFFICIAL
         employee.save()
 
@@ -920,10 +940,13 @@ class TestBusinessProgressiveSalaryCalculation:
         assert payroll_slip.business_progressive_salary == max(Decimal("0"), expected)
 
     def test_sales_revenue_meets_highest_tier_m3(
-        self, payroll_slip, contract, timesheet, employee, sales_revenue_factory
+        self, payroll_slip, contract, timesheet, employee, position, sales_revenue_factory
     ):
         """Test sales revenue that meets M3 tier criteria."""
         # Arrange
+        position.code = "NVKD"
+        position.save()
+
         employee.employee_type = EmployeeType.OFFICIAL
         employee.save()
 
@@ -1540,9 +1563,18 @@ class TestNewFieldsInSerializers:
         assert "overtime_progress_allowance" in data
         assert "non_taxable_overtime_salary" in data
         assert "travel_expense_by_working_days" in data
+        # Check snapshot fields
+        assert "tax_calculation_method" in data
+        assert "net_percentage" in data
+        assert "has_social_insurance" in data
+        assert "is_sale_employee" in data
 
         # Verify values are serialized correctly
         assert data["total_position_income"] == str(payroll_slip.total_position_income)
         assert data["actual_working_days_income"] == str(payroll_slip.actual_working_days_income)
         assert data["taxable_overtime_salary"] == str(payroll_slip.taxable_overtime_salary)
         assert data["travel_expense_by_working_days"] == str(payroll_slip.travel_expense_by_working_days)
+        # Verify snapshot field values
+        assert data["tax_calculation_method"] == payroll_slip.tax_calculation_method
+        assert data["has_social_insurance"] == payroll_slip.has_social_insurance
+        assert data["is_sale_employee"] == payroll_slip.is_sale_employee

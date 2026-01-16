@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-16 11:28+0700\n"
+"POT-Creation-Date: 2026-01-16 11:26+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -295,6 +295,8 @@ msgstr ""
 "Chỉ những nhân viên có trạng thái 'Đang thử việc' mới có thể được kích hoạt."
 
 #: apps/hrm/api/serializers/employee.py:486
+#, fuzzy, python-brace-format
+#| msgid "Assigned to {department} - {position}"
 msgid "Assigned to {department} - {position} ({employee_type})"
 msgstr "Được phân công vào {department} - {position}"
 
@@ -5141,26 +5143,22 @@ msgid "End time must be after start time"
 msgstr "Thời gian kết thúc làm ngoài giờ phải sau thời gian bắt đầu"
 
 #: apps/hrm/models/proposal.py:1058
-#, python-brace-format
 msgid ""
 "Overtime entry cannot overlap with official morning working hours ({}-{})"
 msgstr ""
 "Thời gian làm thêm giờ không thể trùng với giờ làm việc chính thức ({}-{})"
 
 #: apps/hrm/models/proposal.py:1074
-#, python-brace-format
 msgid ""
 "Overtime entry cannot overlap with official afternoon working hours ({}-{})"
 msgstr ""
 "Thời gian làm thêm giờ không thể trùng với giờ làm việc chính thức ({}-{})"
 
 #: apps/hrm/models/proposal.py:1118
-#, python-brace-format
 msgid "Overtime entry cannot overlap with compensatory morning shift ({}-{})"
 msgstr "Thời gian làm thêm giờ không thể trùng với giờ làm việc bù ({}-{})"
 
 #: apps/hrm/models/proposal.py:1136
-#, python-brace-format
 msgid "Overtime entry cannot overlap with compensatory afternoon shift ({}-{})"
 msgstr "Thời gian làm thêm giờ không thể trùng với giờ làm việc bù ({}-{})"
 
@@ -5669,12 +5667,16 @@ msgid "Afternoon end time"
 msgstr "Kết thúc ca chiều"
 
 #: apps/hrm/models/work_schedule.py:80
+#, fuzzy
+#| msgid "Morning hours"
 msgid "Morning required"
-msgstr "Cần buổi sáng"
+msgstr "Buổi sáng"
 
 #: apps/hrm/models/work_schedule.py:86
+#, fuzzy
+#| msgid "Afternoon hours"
 msgid "Afternoon required"
-msgstr "Cần buổi chiều"
+msgstr "Buổi chiều"
 
 #: apps/hrm/models/work_schedule.py:99
 msgid "Work schedule"
