@@ -174,6 +174,7 @@ class TestOtherAttendanceAndBulkApprove:
             "latitude": "10.123",
             "longitude": "106.456",
             "description": "Remote work",
+            "address_text": "123 Test Street",
             "files": {
                 "image": file_token,
             },

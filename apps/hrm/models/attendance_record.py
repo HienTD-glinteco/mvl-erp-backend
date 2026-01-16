@@ -117,6 +117,13 @@ class AttendanceRecord(ColoredValueMixin, AutoCodeMixin, BaseModel):
     )
 
     # GeoLocation fields
+    address_text = SafeTextField(
+        default="",
+        blank=True,
+        verbose_name=_("Address in text, used for Other Attendance record"),
+        help_text="Address in text, used for Other Attendance record",
+        db_index=True,
+    )
     latitude = models.DecimalField(
         max_digits=20,
         decimal_places=17,

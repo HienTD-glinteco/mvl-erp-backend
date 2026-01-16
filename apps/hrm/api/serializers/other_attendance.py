@@ -19,7 +19,8 @@ class OtherAttendanceSerializer(FileConfirmSerializerMixin, serializers.ModelSer
     longitude = serializers.DecimalField(
         max_digits=20, decimal_places=17, min_value=-180, max_value=180, required=True
     )
-    description = serializers.CharField(required=True)
+    address_text = serializers.CharField(required=True)
+    description = serializers.CharField(required=False)
 
     file_confirm_fields = ["image"]
     file_required_fields = ["image"]
@@ -30,6 +31,7 @@ class OtherAttendanceSerializer(FileConfirmSerializerMixin, serializers.ModelSer
             "timestamp",
             "latitude",
             "longitude",
+            "address_text",
             "description",
             "image",
         ]

@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MaiVietLand Backend Core\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-16 11:28+0700\n"
+"POT-Creation-Date: 2026-01-16 11:40+0700\n"
 "PO-Revision-Date: 2025-01-21 00:00+0000\n"
 "Last-Translator: Glinteco Developers\n"
 "Language-Team: Vietnamese\n"
@@ -20,10 +20,8 @@ msgid "Token client does not match endpoint client."
 msgstr "Token client không khớp với client của endpoint."
 
 #: apps/core/api/authentication.py:42
-#, fuzzy
-#| msgid "Missing token version."
 msgid "Invalid token version."
-msgstr "Thiếu phiên bản token."
+msgstr "Phiên bản token không hợp lệ."
 
 #: apps/core/api/authentication.py:46
 msgid "Token has been revoked."
@@ -580,21 +578,7 @@ msgid "Login OTP Code - MaiVietLand"
 msgstr "Mã OTP đăng nhập - MaiVietLand"
 
 #: apps/core/tasks/email.py:83
-#, fuzzy, python-format
-#| msgid ""
-#| "Hello %(name)s,\n"
-#| "\n"
-#| "We have received a password reset request for your MaiVietLand account.\n"
-#| "\n"
-#| "Your OTP code to reset your password is: %(otp_code)s\n"
-#| "\n"
-#| "This code is valid for 3 minutes and can only be used once.\n"
-#| "\n"
-#| "If you did not initiate this password reset request, please ignore this "
-#| "email.\n"
-#| "\n"
-#| "Best regards,\n"
-#| "MaiVietLand Team"
+#, python-format
 msgid ""
 "Hello %(name)s,\n"
 "\n"
@@ -612,14 +596,14 @@ msgid ""
 msgstr ""
 "Xin chào %(name)s,\n"
 "\n"
-"Chúng tôi đã nhận được yêu cầu đặt lại mật khẩu cho tài khoản MaiVietLand "
+"Chúng tôi đã nhận được yêu cầu thay đổi thiết bị cho tài khoản MaiVietLand "
 "của bạn.\n"
 "\n"
-"Mã OTP để đặt lại mật khẩu của bạn là: %(otp_code)s\n"
+"Mã OTP để hoàn tất yêu cầu của bạn là: %(otp_code)s\n"
 "\n"
-"Mã này có hiệu lực trong 3 phút và chỉ sử dụng một lần.\n"
+"Mã này có hiệu lực trong 5 phút và chỉ sử dụng một lần.\n"
 "\n"
-"Nếu bạn không thực hiện yêu cầu đặt lại mật khẩu này, vui lòng bỏ qua "
+"Nếu bạn không thực hiện yêu cầu thay đổi thiết bị này, vui lòng bỏ qua "
 "email.\n"
 "\n"
 "Trân trọng,\n"
@@ -627,7 +611,7 @@ msgstr ""
 
 #: apps/core/tasks/email.py:97
 msgid "Device Change OTP Code - MaiVietLand"
-msgstr "Mã OTP đăng nhập - MaiVietLand"
+msgstr "Mã OTP thay đổi thiết bị - MaiVietLand"
 
 #: apps/core/tasks/email.py:134
 #, python-format
@@ -784,7 +768,7 @@ msgid "Password must contain at least one digit."
 msgstr "Mật khẩu phải chứa ít nhất một chữ số."
 
 #: apps/core/validators.py:35
-#, no-python-format, python-brace-format
+#, no-python-format
 msgid ""
 "Password must contain at least one special character (!@#$%^&*(),.?\":{}|<>)."
 msgstr "Mật khẩu phải chứa ít nhất một ký tự đặc biệt (!@#$%^&*(),.?\":{}|<>)."

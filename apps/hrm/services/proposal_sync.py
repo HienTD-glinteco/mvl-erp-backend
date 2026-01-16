@@ -15,7 +15,7 @@ class ProposalSyncService:
     @staticmethod
     def _get_proposal_date_ranges(proposal: Proposal) -> tuple[Optional[object], Optional[object]]:
         """Helper to extract date ranges for proposal types with start/end dates."""
-        mapping = {
+        mapping: dict[str, tuple[str, str]] = {
             ProposalType.LATE_EXEMPTION: ("late_exemption_start_date", "late_exemption_end_date"),
             ProposalType.POST_MATERNITY_BENEFITS: (
                 "post_maternity_benefits_start_date",
@@ -26,7 +26,7 @@ class ProposalSyncService:
             ProposalType.UNPAID_LEAVE: ("unpaid_leave_start_date", "unpaid_leave_end_date"),
         }
 
-        fields = mapping.get(proposal.proposal_type)
+        fields = mapping.get(proposal.proposal_type or "")
         if fields:
             start = getattr(proposal, fields[0])
             end = getattr(proposal, fields[1])

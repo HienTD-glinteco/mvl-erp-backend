@@ -202,12 +202,12 @@ class TimesheetSnapshotService:
             is_full_day = not leave.unpaid_leave_shift or leave.unpaid_leave_shift == ProposalWorkShift.FULL_DAY
 
         if is_full_day:
-            reason_map = {
+            reason_map: dict[str, TimesheetReason] = {
                 ProposalType.MATERNITY_LEAVE: TimesheetReason.MATERNITY_LEAVE,
                 ProposalType.PAID_LEAVE: TimesheetReason.PAID_LEAVE,
                 ProposalType.UNPAID_LEAVE: TimesheetReason.UNPAID_LEAVE,
             }
-            entry.absent_reason = reason_map.get(leave.proposal_type) or TimesheetReason.UNPAID_LEAVE
+            entry.absent_reason = reason_map.get(leave.proposal_type or "") or TimesheetReason.UNPAID_LEAVE
 
     def snapshot_allowed_late_minutes(self, entry: TimeSheetEntry) -> None:
         """Calculate and store allowed_late_minutes (grace period)."""
