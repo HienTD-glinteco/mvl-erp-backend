@@ -9,7 +9,6 @@ from rest_framework.exceptions import APIException
 from apps.hrm.api.serializers import EmployeeSerializer
 from apps.hrm.models import (
     Employee,
-    EmployeeWorkHistory,
     RecruitmentCandidate,
     RecruitmentChannel,
     RecruitmentRequest,
@@ -311,11 +310,5 @@ class CandidateToEmployeeSerializer(serializers.Serializer):
         # Link the candidate to the employee
         self.candidate.employee = employee
         self.candidate.save(update_fields=["employee"])
-
-        # Update the automatically created work history to include candidate info
-        work_history = EmployeeWorkHistory.objects.filter(employee=employee).first()
-        if work_history:
-            work_history.note = _("Converted from recruitment candidate {code}").format(code=self.candidate.code)
-            work_history.save(update_fields=["note"])
 
         return employee

@@ -309,19 +309,12 @@ class EmployeeSerializer(FileConfirmSerializerMixin, FieldFilteringSerializerMix
         return value
 
     def create(self, validated_data):
-        """Create employee and generate initial work history record."""
-        employee = super().create(validated_data)
+        """Create employee without generating initial work history record.
 
-        # Create initial status change work history record
-        create_state_change_event(
-            employee=employee,
-            old_status=None,
-            new_status=employee.status,
-            effective_date=employee.start_date,
-            note=_("Employee created"),
-        )
-
-        return employee
+        Work history records are only created for status changes after
+        the employee exists, not for the initial creation.
+        """
+        return super().create(validated_data)
 
     def update(self, instance, validated_data):
         """Update employee and track changes in work history.

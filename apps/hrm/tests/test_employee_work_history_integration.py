@@ -17,7 +17,6 @@ from apps.hrm.models import (
     EmployeeWorkHistory,
     Position,
     RecruitmentCandidate,
-    RecruitmentRequest,
 )
 
 User = get_user_model()
@@ -102,42 +101,6 @@ class EmployeeWorkHistoryIntegrationTest(TransactionTestCase):
         apps.hrm.api.serializers.recruitment_candidate.EmployeeSerializer = self.original_employee_serializer
 
         super().tearDown()
-
-    def test_create_employee_creates_work_history(self):
-        """Test that creating an employee creates an initial work history record."""
-        # Arrange
-        employee_data = {
-            "fullname": "Jane Smith",
-            "username": "janesmith",
-            "email": "janesmith@example.com",
-            "department_id": self.department.id,
-            "start_date": "2024-01-01",
-            "attendance_code": "123456",
-            "status": Employee.Status.ONBOARDING,
-            "citizen_id": "123456789012",
-            "payment_wages": 10000000,
-            "personal_email": "jane.personal@example.com",
-            "citizen_id_issued_date": "2020-01-01",
-            "citizen_id_issued_place": "Hanoi",
-            "phone": "7609500021",
-        }
-
-        # Act
-        url = reverse("hrm:employee-list")
-        response = self.client.post(url, employee_data, format="json")
-
-        # Assert
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        employee = Employee.objects.get(email="janesmith@example.com")
-
-        # Check that work history was created
-        work_histories = EmployeeWorkHistory.objects.filter(employee=employee)
-        self.assertEqual(work_histories.count(), 1)
-
-        work_history = work_histories.first()
-        self.assertEqual(work_history.name, EmployeeWorkHistory.EventType.CHANGE_STATUS)
-        self.assertEqual(work_history.status, Employee.Status.ONBOARDING)
-        self.assertEqual(work_history.date, date(2024, 1, 1))
 
     def test_update_employee_status_creates_work_history(self):
         """Test that updating employee status creates a work history record."""
@@ -542,92 +505,3 @@ class EmployeeWorkHistoryIntegrationTest(TransactionTestCase):
         # The reactive date is effective on end_date of maternity leave
         self.assertEqual(wh2.date, date(2025, 9, 1))
         self.assertIn("Maternity leave ended", wh2.note)
-
-    def test_recruitment_candidate_to_employee_creates_work_history(self):
-        """Test that converting a recruitment candidate to employee creates a work history record."""
-        # Arrange - Create proposer employee first
-        proposer = Employee.objects.create(
-            fullname="Proposer Employee",
-            username="proposer_emp",
-            email="proposer@example.com",
-            code_type="MV",
-            branch=self.branch,
-            block=self.block,
-            department=self.department,
-            position=self.position,
-            start_date=date(2024, 1, 1),
-            citizen_id="111111111111",
-            attendance_code="99999",
-            phone="0999999999",
-            personal_email="proposer.personal@example.com",
-        )
-
-        from apps.hrm.models import JobDescription, RecruitmentChannel, RecruitmentSource
-
-        # Create recruitment channel and source
-        recruitment_channel = RecruitmentChannel.objects.create(
-            name="Job Website",
-        )
-        recruitment_source = RecruitmentSource.objects.create(
-            name="LinkedIn",
-        )
-
-        # Create job description
-        job_desc = JobDescription.objects.create(
-            title="Backend Developer",
-            position_title="Senior Backend Developer",
-            responsibility="Develop backend services",
-            requirement="Python, Django experience",
-            benefit="Competitive salary",
-            proposed_salary="1000-2000 USD",
-        )
-
-        # Create recruitment request
-        recruitment_request = RecruitmentRequest.objects.create(
-            name="Backend Developer Position",
-            job_description=job_desc,
-            branch=self.branch,
-            block=self.block,
-            department=self.department,
-            proposer=proposer,
-            recruitment_type=RecruitmentRequest.RecruitmentType.NEW_HIRE,
-            proposed_salary="1000-2000 USD",
-            number_of_positions=1,
-        )
-
-        candidate = RecruitmentCandidate.objects.create(
-            name="Alice Johnson",
-            email="alice@example.com",
-            phone="0987654321",
-            citizen_id="987654321098",
-            recruitment_request=recruitment_request,
-            recruitment_channel=recruitment_channel,
-            recruitment_source=recruitment_source,
-            branch=self.branch,
-            block=self.block,
-            department=self.department,
-            submitted_date=date(2024, 3, 1),
-            status="HIRED",
-            onboard_date=date.today(),
-        )
-
-        # Act - Call to_employee action
-        url = reverse("hrm:recruitment-candidate-to-employee", kwargs={"pk": candidate.pk})
-        response = self.client.post(
-            url, {"code_type": "MV", "personal_email": "alice.personal@example.com"}, format="json"
-        )
-
-        # Assert
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-
-        # Get the created employee
-        employee = Employee.objects.get(email="alice@example.com")
-
-        # Check that work history was created
-        work_histories = EmployeeWorkHistory.objects.filter(employee=employee)
-        self.assertEqual(work_histories.count(), 1)
-
-        work_history = work_histories.first()
-        self.assertEqual(work_history.name, EmployeeWorkHistory.EventType.CHANGE_STATUS)
-        self.assertEqual(work_history.status, Employee.Status.ONBOARDING)
-        self.assertIn(candidate.code, work_history.note)
