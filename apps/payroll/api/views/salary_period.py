@@ -1,6 +1,7 @@
 """ViewSet for SalaryPeriod model."""
 
 from django.db import models
+from django.utils import timezone
 from django.utils.translation import gettext as _
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiExample, extend_schema, extend_schema_view
@@ -23,7 +24,7 @@ from apps.payroll.api.serializers import (
     SalaryPeriodUpdateDeadlinesSerializer,
     TaskStatusSerializer,
 )
-from apps.payroll.models import PayrollSlip, SalaryPeriod
+from apps.payroll.models import EmployeeKPIAssessment, PayrollSlip, SalaryPeriod
 from libs import BaseModelViewSet, BaseReadOnlyModelViewSet
 from libs.drf.filtersets.search import PhraseSearchFilter
 from libs.drf.pagination import PageNumberWithSizePagination
@@ -611,6 +612,9 @@ class SalaryPeriodViewSet(AuditLoggingMixin, BaseModelViewSet):
         serializer = SalaryPeriodUpdateDeadlinesSerializer(instance, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
 
+        today = timezone.now().date()
+        old_kpi_deadline = instance.kpi_assessment_deadline
+
         # Update only the deadline fields
         if "proposal_deadline" in serializer.validated_data:
             instance.proposal_deadline = serializer.validated_data["proposal_deadline"]
@@ -618,6 +622,20 @@ class SalaryPeriodViewSet(AuditLoggingMixin, BaseModelViewSet):
             instance.kpi_assessment_deadline = serializer.validated_data["kpi_assessment_deadline"]
 
         instance.save()
+
+        # If KPI deadline is moved, adjust employee KPI assessment lock state.
+        # Use queryset update to avoid triggering audit logging / signals on EmployeeKPIAssessment.
+        if "kpi_assessment_deadline" in serializer.validated_data:
+            new_kpi_deadline = instance.kpi_assessment_deadline
+            if new_kpi_deadline and new_kpi_deadline != old_kpi_deadline:
+                if new_kpi_deadline > today:
+                    EmployeeKPIAssessment.objects.filter(period__month=instance.month, finalized=True).update(
+                        finalized=False
+                    )
+                elif new_kpi_deadline < today:
+                    EmployeeKPIAssessment.objects.filter(period__month=instance.month, finalized=False).update(
+                        finalized=True
+                    )
 
         response_serializer = SalaryPeriodSerializer(instance)
         return Response(response_serializer.data)
