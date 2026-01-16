@@ -176,6 +176,7 @@ class PayrollCalculationService:
         self.slip.tax_code = self.employee.tax_code or ""
         self.slip.department_name = self.employee.department.name if self.employee.department else ""
         self.slip.position_name = self.employee.position.name if self.employee.position else ""
+        self.slip.position_code = self.employee.position.code if self.employee.position else ""
 
         # Snapshot is_sale_employee based on department function
         from apps.hrm.models import Department
@@ -264,7 +265,10 @@ class PayrollCalculationService:
         self.slip.kpi_bonus = round_currency(kpi_bonus)
 
     def _calculate_business_progressive_salary(self):
-        """Calculate business progressive salary based on sales revenue."""
+        """Calculate business progressive salary based on sales revenue.
+
+        Only applies to employees with position_code = 'NVKD'.
+        """
         sales_revenue_obj = SalesRevenue.objects.filter(employee=self.employee, month=self.period.month).first()
 
         if sales_revenue_obj:
@@ -273,6 +277,14 @@ class PayrollCalculationService:
         else:
             sales_revenue = 0
             sales_transaction_count = 0
+
+        # Check if employee is NVKD (sales staff)
+        if self.slip.position_code != "NVKD":
+            self.slip.sales_revenue = sales_revenue
+            self.slip.sales_transaction_count = sales_transaction_count
+            self.slip.business_grade = ""
+            self.slip.business_progressive_salary = Decimal("0")
+            return
 
         # Calculate business progressive salary using tier matching logic
         tiers = self.config["business_progressive_salary"]["tiers"]
@@ -359,9 +371,11 @@ class PayrollCalculationService:
 
         # Calculate actual working days income
         if self.period.standard_working_days > 0:
+            from apps.hrm.models.contract_type import ContractType
+
             # New unified formula
             official_income = self.slip.official_working_days * total_position_income
-            if self.slip.has_social_insurance:
+            if self.slip.net_percentage == ContractType.NetPercentage.REDUCED:
                 probation_income = self.slip.probation_working_days * total_position_income * Decimal("0.85")
             else:
                 probation_income = self.slip.probation_working_days * total_position_income

@@ -94,6 +94,9 @@ class PayrollSlip(AutoCodeMixin, ColoredValueMixin, BaseModel):
     tax_code = models.CharField(max_length=20, blank=True, default="", verbose_name=_("Tax Code"))
     department_name = models.CharField(max_length=250, verbose_name=_("Department Name"))
     position_name = models.CharField(max_length=250, verbose_name=_("Position Name"))
+    position_code = models.CharField(
+        max_length=50, blank=True, default="", verbose_name=_("Position Code"), help_text="Snapshot of position code"
+    )
     employment_status = models.CharField(max_length=20, verbose_name=_("Employment Status"))
     employee_official_date = models.DateField(
         null=True,
