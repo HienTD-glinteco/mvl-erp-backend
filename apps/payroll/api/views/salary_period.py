@@ -4,7 +4,7 @@ from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext as _
 from django_filters.rest_framework import DjangoFilterBackend
-from drf_spectacular.utils import OpenApiExample, extend_schema, extend_schema_view
+from drf_spectacular.utils import OpenApiExample, OpenApiParameter, extend_schema, extend_schema_view
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter
@@ -680,21 +680,21 @@ class SalaryPeriodViewSet(AuditLoggingMixin, BaseModelViewSet):
             "Each sheet contains detailed salary breakdown including position income, "
             "working days, overtime, insurance contributions, tax calculations, and bank account.\n\n"
             "Headers include grouped columns for: Position Income (9 cols), Working Days (5 cols), "
-            "Overtime (10 cols), Employer Contributions (5 cols), Employee Deductions (4 cols), "
-            "and Tax Information (8 cols).\n\n"
-            "**Query Parameters:**\n"
-            "- `async` (bool, optional): If 'true', export asynchronously via Celery task. "
-            "Returns task_id to check progress at GET /api/tasks/{task_id}/status/"
+            "Overtime (10 cols), Travel Expense (2 cols), Employer Contributions (5 cols), "
+            "Employee Deductions (4 cols), and Tax Information (8 cols).\n\n"
+            "**Sync mode (default):** Returns file URL immediately.\n"
+            "**Async mode (`async=true`):** Returns task_id to check progress at GET /api/tasks/{task_id}/status/"
         ),
         tags=["10.6: Salary Periods"],
         parameters=[
-            {
-                "name": "async",
-                "in": "query",
-                "required": False,
-                "schema": {"type": "boolean", "default": False},
-                "description": "Export asynchronously via Celery task (implemented)",
-            }
+            OpenApiParameter(
+                name="async",
+                type=bool,
+                location=OpenApiParameter.QUERY,
+                required=False,
+                default=False,
+                description="Export asynchronously via Celery task. If true, returns task_id for progress tracking.",
+            ),
         ],
         responses={
             200: {
@@ -704,12 +704,21 @@ class SalaryPeriodViewSet(AuditLoggingMixin, BaseModelViewSet):
                     "filename": {"type": "string"},
                     "expires_in": {"type": "integer"},
                     "storage_backend": {"type": "string"},
+                    "size_bytes": {"type": "integer"},
+                },
+            },
+            202: {
+                "type": "object",
+                "properties": {
+                    "task_id": {"type": "string"},
+                    "status": {"type": "string"},
+                    "message": {"type": "string"},
                 },
             },
         },
         examples=[
             OpenApiExample(
-                "Success - Export link with 2 sheets",
+                "Success - Sync export (async=false or not provided)",
                 value={
                     "success": True,
                     "data": {
@@ -717,11 +726,22 @@ class SalaryPeriodViewSet(AuditLoggingMixin, BaseModelViewSet):
                         "filename": "salary_period_SP-202501_payroll_slips.xlsx",
                         "expires_in": 3600,
                         "storage_backend": "s3",
+                        "size_bytes": 245678,
                     },
                     "error": None,
                 },
                 response_only=True,
                 status_codes=["200"],
+            ),
+            OpenApiExample(
+                "Success - Async export (async=true)",
+                value={
+                    "task_id": "abc123-def456-...",
+                    "status": "processing",
+                    "message": "Export task started. Use task_status endpoint to check progress.",
+                },
+                response_only=True,
+                status_codes=["202"],
             ),
         ],
     )
