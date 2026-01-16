@@ -99,4 +99,9 @@ CELERY_BEAT_SCHEDULE: dict[str, dict] = {
         "task": "apps.hrm.tasks.proposal.update_employee_status_from_approved_leave_proposals",
         "schedule": crontab(hour=0, minute=0),  # Daily at 00:00
     },
+    # Check and re-enable realtime listeners for devices that are enabled but disconnected
+    "check_and_reenable_realtime_listeners": {
+        "task": "hrm.check_and_reenable_realtime_listeners",
+        "schedule": 60 * 60,  # every hour
+    },
 }

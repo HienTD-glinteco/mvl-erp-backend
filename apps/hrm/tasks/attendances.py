@@ -240,6 +240,78 @@ def sync_all_attendance_devices() -> dict[str, Any]:
     }
 
 
+@shared_task(name="hrm.check_and_reenable_realtime_listeners")
+def check_and_reenable_realtime_listeners() -> dict[str, Any]:
+    """Check devices that are enabled but have realtime disabled, and re-enable if connection works.
+
+    This task finds all devices where is_enabled=True but realtime_enabled=False,
+    and attempts to re-establish connection. If successful, realtime_enabled will be
+    set back to True and the realtime listener will pick up the device automatically.
+
+    Returns:
+        dict: Summary with keys:
+            - total_devices_checked: int number of devices checked
+            - reenabled_count: int number of devices successfully re-enabled
+            - results: list of individual device results
+    """
+    logger.info("Checking for devices that need realtime re-enabled")
+
+    # Find devices that are enabled but have realtime disabled
+    devices = list(
+        AttendanceDevice.objects.filter(
+            is_enabled=True,
+            realtime_enabled=False,
+        )
+    )
+
+    if not devices:
+        logger.info("No devices found that need realtime re-enabled")
+        return {
+            "total_devices_checked": 0,
+            "reenabled_count": 0,
+            "results": [],
+        }
+
+    logger.info(f"Found {len(devices)} device(s) that need realtime re-enabled")
+
+    results = []
+    for device in devices:
+        try:
+            is_connected, message = device.check_and_update_connection()
+            results.append(
+                {
+                    "device_id": device.id,
+                    "device_name": device.name,
+                    "success": is_connected,
+                    "message": message,
+                }
+            )
+            if is_connected:
+                logger.info(f"Re-enabled realtime for device {device.name} (ID: {device.id})")
+            else:
+                logger.warning(f"Failed to re-enable realtime for device {device.name}: {message}")
+        except Exception as e:
+            error_msg = str(e)
+            logger.exception(f"Error checking device {device.name} (ID: {device.id}): {error_msg}")
+            results.append(
+                {
+                    "device_id": device.id,
+                    "device_name": device.name,
+                    "success": False,
+                    "message": error_msg,
+                }
+            )
+
+    reenabled_count = sum(1 for r in results if r["success"])
+    logger.info(f"Re-enabled realtime for {reenabled_count}/{len(devices)} device(s)")
+
+    return {
+        "total_devices_checked": len(results),
+        "reenabled_count": reenabled_count,
+        "results": results,
+    }
+
+
 #### Helper functions
 
 
