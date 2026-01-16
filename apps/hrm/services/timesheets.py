@@ -305,7 +305,9 @@ def update_start_end_times(attendance_code: str, timehsheet_entry: TimeSheetEntr
     # - Otherwise set `end_time = last_ts`.
 
     agg = AttendanceRecord.objects.filter(
-        attendance_code=attendance_code, timestamp__date=timehsheet_entry.date
+        attendance_code=attendance_code,
+        timestamp__date=timehsheet_entry.date,
+        is_valid=True,
     ).aggregate(first_ts=Min("timestamp"), last_ts=Max("timestamp"))
 
     first_ts = agg.get("first_ts")
