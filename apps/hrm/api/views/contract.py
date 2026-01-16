@@ -15,10 +15,11 @@ from apps.hrm.api.filtersets.contract import ContractFilterSet
 from apps.hrm.api.mixins import DataScopeCreateValidationMixin
 from apps.hrm.api.serializers.contract import (
     ContractExportSerializer,
+    ContractImportStartSerializer,
     ContractListSerializer,
     ContractSerializer,
 )
-from apps.hrm.constants import ContractExportTemplate
+from apps.hrm.constants import ContractExportTemplate, ContractImportMode
 from apps.hrm.models import Contract, ContractType
 from apps.hrm.utils.filters import RoleDataScopeFilterBackend
 from apps.imports.api.mixins import AsyncImportProgressMixin
@@ -262,9 +263,19 @@ from libs.export_xlsx import ExportXLSXMixin
     ),
     start_import=extend_schema(
         tags=["7.2: Contract"],
+        request=ContractImportStartSerializer,
     ),
     import_template=extend_schema(
         tags=["7.2: Contract"],
+        parameters=[
+            OpenApiParameter(
+                name="mode",
+                description="Import mode (create/update) for selecting template",
+                required=False,
+                type=str,
+                enum=[choice[0] for choice in ContractImportMode.choices],
+            ),
+        ],
     ),
     export_detail_document=extend_schema(
         tags=["7.2: Contract"],
@@ -365,9 +376,6 @@ class ContractViewSet(
     # import_row_handler will be determined dynamically
     import_row_handler = "apps.hrm.import_handlers.contract_creation.import_handler"  # Default
 
-    # Import configuration
-    import_template_name = "hrm_contract_template"
-
     def get_import_handler_path(self):
         """Determine import handler path based on mode option."""
         # Get base handler path from parent logic if needed, but we implement custom routing here
@@ -376,15 +384,37 @@ class ContractViewSet(
         options = self.request.data.get("options", {}) if self.request.data else {}
         mode = options.get("mode")
 
-        if mode == "create":
+        if mode == ContractImportMode.CREATE:
             return "apps.hrm.import_handlers.contract_creation.import_handler"
-        elif mode == "update":
+        elif mode == ContractImportMode.UPDATE:
             return "apps.hrm.import_handlers.contract_update.import_handler"
 
         # If no valid mode provided, raise validation error
         # Since this method is called inside start_import which catches errors,
         # raising ValidationError here will result in 400 Bad Request
-        raise ValidationError({"options": {"mode": _("Import mode must be either 'create' or 'update'")}})
+        raise ValidationError(
+            {
+                "options": {
+                    "mode": _("Import mode must be either '%(create)s' or '%(update)s'")
+                    % {"create": ContractImportMode.CREATE, "update": ContractImportMode.UPDATE}
+                }
+            }
+        )
+
+    def get_import_template_name(self):
+        """Get import template name based on mode option."""
+        # Get base handler path from parent logic if needed, but we implement custom routing here
+
+        # Get mode from query params only
+        mode = self.request.query_params.get("mode")
+
+        mapping = {
+            ContractImportMode.CREATE: "hrm_creation_contract_template",
+            ContractImportMode.UPDATE: "hrm_update_contract_template",
+        }
+
+        # Return the template for selected mode, return create template for default.
+        return mapping.get(mode, mapping[ContractImportMode.CREATE])
 
     def get_document_template_name(self, request, instance):
         """Get document template name based on request parameter."""

@@ -254,3 +254,8 @@ class ContractExportTemplate(models.TextChoices):
     CONTRACT_SUPPORT = "contract_support", _("Support contract")
     CONTRACT_PROBATION = "contract_probation", _("Probation contract")
     CONTRACT_UPDATE = "contract_update", _("Update contract")
+
+
+class ContractImportMode(models.TextChoices):
+    CREATE = "create", _("Create")
+    UPDATE = "update", _("Update")

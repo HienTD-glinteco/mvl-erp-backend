@@ -7,7 +7,9 @@ from apps.files.api.serializers import FileSerializer
 from apps.files.api.serializers.mixins import FileConfirmSerializerMixin
 from apps.hrm.api.serializers.common_nested import ContractTypeNestedSerializer, EmployeeNestedSerializer
 from apps.hrm.api.serializers.employee import EmployeeSerializer
+from apps.hrm.constants import ContractImportMode
 from apps.hrm.models import Contract, ContractType, Employee
+from apps.imports.api.serializers import ImportOptionsSerializer, ImportStartSerializer
 from libs.drf.serializers import ColoredValueSerializer, FieldFilteringSerializerMixin
 
 
@@ -290,3 +292,23 @@ class ContractExportSerializer(FieldFilteringSerializerMixin, serializers.ModelS
             "note",
             "created_at",
         ]
+
+
+class ContractImportOptionsSerializer(ImportOptionsSerializer):
+    """Serializer for contract import options."""
+
+    mode = serializers.ChoiceField(
+        choices=ContractImportMode.choices,
+        default=ContractImportMode.CREATE,
+        help_text="Import mode: create new contracts or update existing ones",
+    )
+
+
+class ContractImportStartSerializer(ImportStartSerializer):
+    """Serializer for starting contract import."""
+
+    options = ContractImportOptionsSerializer(
+        required=False,
+        default=dict,
+        help_text="Import options for controlling the import process",
+    )
