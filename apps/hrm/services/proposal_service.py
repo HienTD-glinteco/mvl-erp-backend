@@ -44,7 +44,7 @@ class ProposalService:
         # Dispatch to appropriate handler based on proposal type
         handler_map = {
             ProposalType.PAID_LEAVE: ProposalService._execute_leave_proposal,
-            ProposalType.UNPAID_LEAVE: ProposalService._execute_leave_proposal,
+            ProposalType.UNPAID_LEAVE: ProposalService._execute_unpaid_leave_proposal,
             ProposalType.MATERNITY_LEAVE: ProposalService._execute_maternity_leave_proposal,
             ProposalType.TIMESHEET_ENTRY_COMPLAINT: ProposalService._execute_complaint_proposal,
             ProposalType.OVERTIME_WORK: ProposalService._execute_overtime_proposal,
@@ -142,6 +142,19 @@ class ProposalService:
             proposal.created_by.status = Employee.Status.MATERNITY_LEAVE
             proposal.created_by.resignation_start_date = proposal.maternity_leave_start_date
             proposal.created_by.resignation_end_date = proposal.maternity_leave_end_date
+            proposal.created_by.save(update_fields=["status", "resignation_start_date", "resignation_end_date"])
+
+    @staticmethod
+    def _execute_unpaid_leave_proposal(proposal: Proposal) -> None:
+        """
+        Execute other side effects when a maternity leave proposal is approved.
+        """
+        ProposalService._execute_leave_proposal(proposal)
+        today = timezone.now().date()
+        if proposal.unpaid_leave_start_date <= today <= proposal.unpaid_leave_end_date:  # type: ignore[operator]
+            proposal.created_by.status = Employee.Status.UNPAID_LEAVE
+            proposal.created_by.resignation_start_date = proposal.unpaid_leave_start_date
+            proposal.created_by.resignation_end_date = proposal.unpaid_leave_end_date
             proposal.created_by.save(update_fields=["status", "resignation_start_date", "resignation_end_date"])
 
     @staticmethod
