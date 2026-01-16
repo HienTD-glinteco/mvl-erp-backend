@@ -1029,12 +1029,25 @@ class TestTimesheetEntryComplaintProposalAPI:
         assert data["data"]["results"][0]["colored_proposal_status"]["value"] == ProposalStatus.PENDING
 
     def test_approve_complaint_success(self, api_client, superuser, test_employee):
+        # Create a timesheet entry to link the proposal to
+        ts_entry = TimeSheetEntry.objects.create(
+            employee=test_employee,
+            date=date.today(),
+            status=TimesheetStatus.ON_TIME,
+        )
+
         proposal = Proposal.objects.create(
             code="DX000005",
             proposal_type=ProposalType.TIMESHEET_ENTRY_COMPLAINT,
             timesheet_entry_complaint_complaint_reason="Wrong time",
             proposal_status=ProposalStatus.PENDING,
             created_by=test_employee,
+        )
+
+        # Create the junction linking proposal to timesheet entry
+        ProposalTimeSheetEntry.objects.create(
+            proposal=proposal,
+            timesheet_entry=ts_entry,
         )
 
         url = reverse("hrm:proposal-timesheet-entry-complaint-approve", args=[proposal.id])

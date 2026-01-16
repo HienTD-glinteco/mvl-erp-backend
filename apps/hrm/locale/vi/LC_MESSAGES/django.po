@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-16 13:17+0700\n"
+"POT-Creation-Date: 2026-01-16 13:32+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -295,8 +295,7 @@ msgstr ""
 "Chỉ những nhân viên có trạng thái 'Đang thử việc' mới có thể được kích hoạt."
 
 #: apps/hrm/api/serializers/employee.py:486
-#, fuzzy, python-brace-format
-#| msgid "Assigned to {department} - {position} ({employee_type})"
+#, python-brace-format
 msgid "Assigned to {department} - {position} ({employee_type})"
 msgstr "Được phân công vào {department} - {position} ({employee_type})"
 
@@ -695,22 +694,29 @@ msgstr ""
 msgid "No valid 'Other' attendance records found for the provided IDs."
 msgstr "Không tìm thấy log chấm công Khác hợp lệ cho các IDs được cung cấp."
 
-#: apps/hrm/api/serializers/proposal.py:347
+#: apps/hrm/api/serializers/proposal.py:255
+msgid ""
+"This complaint proposal is not linked to a timesheet entry. Please try again "
+"later."
+msgstr ""
+"Khiếu nại chấm công chưa được liên kết với ngày công. Vui lòng thử lại sau."
+
+#: apps/hrm/api/serializers/proposal.py:355
 msgid "At least one overtime entry is required"
 msgstr "Thời gian làm thêm giờ là bắt buộc"
 
-#: apps/hrm/api/serializers/proposal.py:365
+#: apps/hrm/api/serializers/proposal.py:373
 #, python-format
 msgid ""
 "Overlapping overtime entries on %(date)s: %(start)s-%(end)s overlaps with a "
 "previous entry."
 msgstr ""
 
-#: apps/hrm/api/serializers/proposal.py:759
+#: apps/hrm/api/serializers/proposal.py:767
 msgid "This serializer requires an existing verifier instance"
 msgstr "Thông tin người xác mình là bắt buộc"
 
-#: apps/hrm/api/serializers/proposal.py:763
+#: apps/hrm/api/serializers/proposal.py:771
 msgid "Only the department leader can reject this proposal"
 msgstr ""
 "Chỉ trưởng phòng hoặc người được cấp quyền mới có thể từ chối đề xuất này"
@@ -3157,8 +3163,6 @@ msgstr "Chỉ có thể cập nhật hợp đồng DRAFT. Trạng thái hiện t
 
 #: apps/hrm/import_handlers/employee.py:677
 #: apps/hrm/import_handlers/employee.py:1194
-#: apps/hrm/tests/test_employee_import_history.py:80
-#: apps/hrm/tests/test_employee_import_history.py:124
 msgid "Imported from file"
 msgstr "Đã nhập từ tệp"
 
@@ -3277,12 +3281,11 @@ msgid "Missing required field (name)"
 msgstr "Thiếu trường bắt buộc (name)"
 
 #: apps/hrm/import_handlers/recruitment_candidate.py:489
-#, fuzzy, python-format
-#| msgid "Employee with this code already exists (allow_update=False)"
+#, python-format
 msgid ""
 "Candidate with Citizen ID '%(citizen_id)s' already exists "
 "(allow_update=False)"
-msgstr "Nhân viên với mã này đã tồn tại (allow_update=False)"
+msgstr "Ứng viên với mã '%(citizen_id)s' đã tồn tại (allow_update=False)"
 
 #: apps/hrm/import_handlers/recruitment_candidate.py:500
 msgid "Phone number is required (column 5)"
@@ -5589,12 +5592,10 @@ msgid "Timesheets"
 msgstr "Bảng chấm công"
 
 #: apps/hrm/models/timesheet.py:342
-#: apps/hrm/tests/test_timesheet_upgrade.py:265
 msgid "Paid"
 msgstr "Có lương"
 
 #: apps/hrm/models/timesheet.py:344
-#: apps/hrm/tests/test_timesheet_upgrade.py:261
 msgid "Unpaid"
 msgstr "Không lương"
 
@@ -5655,16 +5656,12 @@ msgid "Afternoon end time"
 msgstr "Kết thúc ca chiều"
 
 #: apps/hrm/models/work_schedule.py:80
-#, fuzzy
-#| msgid "Morning hours"
 msgid "Morning required"
-msgstr "Buổi sáng"
+msgstr "Buổi sáng bắt buộc"
 
 #: apps/hrm/models/work_schedule.py:86
-#, fuzzy
-#| msgid "Afternoon hours"
 msgid "Afternoon required"
-msgstr "Buổi chiều"
+msgstr "Buổi chiều bắt buộc"
 
 #: apps/hrm/models/work_schedule.py:99
 msgid "Work schedule"
