@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MaiVietLand Backend Core\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-16 13:10+0700\n"
+"POT-Creation-Date: 2026-01-16 13:17+0700\n"
 "PO-Revision-Date: 2025-01-21 00:00+0000\n"
 "Last-Translator: Glinteco Developers\n"
 "Language-Team: Vietnamese\n"
@@ -532,11 +532,11 @@ msgstr "các Vai trò"
 msgid "Only one role can be set as default."
 msgstr ""
 
-#: apps/core/models/role.py:69
+#: apps/core/models/role.py:69 apps/core/tests/test_role_api.py:291
 msgid "System"
 msgstr "Hệ thống"
 
-#: apps/core/models/role.py:69
+#: apps/core/models/role.py:69 apps/core/tests/test_role_api.py:296
 msgid "User"
 msgstr "Người dùng"
 
