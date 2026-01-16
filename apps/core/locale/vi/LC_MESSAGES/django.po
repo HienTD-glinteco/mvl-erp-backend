@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MaiVietLand Backend Core\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-15 10:48+0700\n"
+"POT-Creation-Date: 2026-01-15 16:07+0700\n"
 "PO-Revision-Date: 2025-01-21 00:00+0000\n"
 "Last-Translator: Glinteco Developers\n"
 "Language-Team: Vietnamese\n"
@@ -19,15 +19,17 @@ msgstr ""
 msgid "Token client does not match endpoint client."
 msgstr "Token client không khớp với client của endpoint."
 
-#: apps/core/api/authentication.py:39
-msgid "Missing token version."
+#: apps/core/api/authentication.py:42
+#, fuzzy
+#| msgid "Missing token version."
+msgid "Invalid token version."
 msgstr "Thiếu phiên bản token."
 
-#: apps/core/api/authentication.py:47
+#: apps/core/api/authentication.py:46
 msgid "Token has been revoked."
 msgstr "Khoá token đã được thu hồi."
 
-#: apps/core/api/authentication.py:57 apps/core/api/views/auth/login.py:110
+#: apps/core/api/authentication.py:56 apps/core/api/views/auth/login.py:110
 #: apps/core/api/views/auth/otp_verification.py:114
 msgid "Web access is not allowed for this role."
 msgstr "Truy cập web không được phép cho vai trò này."
@@ -407,7 +409,7 @@ msgstr ""
 "Mật khẩu đã được đặt lại thành công. Tất cả phiên đăng nhập cũ đã bị đăng "
 "xuất."
 
-#: apps/core/api/views/auth/password_reset_otp_verification.py:80
+#: apps/core/api/views/auth/password_reset_otp_verification.py:79
 msgid "Valid OTP code. JWT issued for password change."
 msgstr "Mã OTP hợp lệ. Đã cấp JWT để bạn đổi mật khẩu."
 

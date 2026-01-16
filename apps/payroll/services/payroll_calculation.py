@@ -58,10 +58,8 @@ class PayrollCalculationService:
         # Store original status if HOLD to preserve it
         was_hold = self.slip.status == self.slip.Status.HOLD
 
-        # Step 1: Cache employee information ONLY on first calculation
-        # This preserves employee data at time of payroll creation
-        if not self.slip.employee_code:
-            self._cache_employee_data()
+        # Step 1: Cache employee information (always update on calculate)
+        self._cache_employee_data()
 
         # Step 2: Get employee's active contract (optional)
         contract = self._get_active_contract()
@@ -168,6 +166,7 @@ class PayrollCalculationService:
 
         This caches basic employee info that doesn't depend on contract.
         Also snapshots employee_official_date from EmployeeWorkHistory.
+        Always updates employee data on calculate.
         """
         import calendar
 
@@ -177,6 +176,13 @@ class PayrollCalculationService:
         self.slip.tax_code = self.employee.tax_code or ""
         self.slip.department_name = self.employee.department.name if self.employee.department else ""
         self.slip.position_name = self.employee.position.name if self.employee.position else ""
+
+        # Snapshot is_sale_employee based on department function
+        from apps.hrm.models import Department
+
+        self.slip.is_sale_employee = False
+        if self.employee.department:
+            self.slip.is_sale_employee = self.employee.department.function == Department.DepartmentFunction.BUSINESS
 
         # Snapshot employee_official_date from EmployeeWorkHistory
         _, last_day = calendar.monthrange(self.period.month.year, self.period.month.month)
@@ -208,6 +214,10 @@ class PayrollCalculationService:
         self.slip.other_allowance = contract.other_allowance or 0
         # Store employee_type, not contract status
         self.slip.employment_status = self.employee.employee_type or ""
+        # Snapshot contract fields for tax/insurance calculation
+        self.slip.tax_calculation_method = contract.tax_calculation_method or ""
+        self.slip.net_percentage = contract.net_percentage
+        self.slip.has_social_insurance = contract.has_social_insurance
 
     def _set_zero_salary_fields(self):
         """Set salary fields to 0 when no contract exists."""
@@ -218,6 +228,9 @@ class PayrollCalculationService:
         self.slip.phone_allowance = 0
         self.slip.other_allowance = 0
         self.slip.employment_status = ""
+        self.slip.tax_calculation_method = ""
+        self.slip.net_percentage = None
+        self.slip.has_social_insurance = False
 
     def _calculate_kpi_bonus(self):
         """Calculate KPI bonus based on assessment."""
@@ -240,7 +253,11 @@ class PayrollCalculationService:
         else:
             kpi_percentage = Decimal("0.0000")
 
-        kpi_bonus = self.slip.base_salary * kpi_percentage
+        # Calculate KPI bonus based on employee type
+        if self.slip.is_sale_employee:
+            kpi_bonus = self.slip.base_salary * kpi_percentage
+        else:
+            kpi_bonus = self.slip.kpi_salary * kpi_percentage
 
         self.slip.kpi_grade = kpi_grade
         self.slip.kpi_percentage = kpi_percentage
@@ -342,22 +359,13 @@ class PayrollCalculationService:
 
         # Calculate actual working days income
         if self.period.standard_working_days > 0:
-            # Check if employee position is NVKD (sales staff) via position name
-            is_sales_staff = False
-            if self.employee.position:
-                position_name = self.employee.position.name.upper()
-                is_sales_staff = "NVKD" in position_name or "KINH DOANH" in position_name
-
-            if is_sales_staff:
-                # For sales staff: (total_working_days / standard_working_days) * total_position_income
-                actual_working_days_income = (
-                    self.slip.total_working_days / self.period.standard_working_days
-                ) * total_position_income
-            else:
-                # For non-sales staff: ((official_working_days * total_position_income) + (probation_working_days * total_position_income * 0.85)) / standard_working_days
-                official_income = self.slip.official_working_days * total_position_income
+            # New unified formula
+            official_income = self.slip.official_working_days * total_position_income
+            if self.slip.has_social_insurance:
                 probation_income = self.slip.probation_working_days * total_position_income * Decimal("0.85")
-                actual_working_days_income = (official_income + probation_income) / self.period.standard_working_days
+            else:
+                probation_income = self.slip.probation_working_days * total_position_income
+            actual_working_days_income = (official_income + probation_income) / self.period.standard_working_days
 
             self.slip.actual_working_days_income = round_currency(actual_working_days_income)
         else:
@@ -467,13 +475,28 @@ class PayrollCalculationService:
         """Calculate insurance contributions.
 
         Insurance logic:
-        - Only OFFICIAL employees are eligible for insurance
+        - Only if has_social_insurance (snapshot field) is True
         - If employee_official_date is on or after 15th of the period month, no insurance
         - Otherwise, calculate insurance based on base_salary with ceiling
         """
         from apps.hrm.constants import EmployeeType
 
         insurance_config = self.config["insurance_contributions"]
+
+        # Check if contract has social insurance
+        if not self.slip.has_social_insurance:
+            # No social insurance - set all to 0
+            self.slip.social_insurance_base = Decimal("0")
+            self.slip.employee_social_insurance = Decimal("0")
+            self.slip.employer_social_insurance = Decimal("0")
+            self.slip.employee_health_insurance = Decimal("0")
+            self.slip.employer_health_insurance = Decimal("0")
+            self.slip.employee_unemployment_insurance = Decimal("0")
+            self.slip.employer_unemployment_insurance = Decimal("0")
+            self.slip.employee_union_fee = Decimal("0")
+            self.slip.employer_union_fee = Decimal("0")
+            self.slip.employer_accident_insurance = Decimal("0")
+            return
 
         # Check if employee is official (not probation)
         is_official = self.slip.employment_status == EmployeeType.OFFICIAL
@@ -549,9 +572,9 @@ class PayrollCalculationService:
             ai_base = Decimal("0")
         self.slip.employer_accident_insurance = round_currency(ai_base * Decimal(str(ai_config["employer_rate"])))
 
-    def _calculate_personal_income_tax(self):
+    def _calculate_personal_income_tax(self):  # noqa C901
         """Calculate personal income tax with updated formula."""
-        from apps.hrm.constants import EmployeeType
+        from apps.hrm.models import ContractType
 
         tax_config = self.config["personal_income_tax"]
 
@@ -565,11 +588,19 @@ class PayrollCalculationService:
         # Calculate total family deduction
         self.slip.total_family_deduction = round_currency(self.slip.personal_deduction + self.slip.dependent_deduction)
 
-        # Check if employee is official
-        is_official = self.slip.employment_status == EmployeeType.OFFICIAL
+        # Get tax calculation method from snapshot
+        tax_method = self.slip.tax_calculation_method
 
-        # Calculate non-taxable allowance
-        if is_official and self.period.standard_working_days > 0:
+        # If tax method is None, set taxable_income_base and personal_income_tax to 0
+        if not tax_method or tax_method == ContractType.TaxCalculationMethod.NONE:
+            self.slip.taxable_income_base = Decimal("0")
+            self.slip.taxable_income = Decimal("0")
+            self.slip.non_taxable_allowance = Decimal("0")
+            self.slip.personal_income_tax = Decimal("0")
+            return
+
+        # Calculate non-taxable allowance (only for PROGRESSIVE)
+        if tax_method == ContractType.TaxCalculationMethod.PROGRESSIVE and self.period.standard_working_days > 0:
             # Non-taxable allowance = (lunch + phone) / standard_days * (probation_days * 0.85 + official_days)
             allowance_base = self.slip.lunch_allowance + self.slip.phone_allowance
             working_days_factor = self.slip.probation_working_days * Decimal("0.85") + self.slip.official_working_days
@@ -579,8 +610,8 @@ class PayrollCalculationService:
         else:
             self.slip.non_taxable_allowance = Decimal("0")
 
-        if is_official:
-            # Official employee: Calculate taxable income base with deductions
+        if tax_method == ContractType.TaxCalculationMethod.PROGRESSIVE:
+            # PROGRESSIVE tax calculation
             self.slip.taxable_income_base = round_currency(
                 self.slip.gross_income
                 - self.slip.non_taxable_travel_expense
@@ -627,11 +658,12 @@ class PayrollCalculationService:
                     break
 
             self.slip.personal_income_tax = round_currency(personal_income_tax)
-        else:
-            # Non-official employee: taxable_income_base = gross_income, tax = 10% if >= 2,000,000
+        elif tax_method == ContractType.TaxCalculationMethod.FLAT_10:
+            # FLAT_10 tax calculation
             self.slip.taxable_income_base = self.slip.gross_income
             self.slip.taxable_income = self.slip.gross_income
-            if self.slip.gross_income >= Decimal("2000000"):
+            minimum_threshold = Decimal(str(tax_config.get("minimum_flat_tax_threshold", 2000000)))
+            if self.slip.gross_income >= minimum_threshold:
                 self.slip.personal_income_tax = round_currency(self.slip.gross_income * Decimal("0.10"))
             else:
                 self.slip.personal_income_tax = Decimal("0")

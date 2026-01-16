@@ -6,7 +6,7 @@ from django.utils.translation import gettext as _
 from rest_framework import serializers
 
 from apps.core.models import PasswordResetOTP
-from apps.core.utils.jwt import revoke_user_outstanding_tokens
+from apps.core.utils.jwt import bump_user_mobile_token_version, revoke_user_outstanding_tokens
 
 logger = logging.getLogger(__name__)
 
@@ -93,7 +93,8 @@ class PasswordResetChangePasswordSerializer(serializers.Serializer):
         1. Set new password
         2. Delete password reset OTP record
         3. Invalidate all Django sessions
-        4. Revoke all outstanding JWT tokens
+        4. Bump mobile token version (invalidates all access tokens)
+        5. Revoke all outstanding JWT refresh tokens
 
         The user will need to login again with the new password.
         """
@@ -110,6 +111,9 @@ class PasswordResetChangePasswordSerializer(serializers.Serializer):
 
         # Invalidate all Django sessions (logout from web sessions)
         user.invalidate_all_sessions()
+
+        # Bump mobile token version (invalidates all access tokens immediately)
+        bump_user_mobile_token_version(user)
 
         # Revoke all outstanding JWT refresh tokens (logout from mobile/API)
         revoke_user_outstanding_tokens(user)
