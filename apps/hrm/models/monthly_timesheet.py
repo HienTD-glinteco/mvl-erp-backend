@@ -262,6 +262,9 @@ class EmployeeMonthlyTimesheet(BaseReportModel):
         Uses `compute_aggregates` to obtain the aggregate values and writes them
         into the `EmployeeMonthlyTimesheet` table inside a transaction.
         """
+        # Import here to avoid circular dependency
+        from apps.hrm.services.timesheets import calculate_leave_balances
+
         aggregates = cls.compute_aggregates(employee_id, year, month, fields)
 
         report_date = aggregates["report_date"]
@@ -274,13 +277,23 @@ class EmployeeMonthlyTimesheet(BaseReportModel):
         if fields:
             aggregates = {field: value for field, value in aggregates.items() if field in fields}
 
+        # Recalculate leave balances (generated, opening, carried)
+        balances = calculate_leave_balances(employee_id, year, month)
+
+        # Update balance fields in aggregates to ensure they are saved
+        # We update these regardless of `fields` constraint because they are fundamental
+        # to the validity of the record, and `compute_aggregates` doesn't provide them.
+        aggregates["generated_leave_days"] = balances["generated_leave_days"]
+        aggregates["carried_over_leave"] = balances["carried_over_leave"]
+        aggregates["opening_balance_leave_days"] = balances["opening_balance_leave_days"]
+
         # Handle leave balance calculations
         # Note: opening_balance_leave_days already includes generated_leave_days
         # so remaining = opening - consumed
         if "paid_leave_days" in aggregates:
             consumed_leave_days: Decimal = quantize_decimal(cast(Decimal, aggregates["paid_leave_days"]))
             aggregates["consumed_leave_days"] = consumed_leave_days
-            remaining = quantize_decimal(obj.opening_balance_leave_days - consumed_leave_days)
+            remaining = quantize_decimal(balances["opening_balance_leave_days"] - consumed_leave_days)
             aggregates["remaining_leave_days"] = max(remaining, DECIMAL_ZERO)
 
         # Apply aggregates to object fields

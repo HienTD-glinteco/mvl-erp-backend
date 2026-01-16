@@ -555,3 +555,25 @@ class TestLeaveCalculation:
 
         assert ts_apr.opening_balance_leave_days == Decimal("2.00")
         assert ts_apr.carried_over_leave == Decimal("0.00")
+
+    def test_refresh_updates_opening_balance(self, test_employee):
+        """Test that refreshing a timesheet updates opening/generated balance based on contract/prev month."""
+        year, month = 2025, 5
+
+        # 1. Initial State: 12 days/year -> 1 day/month
+        ts = create_monthly_timesheet_for_employee(test_employee.id, year, month)
+        assert ts.generated_leave_days == Decimal("1.00")
+        # Opening = Generated (1) + Prev Remaining (0) = 1
+        assert ts.opening_balance_leave_days == Decimal("1.00")
+
+        # 2. Modify Contract: 24 days/year -> 2 days/month
+        contract = test_employee.contracts.first()
+        contract.annual_leave_days = 24
+        contract.save()
+
+        # 3. Refresh
+        refreshed_ts = EmployeeMonthlyTimesheet.refresh_for_employee_month(test_employee.id, year, month)
+
+        # 4. Verify
+        assert refreshed_ts.generated_leave_days == Decimal("2.00")
+        assert refreshed_ts.opening_balance_leave_days == Decimal("2.00")

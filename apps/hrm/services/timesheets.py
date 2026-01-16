@@ -171,6 +171,70 @@ def calculate_generated_leave(employee_id: int, year: int, month: int) -> Decima
         return DECIMAL_ZERO
 
 
+def calculate_leave_balances(employee_id: int, year: int, month: int) -> dict[str, Decimal]:
+    """Calculate leave balances (generated, carried, opening) for an employee/month.
+
+    Returns a dict with:
+        - generated_leave_days
+        - carried_over_leave
+        - opening_balance_leave_days
+    """
+    # 1. Generated Leave
+    generated = calculate_generated_leave(employee_id, year, month)
+
+    carried = DECIMAL_ZERO
+    opening = DECIMAL_ZERO
+
+    # 2. Opening & Carried
+    if month == 1:
+        prev = EmployeeMonthlyTimesheet.objects.filter(employee_id=employee_id, month_key=f"{year - 1:04d}12").first()
+        carried = prev.remaining_leave_days if prev else DECIMAL_ZERO
+        # Carried is what makes up the opening balance for Jan, plus any new generation
+        opening = quantize_decimal(carried + generated)
+    elif month == 4:
+        # April: Expire unused carried over
+        prev = EmployeeMonthlyTimesheet.objects.filter(
+            employee_id=employee_id, month_key=f"{year:04d}{month - 1:02d}"
+        ).first()
+        prev_remaining = prev.remaining_leave_days if prev else DECIMAL_ZERO
+
+        # Get Initial Carried Over (from Jan)
+        jan_ts = EmployeeMonthlyTimesheet.objects.filter(employee_id=employee_id, month_key=f"{year:04d}01").first()
+        initial_carried = jan_ts.carried_over_leave if jan_ts else DECIMAL_ZERO
+
+        # Get Total Consumed Jan-Mar
+        consumed_jan_mar = (
+            EmployeeMonthlyTimesheet.objects.filter(
+                employee_id=employee_id,
+                report_date__year=year,
+                report_date__month__lt=4,
+            ).aggregate(total=Sum("consumed_leave_days"))["total"]
+            or DECIMAL_ZERO
+        )
+
+        # Unused Carried Over
+        unused_carried = max(initial_carried - consumed_jan_mar, DECIMAL_ZERO)
+
+        # Opening Balance = (Prev Remaining - Unused Carried) + Generated
+        base_opening = max(prev_remaining - unused_carried, DECIMAL_ZERO)
+        opening = quantize_decimal(base_opening + generated)
+        carried = DECIMAL_ZERO
+    else:
+        # Other months
+        prev = EmployeeMonthlyTimesheet.objects.filter(
+            employee_id=employee_id, month_key=f"{year:04d}{month - 1:02d}"
+        ).first()
+        base_opening = prev.remaining_leave_days if prev else DECIMAL_ZERO
+        opening = quantize_decimal(base_opening + generated)
+        carried = DECIMAL_ZERO
+
+    return {
+        "generated_leave_days": generated,
+        "carried_over_leave": quantize_decimal(carried),
+        "opening_balance_leave_days": opening,
+    }
+
+
 def create_monthly_timesheet_for_employee(
     employee_id: int, year: int | None = None, month: int | None = None
 ) -> EmployeeMonthlyTimesheet | None:
@@ -206,51 +270,12 @@ def create_monthly_timesheet_for_employee(
         employee_id=employee_id, month_key=month_key, defaults={"report_date": report_date}
     )
 
-    # 1. Generated Leave
-    obj.generated_leave_days = calculate_generated_leave(employee_id, year, month)
+    # Calculate leave balances
+    balances = calculate_leave_balances(employee_id, year, month)
 
-    # 2. Opening & Carried
-    if month == 1:
-        prev = EmployeeMonthlyTimesheet.objects.filter(employee_id=employee_id, month_key=f"{year - 1:04d}12").first()
-        carried = prev.remaining_leave_days if prev else DECIMAL_ZERO
-        obj.carried_over_leave = quantize_decimal(carried)
-        # Opening = carried_over + generated (leave is added at start of month)
-        obj.opening_balance_leave_days = quantize_decimal(carried + obj.generated_leave_days)
-    elif month == 4:
-        # April: Expire unused carried over
-        prev = EmployeeMonthlyTimesheet.objects.filter(
-            employee_id=employee_id, month_key=f"{year:04d}{month - 1:02d}"
-        ).first()
-        prev_remaining = prev.remaining_leave_days if prev else DECIMAL_ZERO
-
-        # Get Initial Carried Over (from Jan)
-        jan_ts = EmployeeMonthlyTimesheet.objects.filter(employee_id=employee_id, month_key=f"{year:04d}01").first()
-        initial_carried = jan_ts.carried_over_leave if jan_ts else DECIMAL_ZERO
-
-        # Get Total Consumed Jan-Mar
-        consumed_jan_mar = (
-            EmployeeMonthlyTimesheet.objects.filter(
-                employee_id=employee_id, report_date__year=year, report_date__month__lt=4
-            ).aggregate(total=Sum("consumed_leave_days"))["total"]
-            or DECIMAL_ZERO
-        )
-
-        # Unused Carried Over
-        unused_carried = max(initial_carried - consumed_jan_mar, DECIMAL_ZERO)
-
-        # Opening Balance = (Prev Remaining - Unused Carried) + Generated (leave is added at start of month)
-        base_opening = max(prev_remaining - unused_carried, DECIMAL_ZERO)
-        obj.opening_balance_leave_days = quantize_decimal(base_opening + obj.generated_leave_days)
-        obj.carried_over_leave = DECIMAL_ZERO
-    else:
-        # Other months
-        prev = EmployeeMonthlyTimesheet.objects.filter(
-            employee_id=employee_id, month_key=f"{year:04d}{month - 1:02d}"
-        ).first()
-        base_opening = prev.remaining_leave_days if prev else DECIMAL_ZERO
-        # Opening = prev remaining + generated (leave is added at start of month)
-        obj.opening_balance_leave_days = quantize_decimal(base_opening + obj.generated_leave_days)
-        obj.carried_over_leave = DECIMAL_ZERO
+    obj.generated_leave_days = balances["generated_leave_days"]
+    obj.carried_over_leave = balances["carried_over_leave"]
+    obj.opening_balance_leave_days = balances["opening_balance_leave_days"]
 
     # Update Remaining: simplified formula since opening already includes generated
     obj.remaining_leave_days = quantize_decimal(obj.opening_balance_leave_days - obj.consumed_leave_days)
