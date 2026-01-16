@@ -435,7 +435,7 @@ class KPIAssessmentPeriodViewSet(BaseReadOnlyModelViewSet):
         with transaction.atomic():
             # Process employee assessments - set default grade for ungraded employees
             employees_set_to_c = 0
-            employee_assessments = EmployeeKPIAssessment.objects.filter(period=period)
+            employee_assessments = EmployeeKPIAssessment.objects.filter(period=period, is_for_leader=False)
 
             # First pass: set default grades without triggering signals
             employees_to_update = []
@@ -455,7 +455,7 @@ class KPIAssessmentPeriodViewSet(BaseReadOnlyModelViewSet):
             if employees_to_update:
                 EmployeeKPIAssessment.objects.bulk_update(employees_to_update, ["grade_hrm"], batch_size=100)
 
-            # Second pass: finalize all employee assessments
+            # Second pass: finalize all employee assessments (excluding leader assessments)
             for assessment in employee_assessments:
                 assessment.finalized = True
 
@@ -518,6 +518,7 @@ class KPIAssessmentPeriodViewSet(BaseReadOnlyModelViewSet):
                 period=period,
                 department_snapshot=dept_assessment.department,
                 grade_manager__isnull=False,
+                is_for_leader=False,
             ).exists()
 
             if has_manager_grade:

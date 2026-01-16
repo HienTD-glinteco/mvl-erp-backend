@@ -91,7 +91,7 @@ class MyKPIAssessmentViewSet(BaseModelViewSet):
             return EmployeeKPIAssessment.objects.none()
 
         return (
-            EmployeeKPIAssessment.objects.filter(employee=employee)
+            EmployeeKPIAssessment.objects.filter(employee=employee, is_for_leader=False)
             .select_related("period", "employee")
             .prefetch_related("items")
             .order_by("-period__month")
@@ -151,7 +151,7 @@ class MyKPIAssessmentViewSet(BaseModelViewSet):
             )
 
         assessment = (
-            EmployeeKPIAssessment.objects.filter(employee=employee, finalized=False)
+            EmployeeKPIAssessment.objects.filter(employee=employee, finalized=False, is_for_leader=False)
             .select_related("period", "employee")
             .prefetch_related("items")
             .order_by("-period__month")
@@ -239,7 +239,7 @@ class MyTeamKPIAssessmentViewSet(BaseModelViewSet):
             return EmployeeKPIAssessment.objects.none()
 
         return (
-            EmployeeKPIAssessment.objects.filter(manager=employee)
+            EmployeeKPIAssessment.objects.filter(manager=employee, is_for_leader=False)
             .select_related("period", "employee", "manager")
             .prefetch_related("items")
             .order_by("-period__month")

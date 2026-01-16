@@ -147,6 +147,7 @@ class DepartmentKPIAssessment(BaseModel):
 
         Uses the snapshot department field to count employees.
         Priority: grade_hrm > grade_manager
+        Excludes leader assessments (is_for_leader=True).
         """
         from apps.payroll.models import EmployeeKPIAssessment
 
@@ -154,7 +155,9 @@ class DepartmentKPIAssessment(BaseModel):
         distribution = {"A": 0, "B": 0, "C": 0, "D": 0}
         manager_distribution = {"A": 0, "B": 0, "C": 0, "D": 0}
 
-        employees = EmployeeKPIAssessment.objects.filter(period=self.period, department_snapshot=self.department)
+        employees = EmployeeKPIAssessment.objects.filter(
+            period=self.period, department_snapshot=self.department, is_for_leader=False
+        )
 
         for emp_assessment in employees:
             grade = emp_assessment.grade_hrm or emp_assessment.grade_manager

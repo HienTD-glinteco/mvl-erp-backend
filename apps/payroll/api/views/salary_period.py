@@ -24,7 +24,7 @@ from apps.payroll.api.serializers import (
     SalaryPeriodUpdateDeadlinesSerializer,
     TaskStatusSerializer,
 )
-from apps.payroll.models import EmployeeKPIAssessment, PayrollSlip, SalaryPeriod
+from apps.payroll.models import EmployeeKPIAssessment, KPIAssessmentPeriod, PayrollSlip, SalaryPeriod
 from libs import BaseModelViewSet, BaseReadOnlyModelViewSet
 from libs.drf.filtersets.search import PhraseSearchFilter
 from libs.drf.pagination import PageNumberWithSizePagination
@@ -629,10 +629,12 @@ class SalaryPeriodViewSet(AuditLoggingMixin, BaseModelViewSet):
             new_kpi_deadline = instance.kpi_assessment_deadline
             if new_kpi_deadline and new_kpi_deadline != old_kpi_deadline:
                 if new_kpi_deadline > today:
+                    KPIAssessmentPeriod.objects.filter(month=instance.month, finalized=True).update(finalized=False)
                     EmployeeKPIAssessment.objects.filter(period__month=instance.month, finalized=True).update(
                         finalized=False
                     )
                 elif new_kpi_deadline < today:
+                    KPIAssessmentPeriod.objects.filter(month=instance.month, finalized=False).update(finalized=True)
                     EmployeeKPIAssessment.objects.filter(period__month=instance.month, finalized=False).update(
                         finalized=True
                     )
