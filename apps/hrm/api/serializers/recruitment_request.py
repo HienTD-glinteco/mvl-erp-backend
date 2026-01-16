@@ -155,6 +155,18 @@ class RecruitmentRequestSerializer(FieldFilteringSerializerMixin, serializers.Mo
         so we don't enforce validation here. The model's save method will
         handle setting these fields automatically.
         """
+        # Validate status change to DRAFT when expenses exist
+        new_status = attrs.get("status")
+        if (
+            self.instance
+            and new_status == RecruitmentRequest.Status.DRAFT
+            and self.instance.status != RecruitmentRequest.Status.DRAFT
+            and self.instance.expenses.exists()
+        ):
+            raise serializers.ValidationError(
+                {"status": _("Cannot change status to Draft because recruitment expenses have been incurred.")}
+            )
+
         # Validate using model's clean method
         # Create a temporary instance with the provided data for validation
         instance = self.instance or RecruitmentRequest()

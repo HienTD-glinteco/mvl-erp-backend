@@ -1,8 +1,11 @@
+from datetime import date
+from decimal import Decimal
+
 import pytest
 from django.urls import reverse
 from rest_framework import status
 
-from apps.hrm.models import RecruitmentRequest
+from apps.hrm.models import RecruitmentExpense, RecruitmentRequest
 from libs import ColorVariant
 
 
@@ -641,3 +644,55 @@ class TestRecruitmentRequestAPI(APITestMixin):
 
         for field in expected_fields:
             assert field in response_data, f"Field '{field}' is missing from response"
+
+    def test_change_status_to_draft_fails_with_expenses(self, request_data, recruitment_source, recruitment_channel):
+        """Test that changing status to DRAFT fails when recruitment expenses exist"""
+        # Create a recruitment request with OPEN status
+        data = request_data.copy()
+        data["status"] = "OPEN"
+        url = reverse("hrm:recruitment-request-list")
+        create_response = self.client.post(url, data, format="json")
+        assert create_response.status_code == status.HTTP_201_CREATED
+        request_id = self.get_response_data(create_response)["id"]
+        recruitment_request = RecruitmentRequest.objects.get(pk=request_id)
+
+        # Create a recruitment expense for this request
+        RecruitmentExpense.objects.create(
+            date=date.today(),
+            recruitment_source=recruitment_source,
+            recruitment_channel=recruitment_channel,
+            recruitment_request=recruitment_request,
+            num_candidates_participated=5,
+            total_cost=Decimal("1000.00"),
+            num_candidates_hired=2,
+        )
+
+        # Try to change status to DRAFT - should fail
+        url = reverse("hrm:recruitment-request-detail", kwargs={"pk": request_id})
+        response = self.client.patch(url, {"status": "DRAFT"}, format="json")
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        content = response.json()
+        assert "error" in content
+        # Check that the error contains the status validation error
+        error = content["error"]
+        assert error["type"] == "validation_error"
+        assert any(e["attr"] == "status" for e in error["errors"])
+
+    def test_change_status_to_draft_allowed_without_expenses(self, request_data):
+        """Test that changing status to DRAFT is allowed when no recruitment expenses exist"""
+        # Create a recruitment request with OPEN status
+        data = request_data.copy()
+        data["status"] = "OPEN"
+        url = reverse("hrm:recruitment-request-list")
+        create_response = self.client.post(url, data, format="json")
+        assert create_response.status_code == status.HTTP_201_CREATED
+        request_id = self.get_response_data(create_response)["id"]
+
+        # Try to change status to DRAFT - should succeed (no expenses)
+        url = reverse("hrm:recruitment-request-detail", kwargs={"pk": request_id})
+        response = self.client.patch(url, {"status": "DRAFT"}, format="json")
+
+        assert response.status_code == status.HTTP_200_OK
+        response_data = self.get_response_data(response)
+        assert response_data["colored_status"]["value"] == "DRAFT"
