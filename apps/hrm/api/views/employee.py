@@ -120,6 +120,7 @@ class EmployeeViewSet(
     submodule = _("Employee Management")
     permission_prefix = "employee"
 
+    import_template_name = "hrm_employee_template"
     xlsx_template_name = "apps/hrm/fixtures/export_templates/employee_export_template.xlsx"
     PERMISSION_REGISTERED_ACTIONS = {
         "active": {

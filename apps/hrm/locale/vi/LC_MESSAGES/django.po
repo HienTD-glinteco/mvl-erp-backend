@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-16 15:24+0700\n"
+"POT-Creation-Date: 2026-01-16 15:46+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -946,7 +946,7 @@ msgstr "Ban hành {model_name}"
 #: apps/hrm/api/views/contract.py:344 apps/hrm/api/views/contract.py:345
 #: apps/hrm/api/views/contract_appendix.py:290
 #: apps/hrm/api/views/contract_appendix.py:291
-#: apps/hrm/api/views/employee.py:162 apps/hrm/api/views/employee.py:163
+#: apps/hrm/api/views/employee.py:163 apps/hrm/api/views/employee.py:164
 #: apps/hrm/api/views/employee_relationship.py:243
 #: apps/hrm/api/views/employee_relationship.py:244
 #, python-brace-format
@@ -955,7 +955,7 @@ msgstr "Tải xuống mẫu import {model_name}"
 
 #: apps/hrm/api/views/contract.py:348
 #: apps/hrm/api/views/contract_appendix.py:294
-#: apps/hrm/api/views/employee.py:166
+#: apps/hrm/api/views/employee.py:167
 #: apps/hrm/api/views/employee_relationship.py:247
 #, python-brace-format
 msgid "Import {model_name} data"
@@ -963,7 +963,7 @@ msgstr "Import {model_name}"
 
 #: apps/hrm/api/views/contract.py:349
 #: apps/hrm/api/views/contract_appendix.py:295
-#: apps/hrm/api/views/employee.py:167
+#: apps/hrm/api/views/employee.py:168
 #: apps/hrm/api/views/employee_relationship.py:248
 #, python-brace-format
 msgid "Import {model_name} data asynchronously"
@@ -1003,47 +1003,47 @@ msgstr "Quản lý Quyết Định"
 msgid "Employee Management"
 msgstr "Quản lý Nhân Viên"
 
-#: apps/hrm/api/views/employee.py:126 apps/hrm/api/views/employee.py:127
+#: apps/hrm/api/views/employee.py:127 apps/hrm/api/views/employee.py:128
 msgid "Activate employee"
 msgstr "Chuyển nhân viên sang trạng thái bắt đầu làm việc"
 
-#: apps/hrm/api/views/employee.py:130 apps/hrm/api/views/employee.py:131
+#: apps/hrm/api/views/employee.py:131 apps/hrm/api/views/employee.py:132
 msgid "Reactivate employee"
 msgstr "Chuyển nhân viên quay lại làm việc"
 
-#: apps/hrm/api/views/employee.py:134 apps/hrm/api/views/employee.py:135
+#: apps/hrm/api/views/employee.py:135 apps/hrm/api/views/employee.py:136
 msgid "Resign employee"
 msgstr "Chuyển nhân viên sang trạng thái nghỉ việc"
 
-#: apps/hrm/api/views/employee.py:138 apps/hrm/api/views/employee.py:139
+#: apps/hrm/api/views/employee.py:139 apps/hrm/api/views/employee.py:140
 msgid "Set employee to Maternity Leave"
 msgstr "Chuyển nhân viên nghỉ việc hưởng chế độ thai sản"
 
-#: apps/hrm/api/views/employee.py:142 apps/hrm/api/views/employee.py:143
+#: apps/hrm/api/views/employee.py:143 apps/hrm/api/views/employee.py:144
 msgid "Transfer employee"
 msgstr "Điều chuyển nhân viên"
 
-#: apps/hrm/api/views/employee.py:146 apps/hrm/api/views/employee.py:147
+#: apps/hrm/api/views/employee.py:147 apps/hrm/api/views/employee.py:148
 msgid "Change employee Type"
 msgstr "Thay đổi loại Nhân Viên"
 
-#: apps/hrm/api/views/employee.py:150 apps/hrm/api/views/employee.py:151
+#: apps/hrm/api/views/employee.py:151 apps/hrm/api/views/employee.py:152
 msgid "Update employee Avatar"
 msgstr "Cập nhật Ảnh Đại Diện Nhân Viên"
 
-#: apps/hrm/api/views/employee.py:154 apps/hrm/api/views/employee.py:155
+#: apps/hrm/api/views/employee.py:155 apps/hrm/api/views/employee.py:156
 msgid "Preview welcome email for employee"
 msgstr "Xem trước email chào mừng cho nhân viên"
 
-#: apps/hrm/api/views/employee.py:158 apps/hrm/api/views/employee.py:159
+#: apps/hrm/api/views/employee.py:159 apps/hrm/api/views/employee.py:160
 msgid "Send welcome email to employee"
 msgstr "Gửi email chào mừng đến nhân viên"
 
-#: apps/hrm/api/views/employee.py:170
+#: apps/hrm/api/views/employee.py:171
 msgid "View employee in dropdown list"
 msgstr "Xem danh sách nhân viên cho dạng dropdown"
 
-#: apps/hrm/api/views/employee.py:171
+#: apps/hrm/api/views/employee.py:172
 msgid "List employee for dropdown selection"
 msgstr "Danh sách nhân viên cho dạng dropdown"
 
