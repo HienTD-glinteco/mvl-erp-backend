@@ -948,3 +948,70 @@ def send_kpi_notification_task(assessment_id: str, period_month_iso: str):
             "assessment_id": assessment_id,
             "error": str(e),
         }
+
+
+@shared_task
+def export_payroll_slips_task(period_id):
+    """Export payroll slips for a salary period to XLSX asynchronously.
+
+    Args:
+        period_id: SalaryPeriod ID (UUID as string)
+
+    Returns:
+        dict: Result with file URL or error message
+    """
+    from django.conf import settings
+
+    from apps.payroll.models import SalaryPeriod
+    from apps.payroll.services.payroll_export import PayrollSlipExportService
+    from libs.export_xlsx.constants import STORAGE_S3
+    from libs.export_xlsx.generator import XLSXGenerator
+    from libs.export_xlsx.storage import get_storage_backend
+
+    try:
+        period = SalaryPeriod.objects.get(id=period_id)
+    except SalaryPeriod.DoesNotExist:
+        return {
+            "status": "failed",
+            "message": f"Salary period {period_id} not found",
+            "period_id": period_id,
+        }
+
+    try:
+        # Build export data using service
+        export_service = PayrollSlipExportService(period)
+        schema = export_service.build_export_schema()
+
+        # Generate XLSX file
+        generator = XLSXGenerator()
+        file_content = generator.generate(schema)
+
+        # Upload to S3
+        storage = get_storage_backend(STORAGE_S3)
+        filename = f"salary_period_{period.code}_payroll_slips.xlsx"
+        file_path = storage.save(file_content, filename)
+        presigned_url = storage.get_url(file_path)
+        file_size = storage.get_file_size(file_path)
+
+        expires_in = getattr(settings, "EXPORTER_PRESIGNED_URL_EXPIRES", 3600)
+
+        return {
+            "status": "success",
+            "message": "Export completed successfully",
+            "period_id": period_id,
+            "period_code": period.code,
+            "url": presigned_url,
+            "filename": filename,
+            "expires_in": expires_in,
+            "storage_backend": "s3",
+            "size_bytes": file_size,
+        }
+
+    except Exception as e:
+        logger.error(f"Failed to export payroll slips for period {period_id}: {e}", exc_info=True)
+        return {
+            "status": "failed",
+            "message": f"Failed to export: {str(e)}",
+            "period_id": period_id,
+            "error": str(e),
+        }
