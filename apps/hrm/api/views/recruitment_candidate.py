@@ -430,7 +430,7 @@ class RecruitmentCandidateViewSet(
     serializer_class = RecruitmentCandidateSerializer
     filterset_class = RecruitmentCandidateFilterSet
     filter_backends = [RoleDataScopeFilterBackend, DjangoFilterBackend, PhraseSearchFilter, OrderingFilter]
-    search_fields = ["name", "code", "email", "phone", "citizen_id"]
+    search_fields = ["name", "code"]
     ordering_fields = ["code", "name", "submitted_date", "status", "created_at"]
     ordering = ["-created_at"]
     permission_classes = [RoleBasedPermission, DataScopePermission]

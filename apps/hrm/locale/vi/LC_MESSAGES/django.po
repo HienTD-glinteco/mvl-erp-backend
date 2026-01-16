@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-16 15:56+0700\n"
+"POT-Creation-Date: 2026-01-16 18:52+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -203,20 +203,20 @@ msgstr ""
 "Tài khoản của bạn không liên kết với hồ sơ nhân viên. Vui lòng liên hệ với "
 "HR để tạo hồ sơ nhân viên trước khi yêu cầu thay đổi thiết bị."
 
-#: apps/hrm/api/serializers/contract.py:182
+#: apps/hrm/api/serializers/contract.py:184
 msgid "Only contracts with DRAFT status can be edited."
 msgstr "Chỉnh sửa chỉ áp dụng cho hợp đồng có trạng thái BẢN NHÁP."
 
-#: apps/hrm/api/serializers/contract.py:187
+#: apps/hrm/api/serializers/contract.py:189
 msgid "Contract type must have category 'contract'."
 msgstr "Loại hợp đồng phải có thể loại 'contract'."
 
-#: apps/hrm/api/serializers/contract.py:196
+#: apps/hrm/api/serializers/contract.py:198
 #: apps/hrm/api/serializers/contract_appendix.py:146
 msgid "Sign date must be on or before effective date."
 msgstr "Ngày ký phải trước hoặc vào ngày hiệu lực."
 
-#: apps/hrm/api/serializers/contract.py:200
+#: apps/hrm/api/serializers/contract.py:202
 #: apps/hrm/api/serializers/contract_appendix.py:150
 msgid "Expiration date must be on or after effective date."
 msgstr "Ngày hết hạn phải sau hoặc vào ngày hiệu lực."
@@ -880,7 +880,7 @@ msgstr "Báo cáo chấm công GPS theo phòng ban"
 
 #: apps/hrm/api/views/attendance_wifi_device.py:288
 #: apps/hrm/api/views/bank.py:102 apps/hrm/api/views/bank_account.py:72
-#: apps/hrm/api/views/contract.py:335
+#: apps/hrm/api/views/contract.py:346
 #: apps/hrm/api/views/contract_appendix.py:281
 #: apps/hrm/api/views/contract_type.py:264 apps/hrm/api/views/decision.py:258
 #: apps/hrm/api/views/employee.py:119
@@ -932,18 +932,18 @@ msgstr "Quản lý Ngân Hàng"
 msgid "Bank Account Management"
 msgstr "Quản lý Tài Khoản Ngân Hàng"
 
-#: apps/hrm/api/views/contract.py:336
+#: apps/hrm/api/views/contract.py:347
 msgid "Contract Management"
 msgstr "Quản lý Hợp Đồng"
 
-#: apps/hrm/api/views/contract.py:340 apps/hrm/api/views/contract.py:341
+#: apps/hrm/api/views/contract.py:351 apps/hrm/api/views/contract.py:352
 #: apps/hrm/api/views/contract_appendix.py:286
 #: apps/hrm/api/views/contract_appendix.py:287
 #, python-brace-format
 msgid "Publish {model_name}"
 msgstr "Ban hành {model_name}"
 
-#: apps/hrm/api/views/contract.py:344 apps/hrm/api/views/contract.py:345
+#: apps/hrm/api/views/contract.py:355 apps/hrm/api/views/contract.py:356
 #: apps/hrm/api/views/contract_appendix.py:290
 #: apps/hrm/api/views/contract_appendix.py:291
 #: apps/hrm/api/views/employee.py:163 apps/hrm/api/views/employee.py:164
@@ -953,7 +953,7 @@ msgstr "Ban hành {model_name}"
 msgid "Download import template for {model_name}"
 msgstr "Tải xuống mẫu import {model_name}"
 
-#: apps/hrm/api/views/contract.py:348
+#: apps/hrm/api/views/contract.py:359
 #: apps/hrm/api/views/contract_appendix.py:294
 #: apps/hrm/api/views/employee.py:167
 #: apps/hrm/api/views/employee_relationship.py:247
@@ -961,7 +961,7 @@ msgstr "Tải xuống mẫu import {model_name}"
 msgid "Import {model_name} data"
 msgstr "Import {model_name}"
 
-#: apps/hrm/api/views/contract.py:349
+#: apps/hrm/api/views/contract.py:360
 #: apps/hrm/api/views/contract_appendix.py:295
 #: apps/hrm/api/views/employee.py:168
 #: apps/hrm/api/views/employee_relationship.py:248
@@ -969,19 +969,20 @@ msgstr "Import {model_name}"
 msgid "Import {model_name} data asynchronously"
 msgstr ""
 
-#: apps/hrm/api/views/contract.py:352
+#: apps/hrm/api/views/contract.py:363
 #, python-brace-format
 msgid "Export {model_name} document"
 msgstr "Export {model_name} document"
 
-#: apps/hrm/api/views/contract.py:353
+#: apps/hrm/api/views/contract.py:364
 #, python-brace-format
 msgid "Export {model_name} as document (PDF/DOCX)"
 msgstr "Export {model_name} as document (PDF/DOCX)"
 
-#: apps/hrm/api/views/contract.py:387
-msgid "Import mode must be either 'create' or 'update'"
-msgstr "Vui lòng chọn đúng chế độ import: 'Tạo mới' hoặc 'Cập nhật'."
+#: apps/hrm/api/views/contract.py:398
+#, python-format
+msgid "Import mode must be either '%(create)s' or '%(update)s'"
+msgstr "Vui lòng chọn đúng chế độ import '%(create)s' or '%(update)s'"
 
 #: apps/hrm/api/views/contract_appendix.py:282
 msgid "Contract Appendix Management"
@@ -3042,6 +3043,14 @@ msgstr "Mẫu hợp đồng thử việc"
 #: apps/hrm/constants.py:256
 msgid "Update contract"
 msgstr "Mẫu hợp đồng cập nhật"
+
+#: apps/hrm/constants.py:260
+msgid "Create"
+msgstr "Tạo"
+
+#: apps/hrm/constants.py:261
+msgid "Update"
+msgstr "Cập nhật"
 
 #: apps/hrm/import_handlers/contract_appendix.py:64
 #: apps/hrm/import_handlers/contract_update.py:109
@@ -5125,26 +5134,22 @@ msgid "End time must be after start time"
 msgstr "Thời gian kết thúc làm ngoài giờ phải sau thời gian bắt đầu"
 
 #: apps/hrm/models/proposal.py:1058
-#, python-brace-format
 msgid ""
 "Overtime entry cannot overlap with official morning working hours ({}-{})"
 msgstr ""
 "Thời gian làm thêm giờ không thể trùng với giờ làm việc chính thức ({}-{})"
 
 #: apps/hrm/models/proposal.py:1074
-#, python-brace-format
 msgid ""
 "Overtime entry cannot overlap with official afternoon working hours ({}-{})"
 msgstr ""
 "Thời gian làm thêm giờ không thể trùng với giờ làm việc chính thức ({}-{})"
 
 #: apps/hrm/models/proposal.py:1118
-#, python-brace-format
 msgid "Overtime entry cannot overlap with compensatory morning shift ({}-{})"
 msgstr "Thời gian làm thêm giờ không thể trùng với giờ làm việc bù ({}-{})"
 
 #: apps/hrm/models/proposal.py:1136
-#, python-brace-format
 msgid "Overtime entry cannot overlap with compensatory afternoon shift ({}-{})"
 msgstr "Thời gian làm thêm giờ không thể trùng với giờ làm việc bù ({}-{})"
 

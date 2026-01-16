@@ -12,6 +12,7 @@ from apps.hrm.constants import (
     TimesheetReason,
     TimesheetStatus,
 )
+from apps.hrm.models.holiday import CompensatoryWorkday
 from apps.hrm.models.proposal import Proposal, ProposalType
 from apps.hrm.models.timesheet import TimeSheetEntry
 from apps.hrm.models.work_schedule import WorkSchedule
@@ -105,6 +106,9 @@ class TimesheetCalculator:
                 # Working day: ON_TIME status, grant days based on schedule
                 self.entry.status = TimesheetStatus.ON_TIME
                 self.entry.working_days = max_days
+                # On compensatory day, max working days is always 0.
+                if self.entry.day_type == TimesheetDayType.COMPENSATORY:
+                    self.entry.working_days = 0
 
             # Reset penalties/absent reasons just in case
             self.entry.late_minutes = 0
@@ -692,8 +696,6 @@ class TimesheetCalculator:
 
     def _get_compensatory_max_days(self) -> Decimal:
         """Return max working days for compensatory day based on session."""
-        from apps.hrm.models.holiday import CompensatoryWorkday
-
         comp = CompensatoryWorkday.objects.filter(date=self.entry.date).first()
         if comp:
             if comp.session == CompensatoryWorkday.Session.FULL_DAY:
