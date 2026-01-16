@@ -454,9 +454,17 @@ class TimesheetCalculator:
         if is_finalizing:
             # TODO: cache active leave proposals to reuse, or store the snapshot to timesheet entry
             proposals = Proposal.get_active_leave_proposals(self.entry.employee_id, self.entry.date)
-            has_partial_leave = any(p.is_morning_leave or p.is_afternoon_leave for p in proposals)
-            if has_partial_leave:
-                # Half-day leave with no attendance on other half → ABSENT
+            has_morning_leave = any(p.is_morning_leave for p in proposals)
+            has_afternoon_leave = any(p.is_afternoon_leave for p in proposals)
+
+            # If both morning and afternoon are covered by partial leaves,
+            # treat as fully covered (status = None, not ABSENT)
+            if has_morning_leave and has_afternoon_leave:
+                self.entry.status = None
+                return True
+
+            # Only has partial leave on one half with no attendance on other half → ABSENT
+            if has_morning_leave or has_afternoon_leave:
                 self.entry.status = TimesheetStatus.ABSENT
                 return True
 

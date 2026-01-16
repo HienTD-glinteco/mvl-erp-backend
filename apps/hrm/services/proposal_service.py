@@ -6,7 +6,7 @@ from django.utils.translation import gettext as _
 
 from apps.core.models import UserDevice
 from apps.core.utils.jwt import bump_user_mobile_token_version, revoke_user_outstanding_tokens
-from apps.hrm.constants import ProposalType, TimesheetReason
+from apps.hrm.constants import ProposalType, ProposalWorkShift, TimesheetReason
 from apps.hrm.models import Employee, Proposal, ProposalOvertimeEntry, ProposalTimeSheetEntry, TimeSheetEntry
 from apps.hrm.services.timesheet_snapshot_service import TimesheetSnapshotService
 
@@ -65,12 +65,14 @@ class ProposalService:
         For leave proposals (PAID_LEAVE, UNPAID_LEAVE, MATERNITY_LEAVE), this method:
         1. Iterates through the date range from start_date to end_date
         2. Finds or creates a TimesheetEntry for each date
-        3. Sets status=ABSENT and absent_reason based on proposal type
-        4. Handles full_day vs morning/afternoon shifts
+        3. For FULL_DAY leaves: Sets absent_reason based on proposal type
+        4. For partial (MORNING/AFTERNOON) leaves: Does NOT set absent_reason
+           to allow TimesheetCalculator to correctly compute partial credits
 
         Args:
             proposal: The approved leave Proposal instance
         """
+
         # Determine the date range and shift based on proposal type
         start_date = None
         end_date = None
@@ -96,6 +98,9 @@ class ProposalService:
         if not start_date or not end_date:
             raise ProposalExecutionError(f"Leave proposal {proposal.id} missing start_date or end_date")
 
+        # Determine if this is a partial leave (morning or afternoon only)
+        is_partial_leave = shift in [ProposalWorkShift.MORNING, ProposalWorkShift.AFTERNOON]
+
         # Iterate through date range
         current_date = start_date
         while current_date <= end_date:
@@ -103,16 +108,18 @@ class ProposalService:
             entry, created = TimeSheetEntry.objects.get_or_create(employee=proposal.created_by, date=current_date)
 
             entry.status = None
-            entry.absent_reason = absent_reason
 
-            # For full_day or maternity leave, clear all hours
-            # For morning/afternoon shift, could implement partial day logic here
-            # Currently treating all as full day absent
-            entry.morning_hours = 0
-            entry.afternoon_hours = 0
-            entry.official_hours = 0
-            entry.overtime_hours = 0
-            entry.total_worked_hours = 0
+            # Only set absent_reason for FULL_DAY leaves.
+            # Partial leaves should NOT set absent_reason so that
+            # TimesheetCalculator can correctly compute partial credits.
+            if not is_partial_leave:
+                entry.absent_reason = absent_reason
+                # For full_day or maternity leave, clear all hours
+                entry.morning_hours = 0
+                entry.afternoon_hours = 0
+                entry.official_hours = 0
+                entry.overtime_hours = 0
+                entry.total_worked_hours = 0
 
             # Clear times if no existing attendance
             if not entry.start_time and not entry.end_time:

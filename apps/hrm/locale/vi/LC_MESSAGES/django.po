@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-16 11:51+0700\n"
+"POT-Creation-Date: 2026-01-16 12:45+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -5736,7 +5736,7 @@ msgstr "Loại nhân viên thay đổi từ {old_type} sang {new_type}"
 msgid "Contract changed from {old_contract} to {new_contract}"
 msgstr "Hợp đồng thay đổi từ {old_contract} sang {new_contract}"
 
-#: apps/hrm/services/proposal_service.py:167
+#: apps/hrm/services/proposal_service.py:174
 #, python-format
 msgid "Complaint proposal %(id)s missing approved check-in/out times"
 msgstr ""
