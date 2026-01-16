@@ -4,20 +4,32 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('hrm', '0011_merge_20260116_1333'),
+        ("hrm", "0011_merge_20260116_1333"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='attendanceexemption',
-            name='end_date',
-            field=models.DateField(blank=True, db_index=True, help_text='Date when exemption ends', null=True, verbose_name='Ngày kết thúc'),
+            model_name="attendanceexemption",
+            name="end_date",
+            field=models.DateField(
+                blank=True,
+                db_index=True,
+                help_text="Date when exemption ends",
+                null=True,
+                verbose_name="Ngày kết thúc",
+            ),
         ),
         migrations.AlterField(
-            model_name='attendanceexemption',
-            name='status',
-            field=models.CharField(choices=[('ENABLED', 'Đã kích hoạt'), ('DISABLED', 'Đã tắt')], db_index=True, default='ENABLED', help_text='Status of the exemption', max_length=20, verbose_name='Trạng thái'),
+            model_name="attendanceexemption",
+            name="status",
+            field=models.CharField(
+                choices=[("ENABLED", "Đã kích hoạt"), ("DISABLED", "Đã tắt")],
+                db_index=True,
+                default="ENABLED",
+                help_text="Status of the exemption",
+                max_length=20,
+                verbose_name="Trạng thái",
+            ),
         ),
     ]

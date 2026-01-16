@@ -4,25 +4,41 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('hrm', '0008_alter_contract_annual_leave_days'),
+        ("hrm", "0008_alter_contract_annual_leave_days"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='attendanceexemption',
-            name='end_date',
-            field=models.DateField(blank=True, db_index=True, help_text='Date when exemption ends', null=True, verbose_name='Ngày Kết Thúc'),
+            model_name="attendanceexemption",
+            name="end_date",
+            field=models.DateField(
+                blank=True,
+                db_index=True,
+                help_text="Date when exemption ends",
+                null=True,
+                verbose_name="Ngày Kết Thúc",
+            ),
         ),
         migrations.AlterField(
-            model_name='attendanceexemption',
-            name='status',
-            field=models.CharField(choices=[('ENABLED', 'Đã kích hoạt'), ('DISABLED', 'Vô hiệu hóa')], db_index=True, default='ENABLED', help_text='Status of the exemption', max_length=20, verbose_name='Trạng thái'),
+            model_name="attendanceexemption",
+            name="status",
+            field=models.CharField(
+                choices=[("ENABLED", "Đã kích hoạt"), ("DISABLED", "Vô hiệu hóa")],
+                db_index=True,
+                default="ENABLED",
+                help_text="Status of the exemption",
+                max_length=20,
+                verbose_name="Trạng thái",
+            ),
         ),
         migrations.AlterField(
-            model_name='recruitmentsource',
-            name='allow_referral',
-            field=models.BooleanField(default=False, help_text='Enable users to set referrer and referee for candidates from this source', verbose_name='Cho phép giới thiệu'),
+            model_name="recruitmentsource",
+            name="allow_referral",
+            field=models.BooleanField(
+                default=False,
+                help_text="Enable users to set referrer and referee for candidates from this source",
+                verbose_name="Cho phép giới thiệu",
+            ),
         ),
     ]

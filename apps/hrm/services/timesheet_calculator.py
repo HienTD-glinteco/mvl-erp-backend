@@ -534,9 +534,12 @@ class TimesheetCalculator:
 
         self.entry.working_days = Decimal("0.00")
 
-        # 1. Holiday - always get full credit
+        # 1. Holiday - always get full credit based on schedule
         if self.entry.day_type == TimesheetDayType.HOLIDAY:
-            self.entry.working_days = Decimal("1.00")
+            if self.work_schedule:
+                self.entry.working_days = self._get_schedule_max_days()
+            else:
+                self.entry.working_days = Decimal("1.00")
             return
 
         # 2. Full-day PAID_LEAVE (absent_reason set by snapshot) → max working days
