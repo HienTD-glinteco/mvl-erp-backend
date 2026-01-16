@@ -131,38 +131,41 @@ class PayrollSlipExportService:
             _("Hours for calculation"),  # AG
             _("Taxable overtime"),  # AH
             _("Non-taxable overtime"),  # AI
+            # Travel expense (2 columns) - need sub-headers
+            _("Taxable"),  # AJ
+            _("Non-taxable"),  # AK
             # Total income
-            "",  # AJ: Already in group
+            "",  # AL: Already in group
             # Insurance
-            "",  # AK: Has social insurance - already in group
-            "",  # AL: Insurance base - already in group
+            "",  # AM: Has social insurance - already in group
+            "",  # AN: Insurance base - already in group
             # Employer contributions (5 columns) - need sub-headers
-            _("Social insurance (17%)"),  # AM
-            _("Health insurance (3%)"),  # AN
-            _("Accident insurance (0.5%)"),  # AO
-            _("Unemployment insurance (1%)"),  # AP
-            _("Union fee (2%)"),  # AQ
+            _("Social insurance (17%)"),  # AO
+            _("Health insurance (3%)"),  # AP
+            _("Accident insurance (0.5%)"),  # AQ
+            _("Unemployment insurance (1%)"),  # AR
+            _("Union fee (2%)"),  # AS
             # Employee deductions (4 columns) - need sub-headers
-            _("Social insurance (8%)"),  # AR
-            _("Health insurance (1.5%)"),  # AS
-            _("Unemployment insurance (1%)"),  # AT
-            _("Union fee (1%)"),  # AU
+            _("Social insurance (8%)"),  # AT
+            _("Health insurance (1.5%)"),  # AU
+            _("Unemployment insurance (1%)"),  # AV
+            _("Union fee (1%)"),  # AW
             # Tax (8 columns) - need sub-headers
-            _("Tax code"),  # AV
-            _("Tax method"),  # AW
-            _("Dependents count"),  # AX
-            _("Total deduction"),  # AY
-            _("Non-taxable allowance"),  # AZ
-            _("Min threshold 10%"),  # BA
-            _("Taxable income"),  # BB
-            _("Personal income tax"),  # BC
+            _("Tax code"),  # AX
+            _("Tax method"),  # AY
+            _("Dependents count"),  # AZ
+            _("Total deduction"),  # BA
+            _("Non-taxable allowance"),  # BB
+            _("Min threshold 10%"),  # BC
+            _("Taxable income"),  # BD
+            _("Personal income tax"),  # BE
             # Adjustments
-            "",  # BD: Back pay - already in group
-            "",  # BE: Recovery - already in group
+            "",  # BF: Back pay - already in group
+            "",  # BG: Recovery - already in group
             # Net salary
-            "",  # BF: Already in group
+            "",  # BH: Already in group
             # Bank account
-            "",  # BG: Already in group
+            "",  # BI: Already in group
         ]
         return headers
 
@@ -183,6 +186,7 @@ class PayrollSlipExportService:
             {"title": _("Working days"), "span": 5},
             {"title": _("Actual working days income"), "span": 1},
             {"title": _("Overtime"), "span": 10},
+            {"title": _("Travel expense"), "span": 2},
             {"title": _("Gross income"), "span": 1},
             {"title": _("Has social insurance"), "span": 1},
             {"title": _("Insurance base"), "span": 1},
@@ -238,38 +242,41 @@ class PayrollSlipExportService:
             "overtime_hours_for_calculation",  # AG
             "taxable_overtime_salary",  # AH
             "non_taxable_overtime_salary",  # AI
+            # Travel expense (2 fields)
+            "taxable_travel_expense",  # AJ
+            "non_taxable_travel_expense",  # AK
             # Total income (1 field)
-            "gross_income",  # AJ
+            "gross_income",  # AL
             # Insurance (2 fields)
-            "has_social_insurance",  # AK
-            "social_insurance_base",  # AL
+            "has_social_insurance",  # AM
+            "social_insurance_base",  # AN
             # Employer contributions (5 fields)
-            "employer_social_insurance",  # AM
-            "employer_health_insurance",  # AN
-            "employer_accident_insurance",  # AO
-            "employer_unemployment_insurance",  # AP
-            "employer_union_fee",  # AQ
+            "employer_social_insurance",  # AO
+            "employer_health_insurance",  # AP
+            "employer_accident_insurance",  # AQ
+            "employer_unemployment_insurance",  # AR
+            "employer_union_fee",  # AS
             # Employee deductions (4 fields)
-            "employee_social_insurance",  # AR
-            "employee_health_insurance",  # AS
-            "employee_unemployment_insurance",  # AT
-            "employee_union_fee",  # AU
+            "employee_social_insurance",  # AT
+            "employee_health_insurance",  # AU
+            "employee_unemployment_insurance",  # AV
+            "employee_union_fee",  # AW
             # Tax (8 fields)
-            "tax_code",  # AV
-            "tax_calculation_method",  # AW
-            "dependent_count",  # AX
-            "total_deduction",  # AY
-            "non_taxable_allowance",  # AZ
-            "minimum_flat_tax_threshold",  # BA
-            "taxable_income",  # BB
-            "personal_income_tax",  # BC
+            "tax_code",  # AX
+            "tax_calculation_method",  # AY
+            "dependent_count",  # AZ
+            "total_deduction",  # BA
+            "non_taxable_allowance",  # BB
+            "minimum_flat_tax_threshold",  # BC
+            "taxable_income",  # BD
+            "personal_income_tax",  # BE
             # Adjustments (2 fields)
-            "back_pay_amount",  # BD
-            "recovery_amount",  # BE
+            "back_pay_amount",  # BF
+            "recovery_amount",  # BG
             # Net salary (1 field)
-            "net_salary",  # BF
+            "net_salary",  # BH
             # Bank account (1 field)
-            "bank_account",  # BG
+            "bank_account",  # BI
         ]
         return field_names
 
@@ -356,43 +363,46 @@ class PayrollSlipExportService:
                 "taxable_overtime_salary": f"=AG{excel_row}*AD{excel_row}",
                 # AI: Non-taxable overtime = IF(AF>AH*2,AH*2,AE-AH)
                 "non_taxable_overtime_salary": f"=IF(AF{excel_row}>AH{excel_row}*2,AH{excel_row}*2,AE{excel_row}-AH{excel_row})",
-                # AJ: Gross income = Y+AH+AI
-                "gross_income": f"=Y{excel_row}+AH{excel_row}+AI{excel_row}",
-                # Insurance (AK-AL)
-                # AK: Has social insurance
+                # Travel expense (AJ-AK)
+                "taxable_travel_expense": slip.taxable_travel_expense or 0,  # AJ
+                "non_taxable_travel_expense": slip.non_taxable_travel_expense or 0,  # AK
+                # AL: Gross income = Y+AH+AI+AJ+AK
+                "gross_income": f"=Y{excel_row}+AH{excel_row}+AI{excel_row}+AJ{excel_row}+AK{excel_row}",
+                # Insurance (AM-AN)
+                # AM: Has social insurance
                 "has_social_insurance": slip.has_social_insurance,
-                # AL: Insurance base = IF(AK=TRUE,K,0)
-                "social_insurance_base": f"=IF(AK{excel_row}=TRUE,K{excel_row},0)",
-                # Employer contributions (AM-AQ)
-                "employer_social_insurance": f"=AL{excel_row}*{employer_si_rate}",  # AM
-                "employer_health_insurance": f"=AL{excel_row}*{employer_hi_rate}",  # AN
-                "employer_accident_insurance": f"=AL{excel_row}*{employer_ai_rate}",  # AO
-                "employer_unemployment_insurance": f"=AL{excel_row}*{employer_ui_rate}",  # AP
-                "employer_union_fee": f"=AL{excel_row}*{employer_uf_rate}",  # AQ
-                # Employee deductions (AR-AU)
-                "employee_social_insurance": f"=AL{excel_row}*{employee_si_rate}",  # AR
-                "employee_health_insurance": f"=AL{excel_row}*{employee_hi_rate}",  # AS
-                "employee_unemployment_insurance": f"=AL{excel_row}*{employee_ui_rate}",  # AT
-                "employee_union_fee": f"=AL{excel_row}*{employee_uf_rate}",  # AU
-                # Tax information (AV-BC)
-                "tax_code": slip.tax_code or "",  # AV
-                # AW: Tax calculation method (translate)
-                **self._get_tax_method_display(slip),  # AW
-                "dependent_count": slip.dependent_count or 0,  # AX
-                # AY: Total deduction = personal_deduction + dependent_count * dependent_deduction
-                "total_deduction": f"={personal_deduction}+AX{excel_row}*{dependent_deduction}",
-                # AZ: Non-taxable allowance = SUM(L:M)/T*(V*X+W)
+                # AN: Insurance base = IF(AM=TRUE,K,0)
+                "social_insurance_base": f"=IF(AM{excel_row}=TRUE,K{excel_row},0)",
+                # Employer contributions (AO-AS)
+                "employer_social_insurance": f"=AN{excel_row}*{employer_si_rate}",  # AO
+                "employer_health_insurance": f"=AN{excel_row}*{employer_hi_rate}",  # AP
+                "employer_accident_insurance": f"=AN{excel_row}*{employer_ai_rate}",  # AQ
+                "employer_unemployment_insurance": f"=AN{excel_row}*{employer_ui_rate}",  # AR
+                "employer_union_fee": f"=AN{excel_row}*{employer_uf_rate}",  # AS
+                # Employee deductions (AT-AW)
+                "employee_social_insurance": f"=AN{excel_row}*{employee_si_rate}",  # AT
+                "employee_health_insurance": f"=AN{excel_row}*{employee_hi_rate}",  # AU
+                "employee_unemployment_insurance": f"=AN{excel_row}*{employee_ui_rate}",  # AV
+                "employee_union_fee": f"=AN{excel_row}*{employee_uf_rate}",  # AW
+                # Tax information (AX-BE)
+                "tax_code": slip.tax_code or "",  # AX
+                # AY: Tax calculation method (translate)
+                **self._get_tax_method_display(slip),  # AY
+                "dependent_count": slip.dependent_count or 0,  # AZ
+                # BA: Total deduction = 11000000 + AZ * 4400000
+                "total_deduction": f"={personal_deduction}+AZ{excel_row}*{dependent_deduction}",
+                # BB: Non-taxable allowance = SUM(L:M)/T*(V*X+W)
                 "non_taxable_allowance": f"=SUM(L{excel_row}:M{excel_row})/T{excel_row}*(V{excel_row}*X{excel_row}+W{excel_row})",
-                # BA: Minimum flat tax threshold
+                # BC: Minimum flat tax threshold
                 "minimum_flat_tax_threshold": tax_config.get("minimum_flat_tax_threshold", 2000000),
-                # BB-BC: Taxable income and tax - conditional based on tax_calculation_method
+                # BD-BE: Taxable income and tax - conditional based on tax_calculation_method
                 **self._get_tax_formulas(slip, excel_row),
-                # Adjustments (BD-BE)
-                "back_pay_amount": slip.back_pay_amount or 0,  # BD
-                "recovery_amount": slip.recovery_amount or 0,  # BE
-                # BF: Net salary = ROUND(AJ-SUM(AR:AT)-AU+BD-BE-BC,0)
-                "net_salary": f"=ROUND(AJ{excel_row}-SUM(AR{excel_row}:AT{excel_row})-AU{excel_row}+BD{excel_row}-BE{excel_row}-BC{excel_row},0)",
-                # BG: Bank account
+                # Adjustments (BF-BG)
+                "back_pay_amount": slip.back_pay_amount or 0,  # BF
+                "recovery_amount": slip.recovery_amount or 0,  # BG
+                # BH: Net salary = ROUND(AL-SUM(AT:AV)-AW+BF-BG-BE,0)
+                "net_salary": f"=ROUND(AL{excel_row}-SUM(AT{excel_row}:AV{excel_row})-AW{excel_row}+BF{excel_row}-BG{excel_row}-BE{excel_row},0)",
+                # BI: Bank account
                 "bank_account": (
                     slip.employee.default_bank_account.account_number
                     if slip.employee and slip.employee.default_bank_account
@@ -416,26 +426,30 @@ class PayrollSlipExportService:
         return {"tax_calculation_method": str(tax_method_display)}
 
     def _get_tax_formulas(self, slip, excel_row):
-        """Get taxable income and tax formulas based on tax_calculation_method."""
+        """Get taxable income and tax formulas based on tax_calculation_method.
+
+        BD: Taxable income
+        BE: Personal income tax
+        """
         tax_method = slip.tax_calculation_method or ""
 
-        # BB: Taxable income
+        # BD: Taxable income
         if tax_method == "progressive":
-            # =IF(AJ-SUM(AR:AT)-AY-AI-AZ>0,AJ-SUM(AR:AT)-AY-AI-AZ,0)
-            taxable_income_formula = f"=IF(AJ{excel_row}-SUM(AR{excel_row}:AT{excel_row})-AY{excel_row}-AI{excel_row}-AZ{excel_row}>0,AJ{excel_row}-SUM(AR{excel_row}:AT{excel_row})-AY{excel_row}-AI{excel_row}-AZ{excel_row},0)"
+            # =IF(AL-SUM(AT:AV)-BA-AI-BB>0,AL-SUM(AT:AV)-BA-AI-BB,0)
+            taxable_income_formula = f"=IF(AL{excel_row}-AI{excel_row}-AK{excel_row}-SUM(AT{excel_row}:AV{excel_row})-BA{excel_row}-BB{excel_row}>0,AL{excel_row}-AI{excel_row}-AK{excel_row}-SUM(AT{excel_row}:AV{excel_row})-BA{excel_row}-BB{excel_row},0)"
         elif tax_method == "flat_10":
-            # =AJ (gross income)
-            taxable_income_formula = f"=AJ{excel_row}"
+            # =AL (gross income)
+            taxable_income_formula = f"=AL{excel_row}"
         else:  # none or empty
             taxable_income_formula = "=0"
 
-        # BC: Personal income tax
+        # BE: Personal income tax
         if tax_method == "progressive":
             # Progressive tax brackets
-            tax_formula = f"=IF(BB{excel_row}<=5000000,BB{excel_row}*0.05,IF(BB{excel_row}<=10000000,BB{excel_row}*0.1-250000,IF(BB{excel_row}<=18000000,BB{excel_row}*0.15-750000,IF(BB{excel_row}<=32000000,BB{excel_row}*0.2-1650000,IF(BB{excel_row}<=52000000,BB{excel_row}*0.25-3250000,IF(BB{excel_row}<=80000000,BB{excel_row}*0.3-5850000,BB{excel_row}*0.35-9850000))))))"
+            tax_formula = f"=IF(BD{excel_row}<=5000000,BD{excel_row}*0.05,IF(BD{excel_row}<=10000000,BD{excel_row}*0.1-250000,IF(BD{excel_row}<=18000000,BD{excel_row}*0.15-750000,IF(BD{excel_row}<=32000000,BD{excel_row}*0.2-1650000,IF(BD{excel_row}<=52000000,BD{excel_row}*0.25-3250000,IF(BD{excel_row}<=80000000,BD{excel_row}*0.3-5850000,BD{excel_row}*0.35-9850000))))))"
         elif tax_method == "flat_10":
-            # =IF(BB>=BA,BB*10%,0)
-            tax_formula = f"=IF(BB{excel_row}>=BA{excel_row},BB{excel_row}*0.1,0)"
+            # =IF(BD>=BC,BD*10%,0)
+            tax_formula = f"=IF(BD{excel_row}>=BC{excel_row},BD{excel_row}*0.1,0)"
         else:  # none or empty
             tax_formula = "=0"
 

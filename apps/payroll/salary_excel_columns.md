@@ -34,33 +34,35 @@ cột AF: phụ cấp vượt tiến độ tham chiếu, formular =AE5-AH5
 cột AG: số giờ làm thêm, formular =AC5
 cột AH: Lương ngoài giờ chịu thuế, formular =AG5*AD5
 cột AI: Lương ngoài giờ k chịu thuế, formular =IF(AF5>AH5*2;AH5*2;AE5-AH5)
-cột AJ: tổng thu nhập, formular =Y5+AH5+AI5
-cột AK: có đóng BHXH?, fill - has_social_insurance (True/False)
-cột AL: Lương đóng BHXH, formular =IF(AK5=TRUE;K5;0)
-cột AM: BHXH trích DN, formular =AL5*17% (% này lấy trong salary config)
-cột AN: BHYT trích DN, formular =AL5*3% (% này lấy trong salary config)
-cột AO: BH TNLĐ-BNN(0.5%) trích DN, formular =AL5*0.5% (% này lấy trong salary config)
-cột AP: BHTN trích DN, formular =AL5*1% (% này lấy trong salary config)
-cột AQ: Đoàn phí Công đoàn (2%) trích DN, formular =AL5*2% (% này lấy trong salary config)
-cột AR: BHXH trích lương, formular =AL5*8% (% này lấy trong salary config)
-cột AS: BHYT trích lương, formular =AL5*1.5% (% này lấy trong salary config)
-cột AT: BHTN trích lương, formular =AL5*1% (% này lấy trong salary config)
-cột AU: Đoàn phí Công đoàn (1%) trích lương, formular =AL5*1% (% này lấy trong salary config)
-cột AV: mã số thuế, fill - tax_code
-cột AW: Cách tính thuế, fill - tax_calculation_method (nhớ dùng gettext để translate)
-cột AX: số người phụ thuộc, fill - dependent_count
-cột AY: tổng giảm trừ, formular =11000000+AX5*4400000 (số tiền giảm trừ lấy trong salary config)
-cột AZ: phụ cấp không tính thuế TNCN, formular =SUM(L5:M5)/T5*(V5*X5+W5)
-cột BA: mức min khấu trừ 10%, fill - salary_period.salary_config_snapshot.personal_income_tax.minimum_flat_tax_threshold
-cột BB: thu nhập tính thuế, formular:
-   - nếu cột AW là "progressive" =IF(AJ5-SUM(AR5:AT5)-AY5-AI5-AZ5>0;AJ5-SUM(AR5:AT5)-AY5-AI5-AZ5;0)
-   - nếu cột AW là "flat_10" điền =AJ5 (tổng thu nhập - gross)
+cột AJ: Công tác phí tính thuế, fill - taxable_travel_expense
+cột AK: Công tác phí không tính thuế, fill - non_taxable_travel_expense
+cột AL: tổng thu nhập, formular =Y5+AH5+AI5+AJ5+AK5
+cột AM: có đóng BHXH?, fill - has_social_insurance (True/False)
+cột AN: Lương đóng BHXH, formular =IF(AM5=TRUE;K5;0)
+cột AO: BHXH trích DN, formular =AN5*17% (% này lấy trong salary config)
+cột AP: BHYT trích DN, formular =AN5*3% (% này lấy trong salary config)
+cột AQ: BH TNLĐ-BNN(0.5%) trích DN, formular =AN5*0.5% (% này lấy trong salary config)
+cột AR: BHTN trích DN, formular =AN5*1% (% này lấy trong salary config)
+cột AS: Đoàn phí Công đoàn (2%) trích DN, formular =AN5*2% (% này lấy trong salary config)
+cột AT: BHXH trích lương, formular =AN5*8% (% này lấy trong salary config)
+cột AU: BHYT trích lương, formular =AN5*1.5% (% này lấy trong salary config)
+cột AV: BHTN trích lương, formular =AN5*1% (% này lấy trong salary config)
+cột AW: Đoàn phí Công đoàn (1%) trích lương, formular =AN5*1% (% này lấy trong salary config)
+cột AX: mã số thuế, fill - tax_code
+cột AY: Cách tính thuế, fill - tax_calculation_method (nhớ dùng gettext để translate)
+cột AZ: số người phụ thuộc, fill - dependent_count
+cột BA: tổng giảm trừ, formular =11000000+AZ5*4400000 (số tiền giảm trừ lấy trong salary config)
+cột BB: phụ cấp không tính thuế TNCN, formular =SUM(L5:M5)/T5*(V5*X5+W5)
+cột BC: mức min khấu trừ 10%, fill - salary_period.salary_config_snapshot.personal_income_tax.minimum_flat_tax_threshold
+cột BD: thu nhập tính thuế, formular:
+   - nếu cột AW là "progressive" =IF(AL5-AI5-AK5-SUM(AT5:AV5)-BA5-BB5>0;AL5-AI5-AK5-SUM(AT5:AV5)-BA5-BB5;0)
+   - nếu cột AW là "flat_10" điền =AL5 (tổng thu nhập - gross)
    - nếu cột AW là "none" = 0
-cột BC: Thuế TNCN, formular:
-   - nếu cột AW là "progressive" =IF(BB5<=5000000;BB5*0.05;IF(BB5<=10000000;BB5*0.1-250000;IF(BB5<=18000000;BB5*0.15-750000;IF(BB5<=32000000;BB5*0.2-1650000;IF(BB5<=52000000;BB5*0.25-3250000;IF(BB5<=80000000;BB5*0.3-5850000;BB5*0.35-9850000))))))
-   - nếu cột AW là "flat_10" điền =IF(BB5>=BA5;BB5*10%;0)
+cột BE: Thuế TNCN, formular:
+   - nếu cột AW là "progressive" =IF(BD5<=5000000;BD5*0,05;IF(BD5<=10000000;BD5*0,1-250000;IF(BD5<=18000000;BD5*0,15-750000;IF(BD5<=32000000;BD5*0,2-1650000;IF(BD5<=52000000;BD5*0,25-3250000;IF(BD5<=80000000;BD5*0,3-5850000;BD5*0,35-9850000))))))
+   - nếu cột AW là "flat_10" điền =IF(BD5>=BC5;BD5*10%;0)
    - nếu cột AW là "none" = 0
-cột BD: truy lĩnh, fill - back_pay_amount
-cột BE: truy thu, fill - recovery_amount
-cột BF: tổng lương, formular =ROUND(AJ5-SUM(AR5:AT5)-AU5+BD5-BE5-BC5;0)
+cột BF: truy lĩnh, fill - back_pay_amount
+cột BG: truy thu, fill - recovery_amount
+cột BH: tổng lương, formular =ROUND(AL5-SUM(AT5:AV5)-AW5+BF5-BG5-BE5;0)
 cột BG: STK, fill - employee.default_bank_account.account_number or ""

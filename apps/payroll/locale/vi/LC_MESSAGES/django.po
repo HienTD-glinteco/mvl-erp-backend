@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-16 13:17+0700\n"
+"POT-Creation-Date: 2026-01-16 14:24+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -340,8 +340,8 @@ msgstr "Hoàn tất kỳ đánh giá thành công"
 #: apps/payroll/api/views/penalty_tickets.py:210
 #: apps/payroll/api/views/recovery_voucher.py:349
 #: apps/payroll/api/views/salary_config.py:20
-#: apps/payroll/api/views/salary_period.py:805
-#: apps/payroll/api/views/salary_period.py:930
+#: apps/payroll/api/views/salary_period.py:825
+#: apps/payroll/api/views/salary_period.py:950
 #: apps/payroll/api/views/sales_revenue.py:454
 #: apps/payroll/api/views/sales_revenue_report.py:50
 #: apps/payroll/api/views/travel_expense.py:418
@@ -514,27 +514,27 @@ msgstr "Cấu hình"
 msgid "View salary configuration"
 msgstr "Xem cấu hình lương"
 
-#: apps/payroll/api/views/salary_period.py:806
-#: apps/payroll/api/views/salary_period.py:931
+#: apps/payroll/api/views/salary_period.py:826
+#: apps/payroll/api/views/salary_period.py:951
 #: apps/payroll/models/salary_period.py:243
 msgid "Salary Periods"
 msgstr "Các kỳ lương"
 
-#: apps/payroll/api/views/salary_period.py:812
+#: apps/payroll/api/views/salary_period.py:832
 msgid "View Payment Table (Ready Slips)"
 msgstr ""
 
-#: apps/payroll/api/views/salary_period.py:813
+#: apps/payroll/api/views/salary_period.py:833
 #, fuzzy
 #| msgid "View not-ready payroll slips"
 msgid "View payment table with ready/delivered payroll slips"
 msgstr "Xem phiếu lương chưa sẵn sàng"
 
-#: apps/payroll/api/views/salary_period.py:937
+#: apps/payroll/api/views/salary_period.py:957
 msgid "View Deferred Table (Not Ready Slips)"
 msgstr ""
 
-#: apps/payroll/api/views/salary_period.py:938
+#: apps/payroll/api/views/salary_period.py:958
 #, fuzzy
 #| msgid "View ready payroll slips"
 msgid "View deferred table with pending/hold payroll slips"
@@ -1206,7 +1206,7 @@ msgid ""
 msgstr ""
 
 #: apps/payroll/models/recovery_voucher.py:35
-#: apps/payroll/services/payroll_export.py:193
+#: apps/payroll/services/payroll_export.py:197
 msgid "Recovery"
 msgstr "Truy thu"
 
@@ -1369,7 +1369,7 @@ msgid "Block"
 msgstr "Khối"
 
 #: apps/payroll/models/sales_revenue_report.py:54
-#: apps/payroll/services/payroll_export.py:175
+#: apps/payroll/services/payroll_export.py:178
 msgid "Department"
 msgstr "Phòng ban"
 
@@ -1605,218 +1605,236 @@ msgstr "Lương ngoài giờ chịu thuế"
 msgid "Non-taxable overtime"
 msgstr "Lương ngoài giờ k chịu thuế"
 
-#: apps/payroll/services/payroll_export.py:140
+#: apps/payroll/services/payroll_export.py:135
+#, fuzzy
+#| msgid "Taxable Income"
+msgid "Taxable"
+msgstr "Thu nhập tính thuế"
+
+#: apps/payroll/services/payroll_export.py:136
+#, fuzzy
+#| msgid "Non-Taxable Overtime Salary"
+msgid "Non-taxable"
+msgstr "Lương ngoài giờ k chịu thuế"
+
+#: apps/payroll/services/payroll_export.py:143
 #, fuzzy
 #| msgid "Social Insurance Base"
 msgid "Social insurance (17%)"
 msgstr "Lương đóng BHXH"
 
-#: apps/payroll/services/payroll_export.py:141
+#: apps/payroll/services/payroll_export.py:144
 #, fuzzy
 #| msgid "Employee Health Insurance"
 msgid "Health insurance (3%)"
 msgstr "BHYT trích từ lương NLĐ"
 
-#: apps/payroll/services/payroll_export.py:142
+#: apps/payroll/services/payroll_export.py:145
 #, fuzzy
 #| msgid "Employer Accident Insurance"
 msgid "Accident insurance (0.5%)"
 msgstr "BH TNLĐ-BNN trích từ DN"
 
-#: apps/payroll/services/payroll_export.py:143
-#: apps/payroll/services/payroll_export.py:148
+#: apps/payroll/services/payroll_export.py:146
+#: apps/payroll/services/payroll_export.py:151
 #, fuzzy
 #| msgid "Employee Unemployment Insurance"
 msgid "Unemployment insurance (1%)"
 msgstr "BHTN trích từ lương NLĐ"
 
-#: apps/payroll/services/payroll_export.py:144
+#: apps/payroll/services/payroll_export.py:147
 msgid "Union fee (2%)"
 msgstr ""
 
-#: apps/payroll/services/payroll_export.py:146
+#: apps/payroll/services/payroll_export.py:149
 #, fuzzy
 #| msgid "Social Insurance Base"
 msgid "Social insurance (8%)"
 msgstr "Lương đóng BHXH"
 
-#: apps/payroll/services/payroll_export.py:147
+#: apps/payroll/services/payroll_export.py:150
 #, fuzzy
 #| msgid "Employee Health Insurance"
 msgid "Health insurance (1.5%)"
 msgstr "BHYT trích từ lương NLĐ"
 
-#: apps/payroll/services/payroll_export.py:149
+#: apps/payroll/services/payroll_export.py:152
 msgid "Union fee (1%)"
 msgstr ""
 
-#: apps/payroll/services/payroll_export.py:151
+#: apps/payroll/services/payroll_export.py:154
 #, fuzzy
 #| msgid "Tax Code"
 msgid "Tax code"
 msgstr "Mã số thuế"
 
-#: apps/payroll/services/payroll_export.py:152
+#: apps/payroll/services/payroll_export.py:155
 #, fuzzy
 #| msgid "Tax Code"
 msgid "Tax method"
 msgstr "Mã số thuế"
 
-#: apps/payroll/services/payroll_export.py:153
+#: apps/payroll/services/payroll_export.py:156
 #, fuzzy
 #| msgid "Dependent Count"
 msgid "Dependents count"
 msgstr "Số người phụ thuộc"
 
-#: apps/payroll/services/payroll_export.py:154
+#: apps/payroll/services/payroll_export.py:157
 #, fuzzy
 #| msgid "Personal Deduction"
 msgid "Total deduction"
 msgstr "Giảm trừ cá nhân"
 
-#: apps/payroll/services/payroll_export.py:155
+#: apps/payroll/services/payroll_export.py:158
 #, fuzzy
 #| msgid "Phone Allowance"
 msgid "Non-taxable allowance"
 msgstr "Phụ cấp điện thoại"
 
-#: apps/payroll/services/payroll_export.py:156
+#: apps/payroll/services/payroll_export.py:159
 msgid "Min threshold 10%"
 msgstr ""
 
-#: apps/payroll/services/payroll_export.py:157
+#: apps/payroll/services/payroll_export.py:160
 #, fuzzy
 #| msgid "Taxable Income"
 msgid "Taxable income"
 msgstr "Thu nhập tính thuế"
 
-#: apps/payroll/services/payroll_export.py:158
+#: apps/payroll/services/payroll_export.py:161
 #, fuzzy
 #| msgid "Personal Income Tax"
 msgid "Personal income tax"
 msgstr "Thuế thu nhập cá nhân"
 
-#: apps/payroll/services/payroll_export.py:172
+#: apps/payroll/services/payroll_export.py:175
 msgid "No."
 msgstr ""
 
-#: apps/payroll/services/payroll_export.py:173
+#: apps/payroll/services/payroll_export.py:176
 #, fuzzy
 #| msgid "Employee Code"
 msgid "Employee code"
 msgstr "Mã nhân viên"
 
-#: apps/payroll/services/payroll_export.py:174
+#: apps/payroll/services/payroll_export.py:177
 #, fuzzy
 #| msgid "Field name"
 msgid "Full name"
 msgstr "Tên trường"
 
-#: apps/payroll/services/payroll_export.py:176
+#: apps/payroll/services/payroll_export.py:179
 #, fuzzy
 #| msgid "Position Name"
 msgid "Position"
 msgstr "Vị trí"
 
-#: apps/payroll/services/payroll_export.py:177
+#: apps/payroll/services/payroll_export.py:180
 #, fuzzy
 #| msgid "Employment Status"
 msgid "Employment status"
 msgstr "Trạng thái lao động"
 
-#: apps/payroll/services/payroll_export.py:178
+#: apps/payroll/services/payroll_export.py:181
 #, fuzzy
 #| msgid "Total Sales Employees"
 msgid "Is sale employee"
 msgstr "Tổng số nhân viên kinh doanh"
 
-#: apps/payroll/services/payroll_export.py:179
+#: apps/payroll/services/payroll_export.py:182
 msgid "Email"
 msgstr ""
 
-#: apps/payroll/services/payroll_export.py:180
+#: apps/payroll/services/payroll_export.py:183
 #, fuzzy
 #| msgid "Sales Revenue"
 msgid "Sales revenue"
 msgstr "Doanh thu bán hàng"
 
-#: apps/payroll/services/payroll_export.py:181
+#: apps/payroll/services/payroll_export.py:184
 #, fuzzy
 #| msgid "Sales Transaction Count"
 msgid "Transaction count"
 msgstr "Số lượng giao dịch bán hàng"
 
-#: apps/payroll/services/payroll_export.py:182
+#: apps/payroll/services/payroll_export.py:185
 #, fuzzy
 #| msgid "Position Name"
 msgid "Position income"
 msgstr "Vị trí"
 
-#: apps/payroll/services/payroll_export.py:183
+#: apps/payroll/services/payroll_export.py:186
 #, fuzzy
 #| msgid "Total Working Days"
 msgid "Working days"
 msgstr "Ngày công thực tế"
 
-#: apps/payroll/services/payroll_export.py:184
+#: apps/payroll/services/payroll_export.py:187
 #, fuzzy
 #| msgid "Actual Working Days Income"
 msgid "Actual working days income"
 msgstr "Thu nhập theo ngày công thực tế"
 
-#: apps/payroll/services/payroll_export.py:185
+#: apps/payroll/services/payroll_export.py:188
 #, fuzzy
 #| msgid "Overtime Pay"
 msgid "Overtime"
 msgstr "Tiền làm ngoài giờ"
 
-#: apps/payroll/services/payroll_export.py:186
+#: apps/payroll/services/payroll_export.py:189
+#, fuzzy
+#| msgid "Travel Expense"
+msgid "Travel expense"
+msgstr "Công tác phí"
+
+#: apps/payroll/services/payroll_export.py:190
 #, fuzzy
 #| msgid "Gross Income"
 msgid "Gross income"
 msgstr "Tổng thu nhập gross"
 
-#: apps/payroll/services/payroll_export.py:187
+#: apps/payroll/services/payroll_export.py:191
 #, fuzzy
 #| msgid "Social Insurance Base"
 msgid "Has social insurance"
 msgstr "Lương đóng BHXH"
 
-#: apps/payroll/services/payroll_export.py:188
+#: apps/payroll/services/payroll_export.py:192
 #, fuzzy
 #| msgid "Social Insurance Base"
 msgid "Insurance base"
 msgstr "Lương đóng BHXH"
 
-#: apps/payroll/services/payroll_export.py:189
+#: apps/payroll/services/payroll_export.py:193
 #, fuzzy
 #| msgid "Employer Union Fee"
 msgid "Employer contributions"
 msgstr "Công đoàn công ty đóng"
 
-#: apps/payroll/services/payroll_export.py:190
+#: apps/payroll/services/payroll_export.py:194
 #, fuzzy
 #| msgid "Employee Code"
 msgid "Employee deductions"
 msgstr "Mã nhân viên"
 
-#: apps/payroll/services/payroll_export.py:191
+#: apps/payroll/services/payroll_export.py:195
 msgid "Tax information"
 msgstr ""
 
-#: apps/payroll/services/payroll_export.py:192
+#: apps/payroll/services/payroll_export.py:196
 #, fuzzy
 #| msgid "Back Pay"
 msgid "Back pay"
 msgstr "Truy lĩnh"
 
-#: apps/payroll/services/payroll_export.py:194
+#: apps/payroll/services/payroll_export.py:198
 #, fuzzy
 #| msgid "Net Salary"
 msgid "Net salary"
 msgstr "Lương thực lĩnh (NET)"
 
-#: apps/payroll/services/payroll_export.py:195
+#: apps/payroll/services/payroll_export.py:199
 #, fuzzy
 #| msgid "Back Pay Amount"
 msgid "Bank account"
