@@ -227,7 +227,7 @@ class JobDescriptionViewSet(ExportXLSXMixin, AuditLoggingMixin, BaseModelViewSet
     serializer_class = JobDescriptionSerializer
     filterset_class = JobDescriptionFilterSet
     filter_backends = [RoleDataScopeFilterBackend, DjangoFilterBackend, PhraseSearchFilter, OrderingFilter]
-    search_fields = ["title", "code", "responsibility", "requirement"]
+    search_fields = ["title", "code"]
     ordering_fields = ["title", "code", "created_at"]
     ordering = ["-created_at"]
     permission_classes = [RoleBasedPermission, DataScopePermission]
