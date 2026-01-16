@@ -164,17 +164,21 @@ class EmployeeKPIAssessmentViewSet(ExportXLSXMixin, AuditLoggingMixin, BaseModel
     - Exporting to XLSX
     """
 
-    queryset = EmployeeKPIAssessment.objects.select_related(
-        "period",
-        "employee",
-        "employee__branch",
-        "employee__block",
-        "employee__department",
-        "employee__position",
-        "department_snapshot",
-        "created_by",
-        "updated_by",
-    ).prefetch_related("items")
+    queryset = (
+        EmployeeKPIAssessment.objects.filter(is_for_leader=False)
+        .select_related(
+            "period",
+            "employee",
+            "employee__branch",
+            "employee__block",
+            "employee__department",
+            "employee__position",
+            "department_snapshot",
+            "created_by",
+            "updated_by",
+        )
+        .prefetch_related("items")
+    )
     filterset_class = EmployeeKPIAssessmentFilterSet
     filter_backends = [RoleDataScopeFilterBackend, DjangoFilterBackend, PhraseSearchFilter, OrderingFilter]
     search_fields = ["employee__username", "employee__fullname", "employee__code"]
@@ -449,7 +453,7 @@ class EmployeeSelfAssessmentViewSet(BaseModelViewSet):
             return EmployeeKPIAssessment.objects.none()
 
         return (
-            EmployeeKPIAssessment.objects.filter(employee=employee)
+            EmployeeKPIAssessment.objects.filter(employee=employee, is_for_leader=False)
             .select_related(
                 "period",
                 "employee",
@@ -515,7 +519,7 @@ class EmployeeSelfAssessmentViewSet(BaseModelViewSet):
 
         # Get latest unfinalized assessment
         assessment = (
-            EmployeeKPIAssessment.objects.filter(employee=employee, finalized=False)
+            EmployeeKPIAssessment.objects.filter(employee=employee, finalized=False, is_for_leader=False)
             .select_related("period", "employee")
             .prefetch_related("items")
             .order_by("-period__month")
@@ -817,7 +821,7 @@ class ManagerAssessmentViewSet(BaseModelViewSet):
 
         # Return assessments where this employee is the manager
         return (
-            EmployeeKPIAssessment.objects.filter(manager=employee)
+            EmployeeKPIAssessment.objects.filter(manager=employee, is_for_leader=False)
             .select_related(
                 "period",
                 "employee",
@@ -914,7 +918,7 @@ class ManagerAssessmentViewSet(BaseModelViewSet):
 
         # Get all assessments for department employees in the latest unfinalized period
         queryset = (
-            EmployeeKPIAssessment.objects.filter(manager=employee, period=latest_period)
+            EmployeeKPIAssessment.objects.filter(manager=employee, period=latest_period, is_for_leader=False)
             .select_related("period", "employee", "manager")
             .prefetch_related("items")
             .order_by("employee__code")

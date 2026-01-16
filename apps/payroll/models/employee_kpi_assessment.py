@@ -229,6 +229,12 @@ class EmployeeKPIAssessment(ColoredValueMixin, BaseModel):
         help_text="Additional notes or comments",
     )
 
+    is_for_leader = models.BooleanField(
+        default=False,
+        verbose_name="Is for leader",
+        help_text="Whether this assessment is for a department leader (admin-only evaluation)",
+    )
+
     class Meta:
         verbose_name = "Employee KPI Assessment"
         verbose_name_plural = "Employee KPI Assessments"
@@ -240,6 +246,7 @@ class EmployeeKPIAssessment(ColoredValueMixin, BaseModel):
             models.Index(fields=["period"]),
             models.Index(fields=["finalized"]),
             models.Index(fields=["status"]),
+            models.Index(fields=["is_for_leader"]),
         ]
 
     @property

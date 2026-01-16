@@ -262,9 +262,9 @@ def update_department_assessment_status(department_assessment) -> None:
     """
     from apps.payroll.models import EmployeeKPIAssessment
 
-    # Get all employee assessments in this department for this period
+    # Get all employee assessments in this department for this period (excluding leader assessments)
     employee_assessments = EmployeeKPIAssessment.objects.filter(
-        period=department_assessment.period, department_snapshot=department_assessment.department
+        period=department_assessment.period, department_snapshot=department_assessment.department, is_for_leader=False
     )
 
     # Check if all employees have been graded

@@ -380,6 +380,7 @@ def generate_department_assessments_for_period(
                         "finalized": True,
                         "manager": department.leader,
                         "department_snapshot": department,
+                        "is_for_leader": True,
                     },
                 )
 

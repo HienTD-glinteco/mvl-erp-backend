@@ -89,28 +89,32 @@ class KPIAssessmentPeriodSerializer(serializers.ModelSerializer):
         return obj.month.strftime("%-m/%Y")
 
     def get_employee_count(self, obj):
-        """Get count of employee assessments in this period."""
-        return getattr(obj, "employee_assessments_count", obj.employee_assessments.count())
+        """Get count of employee assessments in this period (excluding leader assessments)."""
+        return getattr(
+            obj,
+            "employee_assessments_count",
+            obj.employee_assessments.filter(is_for_leader=False).count(),
+        )
 
     def get_department_count(self, obj):
         """Get count of department assessments in this period."""
         return getattr(obj, "department_assessments_count", obj.department_assessments.count())
 
     def get_employee_self_assessed_count(self, obj):
-        """Get count of employee KPI assessments with self-evaluation completed."""
+        """Get count of employee KPI assessments with self-evaluation completed (excluding leader assessments)."""
         return getattr(
             obj,
             "employee_self_evaluated_count",
-            obj.employee_assessments.filter(total_employee_score__isnull=False).count(),
+            obj.employee_assessments.filter(total_employee_score__isnull=False, is_for_leader=False).count(),
         )
 
     def get_manager_assessed_count(self, obj):
-        """Get count of employee KPI assessments evaluated by manager."""
+        """Get count of employee KPI assessments evaluated by manager (excluding leader assessments)."""
         if hasattr(obj, "manager_evaluated_count"):
             return obj.manager_evaluated_count
 
         from django.db.models import Q
 
         return obj.employee_assessments.filter(
-            Q(total_manager_score__isnull=False) | Q(grade_manager__isnull=False)
+            Q(total_manager_score__isnull=False) | Q(grade_manager__isnull=False), is_for_leader=False
         ).count()
