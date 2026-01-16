@@ -3029,11 +3029,11 @@ msgstr "Không xác nhận"
 
 #: apps/hrm/constants.py:241
 msgid "Sale contract"
-msgstr "Mẫu hợp đồng kinh doanh"
+msgstr "Mẫu hợp đồng khối kinh doanh"
 
 #: apps/hrm/constants.py:242
 msgid "Support contract"
-msgstr "Mẫu hợp đồng hỗ trợ"
+msgstr "Mẫu hợp đồng khối hỗ trợ"
 
 #: apps/hrm/constants.py:243
 msgid "Probation contract"
