@@ -53,6 +53,11 @@ def calculator(timesheet_entry):
 @pytest.mark.django_db
 class TestTimesheetSnapshotService:
     def test_snapshot_contract_data(self, snapshot_service, employee, contract_type):
+        from apps.hrm.constants import EmployeeType
+
+        employee.employee_type = EmployeeType.OFFICIAL
+        employee.save(update_fields=["employee_type"])
+
         contract = Contract.objects.create(
             employee=employee,
             contract_type=contract_type,

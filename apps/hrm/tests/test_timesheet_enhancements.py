@@ -207,6 +207,7 @@ class TestEmployeeMonthlyTimesheetNewFields:
             date=date(year, month, 1),
         )
         TimeSheetEntry.objects.filter(pk=e1.pk).update(
+            working_day_type=TimeSheetEntry.WorkingDayType.OFFICIAL,
             working_days=Decimal("1.00"),
             is_full_salary=True,
             morning_hours=Decimal("4.00"),
@@ -220,6 +221,7 @@ class TestEmployeeMonthlyTimesheetNewFields:
             date=date(year, month, 2),
         )
         TimeSheetEntry.objects.filter(pk=e2.pk).update(
+            working_day_type=TimeSheetEntry.WorkingDayType.PROBATION,
             working_days=Decimal("1.00"),
             is_full_salary=False,
             morning_hours=Decimal("4.00"),
@@ -233,6 +235,7 @@ class TestEmployeeMonthlyTimesheetNewFields:
             date=date(year, month, 3),
         )
         TimeSheetEntry.objects.filter(pk=e3.pk).update(
+            working_day_type=TimeSheetEntry.WorkingDayType.PROBATION,
             working_days=Decimal("1.00"),
             is_full_salary=False,
             morning_hours=Decimal("4.00"),

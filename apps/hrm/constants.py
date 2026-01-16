@@ -38,6 +38,18 @@ class EmployeeType(models.TextChoices):
     def get_label(cls, raw_value: str) -> str:
         return cls.dict_choices().get(raw_value, raw_value)
 
+    @classmethod
+    def is_probation(cls, raw_value: str) -> bool:
+        return raw_value in [cls.PROBATION, cls.PROBATION_TYPE_1, cls.UNPAID_PROBATION]
+
+    @classmethod
+    def is_official(cls, raw_value: str) -> bool:
+        return not cls.is_probation(raw_value)
+
+    @classmethod
+    def is_unpaid(cls, raw_value: str) -> bool:
+        return raw_value in [cls.UNPAID_OFFICIAL, cls.UNPAID_PROBATION]
+
 
 class AttendanceType(models.TextChoices):
     """Attendance type choices for attendance records."""

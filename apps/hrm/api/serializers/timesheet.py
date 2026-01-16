@@ -93,6 +93,7 @@ class TimeSheetEntryDetailSerializer(serializers.ModelSerializer):
             "manually_corrected_by",
             "manually_corrected_at",
             "day_type",
+            "working_day_type",
             "morning_hours",
             "afternoon_hours",
             "working_days",

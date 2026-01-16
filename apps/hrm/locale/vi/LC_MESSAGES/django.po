@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-16 15:46+0700\n"
+"POT-Creation-Date: 2026-01-16 15:56+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -451,7 +451,7 @@ msgstr "Mã Chấm Công"
 #: apps/hrm/models/employee_certificate.py:170
 #: apps/hrm/models/employee_work_history.py:116 apps/hrm/models/proposal.py:836
 #: apps/hrm/models/recruitment_candidate.py:112
-#: apps/hrm/models/recruitment_request.py:89 apps/hrm/models/timesheet.py:139
+#: apps/hrm/models/recruitment_request.py:89 apps/hrm/models/timesheet.py:144
 msgid "Status"
 msgstr "Trạng Thái"
 
@@ -767,7 +767,7 @@ msgstr "Kênh tuyển dụng"
 msgid "Number of positions must be at least 1."
 msgstr "Số lượng vị trí tuyển dụng phải lớn hơn hoặc bằng 1."
 
-#: apps/hrm/api/serializers/timesheet.py:136
+#: apps/hrm/api/serializers/timesheet.py:137
 msgid "End time must be after start time."
 msgstr "Thời gian kết thúc phải sau thời gian bắt đầu"
 
@@ -1078,23 +1078,23 @@ msgid "Retrieve employee resigned reasons summary report"
 msgstr "Xem báo cáo Báo cáo Tỉ lệ lý do nghỉ việc"
 
 #: apps/hrm/api/views/employee_reports.py:79
-#: apps/hrm/api/views/recruitment_reports.py:753 apps/hrm/constants.py:68
-#: apps/hrm/constants.py:73 apps/hrm/utils/functions.py:162
+#: apps/hrm/api/views/recruitment_reports.py:753 apps/hrm/constants.py:80
+#: apps/hrm/constants.py:85 apps/hrm/utils/functions.py:162
 msgid "Week"
 msgstr "Tuần"
 
 #: apps/hrm/api/views/employee_reports.py:99
 #: apps/hrm/api/views/recruitment_reports.py:175
-#: apps/hrm/api/views/recruitment_reports.py:937 apps/hrm/constants.py:69
-#: apps/hrm/constants.py:74
+#: apps/hrm/api/views/recruitment_reports.py:937 apps/hrm/constants.py:81
+#: apps/hrm/constants.py:86
 msgid "Month"
 msgstr "Tháng"
 
-#: apps/hrm/api/views/employee_reports.py:125 apps/hrm/constants.py:75
+#: apps/hrm/api/views/employee_reports.py:125 apps/hrm/constants.py:87
 msgid "Quarter"
 msgstr "Quý"
 
-#: apps/hrm/api/views/employee_reports.py:146 apps/hrm/constants.py:76
+#: apps/hrm/api/views/employee_reports.py:146 apps/hrm/constants.py:88
 msgid "Year"
 msgstr "Năm"
 
@@ -1157,8 +1157,8 @@ msgstr "Nguyện vọng theo đơn - Thay đổi định hướng công việc"
 msgid "Voluntary - Other"
 msgstr "Nguyện vọng theo đơn - Khác"
 
-#: apps/hrm/api/views/employee_reports.py:579 apps/hrm/constants.py:48
-#: apps/hrm/constants.py:102 apps/hrm/constants.py:119
+#: apps/hrm/api/views/employee_reports.py:579 apps/hrm/constants.py:60
+#: apps/hrm/constants.py:114 apps/hrm/constants.py:131
 #: apps/hrm/models/contract_type.py:70 apps/hrm/models/employee.py:141
 #: apps/hrm/models/employee_report.py:131
 #: apps/hrm/models/recruitment_channel.py:22
@@ -2675,11 +2675,11 @@ msgstr "Không có phòng ban"
 msgid "Total"
 msgstr "Tổng"
 
-#: apps/hrm/api/views/recruitment_reports.py:815 apps/hrm/constants.py:52
+#: apps/hrm/api/views/recruitment_reports.py:815 apps/hrm/constants.py:64
 msgid "Referral Source"
 msgstr "Giới thiệu"
 
-#: apps/hrm/api/views/recruitment_reports.py:825 apps/hrm/constants.py:56
+#: apps/hrm/api/views/recruitment_reports.py:825 apps/hrm/constants.py:68
 msgid "Returning Employee"
 msgstr "Quay lại"
 
@@ -2697,7 +2697,7 @@ msgstr ""
 "mới có thể bị xóa."
 
 #: apps/hrm/api/views/timesheet.py:68 apps/hrm/api/views/timesheet.py:355
-#: apps/hrm/models/timesheet.py:173
+#: apps/hrm/models/timesheet.py:184
 msgid "Timesheet"
 msgstr "Bảng chấm công"
 
@@ -2737,7 +2737,7 @@ msgstr "Xem chi tiết ngày công của nhân viên"
 msgid "Update an employee timesheet entry"
 msgstr "Cập nhật ngày công của nhân viên"
 
-#: apps/hrm/constants.py:25
+#: apps/hrm/constants.py:25 apps/hrm/models/timesheet.py:37
 msgid "Official"
 msgstr "Chính thức"
 
@@ -2753,7 +2753,7 @@ msgstr "Không lương chính thức"
 msgid "Unpaid - Probation"
 msgstr "Không lương thử việc"
 
-#: apps/hrm/constants.py:29
+#: apps/hrm/constants.py:29 apps/hrm/models/timesheet.py:38
 msgid "Probation"
 msgstr "Thử việc"
 
@@ -2765,281 +2765,281 @@ msgstr "Thực tập sinh"
 msgid "Probation Type 1"
 msgstr "Thử việc loại 1"
 
-#: apps/hrm/constants.py:45 apps/hrm/models/attendance_record.py:90
+#: apps/hrm/constants.py:57 apps/hrm/models/attendance_record.py:90
 msgid "Biometric Device"
 msgstr "Chấm công vân tay"
 
-#: apps/hrm/constants.py:46
+#: apps/hrm/constants.py:58
 msgid "WiFi"
 msgstr "Chấm công WiFi"
 
-#: apps/hrm/constants.py:47
+#: apps/hrm/constants.py:59
 msgid "GeoLocation"
 msgstr "Chấm công GPS"
 
-#: apps/hrm/constants.py:53
+#: apps/hrm/constants.py:65
 msgid "Marketing Channel"
 msgstr "Marketing"
 
-#: apps/hrm/constants.py:54
+#: apps/hrm/constants.py:66
 msgid "Job Website Channel"
 msgstr "Trang web việc làm"
 
-#: apps/hrm/constants.py:55
+#: apps/hrm/constants.py:67
 msgid "Recruitment Department Source"
 msgstr "Phòng tuyển dụng"
 
-#: apps/hrm/constants.py:82
+#: apps/hrm/constants.py:94
 msgid "All data"
 msgstr "Tất cả dữ liệu"
 
-#: apps/hrm/constants.py:83
+#: apps/hrm/constants.py:95
 msgid "Branch level"
 msgstr "Cấp chi nhánh"
 
-#: apps/hrm/constants.py:84
+#: apps/hrm/constants.py:96
 msgid "Block level"
 msgstr "Cấp khối"
 
-#: apps/hrm/constants.py:85
+#: apps/hrm/constants.py:97
 msgid "Department level"
 msgstr "Cấp phòng ban"
 
-#: apps/hrm/constants.py:86
+#: apps/hrm/constants.py:98
 msgid "Self only"
 msgstr "Cá nhân"
 
-#: apps/hrm/constants.py:92
+#: apps/hrm/constants.py:104
 msgid "Child"
 msgstr "Con cái"
 
-#: apps/hrm/constants.py:93
+#: apps/hrm/constants.py:105
 msgid "Wife"
 msgstr "Vợ"
 
-#: apps/hrm/constants.py:94
+#: apps/hrm/constants.py:106
 msgid "Husband"
 msgstr "Chồng"
 
-#: apps/hrm/constants.py:95
+#: apps/hrm/constants.py:107
 msgid "Father"
 msgstr "Cha"
 
-#: apps/hrm/constants.py:96
+#: apps/hrm/constants.py:108
 msgid "Mother"
 msgstr "Mẹ"
 
-#: apps/hrm/constants.py:97
+#: apps/hrm/constants.py:109
 msgid "Brother"
 msgstr "Anh/em trai"
 
-#: apps/hrm/constants.py:98
+#: apps/hrm/constants.py:110
 msgid "Sister"
 msgstr "Chị/em gái"
 
-#: apps/hrm/constants.py:99
+#: apps/hrm/constants.py:111
 msgid "Sibling"
 msgstr "Anh/chị/em"
 
-#: apps/hrm/constants.py:100
+#: apps/hrm/constants.py:112
 msgid "Grandfather"
 msgstr "Ông"
 
-#: apps/hrm/constants.py:101
+#: apps/hrm/constants.py:113
 msgid "Grandmother"
 msgstr "Bà"
 
-#: apps/hrm/constants.py:116
+#: apps/hrm/constants.py:128
 msgid "Foreign language certificate"
 msgstr "Chứng chỉ ngoại ngữ"
 
-#: apps/hrm/constants.py:117
+#: apps/hrm/constants.py:129
 msgid "Computer certificate"
 msgstr "Chứng chỉ tin học"
 
-#: apps/hrm/constants.py:118 apps/hrm/models/employee_certificate.py:163
+#: apps/hrm/constants.py:130 apps/hrm/models/employee_certificate.py:163
 msgid "Graduation diploma"
 msgstr "Bằng tốt nghiệp"
 
-#: apps/hrm/constants.py:120
+#: apps/hrm/constants.py:132
 msgid "Broker training completion"
 msgstr "Chứng nhận hoàn thành khóa học môi giới"
 
-#: apps/hrm/constants.py:121
+#: apps/hrm/constants.py:133
 msgid "Real estate practice license"
 msgstr "Chứng chỉ hành nghề môi giới Bất động sản"
 
-#: apps/hrm/constants.py:135
+#: apps/hrm/constants.py:147
 msgid "Salaried employee"
 msgstr "Nhân viên có lương"
 
-#: apps/hrm/constants.py:136
+#: apps/hrm/constants.py:148
 msgid "Unpaid / not contracted"
 msgstr "Nhân viên không lương / chưa ký hợp đồng"
 
-#: apps/hrm/constants.py:154
+#: apps/hrm/constants.py:166
 msgid "On time"
 msgstr "Đúng giờ"
 
-#: apps/hrm/constants.py:155
+#: apps/hrm/constants.py:167
 msgid "Not on time"
 msgstr "Không đúng giờ"
 
-#: apps/hrm/constants.py:156
+#: apps/hrm/constants.py:168
 msgid "Single punch"
 msgstr "Quên check-in/out"
 
-#: apps/hrm/constants.py:157
+#: apps/hrm/constants.py:169
 msgid "Absent"
 msgstr "Vắng mặt"
 
-#: apps/hrm/constants.py:161
+#: apps/hrm/constants.py:173
 msgid "Holiday day"
 msgstr "Ngày lễ"
 
-#: apps/hrm/constants.py:162
+#: apps/hrm/constants.py:174
 msgid "Compensatory day"
 msgstr "Làm bù"
 
-#: apps/hrm/constants.py:163
+#: apps/hrm/constants.py:175
 msgid "Official day"
 msgstr "Chính thức"
 
-#: apps/hrm/constants.py:167 apps/hrm/constants.py:194
+#: apps/hrm/constants.py:179 apps/hrm/constants.py:206
 msgid "Paid leave"
 msgstr "Nghỉ phép có lương"
 
-#: apps/hrm/constants.py:168 apps/hrm/constants.py:195
+#: apps/hrm/constants.py:180 apps/hrm/constants.py:207
 msgid "Unpaid leave"
 msgstr "Nghỉ phép không lương"
 
-#: apps/hrm/constants.py:169 apps/hrm/constants.py:196
+#: apps/hrm/constants.py:181 apps/hrm/constants.py:208
 msgid "Maternity leave"
 msgstr "Nghỉ việc hưởng chế độ thai sản"
 
-#: apps/hrm/constants.py:170
+#: apps/hrm/constants.py:182
 msgid "Public holiday"
 msgstr "Nghỉ lễ"
 
-#: apps/hrm/constants.py:171
+#: apps/hrm/constants.py:183
 msgid "Unexcused Absence"
 msgstr "Nghỉ không lý do"
 
-#: apps/hrm/constants.py:183
+#: apps/hrm/constants.py:195
 msgid "Standard"
 msgstr "Tiêu chuẩn"
 
-#: apps/hrm/constants.py:184
+#: apps/hrm/constants.py:196
 msgid "Maternity"
 msgstr "Thai sản"
 
-#: apps/hrm/constants.py:185 apps/hrm/constants.py:192
+#: apps/hrm/constants.py:197 apps/hrm/constants.py:204
 msgid "Late exemption"
 msgstr "Miễn trừ trễ"
 
-#: apps/hrm/constants.py:191
+#: apps/hrm/constants.py:203
 msgid "Post-maternity benefits"
 msgstr "Chế độ làm việc hậu thai sản"
 
-#: apps/hrm/constants.py:193
+#: apps/hrm/constants.py:205
 msgid "Overtime work"
 msgstr "Làm việc ngoài giờ (OT)"
 
-#: apps/hrm/constants.py:197
+#: apps/hrm/constants.py:209
 msgid "Timesheet entry complaint"
 msgstr "Khiếu nại chấm công"
 
-#: apps/hrm/constants.py:198
+#: apps/hrm/constants.py:210
 msgid "Job Transfer"
 msgstr "Điều chuyển công tác"
 
-#: apps/hrm/constants.py:199
+#: apps/hrm/constants.py:211
 msgid "Asset Allocation"
 msgstr "Cấp tài sản"
 
-#: apps/hrm/constants.py:200
+#: apps/hrm/constants.py:212
 msgid "Device Change"
 msgstr "Thay đổi thiết bị"
 
-#: apps/hrm/constants.py:206
+#: apps/hrm/constants.py:218
 msgid "Piece"
 msgstr "Cái"
 
-#: apps/hrm/constants.py:207
+#: apps/hrm/constants.py:219
 msgid "Box"
 msgstr "Hộp"
 
-#: apps/hrm/constants.py:208
+#: apps/hrm/constants.py:220
 msgid "Set"
 msgstr "Bộ"
 
-#: apps/hrm/constants.py:209
+#: apps/hrm/constants.py:221
 msgid "Gram"
 msgstr "Gram"
 
-#: apps/hrm/constants.py:210
+#: apps/hrm/constants.py:222
 msgid "Liter"
 msgstr "Lít"
 
-#: apps/hrm/constants.py:211
+#: apps/hrm/constants.py:223
 msgid "Meter"
 msgstr "Mét"
 
-#: apps/hrm/constants.py:212
+#: apps/hrm/constants.py:224
 msgid "Cylinder"
 msgstr "Bình"
 
-#: apps/hrm/constants.py:213
+#: apps/hrm/constants.py:225
 msgid "Bag"
 msgstr "Túi"
 
-#: apps/hrm/constants.py:219 apps/hrm/constants.py:235
+#: apps/hrm/constants.py:231 apps/hrm/constants.py:247
 #: apps/hrm/models/attendance_record.py:48
 msgid "Pending"
 msgstr "Đang chờ"
 
-#: apps/hrm/constants.py:220 apps/hrm/models/attendance_record.py:46
+#: apps/hrm/constants.py:232 apps/hrm/models/attendance_record.py:46
 msgid "Approved"
 msgstr "Đã duyệt"
 
-#: apps/hrm/constants.py:221 apps/hrm/models/attendance_record.py:47
+#: apps/hrm/constants.py:233 apps/hrm/models/attendance_record.py:47
 #: apps/hrm/models/recruitment_candidate.py:27
 msgid "Rejected"
 msgstr "Đã từ chối"
 
-#: apps/hrm/constants.py:227 apps/hrm/models/holiday.py:60
+#: apps/hrm/constants.py:239 apps/hrm/models/holiday.py:60
 msgid "Full Day"
 msgstr "Cả ngày"
 
-#: apps/hrm/constants.py:228 apps/hrm/models/holiday.py:58
+#: apps/hrm/constants.py:240 apps/hrm/models/holiday.py:58
 msgid "Morning"
 msgstr "Buổi sáng"
 
-#: apps/hrm/constants.py:229 apps/hrm/models/holiday.py:59
+#: apps/hrm/constants.py:241 apps/hrm/models/holiday.py:59
 msgid "Afternoon"
 msgstr "Buổi chiều"
 
-#: apps/hrm/constants.py:236
+#: apps/hrm/constants.py:248
 msgid "Verified"
 msgstr "Đã xác nhận"
 
-#: apps/hrm/constants.py:237
+#: apps/hrm/constants.py:249
 msgid "Not verified"
 msgstr "Không xác nhận"
 
-#: apps/hrm/constants.py:241
+#: apps/hrm/constants.py:253
 msgid "Sale contract"
 msgstr "Mẫu hợp đồng khối kinh doanh"
 
-#: apps/hrm/constants.py:242
+#: apps/hrm/constants.py:254
 msgid "Support contract"
 msgstr "Mẫu hợp đồng khối hỗ trợ"
 
-#: apps/hrm/constants.py:243
+#: apps/hrm/constants.py:255
 msgid "Probation contract"
 msgstr "Mẫu hợp đồng thử việc"
 
-#: apps/hrm/constants.py:244
+#: apps/hrm/constants.py:256
 msgid "Update contract"
 msgstr "Mẫu hợp đồng cập nhật"
 
@@ -3432,7 +3432,7 @@ msgstr "Lần đồng bộ cuối"
 #: apps/hrm/models/monthly_timesheet.py:133 apps/hrm/models/proposal.py:848
 #: apps/hrm/models/proposal.py:920 apps/hrm/models/recruitment_candidate.py:119
 #: apps/hrm/models/recruitment_candidate_contact_log.py:20
-#: apps/hrm/models/recruitment_expense.py:73 apps/hrm/models/timesheet.py:160
+#: apps/hrm/models/recruitment_expense.py:73 apps/hrm/models/timesheet.py:171
 #: apps/hrm/models/work_schedule.py:94
 msgid "Note"
 msgstr "Ghi Chú"
@@ -3461,7 +3461,7 @@ msgstr "Đã tắt"
 #: apps/hrm/models/monthly_timesheet.py:33 apps/hrm/models/proposal.py:829
 #: apps/hrm/models/recruitment_candidate.py:134
 #: apps/hrm/models/recruitment_candidate_contact_log.py:16
-#: apps/hrm/models/recruitment_reports.py:214 apps/hrm/models/timesheet.py:41
+#: apps/hrm/models/recruitment_reports.py:214 apps/hrm/models/timesheet.py:45
 msgid "Employee"
 msgstr "Nhân sự"
 
@@ -3785,7 +3785,7 @@ msgid "Other allowance"
 msgstr "Phụ cấp khác"
 
 #: apps/hrm/models/contract.py:197 apps/hrm/models/contract_type.py:190
-#: apps/hrm/models/timesheet.py:56
+#: apps/hrm/models/timesheet.py:61
 msgid "Net percentage"
 msgstr "% thực nhận"
 
@@ -3828,7 +3828,7 @@ msgid "Attachment"
 msgstr "File đính kèm"
 
 #: apps/hrm/models/contract.py:311 apps/hrm/models/contract_type.py:75
-#: apps/hrm/models/employee_work_history.py:151 apps/hrm/models/timesheet.py:51
+#: apps/hrm/models/employee_work_history.py:151 apps/hrm/models/timesheet.py:55
 msgid "Contract"
 msgstr "Hợp đồng"
 
@@ -4332,7 +4332,7 @@ msgstr "Ký lại hợp đồng"
 msgid "Return to Work"
 msgstr "Quay lại làm việc"
 
-#: apps/hrm/models/employee_work_history.py:49 apps/hrm/models/timesheet.py:43
+#: apps/hrm/models/employee_work_history.py:49 apps/hrm/models/timesheet.py:47
 msgid "Date"
 msgstr "Ngày"
 
@@ -4532,15 +4532,15 @@ msgstr "Ngày làm việc chính thức"
 msgid "Total working days"
 msgstr "Tổng số ngày làm việc"
 
-#: apps/hrm/models/monthly_timesheet.py:54 apps/hrm/models/timesheet.py:81
+#: apps/hrm/models/monthly_timesheet.py:54 apps/hrm/models/timesheet.py:86
 msgid "Official hours"
 msgstr "Giờ làm việc chính thức"
 
-#: apps/hrm/models/monthly_timesheet.py:60 apps/hrm/models/timesheet.py:89
+#: apps/hrm/models/monthly_timesheet.py:60 apps/hrm/models/timesheet.py:94
 msgid "Overtime hours"
 msgstr "Làm việc ngoài giờ (OT)"
 
-#: apps/hrm/models/monthly_timesheet.py:85 apps/hrm/models/timesheet.py:84
+#: apps/hrm/models/monthly_timesheet.py:85 apps/hrm/models/timesheet.py:89
 msgid "Total worked hours"
 msgstr "Tổng số giờ làm việc"
 
@@ -5104,11 +5104,11 @@ msgstr "Đề xuất cấp thiết bị"
 msgid "Overtime date"
 msgstr "Ngày làm thêm giờ"
 
-#: apps/hrm/models/proposal.py:954 apps/hrm/models/timesheet.py:67
+#: apps/hrm/models/proposal.py:954 apps/hrm/models/timesheet.py:72
 msgid "Start time"
 msgstr "Ngày Bắt Đầu"
 
-#: apps/hrm/models/proposal.py:958 apps/hrm/models/timesheet.py:68
+#: apps/hrm/models/proposal.py:958 apps/hrm/models/timesheet.py:73
 msgid "End time"
 msgstr "Ngày Kết Thúc"
 
@@ -5458,141 +5458,145 @@ msgstr ""
 msgid "Recruitment Sources"
 msgstr "Nguồn tuyển dụng"
 
-#: apps/hrm/models/timesheet.py:52
+#: apps/hrm/models/timesheet.py:56
 msgid "Snapshot of the active contract at the time of creation."
 msgstr "Bản chụp hợp đồng đang hiệu lực tại thời điểm tạo."
 
-#: apps/hrm/models/timesheet.py:57
+#: apps/hrm/models/timesheet.py:62
 msgid "Snapshot of the contract net percentage."
 msgstr "Bản chụp phần trăm lương net của hợp đồng."
 
-#: apps/hrm/models/timesheet.py:61
+#: apps/hrm/models/timesheet.py:66
 msgid "Is exempt"
 msgstr "Miễn chấm công"
 
-#: apps/hrm/models/timesheet.py:62
+#: apps/hrm/models/timesheet.py:67
 msgid ""
 "Whether the employee is exempt from attendance tracking (e.g., Board of "
 "Directors)."
 msgstr "Liệu nhân viên có được miễn chấm công hay không (ví dụ: Ban Giám đốc)."
 
-#: apps/hrm/models/timesheet.py:70
+#: apps/hrm/models/timesheet.py:75
 msgid "Original Check-in"
 msgstr "Check-in gốc"
 
-#: apps/hrm/models/timesheet.py:71
+#: apps/hrm/models/timesheet.py:76
 msgid "Original Check-out"
 msgstr "Check-out gốc"
 
-#: apps/hrm/models/timesheet.py:75
+#: apps/hrm/models/timesheet.py:80
 msgid "Morning hours"
 msgstr "Buổi sáng"
 
-#: apps/hrm/models/timesheet.py:78
+#: apps/hrm/models/timesheet.py:83
 msgid "Afternoon hours"
 msgstr "Buổi chiều"
 
-#: apps/hrm/models/timesheet.py:92
+#: apps/hrm/models/timesheet.py:97
 msgid "OT TC1 (Weekday) hours"
 msgstr "Giờ OT TC1 (Thứ 2-7)"
 
-#: apps/hrm/models/timesheet.py:95
+#: apps/hrm/models/timesheet.py:100
 msgid "OT TC2 (Weekend) hours"
 msgstr "Giờ OT TC2 (Chủ Nhật)"
 
-#: apps/hrm/models/timesheet.py:98
+#: apps/hrm/models/timesheet.py:103
 msgid "OT TC3 (Holiday) hours"
 msgstr "Giờ OT TC3 (Lễ, Tết)"
 
-#: apps/hrm/models/timesheet.py:100
+#: apps/hrm/models/timesheet.py:105
 msgid "OT Start Time"
 msgstr "Thời gian bắt đầu OT"
 
-#: apps/hrm/models/timesheet.py:101
+#: apps/hrm/models/timesheet.py:106
 msgid "OT End Time"
 msgstr "Thời gian kết thúc OT"
 
-#: apps/hrm/models/timesheet.py:104
+#: apps/hrm/models/timesheet.py:109
 msgid "Approved OT Start Time"
 msgstr "Thời gian duyệt bắt đầu OT"
 
-#: apps/hrm/models/timesheet.py:105
+#: apps/hrm/models/timesheet.py:110
 msgid "Approved OT End Time"
 msgstr "Thời gian duyệt kết thúc OT"
 
-#: apps/hrm/models/timesheet.py:106
+#: apps/hrm/models/timesheet.py:111
 msgid "Approved OT Minutes"
 msgstr "Thời gian duyệt phút OT"
 
-#: apps/hrm/models/timesheet.py:110
+#: apps/hrm/models/timesheet.py:115
 msgid "Compensation value"
 msgstr "Giá trị bù"
 
-#: apps/hrm/models/timesheet.py:113
+#: apps/hrm/models/timesheet.py:118
 msgid "Paid leave hours"
 msgstr "Giờ nghỉ phép có lương"
 
-#: apps/hrm/models/timesheet.py:115
+#: apps/hrm/models/timesheet.py:120
 msgid "Late minutes"
 msgstr "Số phút đi muộn"
 
-#: apps/hrm/models/timesheet.py:116
+#: apps/hrm/models/timesheet.py:121
 msgid "Early minutes"
 msgstr "Số phút về sớm"
 
-#: apps/hrm/models/timesheet.py:117
+#: apps/hrm/models/timesheet.py:122
 msgid "Is punished"
 msgstr "Bị phạt"
 
-#: apps/hrm/models/timesheet.py:118 apps/hrm/models/work_schedule.py:74
+#: apps/hrm/models/timesheet.py:123 apps/hrm/models/work_schedule.py:74
 msgid "Allowed late minutes"
 msgstr "Số phút đi muộn được phép"
 
-#: apps/hrm/models/timesheet.py:124
+#: apps/hrm/models/timesheet.py:129
 msgid "Allowed late minutes reason"
 msgstr "Lý do số phút đi muộn được phép"
 
-#: apps/hrm/models/timesheet.py:129
+#: apps/hrm/models/timesheet.py:134
 msgid "Working days"
 msgstr "Ngày làm việc"
 
-#: apps/hrm/models/timesheet.py:136
+#: apps/hrm/models/timesheet.py:141
 msgid "Day type"
 msgstr "Loại ngày"
 
-#: apps/hrm/models/timesheet.py:142
+#: apps/hrm/models/timesheet.py:147
 msgid "Absent reason"
 msgstr "Lý do vắng mặt"
 
-#: apps/hrm/models/timesheet.py:146
+#: apps/hrm/models/timesheet.py:155
+msgid "Working day type"
+msgstr "Loại ngày làm việc"
+
+#: apps/hrm/models/timesheet.py:157
 msgid "Is full salary"
 msgstr "Có lương"
 
-#: apps/hrm/models/timesheet.py:147
+#: apps/hrm/models/timesheet.py:158
 msgid "Count for payroll"
 msgstr "Có được tính lương hay không"
 
-#: apps/hrm/models/timesheet.py:149
+#: apps/hrm/models/timesheet.py:160
 msgid "Is manually corrected"
 msgstr "Được sửa thủ công"
 
-#: apps/hrm/models/timesheet.py:156
+#: apps/hrm/models/timesheet.py:167
 msgid "Manually corrected by"
 msgstr "Sửa thủ công bởi"
 
-#: apps/hrm/models/timesheet.py:158
+#: apps/hrm/models/timesheet.py:169
 msgid "Manually corrected at"
 msgstr "Chỉnh sửa thủ công lúc"
 
-#: apps/hrm/models/timesheet.py:174
+#: apps/hrm/models/timesheet.py:185
 msgid "Timesheets"
 msgstr "Bảng chấm công"
 
-#: apps/hrm/models/timesheet.py:342
+#: apps/hrm/models/timesheet.py:353
 msgid "Paid"
 msgstr "Có lương"
 
-#: apps/hrm/models/timesheet.py:344
+#: apps/hrm/models/timesheet.py:355
 msgid "Unpaid"
 msgstr "Không lương"
 

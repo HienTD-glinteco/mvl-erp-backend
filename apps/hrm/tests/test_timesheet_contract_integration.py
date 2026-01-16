@@ -1,10 +1,11 @@
-from datetime import date, datetime, time
+from datetime import date, datetime, time, timedelta
 from decimal import Decimal
 
 import pytest
 from django.utils import timezone
 
 from apps.core.models import AdministrativeUnit, Province
+from apps.hrm.constants import EmployeeType
 from apps.hrm.models import (
     Block,
     Branch,
@@ -129,12 +130,14 @@ class TestTimesheetContractIntegration:
     def test_timesheet_is_full_salary_with_probation_contract(self, employee, contract_type_probation, work_schedule):
         """Test that timesheet entry sets is_full_salary=False when employee has 85% probation contract."""
         # Use dates relative to today to avoid expiration issues
-        from datetime import timedelta
-
         today = date.today()
         contract_start = today - timedelta(days=30)  # Contract started 30 days ago
         entry_date = today - timedelta(days=15)  # Entry date is 15 days ago (during contract)
         contract_end = today + timedelta(days=30)  # Contract expires in 30 days
+
+        # Update employee type to PROBATION to match the contract intent
+        employee.employee_type = EmployeeType.PROBATION
+        employee.save(update_fields=["employee_type"])
 
         # Create an active probation contract
         contract = Contract.objects.create(
@@ -163,7 +166,7 @@ class TestTimesheetContractIntegration:
         # Refresh from database to get updated values
         entry.refresh_from_db()
 
-        # Assert that is_full_salary is False because of probation contract
+        # Assert that is_full_salary is False because of probation contract AND employee type
         assert entry.is_full_salary is False
 
     def test_timesheet_is_full_salary_with_full_contract(self, employee, contract_type_full, work_schedule):
@@ -174,6 +177,10 @@ class TestTimesheetContractIntegration:
         today = date.today()
         contract_start = today - timedelta(days=30)
         entry_date = today - timedelta(days=15)
+
+        # Update employee type to OFFICIAL to match Full Contract
+        employee.employee_type = EmployeeType.OFFICIAL
+        employee.save(update_fields=["employee_type"])
 
         # Create an active full-time contract
         contract = Contract.objects.create(
@@ -259,9 +266,12 @@ class TestTimesheetContractIntegration:
             base_salary=Decimal("10000000"),
             net_percentage=ContractType.NetPercentage.REDUCED,
         )
-        # Mark as expired
         probation_contract.status = Contract.ContractStatus.EXPIRED
         probation_contract.save()
+
+        # Update employee type to OFFICIAL for the new full contract
+        employee.employee_type = EmployeeType.OFFICIAL
+        employee.save(update_fields=["employee_type"])
 
         # Create a new active full-time contract
         full_contract = Contract.objects.create(

@@ -8,9 +8,8 @@ from apps.hrm.constants import (
     TimesheetDayType,
     TimesheetReason,
 )
-from apps.hrm.models import AttendanceExemption, TimeSheetEntry
+from apps.hrm.models import AttendanceExemption, EmployeeWorkHistory, TimeSheetEntry
 from apps.hrm.models.contract import Contract
-from apps.hrm.models.contract_type import ContractType
 from apps.hrm.models.holiday import CompensatoryWorkday, Holiday
 from apps.hrm.models.proposal import Proposal, ProposalOvertimeEntry, ProposalStatus
 from apps.hrm.utils.work_schedule_cache import get_work_schedule_by_weekday
@@ -43,7 +42,7 @@ class TimesheetSnapshotService:
         # Contract info - reset contract reference, but NOT is_full_salary
         # (is_full_salary is handled by snapshot_contract_info which checks for existing values)
         entry.contract = None
-        entry.net_percentage = 100
+        entry.net_percentage = None
 
         # Exemption status
         entry.is_exempt = False
@@ -81,6 +80,7 @@ class TimesheetSnapshotService:
         entry.working_days = 0
         entry.status = None
         entry.absent_reason = None
+        entry.working_day_type = TimeSheetEntry.WorkingDayType.OFFICIAL
 
         # Payroll flag
         entry.is_full_salary = True
@@ -94,22 +94,25 @@ class TimesheetSnapshotService:
         # 1. Determine Day Type (Holiday, Compensatory, Normal)
         self.determine_day_type(entry)
 
-        # 2. Snapshot Contract Info
+        # 2. Snapshot Working Day Type (Probation vs Official)
+        self.snapshot_working_day_type(entry)
+
+        # 3. Snapshot Contract Info
         self.snapshot_contract_info(entry)
 
-        # 3. Snapshot Exemption Status
+        # 4. Snapshot Exemption Status
         self.snapshot_exemption_status(entry)
 
-        # 4. Snapshot Proposals data
+        # 5. Snapshot Proposals data
         self.snapshot_leave_reason(entry)
 
-        # 5. Snapshot allowed late minutes (includes Late Exemption & Post Maternity)
+        # 6. Snapshot allowed late minutes (includes Late Exemption & Post Maternity)
         self.snapshot_allowed_late_minutes(entry)
 
-        # 6. Snapshot allowed Overtime
+        # 7. Snapshot allowed Overtime
         self.snapshot_overtime_data(entry)
 
-        # 7. Set count_for_payroll
+        # 8. Set count_for_payroll
         self.set_count_for_payroll(entry)
 
     def determine_day_type(self, entry: "TimeSheetEntry") -> None:
@@ -131,6 +134,32 @@ class TimesheetSnapshotService:
             return
 
         entry.day_type = TimesheetDayType.OFFICIAL
+
+    def snapshot_working_day_type(self, entry: "TimeSheetEntry") -> None:
+        """Snapshot working_day_type (Probation vs Official) based on EmployeeWorkHistory."""
+        if not entry.employee_id or not entry.date:
+            return
+
+        # Find the latest work history that affects employee type
+        history = (
+            EmployeeWorkHistory.objects.filter(
+                employee_id=entry.employee_id,
+                date__lte=entry.date,
+                new_employee_type__isnull=False,
+            )
+            .order_by("-date", "-created_at")
+            .first()
+        )
+
+        emp_type = entry.employee.employee_type
+        if history and history.new_employee_type:
+            emp_type = history.new_employee_type
+
+        entry.working_day_type = TimeSheetEntry.WorkingDayType.PROBATION
+        if emp_type and EmployeeType.is_official(emp_type):
+            entry.working_day_type = TimeSheetEntry.WorkingDayType.OFFICIAL
+
+        entry.is_full_salary = entry.working_day_type == TimeSheetEntry.WorkingDayType.OFFICIAL
 
     def snapshot_contract_info(self, entry: "TimeSheetEntry") -> None:
         """Snapshot current contract status (Probation vs Official).
@@ -155,13 +184,6 @@ class TimesheetSnapshotService:
         if contract:
             entry.contract = contract
             entry.net_percentage = contract.net_percentage
-            entry.is_full_salary = contract.net_percentage == ContractType.NetPercentage.FULL
-        elif entry.contract_id is None:
-            # In case no active contract is found and no existing contract exists, the employee
-            # is considered unpaid. For UNPAID_OFFICIAL types, we set is_full_salary to True
-            # to ensure the entry is treated as an OFFICIAL_DAY.
-            entry.net_percentage = 0
-            entry.is_full_salary = entry.employee.employee_type == EmployeeType.UNPAID_OFFICIAL
 
     def snapshot_exemption_status(self, entry: "TimeSheetEntry") -> None:
         """Snapshot if employee is exempt from time tracking on this day."""

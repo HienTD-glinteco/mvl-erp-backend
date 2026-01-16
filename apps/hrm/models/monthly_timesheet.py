@@ -184,11 +184,17 @@ class EmployeeMonthlyTimesheet(BaseReportModel):
             "_tc3_overtime_hours": Coalesce(Sum(F("ot_tc3_hours")), Value(DECIMAL_ZERO, output_field=DecimalField())),
             # Working days - calculate from hours divided by 8
             "_probation_working_days": Coalesce(
-                Sum(F("working_days"), filter=Q(is_full_salary=False)),
+                Sum(
+                    F("working_days"),
+                    filter=Q(working_day_type=TimeSheetEntry.WorkingDayType.PROBATION),
+                ),
                 Value(DECIMAL_ZERO, output_field=DecimalField()),
             ),
             "_official_working_days": Coalesce(
-                Sum(F("working_days"), filter=Q(is_full_salary=True)),
+                Sum(
+                    F("working_days"),
+                    filter=Q(working_day_type=TimeSheetEntry.WorkingDayType.OFFICIAL),
+                ),
                 Value(DECIMAL_ZERO, output_field=DecimalField()),
             ),
             "_total_working_days": Coalesce(

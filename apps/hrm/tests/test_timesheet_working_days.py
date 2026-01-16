@@ -78,6 +78,7 @@ def test_monthly_aggregates_sum_working_days():
         official_hours=Decimal("8.00"),
         working_days=Decimal("1.00"),
         is_full_salary=True,
+        working_day_type=TimeSheetEntry.WorkingDayType.OFFICIAL,
     )
 
     # Day 2: half day (4h -> 0.50)
@@ -88,6 +89,7 @@ def test_monthly_aggregates_sum_working_days():
         official_hours=Decimal("4.00"),
         working_days=Decimal("0.50"),
         is_full_salary=True,
+        working_day_type=TimeSheetEntry.WorkingDayType.OFFICIAL,
     )
 
     aggs = EmployeeMonthlyTimesheet.compute_aggregates(emp.id, year, month)

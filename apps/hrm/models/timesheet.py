@@ -33,6 +33,10 @@ class TimeSheetEntry(ColoredValueMixin, AutoCodeMixin, BaseModel):
 
     CODE_PREFIX = "NC"
 
+    class WorkingDayType(models.TextChoices):
+        OFFICIAL = "official", _("Official")
+        PROBATION = "probation", _("Probation")
+
     # 1. Basic Info & Foreign Keys
     employee = models.ForeignKey(
         "Employee",
@@ -52,7 +56,8 @@ class TimeSheetEntry(ColoredValueMixin, AutoCodeMixin, BaseModel):
         help_text=_("Snapshot of the active contract at the time of creation."),
     )
     net_percentage = models.IntegerField(
-        default=100,
+        null=True,
+        blank=True,
         verbose_name=_("Net percentage"),
         help_text=_("Snapshot of the contract net percentage."),
     )
@@ -143,6 +148,12 @@ class TimeSheetEntry(ColoredValueMixin, AutoCodeMixin, BaseModel):
     )
 
     # 8. Flags & Meta
+    working_day_type = models.CharField(
+        max_length=20,
+        choices=WorkingDayType.choices,
+        default=WorkingDayType.OFFICIAL,
+        verbose_name=_("Working day type"),
+    )
     is_full_salary = models.BooleanField(default=True, verbose_name=_("Is full salary"))
     count_for_payroll = models.BooleanField(default=True, verbose_name=_("Count for payroll"))
 
