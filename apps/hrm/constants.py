@@ -190,6 +190,11 @@ class TimesheetReason(models.TextChoices):
     def get_label(cls, raw_value: str) -> str:
         return cls.dict_choices().get(raw_value, raw_value)
 
+    @classmethod
+    def is_leave_reason(cls, raw_value: str | None) -> bool:
+        """Check if the given reason is a leave type (paid, unpaid, or maternity)."""
+        return raw_value in [cls.PAID_LEAVE, cls.UNPAID_LEAVE, cls.MATERNITY_LEAVE]
+
 
 class AllowedLateMinutesReason(models.TextChoices):
     STANDARD = "standard", _("Standard")

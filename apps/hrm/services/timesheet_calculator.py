@@ -522,86 +522,109 @@ class TimesheetCalculator:
 
         Priority order:
         1. Real-time preview (not finalizing) → None
-        2. Holiday → 1.0
-        3. Full-day PAID_LEAVE → max based on schedule (0.5 or 1.0)
-        4. ABSENT status:
-           - With partial paid leave → partial credit (0.5)
-           - Compensatory day → negative debt
-           - Otherwise → 0
-        5. Normal calculation: worked hours + partial leave + maternity bonus
-        6. Single punch → 1/2 max days
+        2. Holiday → max days based on schedule
+        3. Full-day PAID_LEAVE → max days based on schedule
+        4. ABSENT status → handled by _compute_absent_working_days
+        5. Single punch → 1/2 max days
+        6. Normal calculation: worked hours + partial leave + maternity bonus
+        7. Compensatory day adjustment → debt calculation
         """
-        # Real-time preview: leave working_days as None until day is finalized
         if not is_finalizing:
             self.entry.working_days = None
             return
 
         self.entry.working_days = Decimal("0.00")
+        self.entry.compensation_value = Decimal("0.00")
 
         # 1. Holiday - always get full credit based on schedule
-        if self.entry.day_type == TimesheetDayType.HOLIDAY:
-            if self.work_schedule:
-                self.entry.working_days = self._get_schedule_max_days()
-            else:
-                self.entry.working_days = Decimal("1.00")
+        if self._handle_holiday_working_days():
             return
 
-        # 2. Full-day PAID_LEAVE (absent_reason set by snapshot) → max working days
-        if self.entry.absent_reason == TimesheetReason.PAID_LEAVE:
-            self.entry.working_days = self._get_schedule_max_days()
+        # 2. Full-day PAID_LEAVE → max working days
+        if self._handle_paid_leave_working_days():
             return
 
-        # 3. ABSENT status - check for partial leave credits first
-        if self.entry.status == TimesheetStatus.ABSENT:
-            partial_credit = self._get_partial_leave_credits()
-            if partial_credit > 0:
-                self.entry.working_days = partial_credit
-                return
-
-            if self.entry.day_type == TimesheetDayType.COMPENSATORY:
-                # Absent on compensatory day = negative (debt)
-                max_days = self._get_schedule_max_days()
-                self.entry.working_days = -max_days
-            # Otherwise working_days stays 0
+        # 3. ABSENT status
+        if self._handle_absent_working_days():
             return
 
-        # 4. Base worked hours calculation
+        # 4. Single Punch
+        if self._handle_single_punch_working_days():
+            return
+
+        # 5. Normal calculation: worked hours + partial leave + maternity bonus
+        self._compute_normal_working_days()
+
+        # 6. Compensatory day adjustment
+        self._apply_compensatory_adjustment()
+
+    def _handle_holiday_working_days(self) -> bool:
+        """Handle working days for holiday. Returns True if handled."""
+        if self.entry.day_type != TimesheetDayType.HOLIDAY:
+            return False
+        self.entry.working_days = self._get_schedule_max_days() if self.work_schedule else Decimal("1.00")
+        return True
+
+    def _handle_paid_leave_working_days(self) -> bool:
+        """Handle working days for full-day paid leave. Returns True if handled."""
+        if self.entry.absent_reason != TimesheetReason.PAID_LEAVE:
+            return False
+        self.entry.working_days = self._get_schedule_max_days()
+        return True
+
+    def _handle_absent_working_days(self) -> bool:
+        """Handle working days for ABSENT status. Returns True if handled."""
+        if self.entry.status != TimesheetStatus.ABSENT:
+            return False
+
+        partial_credit = self._get_partial_leave_credits()
+        if partial_credit > 0:
+            self.entry.working_days = partial_credit
+            return True
+
+        if self.entry.day_type == TimesheetDayType.COMPENSATORY:
+            # Absent on compensatory day = negative (debt)
+            self.entry.working_days = -self._get_schedule_max_days()
+
+        return True
+
+    def _handle_single_punch_working_days(self) -> bool:
+        """Handle working days for single punch. Returns True if handled."""
+        if self.entry.status != TimesheetStatus.SINGLE_PUNCH:
+            return False
+
+        max_cap = self._get_schedule_max_days() if self.work_schedule else Decimal("1.00")
+        self.entry.working_days = max_cap / 2
+
+        # Reset Overtime for single punch
+        self.entry.overtime_hours = Decimal("0.00")
+        self.entry.ot_tc1_hours = Decimal("0.00")
+        self.entry.ot_tc2_hours = Decimal("0.00")
+        self.entry.ot_tc3_hours = Decimal("0.00")
+        return True
+
+    def _compute_normal_working_days(self) -> None:
+        """Compute working days from worked hours + partial leave + maternity bonus."""
         wd = Decimal(self.entry.official_hours or 0) / Decimal(STANDARD_WORKING_HOURS_PER_DAY)
-
-        # 5. Partial Leave Credits (for half-day leave with attendance)
         wd += self._get_partial_leave_credits()
-
-        # 6. Single Punch - fixed at 1/2 max days, OT reset to 0
-        if self.entry.status == TimesheetStatus.SINGLE_PUNCH:
-            max_cap = self._get_schedule_max_days()
-            if not self.work_schedule:
-                max_cap = Decimal("1.00")
-
-            self.entry.working_days = max_cap / 2
-
-            # Reset Overtime for single punch
-            self.entry.overtime_hours = Decimal("0.00")
-            self.entry.ot_tc1_hours = Decimal("0.00")
-            self.entry.ot_tc2_hours = Decimal("0.00")
-            self.entry.ot_tc3_hours = Decimal("0.00")
-            return
-
-        # 7. Maternity Bonus (+1 hour = 0.125 days)
         wd += self._get_maternity_bonus()
-
         self.entry.working_days = quantize_decimal(wd)
-
-        # 8. Apply daily cap
         self._apply_working_days_cap()
 
-        # 9. Compensatory days: working_days is the debt (worked - max)
-        # If employee works less than max, they owe time (negative working_days)
-        if self.entry.day_type == TimesheetDayType.COMPENSATORY:
-            max_days = self._get_schedule_max_days()
-            self.entry.working_days = self.entry.working_days - max_days
-            self.entry.compensation_value = self.entry.working_days
-        else:
+    def _apply_compensatory_adjustment(self) -> None:
+        """Apply compensatory day debt adjustment."""
+        if self.entry.day_type != TimesheetDayType.COMPENSATORY:
+            return
+
+        # Only PAID_LEAVE is exempt from compensatory debt
+        # UNPAID_LEAVE and MATERNITY_LEAVE are NOT exempt (no working days credit)
+        if self.entry.absent_reason == TimesheetReason.PAID_LEAVE:
+            self.entry.working_days = Decimal("0.00")
             self.entry.compensation_value = Decimal("0.00")
+        else:
+            max_days = self._get_schedule_max_days()
+            self.entry.working_days = (self.entry.working_days or Decimal("0.00")) - max_days
+            self.entry.compensation_value = self.entry.working_days
 
     def _get_partial_leave_credits(self) -> Decimal:
         """Calculate credits for partial morning/afternoon leaves."""
