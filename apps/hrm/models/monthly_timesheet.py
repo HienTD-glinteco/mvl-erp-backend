@@ -205,21 +205,26 @@ class EmployeeMonthlyTimesheet(BaseReportModel):
             "late_coming_minutes": Coalesce(Sum(F("late_minutes")), Value(0)),
             "early_leaving_minutes": Coalesce(Sum(F("early_minutes")), Value(0)),
             "total_penalty_count": Coalesce(Count("id", filter=Q(is_punished=True)), Value(0)),
-            # Leaves day
+            # Leaves day - use Sum of working_days instead of Count to handle partial days
             "paid_leave_days": Coalesce(
-                Count("date", filter=Q(absent_reason=TimesheetReason.PAID_LEAVE), distinct=True), Value(0)
+                Sum(F("working_days"), filter=Q(absent_reason=TimesheetReason.PAID_LEAVE)),
+                Value(DECIMAL_ZERO, output_field=DecimalField()),
             ),
             "unpaid_leave_days": Coalesce(
-                Count("date", filter=Q(absent_reason=TimesheetReason.UNPAID_LEAVE), distinct=True), Value(0)
+                Sum(F("working_days"), filter=Q(absent_reason=TimesheetReason.UNPAID_LEAVE)),
+                Value(DECIMAL_ZERO, output_field=DecimalField()),
             ),
             "public_holiday_days": Coalesce(
-                Count("date", filter=Q(absent_reason=TimesheetReason.PUBLIC_HOLIDAY), distinct=True), Value(0)
+                Sum(F("working_days"), filter=Q(absent_reason=TimesheetReason.PUBLIC_HOLIDAY)),
+                Value(DECIMAL_ZERO, output_field=DecimalField()),
             ),
             "maternity_leave_days": Coalesce(
-                Count("date", filter=Q(absent_reason=TimesheetReason.MATERNITY_LEAVE), distinct=True), Value(0)
+                Sum(F("working_days"), filter=Q(absent_reason=TimesheetReason.MATERNITY_LEAVE)),
+                Value(DECIMAL_ZERO, output_field=DecimalField()),
             ),
             "unexcused_absence_days": Coalesce(
-                Count("date", filter=Q(absent_reason=TimesheetReason.UNEXCUSED_ABSENCE), distinct=True), Value(0)
+                Sum(F("working_days"), filter=Q(absent_reason=TimesheetReason.UNEXCUSED_ABSENCE)),
+                Value(DECIMAL_ZERO, output_field=DecimalField()),
             ),
         }
 

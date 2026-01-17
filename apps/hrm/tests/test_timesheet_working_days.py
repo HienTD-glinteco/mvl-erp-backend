@@ -98,3 +98,53 @@ def test_monthly_aggregates_sum_working_days():
     assert quantize_decimal(aggs["total_working_days"]) == Decimal("1.50")
     # official_working_days should equal probation_working_days + official_working_days depending on is_full_salary (default True)
     assert quantize_decimal(aggs["official_working_days"]) == Decimal("1.50")
+
+
+def test_monthly_aggregates_leave_days_sum_working_days():
+    """Test that leave days are summed from working_days field, not counted as full days.
+
+    This ensures that:
+    - Days with working_days=0 (e.g., Sundays) don't count toward leave totals
+    - Half-day leaves (working_days=0.5) are counted as 0.5, not 1
+    """
+    from apps.hrm.constants import TimesheetReason
+
+    emp = _create_employee()
+    year = 2025
+    month = 4
+
+    # Day 1: Full day paid leave (working_days=1.0)
+    ts1 = TimeSheetEntry.objects.create(employee=emp, date=date(year, month, 1))
+    TimeSheetEntry.objects.filter(pk=ts1.pk).update(
+        working_days=Decimal("1.00"),
+        absent_reason=TimesheetReason.PAID_LEAVE,
+    )
+
+    # Day 2: Half day paid leave (working_days=0.5)
+    ts2 = TimeSheetEntry.objects.create(employee=emp, date=date(year, month, 2))
+    TimeSheetEntry.objects.filter(pk=ts2.pk).update(
+        working_days=Decimal("0.50"),
+        absent_reason=TimesheetReason.PAID_LEAVE,
+    )
+
+    # Day 3: Sunday with unpaid leave but working_days=0 (should not count)
+    ts3 = TimeSheetEntry.objects.create(employee=emp, date=date(year, month, 6))  # April 6, 2025 is Sunday
+    TimeSheetEntry.objects.filter(pk=ts3.pk).update(
+        working_days=Decimal("0.00"),
+        absent_reason=TimesheetReason.UNPAID_LEAVE,
+    )
+
+    # Day 4: Full day unpaid leave (working_days=1.0)
+    ts4 = TimeSheetEntry.objects.create(employee=emp, date=date(year, month, 7))
+    TimeSheetEntry.objects.filter(pk=ts4.pk).update(
+        working_days=Decimal("1.00"),
+        absent_reason=TimesheetReason.UNPAID_LEAVE,
+    )
+
+    aggs = EmployeeMonthlyTimesheet.compute_aggregates(emp.id, year, month)
+
+    # paid_leave_days should be 1.50 (1.0 + 0.5), NOT 2 (count of dates)
+    assert quantize_decimal(aggs["paid_leave_days"]) == Decimal("1.50")
+
+    # unpaid_leave_days should be 1.00 (0.0 + 1.0), NOT 2 (count of dates)
+    assert quantize_decimal(aggs["unpaid_leave_days"]) == Decimal("1.00")
