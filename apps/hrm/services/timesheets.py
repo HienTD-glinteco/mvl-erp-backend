@@ -308,6 +308,7 @@ def update_start_end_times(attendance_code: str, timehsheet_entry: TimeSheetEntr
         attendance_code=attendance_code,
         timestamp__date=timehsheet_entry.date,
         is_valid=True,
+        is_pending=False,
     ).aggregate(first_ts=Min("timestamp"), last_ts=Max("timestamp"))
 
     first_ts = agg.get("first_ts")
