@@ -1,427 +1,1706 @@
 {% load static %}
 <!DOCTYPE html>
 <html>
-<head>
-    <meta content="text/html; charset=UTF-8" http-equiv="content-type">
-    <style type="text/css">
-        /* Global Page Settings */
-        @page {
-            size: A4;
-            margin: 0;
-        }
-        body {
-            font-family: "Times New Roman", Times, serif;
+    <head>
+        <meta content="text/html; charset=UTF-8" http-equiv="content-type" />
+    </head>
+    <body
+        style="
+            font-family: 'Times New Roman', Times, serif;
             font-size: 13pt;
             line-height: 1.15;
             color: #000000;
             background-color: #ffffff;
-            /* Exact padding from sample (c3) */
             padding: 36pt 65.2pt 45.1pt 70.9pt;
             max-width: 459.4pt;
             margin: 0 auto;
-        }
+        "
+    >
+        <table
+            style="
+                width: 100%;
+                border-collapse: collapse;
+                margin-bottom: 10pt;
+                margin-left: -10pt;
+            "
+        >
+            <tr>
+                <td
+                    style="
+                        vertical-align: top;
+                        padding: 0;
+                        text-align: center;
+                        width: 45%;
+                    "
+                >
+                    <p
+                        style="
+                            margin: 0;
+                            padding: 0;
+                            margin-bottom: 2pt;
+                            font-weight: 700;
+                            font-size: 11pt;
+                        "
+                    >
+                        CÔNG TY CỔ PHẦN
+                    </p>
+                    <p
+                        style="
+                            margin: 0;
+                            padding: 0;
+                            margin-bottom: 2pt;
+                            font-weight: 700;
+                            font-size: 11pt;
+                        "
+                    >
+                        ĐỊA ỐC MAI VIỆT
+                    </p>
+                    <hr
+                        style="
+                            border: 0;
+                            border-top: 1pt solid #000;
+                            margin: 2pt auto;
+                            width: 100px;
+                        "
+                    />
+                    <p
+                        style="
+                            margin: 0;
+                            padding: 0;
+                            margin-bottom: 2pt;
+                            font-weight: 700;
+                            font-size: 11pt;
+                            margin-top: 5pt;
+                        "
+                    >
+                        &nbsp;
+                    </p>
+                    <p
+                        style="
+                            margin: 0;
+                            padding: 0;
+                            margin-bottom: 2pt;
+                            font-size: 13pt;
+                        "
+                    >
+                        Số:
+                        <span style="color: #980000; font-style: italic">{{  contract.contract_number|default:contract.code  }}</span>
+                    </p>
+                </td>
+                <td
+                    style="
+                        vertical-align: top;
+                        padding: 0;
+                        text-align: center;
+                        width: 55%;
+                    "
+                >
+                    <p
+                        style="
+                            margin: 0;
+                            padding: 0;
+                            margin-bottom: 2pt;
+                            font-weight: 700;
+                            font-size: 11pt;
+                        "
+                    >
+                        CỘNG HOÀ XÃ HỘI CHỦ NGHĨA VIỆT NAM
+                    </p>
+                    <p
+                        style="
+                            margin: 0;
+                            padding: 0;
+                            margin-bottom: 2pt;
+                            font-weight: 700;
+                            font-size: 13pt;
+                        "
+                    >
+                        Độc lập - Tự do - Hạnh phúc
+                    </p>
+                    <hr
+                        style="
+                            border: 0;
+                            border-top: 1pt solid #000;
+                            margin: 2pt auto;
+                            width: 180px;
+                        "
+                    />
+                    <p
+                        style="
+                            margin: 0;
+                            padding: 0;
+                            margin-bottom: 2pt;
+                            font-style: italic;
+                            font-size: 13pt;
+                            text-align: right;
+                            margin-top: 5pt;
+                            margin-right: 10pt;
+                        "
+                    >
+                        Hà Nội, ngày {{ contract.sign_date|date:"d" }} tháng {{ contract.sign_date|date:"m" }} năm {{ contract.sign_date|date:"Y" }}
+                    </p>
+                </td>
+            </tr>
+        </table>
 
-        /* Typography Helpers */
-        p { margin: 0; padding: 0; margin-bottom: 2pt; }
-        .bold { font-weight: 700; }
-        .italic { font-style: italic; }
-        .uppercase { text-transform: uppercase; }
-        .text-center { text-align: center; }
-        .text-right { text-align: right; }
-        .text-justify { text-align: justify; }
+        <p
+            style="
+                margin: 0;
+                padding: 0;
+                margin-bottom: 2pt;
+                font-size: 18pt;
+                font-weight: 700;
+                text-align: center;
+                margin-top: 15pt;
+                margin-bottom: 15pt;
+            "
+        >
+            HỢP ĐỒNG LAO ĐỘNG
+        </p>
 
-        /* Font Sizes */
-        .fs-11 { font-size: 11pt; }
-        .fs-13 { font-size: 13pt; }
-        .fs-14 { font-size: 14pt; }
-        .fs-18 { font-size: 18pt; }
+        <ul
+            style="
+                padding: 0;
+                margin: 0;
+                list-style-type: none;
+                margin-bottom: 10pt;
+            "
+        >
+            <li
+                style="
+                    padding-left: 20pt;
+                    position: relative;
+                    text-align: justify;
+                "
+            >
+                <span style="position: absolute; left: 0; width: 15pt">-</span
+                ><span style="font-style: italic"
+                    >Căn cứ vào Bộ Luật Lao Động nước Cộng Hòa Xã Hội Chủ Nghĩa
+                    Việt Nam và các văn bản sửa đổi bổ sung, hướng dẫn thi hành
+                    Bộ Luật Lao Động hiện hành;</span
+                >
+            </li>
+            <li
+                style="
+                    padding-left: 20pt;
+                    position: relative;
+                    text-align: justify;
+                "
+            >
+                <span style="position: absolute; left: 0; width: 15pt">-</span
+                ><span style="font-style: italic"
+                    >Căn cứ vào nhu cầu thực tế của các bên.</span
+                >
+            </li>
+        </ul>
 
-        /* Headers */
-        .header-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 10pt;
-            margin-left: -10pt;
-        }
-        .header-table td { vertical-align: top; padding: 0; }
+        <p
+            style="
+                margin: 0;
+                padding: 0;
+                margin-bottom: 2pt;
+                font-style: italic;
+                margin-bottom: 10pt;
+            "
+        >
+            Hôm nay, tại văn phòng Công ty cổ phần địa ốc Mai Việt, chúng tôi
+            gồm:
+        </p>
 
-        /* Custom HR */
-        hr.header-line {
-            border: 0;
-            border-top: 1pt solid #000;
-            margin: 2pt auto;
-        }
+        <table
+            style="width: 100%; border-collapse: collapse; margin-bottom: 5pt"
+        >
+            <tr>
+                <td
+                    style="
+                        vertical-align: top;
+                        padding: 2pt 0;
+                        width: 140pt;
+                        font-weight: 700;
+                    "
+                >
+                    BÊN SỬ DỤNG LAO ĐỘNG
+                </td>
+                <td
+                    style="
+                        vertical-align: top;
+                        padding: 2pt 0;
+                        width: 15pt;
+                        text-align: center;
+                    "
+                >
+                    :
+                </td>
+                <td
+                    style="
+                        vertical-align: top;
+                        padding: 2pt 0;
+                        font-weight: 700;
+                    "
+                >
+                    CÔNG TY CỔ PHẦN ĐỊA ỐC MAI VIỆT
+                </td>
+            </tr>
+            <tr>
+                <td style="vertical-align: top; padding: 2pt 0; width: 140pt">
+                    Đại diện theo ủy quyền
+                </td>
+                <td
+                    style="
+                        vertical-align: top;
+                        padding: 2pt 0;
+                        width: 15pt;
+                        text-align: center;
+                    "
+                >
+                    :
+                </td>
+                <td style="vertical-align: top; padding: 2pt 0">
+                    Ông
+                    <span style="font-weight: 700">NGUYỄN VĨNH TOÀN</span>
+                    &nbsp;&nbsp; (Sau đây gọi là "<span style="font-weight: 700"
+                        >Công ty</span
+                    >")<br />
+                    <span style="font-style: italic"
+                        >(Theo Ủy quyền số 40/2023/MV ký ngày 01/03/2023)</span
+                    >
+                </td>
+            </tr>
+            <tr>
+                <td style="vertical-align: top; padding: 2pt 0; width: 140pt">
+                    Chức vụ
+                </td>
+                <td
+                    style="
+                        vertical-align: top;
+                        padding: 2pt 0;
+                        width: 15pt;
+                        text-align: center;
+                    "
+                >
+                    :
+                </td>
+                <td style="vertical-align: top; padding: 2pt 0">
+                    Trưởng phòng Hành Chính Nhân Sự
+                </td>
+            </tr>
+            <tr>
+                <td style="vertical-align: top; padding: 2pt 0; width: 140pt">
+                    Mã số doanh nghiệp
+                </td>
+                <td
+                    style="
+                        vertical-align: top;
+                        padding: 2pt 0;
+                        width: 15pt;
+                        text-align: center;
+                    "
+                >
+                    :
+                </td>
+                <td style="vertical-align: top; padding: 2pt 0">0108752372</td>
+            </tr>
+            <tr>
+                <td style="vertical-align: top; padding: 2pt 0; width: 140pt">
+                    Địa chỉ
+                </td>
+                <td
+                    style="
+                        vertical-align: top;
+                        padding: 2pt 0;
+                        width: 15pt;
+                        text-align: center;
+                    "
+                >
+                    :
+                </td>
+                <td style="vertical-align: top; padding: 2pt 0">
+                    Tầng 11, Tháp C Số 219 Trung Kính, Phường Yên Hòa, Quận Cầu
+                    Giấy, Hà Nội.
+                </td>
+            </tr>
 
-        /* Titles */
-        .contract-title {
-            font-size: 18pt;
-            font-weight: 700;
-            text-align: center;
-            margin-top: 15pt;
-            margin-bottom: 15pt;
-        }
-        .article-title {
-            font-size: 13pt;
-            font-weight: 700;
-            text-transform: uppercase;
-            margin-top: 10pt;
-            margin-bottom: 5pt;
-        }
+            <tr>
+                <td colspan="3" style="height: 10pt"></td>
+            </tr>
 
-        /* Info Tables (No borders, used for alignment) */
-        .info-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 5pt;
-        }
-        .info-table td {
-            vertical-align: top;
-            padding: 2pt 0; /* Minimal vertical padding */
-        }
-        .col-label { width: 140pt; } /* Standard label width */
-        .col-sep { width: 15pt; text-align: center; }
-        .col-val { }
+            <tr>
+                <td
+                    style="
+                        vertical-align: top;
+                        padding: 2pt 0;
+                        width: 140pt;
+                        font-weight: 700;
+                    "
+                >
+                    NGƯỜI LAO ĐỘNG
+                </td>
+                <td
+                    style="
+                        vertical-align: top;
+                        padding: 2pt 0;
+                        width: 15pt;
+                        text-align: center;
+                    "
+                >
+                    :
+                </td>
+                <td style="vertical-align: top; padding: 2pt 0">
+                    Ông/bà
+                    <span
+                        style="
+                            color: #980000;
+                            font-style: italic;
+                            font-weight: 700;
+                        ">{{  contract.employee.fullname  }}</span>
+                </td>
+            </tr>
+            <tr>
+                <td style="vertical-align: top; padding: 2pt 0; width: 140pt">
+                    Ngày sinh
+                </td>
+                <td
+                    style="
+                        vertical-align: top;
+                        padding: 2pt 0;
+                        width: 15pt;
+                        text-align: center;
+                    "
+                >
+                    :
+                </td>
+                <td
+                    style="
+                        vertical-align: top;
+                        padding: 2pt 0;
+                        font-weight: 700;
+                        font-style: italic;
+                        color: #980000;
+                    ">
+                    {{ contract.employee.date_of_birth|date:"d/m/Y"|default:"" }}
+                </td>
+            </tr>
+            <tr>
+                <td style="vertical-align: top; padding: 2pt 0; width: 140pt">
+                    CMND/CCCD số
+                </td>
+                <td
+                    style="
+                        vertical-align: top;
+                        padding: 2pt 0;
+                        width: 15pt;
+                        text-align: center;
+                    "
+                >
+                    :
+                </td>
+                <td style="vertical-align: top; padding: 2pt 0">
+                    <span
+                        style="
+                            color: #980000;
+                            font-style: italic;
+                            font-weight: 700;
+                        ">{{  contract.employee.citizen_id|default:""  }}</span>, cấp ngày:
+                    <span
+                        style="
+                            color: #980000;
+                            font-style: italic;
+                            font-weight: 700;
+                        ">{{  contract.employee.citizen_id_issued_date|date:"d/m/Y"|default:""  }}</span>, tại:
+                    <span
+                        style="
+                            color: #980000;
+                            font-style: italic;
+                            font-weight: 700;
+                        ">{{  contract.employee.citizen_id_issued_place|default:""  }}</span>
+                </td>
+            </tr>
+            <tr>
+                <td style="vertical-align: top; padding: 2pt 0; width: 140pt">
+                    Địa chỉ thường trú
+                </td>
+                <td
+                    style="
+                        vertical-align: top;
+                        padding: 2pt 0;
+                        width: 15pt;
+                        text-align: center;
+                    "
+                >
+                    :
+                </td>
+                <td style="vertical-align: top; padding: 2pt 0">
+                    <span
+                        style="
+                            color: #980000;
+                            font-style: italic;
+                            font-weight: 700;
+                        ">{{  contract.employee.permanent_address|default:""  }}</span>
+                </td>
+            </tr>
+            <tr>
+                <td style="vertical-align: top; padding: 2pt 0; width: 140pt">
+                    Mã số thuế TNCN
+                </td>
+                <td
+                    style="
+                        vertical-align: top;
+                        padding: 2pt 0;
+                        width: 15pt;
+                        text-align: center;
+                    "
+                >
+                    :
+                </td>
+                <td style="vertical-align: top; padding: 2pt 0">
+                    <span
+                        style="
+                            color: #980000;
+                            font-style: italic;
+                            font-weight: 700;
+                        ">{{  contract.employee.tax_code|default:""  }}</span>
+                </td>
+            </tr>
+        </table>
 
-        /* List Styles */
-        ul { padding: 0; margin: 0; list-style-type: none; }
+        <p
+            style="
+                margin: 0;
+                padding: 0;
+                margin-bottom: 2pt;
+                font-style: italic;
+                margin-bottom: 10pt;
+            "
+        >
+            Hai bên Thỏa thuận ký kết hợp đồng lao động và cam kết thực hiện
+            đúng những điều khoản sau đây:
+        </p>
 
-        .list-dash > li {
-            padding-left: 20pt;
-            position: relative;
-            text-align: justify;
-        }
-        .list-dash > li::before {
-            content: "-";
-            position: absolute;
-            left: 0;
-            width: 15pt;
-        }
+        <p
+            style="
+                margin: 0;
+                padding: 0;
+                margin-bottom: 2pt;
+                font-size: 13pt;
+                font-weight: 700;
+                text-transform: uppercase;
+                margin-top: 10pt;
+                margin-bottom: 5pt;
+            "
+        >
+            ĐIỀU 1. CÔNG VIỆC HỢP ĐỒNG
+        </p>
+        <table
+            style="width: 100%; border-collapse: collapse; margin-bottom: 5pt"
+        >
+            <tr>
+                <td
+                    style="
+                        vertical-align: top;
+                        padding: 2pt 0;
+                        width: 140pt;
+                        padding-left: 28pt;
+                    "
+                >
+                    - Chức vụ
+                </td>
+                <td
+                    style="
+                        vertical-align: top;
+                        padding: 2pt 0;
+                        width: 15pt;
+                        text-align: center;
+                    "
+                >
+                    :
+                </td>
+                <td style="vertical-align: top; padding: 2pt 0">
+                    <span
+                        style="
+                            color: #980000;
+                            font-style: italic;
+                            font-weight: 700;
+                        ">{{  contract.employee.position.name|default:""  }}</span>
+                </td>
+            </tr>
+            <tr>
+                <td
+                    style="
+                        vertical-align: top;
+                        padding: 2pt 0;
+                        width: 140pt;
+                        padding-left: 28pt;
+                    "
+                >
+                    - Thuộc
+                </td>
+                <td
+                    style="
+                        vertical-align: top;
+                        padding: 2pt 0;
+                        width: 15pt;
+                        text-align: center;
+                    "
+                >
+                    :
+                </td>
+                <td style="vertical-align: top; padding: 2pt 0">
+                    <span
+                        style="
+                            color: #980000;
+                            font-style: italic;
+                            font-weight: 700;
+                        ">{{  contract.employee.department.name|default:"" }} - {{ contract.employee.block.name|default:"" }} - {{ contract.employee.branch.name|default:""  }}</span>
+                </td>
+            </tr>
+            <tr>
+                <td
+                    style="
+                        vertical-align: top;
+                        padding: 2pt 0;
+                        width: 140pt;
+                        padding-left: 28pt;
+                    "
+                >
+                    - Công việc phải làm
+                </td>
+                <td
+                    style="
+                        vertical-align: top;
+                        padding: 2pt 0;
+                        width: 15pt;
+                        text-align: center;
+                    "
+                >
+                    :
+                </td>
+                <td
+                    style="
+                        vertical-align: top;
+                        padding: 2pt 0;
+                        text-align: justify;
+                    "
+                >
+                    Thực hiện các công việc theo bản mô tả công việc ở vị trí
+                    tương đương của công ty theo từng thời kỳ hoặc theo sự phân
+                    công của ban lãnh đạo công ty.
+                </td>
+            </tr>
+        </table>
+        <p
+            style="
+                margin: 0;
+                padding: 0;
+                margin-bottom: 2pt;
+                text-align: justify;
+                margin-bottom: 10pt;
+            "
+        >
+            Công ty có quyền thay đổi tên gọi chức vụ của Người Lao Động hoặc
+            phân công Người Lao Động giữ các vị trí khác có tính chất công việc
+            và chức năng tương đương mà không bị xem là sự thay đổi công việc
+            theo Hợp đồng lao động của Người Lao Động.
+        </p>
 
-        .list-plus > li {
-            padding-left: 20pt;
-            position: relative;
-        }
-        .list-plus > li::before {
-            content: "+";
-            position: absolute;
-            left: 0;
-            width: 15pt;
-        }
+        <p
+            style="
+                margin: 0;
+                padding: 0;
+                margin-bottom: 2pt;
+                font-size: 13pt;
+                font-weight: 700;
+                text-transform: uppercase;
+                margin-top: 10pt;
+                margin-bottom: 5pt;
+            "
+        >
+            ĐIỀU 2. THỜI HẠN VÀ ĐỊA ĐIỂM LÀM VIỆC
+        </p>
+        <table
+            style="width: 100%; border-collapse: collapse; margin-bottom: 5pt"
+        >
+            <tr>
+                <td
+                    style="
+                        vertical-align: top;
+                        padding: 2pt 0;
+                        width: 140pt;
+                        padding-left: 28pt;
+                    "
+                >
+                    - Loại hợp đồng lao động
+                </td>
+                <td
+                    style="
+                        vertical-align: top;
+                        padding: 2pt 0;
+                        width: 15pt;
+                        text-align: center;
+                    "
+                >
+                    :
+                </td>
+                <td style="vertical-align: top; padding: 2pt 0">
+                    <span
+                        style="
+                            color: #980000;
+                            font-style: italic;
+                            font-weight: 700;
+                        ">{{  contract.duration_display  }}</span>.
+                </td>
+            </tr>
+            <tr>
+                <td
+                    style="
+                        vertical-align: top;
+                        padding: 2pt 0;
+                        width: 140pt;
+                        padding-left: 28pt;
+                    "
+                >
+                    - Từ ngày
+                </td>
+                <td
+                    style="
+                        vertical-align: top;
+                        padding: 2pt 0;
+                        width: 15pt;
+                        text-align: center;
+                    "
+                >
+                    :
+                </td>
+                <td style="vertical-align: top; padding: 2pt 0">
+                    <span
+                        style="
+                            color: #980000;
+                            font-style: italic;
+                            font-weight: 700;
+                        ">{{  contract.effective_date|date:"d/m/Y"  }}</span>
+                    đến ngày
+                    <span
+                        style="
+                            color: #980000;
+                            font-style: italic;
+                            font-weight: 700;
+                        ">{{  contract.expiration_date|date:"d/m/Y"|default:""  }}</span>.
+                </td>
+            </tr>
+        </table>
+        <ul style="padding: 0; margin: 0; list-style-type: none">
+            <li
+                style="
+                    padding-left: 20pt;
+                    position: relative;
+                    text-align: justify;
+                "
+            >
+                <span style="position: absolute; left: 0; width: 15pt">-</span
+                >Địa điểm làm việc: Tầng 11 Tháp C, số 219 Trung Kính, phường
+                Yên hòa, quận Cầu giấy, Hà Nội hoặc các địa điểm khác của Công
+                ty theo quyết định của công ty, sau khi đã thông báo cho Người
+                Lao Động.
+            </li>
+        </ul>
 
-        /* Indentation helpers */
-        .indent-1 { padding-left: 28pt; }
-        .indent-2 { padding-left: 36pt; }
+        <p
+            style="
+                margin: 0;
+                padding: 0;
+                margin-bottom: 2pt;
+                font-size: 13pt;
+                font-weight: 700;
+                text-transform: uppercase;
+                margin-top: 10pt;
+                margin-bottom: 5pt;
+            "
+        >
+            ĐIỀU 3. QUYỀN LỢI VÀ NGHĨA VỤ CỦA NGƯỜI LAO ĐỘNG
+        </p>
+        <p style="margin: 0; padding: 0; margin-bottom: 2pt; font-weight: 700">
+            3.1. Quyền lợi:
+        </p>
+        <table
+            style="width: 100%; border-collapse: collapse; margin-bottom: 5pt"
+        >
+            <tr>
+                <td
+                    style="
+                        vertical-align: top;
+                        padding: 2pt 0;
+                        width: 140pt;
+                        padding-left: 28pt;
+                    "
+                >
+                    - Lương cơ bản
+                </td>
+                <td
+                    style="
+                        vertical-align: top;
+                        padding: 2pt 0;
+                        width: 15pt;
+                        text-align: center;
+                    "
+                >
+                    :
+                </td>
+                <td style="vertical-align: top; padding: 2pt 0">
+                    <span
+                        style="
+                            color: #980000;
+                            font-style: italic;
+                            font-weight: 700;
+                        ">{{  contract.base_salary|floatformat:0|default:"0"  }}</span>
+                    đồng/tháng.
+                </td>
+            </tr>
+            <tr>
+                <td
+                    style="
+                        vertical-align: top;
+                        padding: 2pt 0;
+                        width: 140pt;
+                        padding-left: 28pt;
+                    "
+                >
+                    - Phụ cấp ăn trưa
+                </td>
+                <td
+                    style="
+                        vertical-align: top;
+                        padding: 2pt 0;
+                        width: 15pt;
+                        text-align: center;
+                    "
+                >
+                    :
+                </td>
+                <td style="vertical-align: top; padding: 2pt 0">
+                    <span
+                        style="
+                            color: #980000;
+                            font-style: italic;
+                            font-weight: 700;
+                        ">{{  contract.lunch_allowance|floatformat:0|default:"0"  }}</span>
+                    đồng/tháng.
+                </td>
+            </tr>
+            <tr>
+                <td
+                    style="
+                        vertical-align: top;
+                        padding: 2pt 0;
+                        width: 140pt;
+                        padding-left: 28pt;
+                    "
+                >
+                    - Phụ cấp điện thoại
+                </td>
+                <td
+                    style="
+                        vertical-align: top;
+                        padding: 2pt 0;
+                        width: 15pt;
+                        text-align: center;
+                    "
+                >
+                    :
+                </td>
+                <td style="vertical-align: top; padding: 2pt 0">
+                    <span
+                        style="
+                            color: #980000;
+                            font-style: italic;
+                            font-weight: 700;
+                        ">{{  contract.phone_allowance|floatformat:0|default:"0"  }}</span>
+                    đồng/tháng.
+                </td>
+            </tr>
+            <tr>
+                <td
+                    style="
+                        vertical-align: top;
+                        padding: 2pt 0;
+                        width: 140pt;
+                        font-weight: 700;
+                    "
+                >
+                    Tổng Lương cơ bản + phụ cấp
+                </td>
+                <td
+                    style="
+                        vertical-align: top;
+                        padding: 2pt 0;
+                        width: 15pt;
+                        text-align: center;
+                        font-weight: 700;
+                    "
+                >
+                    :
+                </td>
+                <td
+                    style="
+                        vertical-align: top;
+                        padding: 2pt 0;
+                        font-weight: 700;
+                    "
+                >
+                    <span style="color: #980000; font-weight: 700">{{  base_plus_allowance|floatformat:0|default:"0"  }}</span>
+                    đồng/tháng.
+                </td>
+            </tr>
+        </table>
 
-        /* Dynamic Data Styling */
-        .data-text {
-            color: #980000;
-            font-style: italic;
-            font-weight: 700; /* Often bold in sample */
-        }
-        .data-text-normal {
-            color: #980000;
-            font-style: italic;
-        }
+        <p
+            style="
+                margin: 0;
+                padding: 0;
+                margin-bottom: 2pt;
+                font-weight: 700;
+                margin-bottom: 10pt;
+                margin-top: 10pt;
+            "
+        >
+            Mức bổ sung lương theo đánh giá công việc hàng tháng (KPI) theo quy
+            chế công ty:
+        </p>
+        <table
+            style="width: 100%; border-collapse: collapse; margin-bottom: 5pt"
+        >
+            <tr>
+                <td
+                    style="
+                        vertical-align: top;
+                        padding: 2pt 0;
+                        width: 140pt;
+                        padding-left: 36pt;
+                        font-weight: 700;
+                    "
+                >
+                    ✔ Nếu đạt loại A
+                </td>
+                <td
+                    style="
+                        vertical-align: top;
+                        padding: 2pt 0;
+                        width: 15pt;
+                        text-align: center;
+                    "
+                >
+                    :
+                </td>
+                <td style="vertical-align: top; padding: 2pt 0">
+                    …… đồng/tháng.
+                </td>
+            </tr>
+            <tr>
+                <td
+                    style="
+                        vertical-align: top;
+                        padding: 2pt 0;
+                        width: 140pt;
+                        padding-left: 36pt;
+                        font-weight: 700;
+                    "
+                >
+                    ✔ Nếu đạt loại B
+                </td>
+                <td
+                    style="
+                        vertical-align: top;
+                        padding: 2pt 0;
+                        width: 15pt;
+                        text-align: center;
+                    "
+                >
+                    :
+                </td>
+                <td style="vertical-align: top; padding: 2pt 0">
+                    …… đồng/tháng.
+                </td>
+            </tr>
+            <tr>
+                <td
+                    style="
+                        vertical-align: top;
+                        padding: 2pt 0;
+                        width: 140pt;
+                        padding-left: 36pt;
+                        font-weight: 700;
+                    "
+                >
+                    ✔ Nếu đạt loại C
+                </td>
+                <td
+                    style="
+                        vertical-align: top;
+                        padding: 2pt 0;
+                        width: 15pt;
+                        text-align: center;
+                    "
+                >
+                    :
+                </td>
+                <td style="vertical-align: top; padding: 2pt 0">
+                    <span
+                        style="
+                            color: #980000;
+                            font-style: italic;
+                            font-weight: 700;
+                        ">{{  contract.kpi_salary|floatformat:0|default:"0"  }}</span>
+                    đồng/tháng.
+                </td>
+            </tr>
+            <tr>
+                <td
+                    style="
+                        vertical-align: top;
+                        padding: 2pt 0;
+                        width: 140pt;
+                        padding-left: 36pt;
+                        font-weight: 700;
+                    "
+                >
+                    ✔ Nếu đạt loại D
+                </td>
+                <td
+                    style="
+                        vertical-align: top;
+                        padding: 2pt 0;
+                        width: 15pt;
+                        text-align: center;
+                    "
+                >
+                    :
+                </td>
+                <td style="vertical-align: top; padding: 2pt 0">
+                    …… đồng/tháng.
+                </td>
+            </tr>
+            <tr>
+                <td
+                    style="
+                        vertical-align: top;
+                        padding: 2pt 0;
+                        width: 140pt;
+                        font-weight: 700;
+                    "
+                >
+                    LƯƠNG GỘP
+                </td>
+                <td
+                    style="
+                        vertical-align: top;
+                        padding: 2pt 0;
+                        width: 15pt;
+                        text-align: center;
+                        font-weight: 700;
+                    "
+                >
+                    :
+                </td>
+                <td
+                    style="
+                        vertical-align: top;
+                        padding: 2pt 0;
+                        font-weight: 700;
+                    "
+                >
+                    Lương cơ bản + phụ cấp + lương KPI
+                </td>
+            </tr>
+        </table>
 
-        /* Signature Table */
-        .signature-table {
-            width: 100%;
-            margin-top: 15pt;
-        }
-        .signature-table td {
-            width: 50%;
-            text-align: center;
-            vertical-align: top;
-            font-weight: 700;
-        }
-    </style>
-</head>
-<body>
+        <ul style="padding: 0; margin: 0; list-style-type: none">
+            <li
+                style="
+                    padding-left: 20pt;
+                    position: relative;
+                    text-align: justify;
+                "
+            >
+                <span style="position: absolute; left: 0; width: 15pt">-</span
+                >Hình thức trả lương: Chuyển khoản vào tài khoản của người lao
+                động. Lương hàng tháng sẽ được thanh toán vào ngày 10 – 13 của
+                tháng tiếp theo.
+            </li>
+            <li
+                style="
+                    padding-left: 20pt;
+                    position: relative;
+                    text-align: justify;
+                "
+            >
+                <span style="position: absolute; left: 0; width: 15pt">-</span
+                >Tăng lương: Việc xem xét lại mức lương sẽ được tiến hành hàng
+                năm vào cuối năm. Việc tăng lương sẽ được xem xét và quyết định
+                duy nhất bởi Công Ty, tùy thuộc vào kết quả làm việc của Người
+                Lao Động trong năm, kết quả kinh doanh của Công ty và các yếu tố
+                khác mà Công Ty thấy là cần xét đến.
+            </li>
+            <li
+                style="
+                    padding-left: 20pt;
+                    position: relative;
+                    text-align: justify;
+                "
+            >
+                <span style="position: absolute; left: 0; width: 15pt">-</span
+                >Chế độ thưởng, phụ cấp: Theo quy định của công ty.
+            </li>
+            <li
+                style="
+                    padding-left: 20pt;
+                    position: relative;
+                    text-align: justify;
+                "
+            >
+                <span style="position: absolute; left: 0; width: 15pt">-</span
+                >Tham gia đầy đủ bảo hiểm xã hội, bảo hiểm y tế, bảo hiềm thất
+                nghiệp theo luật định và theo quy định công ty.
+            </li>
+            <li
+                style="
+                    padding-left: 20pt;
+                    position: relative;
+                    text-align: justify;
+                "
+            >
+                <span style="position: absolute; left: 0; width: 15pt">-</span
+                >Chế độ nghỉ ngơi: Theo quy định của công ty.
+            </li>
+            <li
+                style="
+                    padding-left: 20pt;
+                    position: relative;
+                    text-align: justify;
+                "
+            >
+                <span style="position: absolute; left: 0; width: 15pt">-</span
+                >Chế độ đào tạo: Phải tuân thủ và hoàn thành theo cơ chế đào tạo
+                của công ty. Trong thời gian đào tạo sẽ được hưởng đầy đủ các
+                quyền lợi theo quy định của công ty từng thời kỳ.
+            </li>
+            <li
+                style="
+                    padding-left: 20pt;
+                    position: relative;
+                    text-align: justify;
+                "
+            >
+                <span style="position: absolute; left: 0; width: 15pt">-</span
+                >Các quyền lợi khác: Theo quy định của Công ty và pháp luật hiện
+                hành.
+            </li>
+        </ul>
 
-    <table class="header-table">
-        <tr>
-            <td class="text-center" style="width: 45%;">
-                <p class="bold fs-11">CÔNG TY CỔ PHẦN</p>
-                <p class="bold fs-11">ĐỊA ỐC MAI VIỆT</p>
-                <hr class="header-line" style="width: 100px;">
-                <p class="bold fs-11" style="margin-top: 5pt;">&nbsp;</p>
-                <p class="fs-13">Số: <span class="data-text-normal">{{ contract.contract_number|default:contract.code }}</span></p>
-            </td>
-            <td class="text-center" style="width: 55%;">
-                <p class="bold fs-11">CỘNG HOÀ XÃ HỘI CHỦ NGHĨA VIỆT NAM</p>
-                <p class="bold fs-13">Độc lập - Tự do - Hạnh phúc</p>
-                <hr class="header-line" style="width: 180px;">
-                <p class="italic fs-13 text-right" style="margin-top: 5pt; margin-right: 10pt;">
-                    Hà Nội, ngày {{ contract.sign_date|date:"d" }} tháng {{ contract.sign_date|date:"m" }} năm {{ contract.sign_date|date:"Y" }}
-                </p>
-            </td>
-        </tr>
-    </table>
+        <p
+            style="
+                margin: 0;
+                padding: 0;
+                margin-bottom: 2pt;
+                font-weight: 700;
+                margin-top: 10pt;
+            "
+        >
+            3.2. Nghĩa vụ:
+        </p>
+        <ul style="padding: 0; margin: 0; list-style-type: none">
+            <li
+                style="
+                    padding-left: 20pt;
+                    position: relative;
+                    text-align: justify;
+                "
+            >
+                <span style="position: absolute; left: 0; width: 15pt">-</span
+                >Hoàn thành mọi công việc đã cam kết theo hợp đồng lao động và
+                theo sự phân công của ban lãnh đạo công ty từng thời kỳ.
+            </li>
+            <li
+                style="
+                    padding-left: 20pt;
+                    position: relative;
+                    text-align: justify;
+                "
+            >
+                <span style="position: absolute; left: 0; width: 15pt">-</span
+                >Nghiêm chỉnh chấp hành điều lệnh của công ty, nội quy lao động,
+                quy định của công ty, bí mật kinh doanh, bí mật công nghệ cũng
+                như quy định của pháp luật hiện hành.
+            </li>
+            <li
+                style="
+                    padding-left: 20pt;
+                    position: relative;
+                    text-align: justify;
+                "
+            >
+                <span style="position: absolute; left: 0; width: 15pt">-</span
+                >Bồi thường vi phạm vật chất: Theo quy định của Bộ luật lao động
+                và nội quy Công ty.
+            </li>
+            <li
+                style="
+                    padding-left: 20pt;
+                    position: relative;
+                    text-align: justify;
+                "
+            >
+                <span style="position: absolute; left: 0; width: 15pt">-</span
+                >Người lao động có trách nhiệm đóng thuế thu nhập cá nhân
+                ("TNCN") theo quy định của pháp luật. Công ty sẽ khấu trừ trực
+                tiếp thuế TNCN từ thu nhập hàng tháng của người lao động để nộp
+                cho cơ quan nhà nước.
+            </li>
+            <li
+                style="
+                    padding-left: 20pt;
+                    position: relative;
+                    text-align: justify;
+                "
+            >
+                <span style="position: absolute; left: 0; width: 15pt">-</span
+                >Trong thời gian hợp đồng lao động còn thời hạn, nếu người lao
+                động muốn chấm dứt hợp đồng lao động thì người lao động phải đảm
+                bảo thời gian báo trước cho bộ phận nhân sự của Công ty và thực
+                hiện đầy đủ các thủ tục nghỉ việc theo quy định của Công ty, quy
+                định của pháp luật.
+            </li>
+            <li
+                style="
+                    padding-left: 20pt;
+                    position: relative;
+                    text-align: justify;
+                "
+            >
+                <span style="position: absolute; left: 0; width: 15pt">-</span
+                >Trong mọi trường hợp trước khi chấm dứt hợp đồng lao động,
+                người lao động có trách nhiệm bàn giao toàn bộ công việc cho
+                nhân viên mới và chịu trách nhiệm trước pháp luật đối với mọi
+                công việc đảm nhiệm tại công ty.
+            </li>
+            <li
+                style="
+                    padding-left: 20pt;
+                    position: relative;
+                    text-align: justify;
+                "
+            >
+                <span style="position: absolute; left: 0; width: 15pt">-</span
+                >Người lao động có trách nhiệm giữ gìn, bảo vệ tài sản của công
+                ty. Nếu trường hợp làm mất mát, hư hỏng người lao động có trách
+                nhiệm bồi thường thiệt hại tương ứng.
+            </li>
+            <li
+                style="
+                    padding-left: 20pt;
+                    position: relative;
+                    text-align: justify;
+                "
+            >
+                <span style="position: absolute; left: 0; width: 15pt">-</span
+                >Các nghĩa vụ khác theo quy định của Công ty và pháp luật hiện
+                hành.
+            </li>
+            <li
+                style="
+                    padding-left: 20pt;
+                    position: relative;
+                    text-align: justify;
+                "
+            >
+                <span style="position: absolute; left: 0; width: 15pt">-</span
+                >Nếu người lao động vi phạm một trong các nghĩa vụ theo hợp đồng
+                này tùy từng mức độ sẽ bị xử lý theo quy định của công ty hoặc
+                theo quy định của pháp luật.
+            </li>
+        </ul>
 
-    <p class="contract-title">HỢP ĐỒNG LAO ĐỘNG</p>
+        <p
+            style="
+                margin: 0;
+                padding: 0;
+                margin-bottom: 2pt;
+                font-size: 13pt;
+                font-weight: 700;
+                text-transform: uppercase;
+                margin-top: 10pt;
+                margin-bottom: 5pt;
+            "
+        >
+            ĐIỀU 4. QUYỀN VÀ NGHĨA VỤ CỦA BÊN SỬ DỤNG LAO ĐỘNG
+        </p>
+        <p style="margin: 0; padding: 0; margin-bottom: 2pt; font-weight: 700">
+            4.1 Quyền lợi:
+        </p>
+        <ul style="padding: 0; margin: 0; list-style-type: none">
+            <li
+                style="
+                    padding-left: 20pt;
+                    position: relative;
+                    text-align: justify;
+                "
+            >
+                <span style="position: absolute; left: 0; width: 15pt">-</span
+                >Điều hành Người lao động hoàn thành công việc theo hợp đồng
+                (bao gồm cả việc bố trí, điều chuyển, tạm ngưng việc).
+            </li>
+            <li
+                style="
+                    padding-left: 20pt;
+                    position: relative;
+                    text-align: justify;
+                "
+            >
+                <span style="position: absolute; left: 0; width: 15pt">-</span
+                >Tạm hoãn, chấm dứt hợp đồng khi Người Lao Động thường xuyên
+                không hoàn thành công việc; khi không đạt các định mức, chỉ
+                tiêu, hiệu quả công việc theo yêu cầu của Công ty trong từng
+                thời kỳ và/hoặc các trường hợp khác theo quy định tại Bộ Luật
+                lao động.
+            </li>
+        </ul>
+        <p
+            style="
+                margin: 0;
+                padding: 0;
+                margin-bottom: 2pt;
+                font-weight: 700;
+                margin-top: 5pt;
+            "
+        >
+            4.2 Nghĩa vụ:
+        </p>
+        <ul style="padding: 0; margin: 0; list-style-type: none">
+            <li
+                style="
+                    padding-left: 20pt;
+                    position: relative;
+                    text-align: justify;
+                "
+            >
+                <span style="position: absolute; left: 0; width: 15pt">-</span
+                >Bảo đảm việc làm và thực hiện đầy đủ những điều khoản đã cam
+                kết trong hợp đồng;
+            </li>
+            <li
+                style="
+                    padding-left: 20pt;
+                    position: relative;
+                    text-align: justify;
+                "
+            >
+                <span style="position: absolute; left: 0; width: 15pt">-</span
+                >Thanh toán đầy đủ, đúng thời hạn các chế độ và quyền lợi của
+                người lao động theo hợp đồng lao động.
+            </li>
+        </ul>
 
-    <ul class="list-dash" style="margin-bottom: 10pt;">
-        <li><span class="italic">Căn cứ vào Bộ Luật Lao Động nước Cộng Hòa Xã Hội Chủ Nghĩa Việt Nam và các văn bản sửa đổi bổ sung, hướng dẫn thi hành Bộ Luật Lao Động hiện hành;</span></li>
-        <li><span class="italic">Căn cứ vào nhu cầu thực tế của các bên.</span></li>
-    </ul>
+        <p
+            style="
+                margin: 0;
+                padding: 0;
+                margin-bottom: 2pt;
+                font-size: 13pt;
+                font-weight: 700;
+                text-transform: uppercase;
+                margin-top: 10pt;
+                margin-bottom: 5pt;
+            "
+        >
+            ĐIỀU 5. THỜI GIAN LÀM VIỆC VÀ THỜI GIAN NGHỈ NGƠI
+        </p>
+        <p style="margin: 0; padding: 0; margin-bottom: 2pt; font-weight: 700">
+            5.1 Thời gian làm việc:
+        </p>
+        <ul style="padding: 0; margin: 0; list-style-type: none">
+            <li
+                style="
+                    padding-left: 20pt;
+                    position: relative;
+                    text-align: justify;
+                "
+            >
+                <span style="position: absolute; left: 0; width: 15pt">-</span
+                >Áp dụng từ thứ 2 đến thứ 6 hàng tuần
+            </li>
+        </ul>
+        <p
+            style="
+                margin: 0;
+                padding: 0;
+                margin-bottom: 2pt;
+                padding-left: 36pt;
+            "
+        >
+            + Sáng: từ 8h00 đến 12h00
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; +
+            Chiều: từ 13h30 đến 17h30
+        </p>
+        <ul style="padding: 0; margin: 0; list-style-type: none">
+            <li
+                style="
+                    padding-left: 20pt;
+                    position: relative;
+                    text-align: justify;
+                "
+            >
+                <span style="position: absolute; left: 0; width: 15pt">-</span
+                >Áp dụng riêng cho thứ 7 hàng tuần
+            </li>
+        </ul>
+        <p
+            style="
+                margin: 0;
+                padding: 0;
+                margin-bottom: 2pt;
+                padding-left: 36pt;
+            "
+        >
+            + Sáng: từ 8h00 đến 12h00
+        </p>
+        <p
+            style="
+                margin: 0;
+                padding: 0;
+                margin-bottom: 2pt;
+                text-align: justify;
+                margin-top: 5pt;
+            "
+        >
+            Công ty có thể thay đổi ngày làm việc trong tuần hoặc giờ làm việc
+            trong ngày tùy theo đặc điểm công việc khi Công ty thấy cấn thiết,
+            sau khi đã thông báo cho Người Lao Động.
+        </p>
 
-    <p class="italic mb-2">Hôm nay, tại văn phòng Công ty cổ phần địa ốc Mai Việt, chúng tôi gồm:</p>
+        <p
+            style="
+                margin: 0;
+                padding: 0;
+                margin-bottom: 2pt;
+                font-weight: 700;
+                margin-top: 10pt;
+            "
+        >
+            5.2 Thời gian nghỉ ngơi:
+        </p>
+        <ul style="padding: 0; margin: 0; list-style-type: none">
+            <li
+                style="
+                    padding-left: 20pt;
+                    position: relative;
+                    text-align: justify;
+                "
+            >
+                <span style="position: absolute; left: 0; width: 15pt">-</span
+                >Nghỉ hàng tuần: Người Lao Động được nghỉ chiều Thứ 7 và Chủ
+                Nhật hàng tuần. Công ty có thể bố trí ngày nghỉ hàng tuần vào
+                ngày khác nhưng vẫn đảm bảo đủ số ngày nghỉ sau khi đã thông báo
+                cho Người Lao Động.
+            </li>
+            <li
+                style="
+                    padding-left: 20pt;
+                    position: relative;
+                    text-align: justify;
+                "
+            >
+                <span style="position: absolute; left: 0; width: 15pt">-</span
+                >Nghỉ lễ: Người Lao Động được nghỉ các ngày lễ theo quy định của
+                Bộ Luật lao động.
+            </li>
+            <li
+                style="
+                    padding-left: 20pt;
+                    position: relative;
+                    text-align: justify;
+                "
+            >
+                <span style="position: absolute; left: 0; width: 15pt">-</span
+                >Nghỉ hàng năm: Người Lao Động làm việc đủ 12 tháng cho công ty
+                theo hợp đồng lao động thì được nghỉ hằng năm hưởng nguyên lương
+                12 ngày. Nếu thời gian làm việc chưa đủ 12 tháng thì số ngày
+                nghỉ hằng năm sẽ được tính theo tỷ lệ tương ứng với số tháng làm
+                việc.
+            </li>
+            <li
+                style="
+                    padding-left: 20pt;
+                    position: relative;
+                    text-align: justify;
+                "
+            >
+                <span style="position: absolute; left: 0; width: 15pt">-</span
+                >Các ngày nghỉ được trả lương khác như nghỉ ốm, nghỉ thai sản..
+                được trả lương theo đúng các quy định của pháp luật hiện hành.
+            </li>
+        </ul>
 
-    <table class="info-table">
-        <tr>
-            <td class="col-label bold">BÊN SỬ DỤNG LAO ĐỘNG</td>
-            <td class="col-sep">:</td>
-            <td class="col-val bold">CÔNG TY CỔ PHẦN ĐỊA ỐC MAI VIỆT</td>
-        </tr>
-        <tr>
-            <td class="col-label">Đại diện theo ủy quyền</td>
-            <td class="col-sep">:</td>
-            <td class="col-val">
-                Ông <span class="bold">NGUYỄN VĨNH TOÀN</span> &nbsp;&nbsp; (Sau đây gọi là “<span class="bold">Công ty</span>”)<br>
-                <span class="italic">(Theo Ủy quyền số 40/2023/MV ký ngày 01/03/2023)</span>
-            </td>
-        </tr>
-        <tr>
-            <td class="col-label">Chức vụ</td>
-            <td class="col-sep">:</td>
-            <td class="col-val">Trưởng phòng Hành Chính Nhân Sự</td>
-        </tr>
-        <tr>
-            <td class="col-label">Mã số doanh nghiệp</td>
-            <td class="col-sep">:</td>
-            <td class="col-val">0108752372</td>
-        </tr>
-        <tr>
-            <td class="col-label">Địa chỉ</td>
-            <td class="col-sep">:</td>
-            <td class="col-val">Tầng 11, Tháp C Số 219 Trung Kính, Phường Yên Hòa, Quận Cầu Giấy, Hà Nội.</td>
-        </tr>
+        <p
+            style="
+                margin: 0;
+                padding: 0;
+                margin-bottom: 2pt;
+                font-size: 13pt;
+                font-weight: 700;
+                text-transform: uppercase;
+                margin-top: 10pt;
+                margin-bottom: 5pt;
+            "
+        >
+            ĐIỀU 6. CÁC CHẾ ĐỘ LÀM VIỆC
+        </p>
+        <ul style="padding: 0; margin: 0; list-style-type: none">
+            <li
+                style="
+                    padding-left: 20pt;
+                    position: relative;
+                    text-align: justify;
+                "
+            >
+                <span style="position: absolute; left: 0; width: 15pt">-</span
+                >Phương tiện đi lại: Người Lao Động tự chịu trách nhiệm về
+                phương tiện đi lại từ nơi ở đến nơi làm việc và ngược lại cho
+                mục đích công việc.
+            </li>
+            <li
+                style="
+                    padding-left: 20pt;
+                    position: relative;
+                    text-align: justify;
+                "
+            >
+                <span style="position: absolute; left: 0; width: 15pt">-</span
+                >Công Ty sẽ cung cấp cho Người Lao Động các trang thiết bị và
+                dụng cụ, bảo hộ lao động phù hợp với nhu cầu cần thiết trong
+                công việc cho người lao động phù hợp theo quy định của pháp
+                luật.
+            </li>
+            <li
+                style="
+                    padding-left: 20pt;
+                    position: relative;
+                    text-align: justify;
+                "
+            >
+                <span style="position: absolute; left: 0; width: 15pt">-</span
+                >Đào tạo: Người Lao Động sẽ được hướng dẫn và đào tạo để nâng
+                cao trình độ phù hợp hơn với công việc.
+            </li>
+        </ul>
 
-        <tr><td colspan="3" style="height: 10pt;"></td></tr>
+        <p
+            style="
+                margin: 0;
+                padding: 0;
+                margin-bottom: 2pt;
+                font-size: 13pt;
+                font-weight: 700;
+                text-transform: uppercase;
+                margin-top: 10pt;
+                margin-bottom: 5pt;
+            "
+        >
+            ĐIỀU 7. BẢO MẬT
+        </p>
+        <p
+            style="
+                margin: 0;
+                padding: 0;
+                margin-bottom: 2pt;
+                text-align: justify;
+                padding-left: 28pt;
+            "
+        >
+            Người Lao Động phải tuân thủ nghĩa vụ bảo mật thông tin theo quy
+            định tại bản Cam Kết Bảo Mật và các nội quy, quy chế do Công ty ban
+            hành trong từng thời kỳ. Vi phạm nghĩa vụ bảo mật thông tin là một
+            vi phạm nghiêm trọng và có thể bị xử lý ở mức kỷ luật cao nhất là sa
+            thải. Nghĩa vụ bảo mật kinh doanh, bí mật công nghệ có hiệu lực ngay
+            cả khi hợp đồng này chấm dứt.
+        </p>
 
-        <tr>
-            <td class="col-label bold">NGƯỜI LAO ĐỘNG</td>
-            <td class="col-sep">:</td>
-            <td class="col-val">Ông/bà <span class="data-text">{{ contract.employee.fullname }}</span></td>
-        </tr>
-        <tr>
-            <td class="col-label">Ngày sinh</td>
-            <td class="col-sep">:</td>
-            <td class="col-val bold italic" style="color: #980000;">{{ contract.employee.date_of_birth|date:"d/m/Y"|default:"" }}</td>
-        </tr>
-        <tr>
-            <td class="col-label">CMND/CCCD số</td>
-            <td class="col-sep">:</td>
-            <td class="col-val">
-                <span class="data-text">{{ contract.employee.citizen_id|default:"" }}</span>,
-                cấp ngày: <span class="data-text">{{ contract.employee.citizen_id_issued_date|date:"d/m/Y"|default:"" }}</span>,
-                tại: <span class="data-text">{{ contract.employee.citizen_id_issued_place|default:"" }}</span>
-            </td>
-        </tr>
-        <tr>
-            <td class="col-label">Địa chỉ thường trú</td>
-            <td class="col-sep">:</td>
-            <td class="col-val"><span class="data-text">{{ contract.employee.permanent_address|default:"" }}</span></td>
-        </tr>
-        <tr>
-            <td class="col-label">Mã số thuế TNCN</td>
-            <td class="col-sep">:</td>
-            <td class="col-val"><span class="data-text">{{ contract.employee.tax_code|default:"" }}</span></td>
-        </tr>
-    </table>
+        <p
+            style="
+                margin: 0;
+                padding: 0;
+                margin-bottom: 2pt;
+                font-size: 13pt;
+                font-weight: 700;
+                text-transform: uppercase;
+                margin-top: 10pt;
+                margin-bottom: 5pt;
+            "
+        >
+            ĐIỀU 8. ĐIỀU KHOẢN THI HÀNH
+        </p>
+        <p
+            style="
+                margin: 0;
+                padding: 0;
+                margin-bottom: 2pt;
+                padding-left: 28pt;
+                text-align: justify;
+            "
+        >
+            8.1 Những vấn đề về lao động không ghi trong hợp đồng này thì áp
+            dụng theo quy định của nội quy lao động công ty và pháp luật hiện
+            hành;
+        </p>
+        <p
+            style="
+                margin: 0;
+                padding: 0;
+                margin-bottom: 2pt;
+                padding-left: 28pt;
+                text-align: justify;
+            "
+        >
+            8.2 Các quyết định liên quan đến người lao động phát sinh trong quá
+            trình thực hiện hợp đồng lao động, được coi là Phụ lục hợp đồng này.
+            Các Phụ lục đính kèm hợp đồng này có giá trị pháp lý ràng buộc với
+            các bên trong hợp đồng.
+        </p>
+        <p
+            style="
+                margin: 0;
+                padding: 0;
+                margin-bottom: 2pt;
+                padding-left: 28pt;
+                text-align: justify;
+            "
+        >
+            8.3 Hợp đồng này chấm dứt hiệu lực khi thuộc một trong các trường
+            hợp sau:
+        </p>
+        <ul
+            style="
+                padding: 0;
+                margin: 0;
+                list-style-type: none;
+                padding-left: 36pt;
+            "
+        >
+            <li style="padding-left: 20pt; position: relative">
+                <span style="position: absolute; left: 0; width: 15pt">+</span
+                >Hết thời hạn có hiệu lực của Hợp đồng;
+            </li>
+            <li style="padding-left: 20pt; position: relative">
+                <span style="position: absolute; left: 0; width: 15pt">+</span
+                >Theo thỏa thuận của hai bên;
+            </li>
+            <li style="padding-left: 20pt; position: relative">
+                <span style="position: absolute; left: 0; width: 15pt">+</span
+                >Một trong các bên đơn phương chấm dứt hợp đồng phù hợp theo quy
+                định của Pháp luật.
+            </li>
+            <li style="padding-left: 20pt; position: relative">
+                <span style="position: absolute; left: 0; width: 15pt">+</span
+                >Các trường hợp khác theo quy định của pháp luật.
+            </li>
+        </ul>
+        <p
+            style="
+                margin: 0;
+                padding: 0;
+                margin-bottom: 2pt;
+                text-align: justify;
+                padding-left: 28pt;
+            "
+        >
+            Khi chấm dứt hợp đồng lao động, người lao động có trách nhiệm bồi
+            thường chi phí đào tạo theo quy định của công ty.
+        </p>
+        <p
+            style="
+                margin: 0;
+                padding: 0;
+                margin-bottom: 2pt;
+                padding-left: 28pt;
+                text-align: justify;
+            "
+        >
+            8.4 Người Lao Động đơn phương chấm dứt Hợp đồng trước thời hạn phải
+            thông báo trước cho Công ty theo đúng quy định của pháp luật.
+        </p>
+        <p
+            style="
+                margin: 0;
+                padding: 0;
+                margin-bottom: 2pt;
+                text-align: justify;
+            "
+        >
+            Trong mọi trường hợp chấm dứt hợp đồng, Người Lao Động phải hoàn
+            thành các nghĩa vụ sau:
+        </p>
 
-    <p class="italic mb-2">Hai bên Thỏa thuận ký kết hợp đồng lao động và cam kết thực hiện đúng những điều khoản sau đây:</p>
+        <ol style="margin-left: 36pt">
+            <li style="text-align: justify; margin-bottom: 5pt">
+                Bàn giao toàn bộ công việc cho người lao động khác do Công Ty
+                chỉ định.
+            </li>
+            <li style="text-align: justify; margin-bottom: 5pt">
+                Bàn giao lại toàn bộ các thiết bị, dụng cụ được giao như: máy vi
+                tính, máy in, chìa khóa, đồ dùng văn phòng phẩm, đồng phục,v.v…
+            </li>
+            <li style="text-align: justify; margin-bottom: 5pt">
+                Bàn giao tất cả các tài liệu, chứng từ bao gồm data khách hàng,
+                các loại giấy tờ, các đĩa CD, VCD, sách, hồ sơ, tài liệu đào
+                tạo, file cứng, file mềm v.v…Người Lao Động không được phép sao
+                chép tài liệu công ty vì bất kỳ mục đích nào hoặc bỏ đi hoặc xóa
+                bất cứ file, nội dung nào liên quan đến công việc trong máy
+                tính.
+            </li>
+            <li style="text-align: justify; margin-bottom: 5pt">
+                Thanh toán mọi khoản tiền tạm ứng, tiền vay và các nghĩa vụ tài
+                chính khác với Công Ty. Công Ty sẽ chi trả mọi khoản lương và/
+                hoặc thu nhập khác (nếu có) cho người lao động khi người lao
+                động hoàn thành xong các nghĩa vụ phải thanh toán cho công ty.
+            </li>
+            <li style="text-align: justify; margin-bottom: 5pt">
+                Bồi thường khi gây thiệt hại về tài sản cho Công ty. Công ty
+                được quyền khấu trừ vào tiền lương theo quy định của pháp luật.
+            </li>
+        </ol>
 
-    <p class="article-title">ĐIỀU 1. CÔNG VIỆC HỢP ĐỒNG</p>
-    <table class="info-table">
-        <tr>
-            <td class="col-label indent-1">- Chức vụ</td>
-            <td class="col-sep">:</td>
-            <td class="col-val"><span class="data-text">{{ contract.employee.position.name|default:"" }}</span></td>
-        </tr>
-        <tr>
-            <td class="col-label indent-1">- Thuộc</td>
-            <td class="col-sep">:</td>
-            <td class="col-val"><span class="data-text">{{ contract.employee.department.name|default:"" }} - {{ contract.employee.block.name|default:"" }} - {{ contract.employee.branch.name|default:"" }}</span></td>
-        </tr>
-        <tr>
-            <td class="col-label indent-1">- Công việc phải làm</td>
-            <td class="col-sep">:</td>
-            <td class="col-val text-justify">Thực hiện các công việc theo bản mô tả công việc ở vị trí tương đương của công ty theo từng thời kỳ hoặc theo sự phân công của ban lãnh đạo công ty.</td>
-        </tr>
-    </table>
-    <p class="text-justify mb-2">Công ty có quyền thay đổi tên gọi chức vụ của Người Lao Động hoặc phân công Người Lao Động giữ các vị trí khác có tính chất công việc và chức năng tương đương mà không bị xem là sự thay đổi công việc theo Hợp đồng lao động của Người Lao Động.</p>
+        <p
+            style="
+                margin: 0;
+                padding: 0;
+                margin-bottom: 2pt;
+                padding-left: 28pt;
+                text-align: justify;
+            "
+        >
+            8.5 Hợp Đồng này có hiệu lực kể từ ngày ký và được lập thành hai
+            (02) bản, mỗi bên giữ một (01) bản, có giá trị pháp lý ngang nhau.
+        </p>
 
-    <p class="article-title">ĐIỀU 2. THỜI HẠN VÀ ĐỊA ĐIỂM LÀM VIỆC</p>
-    <table class="info-table">
-        <tr>
-            <td class="col-label indent-1">- Loại hợp đồng lao động</td>
-            <td class="col-sep">:</td>
-            <td class="col-val"><span class="data-text">{{ contract.duration_display }}</span>.</td>
-        </tr>
-        <tr>
-            <td class="col-label indent-1">- Từ ngày</td>
-            <td class="col-sep">:</td>
-            <td class="col-val">
-                <span class="data-text">{{ contract.effective_date|date:"d/m/Y" }}</span>
-                đến ngày
-                <span class="data-text">{{ contract.expiration_date|date:"d/m/Y"|default:"" }}</span>.
-            </td>
-        </tr>
-    </table>
-    <ul class="list-dash">
-        <li>Địa điểm làm việc: Tầng 11 Tháp C, số 219 Trung Kính, phường Yên hòa, quận Cầu giấy, Hà Nội hoặc các địa điểm khác của Công ty theo quyết định của công ty, sau khi đã thông báo cho Người Lao Động.</li>
-    </ul>
-
-    <p class="article-title">ĐIỀU 3. QUYỀN LỢI VÀ NGHĨA VỤ CỦA NGƯỜI LAO ĐỘNG</p>
-    <p class="bold">3.1. Quyền lợi:</p>
-    <table class="info-table">
-        <tr>
-            <td class="col-label indent-1">- Lương cơ bản</td>
-            <td class="col-sep">:</td>
-            <td class="col-val"><span class="data-text">{{ contract.base_salary|floatformat:0|default:"0" }}</span> đồng/tháng.</td>
-        </tr>
-        <tr>
-            <td class="col-label indent-1">- Phụ cấp ăn trưa</td>
-            <td class="col-sep">:</td>
-            <td class="col-val"><span class="data-text">{{ contract.lunch_allowance|floatformat:0|default:"0" }}</span> đồng/tháng.</td>
-        </tr>
-        <tr>
-            <td class="col-label indent-1">- Phụ cấp điện thoại</td>
-            <td class="col-sep">:</td>
-            <td class="col-val"><span class="data-text">{{ contract.phone_allowance|floatformat:0|default:"0" }}</span> đồng/tháng.</td>
-        </tr>
-        <tr>
-            <td class="col-label bold">Tổng Lương cơ bản + phụ cấp</td>
-            <td class="col-sep bold">:</td>
-            <td class="col-val bold"><span class="data-text" style="font-style: normal;">{{ base_plus_allowance|floatformat:0|default:"0" }}</span> đồng/tháng.</td>
-        </tr>
-    </table>
-
-    <p class="bold mb-2 mt-2">Mức bổ sung lương theo đánh giá công việc hàng tháng (KPI) theo quy chế công ty:</p>
-    <table class="info-table">
-        <tr>
-            <td class="col-label indent-2 bold">✔ Nếu đạt loại A</td>
-            <td class="col-sep">:</td>
-            <td class="col-val">…… đồng/tháng.</td>
-        </tr>
-        <tr>
-            <td class="col-label indent-2 bold">✔ Nếu đạt loại B</td>
-            <td class="col-sep">:</td>
-            <td class="col-val">…… đồng/tháng.</td>
-        </tr>
-        <tr>
-            <td class="col-label indent-2 bold">✔ Nếu đạt loại C</td>
-            <td class="col-sep">:</td>
-            <td class="col-val"><span class="data-text">{{ contract.kpi_salary|floatformat:0|default:"0" }}</span> đồng/tháng.</td>
-        </tr>
-        <tr>
-            <td class="col-label indent-2 bold">✔ Nếu đạt loại D</td>
-            <td class="col-sep">:</td>
-            <td class="col-val">…… đồng/tháng.</td>
-        </tr>
-        <tr>
-            <td class="col-label bold">LƯƠNG GỘP</td>
-            <td class="col-sep bold">:</td>
-            <td class="col-val bold">Lương cơ bản + phụ cấp + lương KPI</td>
-        </tr>
-    </table>
-
-    <ul class="list-dash">
-        <li>Hình thức trả lương: Chuyển khoản vào tài khoản của người lao động. Lương hàng tháng sẽ được thanh toán vào ngày 10 – 13 của tháng tiếp theo.</li>
-        <li>Tăng lương: Việc xem xét lại mức lương sẽ được tiến hành hàng năm vào cuối năm. Việc tăng lương sẽ được xem xét và quyết định duy nhất bởi Công Ty, tùy thuộc vào kết quả làm việc của Người Lao Động trong năm, kết quả kinh doanh của Công ty và các yếu tố khác mà Công Ty thấy là cần xét đến.</li>
-        <li>Chế độ thưởng, phụ cấp: Theo quy định của công ty.</li>
-        <li>Tham gia đầy đủ bảo hiểm xã hội, bảo hiểm y tế, bảo hiềm thất nghiệp theo luật định và theo quy định công ty.</li>
-        <li>Chế độ nghỉ ngơi: Theo quy định của công ty.</li>
-        <li>Chế độ đào tạo: Phải tuân thủ và hoàn thành theo cơ chế đào tạo của công ty. Trong thời gian đào tạo sẽ được hưởng đầy đủ các quyền lợi theo quy định của công ty từng thời kỳ.</li>
-        <li>Các quyền lợi khác: Theo quy định của Công ty và pháp luật hiện hành.</li>
-    </ul>
-
-    <p class="bold mt-2">3.2. Nghĩa vụ:</p>
-    <ul class="list-dash">
-        <li>Hoàn thành mọi công việc đã cam kết theo hợp đồng lao động và theo sự phân công của ban lãnh đạo công ty từng thời kỳ.</li>
-        <li>Nghiêm chỉnh chấp hành điều lệnh của công ty, nội quy lao động, quy định của công ty, bí mật kinh doanh, bí mật công nghệ cũng như quy định của pháp luật hiện hành.</li>
-        <li>Bồi thường vi phạm vật chất: Theo quy định của Bộ luật lao động và nội quy Công ty.</li>
-        <li>Người lao động có trách nhiệm đóng thuế thu nhập cá nhân (“TNCN”) theo quy định của pháp luật. Công ty sẽ khấu trừ trực tiếp thuế TNCN từ thu nhập hàng tháng của người lao động để nộp cho cơ quan nhà nước.</li>
-        <li>Trong thời gian hợp đồng lao động còn thời hạn, nếu người lao động muốn chấm dứt hợp đồng lao động thì người lao động phải đảm bảo thời gian báo trước cho bộ phận nhân sự của Công ty và thực hiện đầy đủ các thủ tục nghỉ việc theo quy định của Công ty, quy định của pháp luật.</li>
-        <li>Trong mọi trường hợp trước khi chấm dứt hợp đồng lao động, người lao động có trách nhiệm bàn giao toàn bộ công việc cho nhân viên mới và chịu trách nhiệm trước pháp luật đối với mọi công việc đảm nhiệm tại công ty.</li>
-        <li>Người lao động có trách nhiệm giữ gìn, bảo vệ tài sản của công ty. Nếu trường hợp làm mất mát, hư hỏng người lao động có trách nhiệm bồi thường thiệt hại tương ứng.</li>
-        <li>Các nghĩa vụ khác theo quy định của Công ty và pháp luật hiện hành.</li>
-        <li>Nếu người lao động vi phạm một trong các nghĩa vụ theo hợp đồng này tùy từng mức độ sẽ bị xử lý theo quy định của công ty hoặc theo quy định của pháp luật.</li>
-    </ul>
-
-    <p class="article-title">ĐIỀU 4. QUYỀN VÀ NGHĨA VỤ CỦA BÊN SỬ DỤNG LAO ĐỘNG</p>
-    <p class="bold">4.1 Quyền lợi:</p>
-    <ul class="list-dash">
-        <li>Điều hành Người lao động hoàn thành công việc theo hợp đồng (bao gồm cả việc bố trí, điều chuyển, tạm ngưng việc).</li>
-        <li>Tạm hoãn, chấm dứt hợp đồng khi Người Lao Động thường xuyên không hoàn thành công việc; khi không đạt các định mức, chỉ tiêu, hiệu quả công việc theo yêu cầu của Công ty trong từng thời kỳ và/hoặc các trường hợp khác theo quy định tại Bộ Luật lao động.</li>
-    </ul>
-    <p class="bold mt-1">4.2 Nghĩa vụ:</p>
-    <ul class="list-dash">
-        <li>Bảo đảm việc làm và thực hiện đầy đủ những điều khoản đã cam kết trong hợp đồng;</li>
-        <li>Thanh toán đầy đủ, đúng thời hạn các chế độ và quyền lợi của người lao động theo hợp đồng lao động.</li>
-    </ul>
-
-    <p class="article-title">ĐIỀU 5. THỜI GIAN LÀM VIỆC VÀ THỜI GIAN NGHỈ NGƠI</p>
-    <p class="bold">5.1 Thời gian làm việc:</p>
-    <ul class="list-dash">
-        <li>Áp dụng từ thứ 2 đến thứ 6 hàng tuần</li>
-    </ul>
-    <p class="indent-2">+ Sáng: từ 8h00 đến 12h00 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; + Chiều: từ 13h30 đến 17h30</p>
-    <ul class="list-dash">
-        <li>Áp dụng riêng cho thứ 7 hàng tuần</li>
-    </ul>
-    <p class="indent-2">+ Sáng: từ 8h00 đến 12h00</p>
-    <p class="text-justify mt-1">Công ty có thể thay đổi ngày làm việc trong tuần hoặc giờ làm việc trong ngày tùy theo đặc điểm công việc khi Công ty thấy cấn thiết, sau khi đã thông báo cho Người Lao Động.</p>
-
-    <p class="bold mt-2">5.2 Thời gian nghỉ ngơi:</p>
-    <ul class="list-dash">
-        <li>Nghỉ hàng tuần: Người Lao Động được nghỉ chiều Thứ 7 và Chủ Nhật hàng tuần. Công ty có thể bố trí ngày nghỉ hàng tuần vào ngày khác nhưng vẫn đảm bảo đủ số ngày nghỉ sau khi đã thông báo cho Người Lao Động.</li>
-        <li>Nghỉ lễ: Người Lao Động được nghỉ các ngày lễ theo quy định của Bộ Luật lao động.</li>
-        <li>Nghỉ hàng năm: Người Lao Động làm việc đủ 12 tháng cho công ty theo hợp đồng lao động thì được nghỉ hằng năm hưởng nguyên lương 12 ngày. Nếu thời gian làm việc chưa đủ 12 tháng thì số ngày nghỉ hằng năm sẽ được tính theo tỷ lệ tương ứng với số tháng làm việc.</li>
-        <li>Các ngày nghỉ được trả lương khác như nghỉ ốm, nghỉ thai sản.. được trả lương theo đúng các quy định của pháp luật hiện hành.</li>
-    </ul>
-
-    <p class="article-title">ĐIỀU 6. CÁC CHẾ ĐỘ LÀM VIỆC</p>
-    <ul class="list-dash">
-        <li>Phương tiện đi lại: Người Lao Động tự chịu trách nhiệm về phương tiện đi lại từ nơi ở đến nơi làm việc và ngược lại cho mục đích công việc.</li>
-        <li>Công Ty sẽ cung cấp cho Người Lao Động các trang thiết bị và dụng cụ, bảo hộ lao động phù hợp với nhu cầu cần thiết trong công việc cho người lao động phù hợp theo quy định của pháp luật.</li>
-        <li>Đào tạo: Người Lao Động sẽ được hướng dẫn và đào tạo để nâng cao trình độ phù hợp hơn với công việc.</li>
-    </ul>
-
-    <p class="article-title">ĐIỀU 7. BẢO MẬT</p>
-    <p class="text-justify indent-1">Người Lao Động phải tuân thủ nghĩa vụ bảo mật thông tin theo quy định tại bản Cam Kết Bảo Mật và các nội quy, quy chế do Công ty ban hành trong từng thời kỳ. Vi phạm nghĩa vụ bảo mật thông tin là một vi phạm nghiêm trọng và có thể bị xử lý ở mức kỷ luật cao nhất là sa thải. Nghĩa vụ bảo mật kinh doanh, bí mật công nghệ có hiệu lực ngay cả khi hợp đồng này chấm dứt.</p>
-
-    <p class="article-title">ĐIỀU 8. ĐIỀU KHOẢN THI HÀNH</p>
-    <p class="indent-1 text-justify">8.1 Những vấn đề về lao động không ghi trong hợp đồng này thì áp dụng theo quy định của nội quy lao động công ty và pháp luật hiện hành;</p>
-    <p class="indent-1 text-justify">8.2 Các quyết định liên quan đến người lao động phát sinh trong quá trình thực hiện hợp đồng lao động, được coi là Phụ lục hợp đồng này. Các Phụ lục đính kèm hợp đồng này có giá trị pháp lý ràng buộc với các bên trong hợp đồng.</p>
-    <p class="indent-1 text-justify">8.3 Hợp đồng này chấm dứt hiệu lực khi thuộc một trong các trường hợp sau:</p>
-    <ul class="list-plus indent-2">
-        <li>Hết thời hạn có hiệu lực của Hợp đồng;</li>
-        <li>Theo thỏa thuận của hai bên;</li>
-        <li>Một trong các bên đơn phương chấm dứt hợp đồng phù hợp theo quy định của Pháp luật.</li>
-        <li>Các trường hợp khác theo quy định của pháp luật.</li>
-    </ul>
-    <p class="text-justify indent-1">Khi chấm dứt hợp đồng lao động, người lao động có trách nhiệm bồi thường chi phí đào tạo theo quy định của công ty.</p>
-    <p class="indent-1 text-justify">8.4 Người Lao Động đơn phương chấm dứt Hợp đồng trước thời hạn phải thông báo trước cho Công ty theo đúng quy định của pháp luật.</p>
-    <p class="text-justify">Trong mọi trường hợp chấm dứt hợp đồng, Người Lao Động phải hoàn thành các nghĩa vụ sau:</p>
-
-    <ol style="margin-left: 36pt;">
-        <li class="text-justify mb-1">Bàn giao toàn bộ công việc cho người lao động khác do Công Ty chỉ định.</li>
-        <li class="text-justify mb-1">Bàn giao lại toàn bộ các thiết bị, dụng cụ được giao như: máy vi tính, máy in, chìa khóa, đồ dùng văn phòng phẩm, đồng phục,v.v…</li>
-        <li class="text-justify mb-1">Bàn giao tất cả các tài liệu, chứng từ bao gồm data khách hàng, các loại giấy tờ, các đĩa CD, VCD, sách, hồ sơ, tài liệu đào tạo, file cứng, file mềm v.v…Người Lao Động không được phép sao chép tài liệu công ty vì bất kỳ mục đích nào hoặc bỏ đi hoặc xóa bất cứ file, nội dung nào liên quan đến công việc trong máy tính.</li>
-        <li class="text-justify mb-1">Thanh toán mọi khoản tiền tạm ứng, tiền vay và các nghĩa vụ tài chính khác với Công Ty. Công Ty sẽ chi trả mọi khoản lương và/ hoặc thu nhập khác (nếu có) cho người lao động khi người lao động hoàn thành xong các nghĩa vụ phải thanh toán cho công ty.</li>
-        <li class="text-justify mb-1">Bồi thường khi gây thiệt hại về tài sản cho Công ty. Công ty được quyền khấu trừ vào tiền lương theo quy định của pháp luật.</li>
-    </ol>
-
-    <p class="indent-1 text-justify">8.5 Hợp Đồng này có hiệu lực kể từ ngày ký và được lập thành hai (02) bản, mỗi bên giữ một (01) bản, có giá trị pháp lý ngang nhau.</p>
-
-    <table class="signature-table">
-        <tr>
-            <td>NGƯỜI LAO ĐỘNG</td>
-            <td>BÊN SỬ DỤNG LAO ĐỘNG</td>
-        </tr>
-    </table>
-
-</body>
+        <table style="width: 100%; margin-top: 15pt">
+            <tr>
+                <td
+                    style="
+                        width: 50%;
+                        text-align: center;
+                        vertical-align: top;
+                        font-weight: 700;
+                    "
+                >
+                    NGƯỜI LAO ĐỘNG
+                </td>
+                <td
+                    style="
+                        width: 50%;
+                        text-align: center;
+                        vertical-align: top;
+                        font-weight: 700;
+                    "
+                >
+                    BÊN SỬ DỤNG LAO ĐỘNG
+                </td>
+            </tr>
+        </table>
+    </body>
 </html>
