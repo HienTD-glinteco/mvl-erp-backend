@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-13 14:45+0700\n"
+"POT-Creation-Date: 2026-01-18 17:15+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -112,22 +112,22 @@ msgstr "Xác nhận"
 msgid "Confirm multiple files"
 msgstr "Xác nhận nhiều tệp tin"
 
-#: apps/files/utils/s3_utils.py:93
+#: apps/files/utils/s3_utils.py:96
 #, python-brace-format
 msgid "Failed to generate presigned URL: {error}"
 msgstr "Lỗi khi tạo URL ký trước: {error}"
 
-#: apps/files/utils/s3_utils.py:176
+#: apps/files/utils/s3_utils.py:179
 #, python-brace-format
 msgid "Failed to move file in S3: {error}"
 msgstr "Lỗi khi di chuyển tệp tin trong S3: {error}"
 
-#: apps/files/utils/s3_utils.py:218
+#: apps/files/utils/s3_utils.py:221
 #, python-brace-format
 msgid "Failed to delete file from S3: {error}"
 msgstr "Lỗi khi xóa tệp tin khỏi S3: {error}"
 
-#: apps/files/utils/s3_utils.py:264
+#: apps/files/utils/s3_utils.py:267
 #, python-brace-format
 msgid "Failed to generate presigned GET URL: {error}"
 msgstr "Lỗi khi tạo URL GET ký trước: {error}"

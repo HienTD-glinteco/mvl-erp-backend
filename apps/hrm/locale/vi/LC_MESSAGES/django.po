@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-18 15:17+0700\n"
+"POT-Creation-Date: 2026-01-18 17:15+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1340,13 +1340,13 @@ msgstr "Xem thống kê các vấn đề HCNS cần xử lý"
 msgid "View manager stats for proposals to verify and KPI assessments"
 msgstr "Xem thống kê các đề xuất cần xác nhận và đánh giá KPI"
 
-#: apps/hrm/api/views/manager_dashboard.py:130
-#: apps/hrm/api/views/manager_dashboard.py:153
+#: apps/hrm/api/views/manager_dashboard.py:132
+#: apps/hrm/api/views/manager_dashboard.py:155
 msgid "Proposals to verify"
 msgstr "Đề xuất chờ xác nhận"
 
-#: apps/hrm/api/views/manager_dashboard.py:139
-#: apps/hrm/api/views/manager_dashboard.py:162
+#: apps/hrm/api/views/manager_dashboard.py:141
+#: apps/hrm/api/views/manager_dashboard.py:164
 msgid "KPI assessments pending"
 msgstr "Đánh giá KPI chờ xử lý"
 
@@ -5131,26 +5131,22 @@ msgid "End time must be after start time"
 msgstr "Thời gian kết thúc làm ngoài giờ phải sau thời gian bắt đầu"
 
 #: apps/hrm/models/proposal.py:1058
-#, python-brace-format
 msgid ""
 "Overtime entry cannot overlap with official morning working hours ({}-{})"
 msgstr ""
 "Thời gian làm thêm giờ không thể trùng với giờ làm việc chính thức ({}-{})"
 
 #: apps/hrm/models/proposal.py:1074
-#, python-brace-format
 msgid ""
 "Overtime entry cannot overlap with official afternoon working hours ({}-{})"
 msgstr ""
 "Thời gian làm thêm giờ không thể trùng với giờ làm việc chính thức ({}-{})"
 
 #: apps/hrm/models/proposal.py:1118
-#, python-brace-format
 msgid "Overtime entry cannot overlap with compensatory morning shift ({}-{})"
 msgstr "Thời gian làm thêm giờ không thể trùng với giờ làm việc bù ({}-{})"
 
 #: apps/hrm/models/proposal.py:1136
-#, python-brace-format
 msgid "Overtime entry cannot overlap with compensatory afternoon shift ({}-{})"
 msgstr "Thời gian làm thêm giờ không thể trùng với giờ làm việc bù ({}-{})"
 

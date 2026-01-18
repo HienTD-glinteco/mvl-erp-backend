@@ -8,7 +8,7 @@ from django.db.models import Count, DecimalField, F, Q, Sum, Value
 from django.db.models.functions import Coalesce
 from django.utils.translation import gettext as _
 
-from apps.hrm.constants import TimesheetReason
+from apps.hrm.constants import TimesheetReason, TimesheetStatus
 from apps.hrm.models.timesheet import TimeSheetEntry
 from libs.decimals import DECIMAL_ZERO, quantize_decimal
 from libs.models.base_model_mixin import BaseReportModel
@@ -223,7 +223,11 @@ class EmployeeMonthlyTimesheet(BaseReportModel):
                 Value(DECIMAL_ZERO, output_field=DecimalField()),
             ),
             "unexcused_absence_days": Coalesce(
-                Sum(F("working_days"), filter=Q(absent_reason=TimesheetReason.UNEXCUSED_ABSENCE)),
+                Sum(
+                    F("working_days"),
+                    filter=Q(absent_reason=TimesheetReason.UNEXCUSED_ABSENCE)
+                    | Q(absent_reason=None, status=TimesheetStatus.ABSENT),
+                ),
                 Value(DECIMAL_ZERO, output_field=DecimalField()),
             ),
         }
