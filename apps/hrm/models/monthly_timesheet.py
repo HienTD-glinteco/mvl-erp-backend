@@ -1,3 +1,4 @@
+from apps.hrm.constants import TimesheetDayType
 import calendar
 from datetime import date
 from decimal import Decimal
@@ -215,7 +216,7 @@ class EmployeeMonthlyTimesheet(BaseReportModel):
                 Value(DECIMAL_ZERO, output_field=DecimalField()),
             ),
             "public_holiday_days": Coalesce(
-                Sum(F("working_days"), filter=Q(absent_reason=TimesheetReason.PUBLIC_HOLIDAY)),
+                Sum(F("working_days"), filter=Q(day_type=TimesheetDayType.HOLIDAY)),
                 Value(DECIMAL_ZERO, output_field=DecimalField()),
             ),
             "maternity_leave_days": Coalesce(
@@ -223,10 +224,11 @@ class EmployeeMonthlyTimesheet(BaseReportModel):
                 Value(DECIMAL_ZERO, output_field=DecimalField()),
             ),
             "unexcused_absence_days": Coalesce(
-                Sum(
-                    F("working_days"),
+                Count(
+                    F("id"),
                     filter=Q(absent_reason=TimesheetReason.UNEXCUSED_ABSENCE)
                     | Q(absent_reason=None, status=TimesheetStatus.ABSENT),
+                    output_field=DecimalField(),
                 ),
                 Value(DECIMAL_ZERO, output_field=DecimalField()),
             ),
