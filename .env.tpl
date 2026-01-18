@@ -35,6 +35,14 @@ AWS_STORAGE_BUCKET_NAME=
 AWS_DB_STORAGE_BUCKET_NAME=
 AWS_REGION_NAME=
 
+# AWS customed S3 endpoint configuration for FPT Cloud
+AWS_S3_CUSTOM_ENDPOINT_URL=https://s3-han02.fptcloud.com
+AWS_S3_ENDPOINT_URL=https://s3-han02.fptcloud.com
+AWS_S3_USE_CUSTOM_ENDPOINT=True
+AWS_S3_ADDRESSING_STYLE=path
+AWS_S3_VERIFY=False
+
+
 # OpenSearch settings (AWS-managed or self-hosted)
 OPENSEARCH_HOST=localhost
 OPENSEARCH_PORT=9200

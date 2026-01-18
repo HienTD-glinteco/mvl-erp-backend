@@ -7,7 +7,8 @@ import sys
 
 def main():
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "settings")
-
+    os.environ["AWS_REQUEST_CHECKSUM_CALCULATION"] = "when_required"
+    os.environ["AWS_RESPONSE_CHECKSUM_VALIDATION"] = "when_required"
     # Entrypoint for share task
     from celery_tasks import celery_app  # NOQA
 
