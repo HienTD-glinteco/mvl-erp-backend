@@ -122,8 +122,10 @@ class ManagerDashboardViewSet(BaseGenericViewSet):
         if not current_period:
             kpi_assessments_pending_count = 0
             current_period_id = 0
+            current_period_path = None
         else:
             current_period_id = current_period.id
+            current_period_path = f"/kpi/manager/period-evaluation/{current_period_id}"
         return {
             "proposals_to_verify": {
                 "key": "proposals_to_verify",
@@ -138,7 +140,7 @@ class ManagerDashboardViewSet(BaseGenericViewSet):
                 "key": "kpi_assessments_pending",
                 "label": str(_("KPI assessments pending")),
                 "count": kpi_assessments_pending_count,
-                "path": f"/kpi/manager/period-evaluation/{current_period_id}",
+                "path": current_period_path,
                 "query_params": {
                     "status": EmployeeKPIAssessment.StatusChoices.WAITING_MANAGER,
                 },
@@ -161,7 +163,7 @@ class ManagerDashboardViewSet(BaseGenericViewSet):
                 "key": "kpi_assessments_pending",
                 "label": str(_("KPI assessments pending")),
                 "count": 0,
-                "path": "/kpi/manager/period-evaluation",
+                "path": None,
                 "query_params": {
                     "finalized": "false",
                 },

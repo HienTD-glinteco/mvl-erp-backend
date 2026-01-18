@@ -447,6 +447,7 @@ class TestManagerDashboardAPI(APITestMixin):
 
         assert data["proposals_to_verify"]["count"] == 0
         assert data["kpi_assessments_pending"]["count"] == 0
+        assert data["kpi_assessments_pending"]["path"] is None
 
     def test_manager_dashboard_uses_cache(self):
         """Ensure manager dashboard uses cached data on subsequent requests."""
