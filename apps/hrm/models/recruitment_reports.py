@@ -57,11 +57,14 @@ class StaffGrowthReport(BaseReportModel):
 
     timeframe_type = models.CharField(
         max_length=10,
+        null=True,
         choices=TimeframeType.choices,
         verbose_name=_("Timeframe type"),
+        db_index=True,
     )
     timeframe_key = models.CharField(
         max_length=20,
+        null=True,
         verbose_name=_("Timeframe key"),
         help_text="Format: 'W01-2026' for week or '01/2026' for month",
         db_index=True,
@@ -103,9 +106,7 @@ class StaffGrowthReport(BaseReportModel):
     class Meta:
         verbose_name = _("Staff Growth Report")
         verbose_name_plural = _("Staff Growth Reports")
-        unique_together = [
-            ["timeframe_type", "timeframe_key", "branch", "block", "department"]
-        ]
+        unique_together = [["timeframe_type", "timeframe_key", "branch", "block", "department"]]
 
     def __str__(self):
         return f"Staff Growth Report - {self.timeframe_key} ({self.timeframe_type})"

@@ -1,13 +1,13 @@
-from datetime import date, timedelta
+from datetime import date
+
 import pytest
+
 from apps.hrm.models import (
     Employee,
     EmployeeWorkHistory,
     StaffGrowthReport,
-    Branch,
-    Block,
-    Department,
 )
+
 
 @pytest.mark.django_db
 class TestStaffGrowthReportDistinctCount:
@@ -122,14 +122,10 @@ class TestStaffGrowthReportDistinctCount:
         )
 
         jan_report = StaffGrowthReport.objects.get(
-            timeframe_type=StaffGrowthReport.TimeframeType.MONTH,
-            timeframe_key="01/2026",
-            department=department
+            timeframe_type=StaffGrowthReport.TimeframeType.MONTH, timeframe_key="01/2026", department=department
         )
         feb_report = StaffGrowthReport.objects.get(
-            timeframe_type=StaffGrowthReport.TimeframeType.MONTH,
-            timeframe_key="02/2026",
-            department=department
+            timeframe_type=StaffGrowthReport.TimeframeType.MONTH, timeframe_key="02/2026", department=department
         )
 
         assert jan_report.num_resignations == 1
@@ -150,12 +146,10 @@ class TestStaffGrowthReportDistinctCount:
         )
 
         weekly = StaffGrowthReport.objects.filter(
-            timeframe_type=StaffGrowthReport.TimeframeType.WEEK,
-            department=department
+            timeframe_type=StaffGrowthReport.TimeframeType.WEEK, department=department
         )
         monthly = StaffGrowthReport.objects.filter(
-            timeframe_type=StaffGrowthReport.TimeframeType.MONTH,
-            department=department
+            timeframe_type=StaffGrowthReport.TimeframeType.MONTH, department=department
         )
 
         assert weekly.exists()
@@ -222,3 +216,72 @@ class TestStaffGrowthReportDistinctCount:
 
         report.refresh_from_db()
         assert report.num_resignations == 1  # Still 1 because wh1 exists
+
+    def test_update_event_date_moves_count_between_timeframes(self, setup_data, employee):
+        """Updating event date from one month to another moves count correctly."""
+        department = setup_data["department"]
+
+        # Create event in January
+        wh = EmployeeWorkHistory.objects.create(
+            employee=employee,
+            department=department,
+            branch=setup_data["branch"],
+            block=setup_data["block"],
+            name=EmployeeWorkHistory.EventType.CHANGE_STATUS,
+            status=Employee.Status.RESIGNED,
+            date=date(2026, 1, 15),
+        )
+
+        # Verify January report has count
+        jan_report = StaffGrowthReport.objects.get(
+            timeframe_type=StaffGrowthReport.TimeframeType.MONTH,
+            timeframe_key="01/2026",
+            department=department,
+        )
+        assert jan_report.num_resignations == 1
+
+        # Update event date to February
+        wh.date = date(2026, 2, 15)
+        wh.save()
+
+        # January should now have 0
+        jan_report.refresh_from_db()
+        assert jan_report.num_resignations == 0
+
+        # February should have 1
+        feb_report = StaffGrowthReport.objects.get(
+            timeframe_type=StaffGrowthReport.TimeframeType.MONTH,
+            timeframe_key="02/2026",
+            department=department,
+        )
+        assert feb_report.num_resignations == 1
+
+    def test_update_event_within_same_timeframe_no_change(self, setup_data, employee):
+        """Updating event date within same month doesn't change count."""
+        department = setup_data["department"]
+
+        # Create event on Jan 5
+        wh = EmployeeWorkHistory.objects.create(
+            employee=employee,
+            department=department,
+            branch=setup_data["branch"],
+            block=setup_data["block"],
+            name=EmployeeWorkHistory.EventType.CHANGE_STATUS,
+            status=Employee.Status.RESIGNED,
+            date=date(2026, 1, 5),
+        )
+
+        report = StaffGrowthReport.objects.get(
+            timeframe_type=StaffGrowthReport.TimeframeType.MONTH,
+            timeframe_key="01/2026",
+            department=department,
+        )
+        assert report.num_resignations == 1
+
+        # Update to Jan 20 (same month)
+        wh.date = date(2026, 1, 20)
+        wh.save()
+
+        # Count should remain 1
+        report.refresh_from_db()
+        assert report.num_resignations == 1

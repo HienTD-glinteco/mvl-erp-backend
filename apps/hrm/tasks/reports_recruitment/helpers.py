@@ -251,42 +251,45 @@ def _increment_staff_growth_recruitment(
     - allow_referral=True: Referral sources
     - allow_referral=False: Recruitment department sources
 
+    Updates BOTH weekly and monthly timeframe reports.
+
     Args:
-        report_date: Report date
+        report_date: Report date (used to calculate timeframe keys)
         branch_id, block_id, department_id: Org unit IDs
         delta: +1 for create, -1 for delete
         source_has_allow_referral: True if candidate's source has allow_referral=True
     """
-    month_key = report_date.strftime("%m/%Y")
+    # Calculate timeframe keys
     week_number = report_date.isocalendar()[1]
-    week_key = f"Week {week_number} - {month_key}"
+    year = report_date.isocalendar()[0]  # ISO year for week
+    week_key = f"W{week_number:02d}-{year}"
+    month_key = report_date.strftime("%m/%Y")
 
-    report, created = StaffGrowthReport.objects.get_or_create(
-        report_date=report_date,
-        branch_id=branch_id,
-        block_id=block_id,
-        department_id=department_id,
-        defaults={
-            "month_key": month_key,
-            "week_key": week_key,
-            "num_transfers": 0,
-            "num_resignations": 0,
-            "num_returns": 0,
-            # These fields should NOT be initialized to 0 - set by other tasks
-        },
-    )
+    # Determine which counter to update
+    counter_field = "num_introductions" if source_has_allow_referral else "num_recruitment_source"
 
-    # Update counters based on source type using clamped atomic updates
-    if source_has_allow_referral:
-        StaffGrowthReport.objects.filter(pk=report.pk).update(
-            num_introductions=Greatest(F("num_introductions") + Value(delta), Value(0))
+    # Process BOTH weekly and monthly timeframes
+    timeframes = [
+        (StaffGrowthReport.TimeframeType.WEEK, week_key),
+        (StaffGrowthReport.TimeframeType.MONTH, month_key),
+    ]
+
+    for timeframe_type, timeframe_key in timeframes:
+        report, created = StaffGrowthReport.objects.get_or_create(
+            timeframe_type=timeframe_type,
+            timeframe_key=timeframe_key,
+            branch_id=branch_id,
+            block_id=block_id,
+            department_id=department_id,
+            defaults={
+                "report_date": report_date,  # BaseReportModel requires report_date
+            },
         )
-        report.refresh_from_db(fields=["num_introductions"])
-    else:
+
+        # Atomic, non-negative update
         StaffGrowthReport.objects.filter(pk=report.pk).update(
-            num_recruitment_source=Greatest(F("num_recruitment_source") + Value(delta), Value(0))
+            **{counter_field: Greatest(F(counter_field) + Value(delta), Value(0))}
         )
-        report.refresh_from_db(fields=["num_recruitment_source"])
 
 
 def _increment_recruitment_cost_report(
@@ -798,6 +801,8 @@ def _update_staff_growth_for_recruitment(report_date: date, branch, block, depar
     - num_introductions: ALL hired candidates from referral sources
     - num_recruitment_source: ALL hired candidates from department sources
 
+    Updates BOTH weekly and monthly timeframe reports.
+
     Example:
     - 10 candidates hired via referral source (allow_referrer=True) → num_introductions
     - 7 candidates hired via department source (allow_referrer=False) → num_recruitment_source
@@ -807,9 +812,6 @@ def _update_staff_growth_for_recruitment(report_date: date, branch, block, depar
         report_date: Date to aggregate
         branch, block, department: Org unit objects
     """
-    # Fetch referral source IDs directly (may be empty; counts below will handle zero)
-    referral_source_ids = list(RecruitmentSource.objects.filter(allow_referral=True).values_list("id", flat=True))
-
     # num_introductions: All hired candidates from referral sources (allow_referral=True)
     num_introductions = RecruitmentCandidate.objects.filter(
         status=RecruitmentCandidate.Status.HIRED,
@@ -821,7 +823,6 @@ def _update_staff_growth_for_recruitment(report_date: date, branch, block, depar
     ).count()
 
     # num_recruitment_source: Hired candidates with department sources (allow_referral=False)
-    # According to comment: allow_referral=False means department sources
     num_recruitment_source = RecruitmentCandidate.objects.filter(
         status=RecruitmentCandidate.Status.HIRED,
         onboard_date=report_date,
@@ -831,23 +832,31 @@ def _update_staff_growth_for_recruitment(report_date: date, branch, block, depar
         recruitment_source__allow_referral=False,  # Department sources
     ).count()
 
-    month_key = report_date.strftime("%m/%Y")
+    # Calculate timeframe keys
     week_number = report_date.isocalendar()[1]
-    week_key = f"Week {week_number} - {month_key}"
+    year = report_date.isocalendar()[0]  # ISO year for week
+    week_key = f"W{week_number:02d}-{year}"
+    month_key = report_date.strftime("%m/%Y")
 
-    # Update or create staff growth report
-    StaffGrowthReport.objects.update_or_create(
-        report_date=report_date,
-        branch=branch,
-        block=block,
-        department=department,
-        defaults={
-            "month_key": month_key,
-            "week_key": week_key,
-            "num_introductions": num_introductions,
-            "num_recruitment_source": num_recruitment_source,
-        },
-    )
+    # Process BOTH weekly and monthly timeframes
+    timeframes = [
+        (StaffGrowthReport.TimeframeType.WEEK, week_key),
+        (StaffGrowthReport.TimeframeType.MONTH, month_key),
+    ]
+
+    for timeframe_type, timeframe_key in timeframes:
+        StaffGrowthReport.objects.update_or_create(
+            timeframe_type=timeframe_type,
+            timeframe_key=timeframe_key,
+            branch=branch,
+            block=block,
+            department=department,
+            defaults={
+                "report_date": report_date,
+                "num_introductions": num_introductions,
+                "num_recruitment_source": num_recruitment_source,
+            },
+        )
 
 
 def _determine_source_type(candidate: RecruitmentCandidate) -> str:

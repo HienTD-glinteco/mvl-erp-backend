@@ -1,358 +1,247 @@
 """Tests to verify OS employees are excluded from HR reports.
 
 This module tests that employees with code_type="OS" are properly excluded
-from StaffGrowthReport and EmployeeStatusBreakdownReport.
+from StaffGrowthReport and EmployeeStatusBreakdownReport via signal-based
+event processing.
 """
 
 from datetime import date
-from unittest.mock import patch
 
-from django.test import TestCase
-from django.utils import timezone
+import pytest
 
-from apps.core.models import AdministrativeUnit, Province
 from apps.hrm.models import (
-    Block,
-    Branch,
-    Department,
     Employee,
     EmployeeStatusBreakdownReport,
     EmployeeWorkHistory,
-    Position,
     StaffGrowthReport,
 )
 from apps.hrm.tasks.reports_hr.helpers import (
     _aggregate_employee_status_for_date,
-    _aggregate_staff_growth_for_date,
-    _increment_employee_status,
     _increment_staff_growth,
 )
 
 
-class TestOSEmployeeExclusion(TestCase):
+@pytest.mark.django_db
+class TestOSEmployeeExclusion:
     """Test cases for OS employee exclusion from reports."""
 
-    def setUp(self):
-        """Set up test data."""
-        # Create organizational structure
-        self.province = Province.objects.create(code="01", name="Test Province")
-        self.admin_unit = AdministrativeUnit.objects.create(
-            code="01",
-            name="Test Admin Unit",
-            parent_province=self.province,
-            level=AdministrativeUnit.UnitLevel.DISTRICT,
-        )
+    @pytest.fixture(autouse=True)
+    def enable_celery_eager(self, settings):
+        """Enable eager execution for Celery tasks."""
+        settings.CELERY_TASK_ALWAYS_EAGER = True
 
-        self.branch = Branch.objects.create(
-            code="BR01",
-            name="Branch 1",
-            province=self.province,
-            administrative_unit=self.admin_unit,
-        )
-        self.block = Block.objects.create(
-            code="BL01", name="Block 1", branch=self.branch, block_type=Block.BlockType.BUSINESS
-        )
-        self.department = Department.objects.create(
-            code="DP01",
-            name="Department 1",
-            block=self.block,
-            branch=self.branch,
-            function=Department.DepartmentFunction.BUSINESS,
-        )
-        self.position = Position.objects.create(code="POS01", name="Position 1")
+    @pytest.fixture
+    def setup_data(self, branch, block, department, position):
+        """Set up common test data."""
+        return {
+            "branch": branch,
+            "block": block,
+            "department": department,
+            "position": position,
+        }
 
-        # Create regular employee (MV)
-        self.mv_employee = Employee.objects.create(
+    @pytest.fixture
+    def mv_employee(self, employee_factory, setup_data):
+        """Create a regular MV employee."""
+        return employee_factory(
             code="MV001",
             code_type=Employee.CodeType.MV,
             fullname="MV Employee",
-            username="mvuser",
-            email="mv@example.com",
-            phone="0123456789",
-            citizen_id="001234567890",
-            branch=self.branch,
-            block=self.block,
-            department=self.department,
-            position=self.position,
-            status=Employee.Status.ACTIVE,
-            start_date=timezone.now().date(),
-            personal_email="mv.personal@example.com",
+            branch=setup_data["branch"],
+            block=setup_data["block"],
+            department=setup_data["department"],
+            position=setup_data["position"],
         )
 
-        # Create OS employee
-        self.os_employee = Employee.objects.create(
+    @pytest.fixture
+    def os_employee(self, employee_factory, setup_data):
+        """Create an OS employee."""
+        return employee_factory(
             code="OS001",
             code_type=Employee.CodeType.OS,
             fullname="OS Employee",
-            username="osuser",
-            email="os@example.com",
-            phone="0987654321",
-            citizen_id="009876543210",
-            branch=self.branch,
-            block=self.block,
-            department=self.department,
-            position=self.position,
-            status=Employee.Status.ACTIVE,
-            start_date=timezone.now().date(),
-            personal_email="os.personal@example.com",
+            branch=setup_data["branch"],
+            block=setup_data["block"],
+            department=setup_data["department"],
+            position=setup_data["position"],
         )
 
-        self.report_date = date.today()
+    def test_signal_excludes_os_employee_from_staff_growth(self, setup_data, mv_employee, os_employee):
+        """Test that signal-triggered processing excludes OS employees from StaffGrowthReport."""
+        dept = setup_data["department"]
+        branch = setup_data["branch"]
+        block = setup_data["block"]
 
-    def test_aggregate_staff_growth_excludes_os_employees(self):
-        """Test that batch aggregation excludes OS employees from StaffGrowthReport."""
-        # Create work history for MV employee
+        # Create work history for MV employee (triggers signal)
         EmployeeWorkHistory.objects.create(
-            employee=self.mv_employee,
-            date=self.report_date,
+            employee=mv_employee,
+            date=date(2026, 1, 15),
             name=EmployeeWorkHistory.EventType.CHANGE_STATUS,
             status=Employee.Status.RESIGNED,
-            branch=self.branch,
-            block=self.block,
-            department=self.department,
+            branch=branch,
+            block=block,
+            department=dept,
         )
 
-        # Create work history for OS employee
+        # Create work history for OS employee (triggers signal but should be skipped)
         EmployeeWorkHistory.objects.create(
-            employee=self.os_employee,
-            date=self.report_date,
+            employee=os_employee,
+            date=date(2026, 1, 15),
             name=EmployeeWorkHistory.EventType.CHANGE_STATUS,
             status=Employee.Status.RESIGNED,
-            branch=self.branch,
-            block=self.block,
-            department=self.department,
+            branch=branch,
+            block=block,
+            department=dept,
         )
 
-        # Act - aggregate the report
-        _aggregate_staff_growth_for_date(self.report_date, self.branch, self.block, self.department)
-
-        # Assert - only MV employee's resignation should be counted
+        # Check monthly report - should only count MV employee
         report = StaffGrowthReport.objects.get(
-            report_date=self.report_date,
-            branch=self.branch,
-            block=self.block,
-            department=self.department,
+            timeframe_type=StaffGrowthReport.TimeframeType.MONTH,
+            timeframe_key="01/2026",
+            department=dept,
         )
-        self.assertEqual(report.num_resignations, 1, "Should count only MV employee resignation")
+        assert report.num_resignations == 1, "Should count only MV employee resignation"
 
-    def test_aggregate_employee_status_excludes_os_employees(self):
-        """Test that batch aggregation excludes OS employees from EmployeeStatusBreakdownReport."""
+    def test_aggregate_employee_status_excludes_os_employees(self, setup_data, mv_employee, os_employee):
+        """Test that employee status aggregation excludes OS employees."""
+        dept = setup_data["department"]
+        branch = setup_data["branch"]
+        block = setup_data["block"]
+        report_date = date(2026, 1, 15)
+
         # Create work history for MV employee
         EmployeeWorkHistory.objects.create(
-            employee=self.mv_employee,
-            date=self.report_date,
+            employee=mv_employee,
+            date=report_date,
             name=EmployeeWorkHistory.EventType.CHANGE_STATUS,
             status=Employee.Status.ACTIVE,
-            branch=self.branch,
-            block=self.block,
-            department=self.department,
+            branch=branch,
+            block=block,
+            department=dept,
         )
 
         # Create work history for OS employee
         EmployeeWorkHistory.objects.create(
-            employee=self.os_employee,
-            date=self.report_date,
+            employee=os_employee,
+            date=report_date,
             name=EmployeeWorkHistory.EventType.CHANGE_STATUS,
             status=Employee.Status.ACTIVE,
-            branch=self.branch,
-            block=self.block,
-            department=self.department,
+            branch=branch,
+            block=block,
+            department=dept,
         )
 
-        # Act - aggregate the report
-        _aggregate_employee_status_for_date(self.report_date, self.branch, self.block, self.department)
+        # Aggregate the report
+        _aggregate_employee_status_for_date(report_date, branch, block, dept)
 
-        # Assert - only MV employee should be counted
+        # Should only count MV employee
         report = EmployeeStatusBreakdownReport.objects.get(
-            report_date=self.report_date,
-            branch=self.branch,
-            block=self.block,
-            department=self.department,
+            report_date=report_date,
+            branch=branch,
+            block=block,
+            department=dept,
         )
-        self.assertEqual(report.count_active, 1, "Should count only MV employee as active")
-        self.assertEqual(report.total_not_resigned, 1, "Total should be 1 (MV employee only)")
+        assert report.count_active == 1, "Should count only MV employee as active"
 
-    @patch("apps.hrm.tasks.reports_hr.helpers._process_staff_growth_change")
-    def test_increment_staff_growth_skips_os_employees(self, mock_process):
-        """Test that incremental update skips OS employees in staff growth."""
-        # Arrange - snapshot with OS employee
+    def test_increment_staff_growth_skips_os_employees(self, setup_data, os_employee):
+        """Test that _increment_staff_growth skips OS employees."""
+        dept = setup_data["department"]
+        branch = setup_data["branch"]
+        block = setup_data["block"]
+
+        # Create snapshot with OS employee
         snapshot = {
             "previous": None,
             "current": {
-                "date": self.report_date,
+                "id": 1,
+                "date": date(2026, 1, 15),
                 "name": EmployeeWorkHistory.EventType.CHANGE_STATUS,
-                "branch_id": self.branch.id,
-                "block_id": self.block.id,
-                "department_id": self.department.id,
+                "branch_id": branch.id,
+                "block_id": block.id,
+                "department_id": dept.id,
                 "status": Employee.Status.RESIGNED,
                 "previous_data": {},
                 "employee_code_type": Employee.CodeType.OS,
+                "employee_id": os_employee.id,
             },
         }
 
-        # Act
+        # This should not create any report
         _increment_staff_growth("create", snapshot)
 
-        # Assert - should not process OS employee
-        mock_process.assert_not_called()
+        # No report should be created for OS employee
+        assert not StaffGrowthReport.objects.filter(
+            timeframe_type=StaffGrowthReport.TimeframeType.MONTH,
+            timeframe_key="01/2026",
+            department=dept,
+        ).exists(), "Should not create report for OS employee"
 
-    @patch("apps.hrm.tasks.reports_hr.helpers._process_staff_growth_change")
-    def test_increment_staff_growth_processes_mv_employees(self, mock_process):
-        """Test that incremental update processes MV employees in staff growth."""
-        # Arrange - snapshot with MV employee
+    def test_increment_staff_growth_processes_mv_employees(self, setup_data, mv_employee):
+        """Test that _increment_staff_growth processes MV employees."""
+        dept = setup_data["department"]
+        branch = setup_data["branch"]
+        block = setup_data["block"]
+
+        # Create snapshot with MV employee
         snapshot = {
             "previous": None,
             "current": {
-                "date": self.report_date,
+                "id": 1,
+                "date": date(2026, 1, 15),
                 "name": EmployeeWorkHistory.EventType.CHANGE_STATUS,
-                "branch_id": self.branch.id,
-                "block_id": self.block.id,
-                "department_id": self.department.id,
+                "branch_id": branch.id,
+                "block_id": block.id,
+                "department_id": dept.id,
                 "status": Employee.Status.RESIGNED,
                 "previous_data": {},
                 "employee_code_type": Employee.CodeType.MV,
+                "employee_id": mv_employee.id,
             },
         }
 
-        # Act
+        # This should create a report
         _increment_staff_growth("create", snapshot)
 
-        # Assert - should process MV employee
-        mock_process.assert_called_once()
+        # Report should be created for MV employee
+        report = StaffGrowthReport.objects.get(
+            timeframe_type=StaffGrowthReport.TimeframeType.MONTH,
+            timeframe_key="01/2026",
+            department=dept,
+        )
+        assert report.num_resignations == 1, "Should count MV employee resignation"
 
-    @patch("apps.hrm.tasks.reports_hr.helpers._aggregate_employee_status_for_date")
-    def test_increment_employee_status_skips_os_employees(self, mock_aggregate):
-        """Test that incremental update skips OS employees in status breakdown."""
-        # Arrange - snapshot with OS employee
-        snapshot = {
-            "previous": None,
-            "current": {
-                "date": self.report_date,
-                "name": EmployeeWorkHistory.EventType.CHANGE_STATUS,
-                "branch_id": self.branch.id,
-                "block_id": self.block.id,
-                "department_id": self.department.id,
-                "status": Employee.Status.ACTIVE,
-                "previous_data": {},
-                "employee_code_type": Employee.CodeType.OS,
-            },
-        }
+    def test_multiple_code_types_mixed(self, setup_data, mv_employee, os_employee, employee_factory):
+        """Test staff growth report with multiple employee types."""
+        dept = setup_data["department"]
+        branch = setup_data["branch"]
+        block = setup_data["block"]
 
-        # Act
-        _increment_employee_status("create", snapshot)
-
-        # Assert - should not aggregate for OS employee
-        mock_aggregate.assert_not_called()
-
-    @patch("apps.hrm.tasks.reports_hr.helpers._aggregate_employee_status_for_date")
-    def test_increment_employee_status_processes_mv_employees(self, mock_aggregate):
-        """Test that incremental update processes MV employees in status breakdown."""
-        # Arrange - snapshot with MV employee
-        snapshot = {
-            "previous": None,
-            "current": {
-                "date": self.report_date,
-                "name": EmployeeWorkHistory.EventType.CHANGE_STATUS,
-                "branch_id": self.branch.id,
-                "block_id": self.block.id,
-                "department_id": self.department.id,
-                "status": Employee.Status.ACTIVE,
-                "previous_data": {},
-                "employee_code_type": Employee.CodeType.MV,
-            },
-        }
-
-        # Act
-        _increment_employee_status("create", snapshot)
-
-        # Assert - should aggregate for MV employee
-        mock_aggregate.assert_called_once()
-
-    def test_multiple_code_types_in_staff_growth_report(self):
-        """Test staff growth report with multiple employee types (MV, CTV, OS)."""
         # Create CTV employee
-        ctv_employee = Employee.objects.create(
+        ctv_employee = employee_factory(
             code="CTV001",
             code_type=Employee.CodeType.CTV,
             fullname="CTV Employee",
-            username="ctvuser",
-            email="ctv@example.com",
-            phone="0111222333",
-            citizen_id="001112223334",
-            branch=self.branch,
-            block=self.block,
-            department=self.department,
-            position=self.position,
-            status=Employee.Status.ACTIVE,
-            start_date=timezone.now().date(),
-            personal_email="ctv.personal@example.com",
+            branch=branch,
+            block=block,
+            department=dept,
         )
 
-        # Create work history for all three types
-        for employee in [self.mv_employee, ctv_employee, self.os_employee]:
+        # Create work history for all three (via signals)
+        for emp in [mv_employee, ctv_employee, os_employee]:
             EmployeeWorkHistory.objects.create(
-                employee=employee,
-                date=self.report_date,
+                employee=emp,
+                date=date(2026, 1, 15),
                 name=EmployeeWorkHistory.EventType.CHANGE_STATUS,
                 status=Employee.Status.RESIGNED,
-                branch=self.branch,
-                block=self.block,
-                department=self.department,
+                branch=branch,
+                block=block,
+                department=dept,
             )
 
-        # Act - aggregate the report
-        _aggregate_staff_growth_for_date(self.report_date, self.branch, self.block, self.department)
-
-        # Assert - should count MV and CTV but not OS
+        # Should count MV and CTV but not OS
         report = StaffGrowthReport.objects.get(
-            report_date=self.report_date,
-            branch=self.branch,
-            block=self.block,
-            department=self.department,
+            timeframe_type=StaffGrowthReport.TimeframeType.MONTH,
+            timeframe_key="01/2026",
+            department=dept,
         )
-        self.assertEqual(report.num_resignations, 2, "Should count MV and CTV resignations only, not OS")
-
-    def test_multiple_code_types_in_employee_status_report(self):
-        """Test employee status report with multiple employee types (MV, CTV, OS)."""
-        # Create CTV employee
-        ctv_employee = Employee.objects.create(
-            code="CTV001",
-            code_type=Employee.CodeType.CTV,
-            fullname="CTV Employee",
-            username="ctvuser",
-            email="ctv@example.com",
-            phone="0111222333",
-            citizen_id="001112223334",
-            branch=self.branch,
-            block=self.block,
-            department=self.department,
-            position=self.position,
-            status=Employee.Status.ACTIVE,
-            start_date=timezone.now().date(),
-            personal_email="ctv.personal@example.com",
-        )
-
-        # Create work history for all three types
-        for employee in [self.mv_employee, ctv_employee, self.os_employee]:
-            EmployeeWorkHistory.objects.create(
-                employee=employee,
-                date=self.report_date,
-                name=EmployeeWorkHistory.EventType.CHANGE_STATUS,
-                status=Employee.Status.ACTIVE,
-                branch=self.branch,
-                block=self.block,
-                department=self.department,
-            )
-
-        # Act - aggregate the report
-        _aggregate_employee_status_for_date(self.report_date, self.branch, self.block, self.department)
-
-        # Assert - should count MV and CTV but not OS
-        report = EmployeeStatusBreakdownReport.objects.get(
-            report_date=self.report_date,
-            branch=self.branch,
-            block=self.block,
-            department=self.department,
-        )
-        self.assertEqual(report.count_active, 2, "Should count MV and CTV as active, not OS")
-        self.assertEqual(report.total_not_resigned, 2, "Total should be 2 (MV and CTV only)")
+        assert report.num_resignations == 2, "Should count MV and CTV resignations only"

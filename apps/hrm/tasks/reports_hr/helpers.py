@@ -5,9 +5,9 @@ This module contains all helper functions used by both event-driven and batch ta
 
 import logging
 from datetime import date, timedelta
-from typing import Any, cast
+from typing import Any
 
-from django.db.models import Exists, F, OuterRef, Q, QuerySet, Value, Window
+from django.db.models import Exists, F, OuterRef, QuerySet, Value, Window
 from django.db.models.functions import Greatest, RowNumber
 
 from apps.hrm.models import (
@@ -81,6 +81,35 @@ def _should_process_employee(data: dict[str, Any]) -> bool:
     return employee_code_type != Employee.CodeType.OS
 
 
+def _should_exclude_employee(employee: Employee) -> bool:
+    """Check if employee should be excluded from reports.
+
+    Employees are excluded if:
+    - code_type is "OS"
+    - position has include_in_employee_report=False
+
+    Args:
+        employee: Employee instance to check
+
+    Returns:
+        bool: True if employee should be excluded, False if should be included
+    """
+    # Exclude OS employees
+    if employee.code_type == Employee.CodeType.OS:
+        return True
+
+    # Exclude employees with positions that have include_in_employee_report=False
+    if employee.position_id:
+        try:
+            position = Position.objects.get(id=employee.position_id)
+            if not position.include_in_employee_report:
+                return True
+        except Position.DoesNotExist:
+            pass
+
+    return False
+
+
 def _get_timeframe_range(event_date: date, timeframe_type: str) -> tuple[date, date]:
     """Get start and end dates for a timeframe."""
     if timeframe_type == StaffGrowthReport.TimeframeType.WEEK:
@@ -97,9 +126,9 @@ def _get_timeframe_range(event_date: date, timeframe_type: str) -> tuple[date, d
     return start, end
 
 
-def _get_event_history_filter(event_type: str) -> dict:
+def _get_event_history_filter(event_type: str) -> dict[str, Any]:
     """Map event_type to EmployeeWorkHistory filter kwargs."""
-    filters = {
+    filters: dict[str, dict[str, Any]] = {
         "resignation": {
             "name": EmployeeWorkHistory.EventType.CHANGE_STATUS,
             "status": Employee.Status.RESIGNED,
@@ -111,14 +140,8 @@ def _get_event_history_filter(event_type: str) -> dict:
         },
     }
 
-    # Check if event types exist before adding them
-    if hasattr(EmployeeWorkHistory.EventType, "INTRODUCTION"):
-        filters["introduction"] = {"name": EmployeeWorkHistory.EventType.INTRODUCTION}
-
-    if hasattr(EmployeeWorkHistory.EventType, "RECRUITMENT_SOURCE"):
-        filters["recruitment_source"] = {"name": EmployeeWorkHistory.EventType.RECRUITMENT_SOURCE}
-
-    return filters.get(event_type, {})
+    result = filters.get(event_type)
+    return result if result is not None else {}
 
 
 def _employee_already_counted_in_timeframe(
@@ -164,7 +187,12 @@ def _record_staff_growth_event(
 
     Updates BOTH weekly and monthly reports. Uses EmployeeWorkHistory to check
     if employee was already counted in the timeframe (excluding current event).
+    Excludes employees with code_type=OS or position.include_in_employee_report=False.
     """
+    # Check if employee should be excluded based on code_type or position
+    if _should_exclude_employee(employee):
+        logger.debug(f"Skipped {event_type} for excluded employee {employee.code}")
+        return
     # Calculate timeframe keys
     week_number = event_date.isocalendar()[1]
     year = event_date.isocalendar()[0]  # ISO year for week
@@ -172,12 +200,12 @@ def _record_staff_growth_event(
     month_key = event_date.strftime("%m/%Y")
 
     # Map event_type to counter field
+    # Note: introduction and recruitment_source are not determined by EventType
+    # They require different logic (e.g., from Employee fields)
     counter_field_map = {
         "resignation": "num_resignations",
         "transfer": "num_transfers",
         "return": "num_returns",
-        "introduction": "num_introductions",
-        "recruitment_source": "num_recruitment_source",
     }
     counter_field = counter_field_map.get(event_type)
     if not counter_field:
@@ -198,9 +226,7 @@ def _record_staff_growth_event(
         if _employee_already_counted_in_timeframe(
             employee.id, event_type, event_id, start_date, end_date, department.id
         ):
-            logger.debug(
-                f"Skipped duplicate {event_type} for {employee.code} in {timeframe_key}"
-            )
+            logger.debug(f"Skipped duplicate {event_type} for {employee.code} in {timeframe_key}")
             continue
 
         # First event for this employee in timeframe → count it
@@ -211,15 +237,13 @@ def _record_staff_growth_event(
             block=block,
             department=department,
             defaults={
-                "report_date": event_date, # BaseReportModel requires report_date
-            }
+                "report_date": event_date,  # BaseReportModel requires report_date
+            },
         )
 
-        setattr(report, counter_field, getattr(report, counter_field) + 1)
-        report.save(update_fields=[counter_field])
-        logger.debug(
-            f"Recorded {event_type} for {employee.code} in {timeframe_key}"
-        )
+        # Use F() expression for atomic increment to prevent race conditions
+        StaffGrowthReport.objects.filter(pk=report.pk).update(**{counter_field: F(counter_field) + 1})
+        logger.debug(f"Recorded {event_type} for {employee.code} in {timeframe_key}")
 
 
 def _remove_staff_growth_event(
@@ -263,28 +287,23 @@ def _remove_staff_growth_event(
         # Check if any OTHER events exist for this employee in timeframe
         # We pass current_event_id to exclude the event being deleted (if it's still visible)
         other_events_exist = _employee_already_counted_in_timeframe(
-             employee_id, event_type, current_event_id, start_date, end_date, department_id
+            employee_id, event_type, current_event_id, start_date, end_date, department_id
         )
 
         if not other_events_exist:
-            # No more events → decrement counter
-            try:
-                report = StaffGrowthReport.objects.get(
-                    timeframe_type=timeframe_type,
-                    timeframe_key=timeframe_key,
-                    branch_id=branch_id,
-                    block_id=block_id,
-                    department_id=department_id,
-                )
-                current_value = getattr(report, counter_field)
-                if current_value > 0:
-                    setattr(report, counter_field, current_value - 1)
-                    report.save(update_fields=[counter_field])
-                    logger.debug(
-                        f"Decremented {event_type} for employee {employee_id} in {timeframe_key}"
-                    )
-            except StaffGrowthReport.DoesNotExist:
-                pass
+            # No more events → decrement counter atomically
+            # Use F() with Greatest() to ensure counter never goes below 0
+            updated = StaffGrowthReport.objects.filter(
+                timeframe_type=timeframe_type,
+                timeframe_key=timeframe_key,
+                branch_id=branch_id,
+                block_id=block_id,
+                department_id=department_id,
+                **{f"{counter_field}__gt": 0},  # Only decrement if > 0
+            ).update(**{counter_field: Greatest(F(counter_field) - 1, Value(0))})
+
+            if updated:
+                logger.debug(f"Decremented {event_type} for employee {employee_id} in {timeframe_key}")
 
 
 def _update_staff_growth_event(
@@ -304,6 +323,7 @@ def _update_staff_growth_event(
 
     Called when an EmployeeWorkHistory record is updated (date or org changed).
     """
+
     # Helper to compare timeframe keys
     def get_keys(d: date) -> tuple[str, str]:
         wn = d.isocalendar()[1]
@@ -323,13 +343,106 @@ def _update_staff_growth_event(
 
     # If changed, treat as remove + add
     _remove_staff_growth_event(
-        employee.id, event_type, old_event_date,
-        old_branch_id, old_block_id, old_department_id,
-        current_event_id=event_id
+        employee.id,
+        event_type,
+        old_event_date,
+        old_branch_id,
+        old_block_id,
+        old_department_id,
+        current_event_id=event_id,
     )
-    _record_staff_growth_event(
-        employee, event_type, new_event_date, event_id,
-        new_branch, new_block, new_department
+    _record_staff_growth_event(employee, event_type, new_event_date, event_id, new_branch, new_block, new_department)
+
+
+def _get_org_objects(data_dict: dict[str, Any]) -> tuple[Branch, Block, Department]:
+    """Get Branch, Block, Department objects from data dict."""
+    return (
+        Branch.objects.get(id=data_dict["branch_id"]),
+        Block.objects.get(id=data_dict["block_id"]),
+        Department.objects.get(id=data_dict["department_id"]),
+    )
+
+
+def _determine_staff_event_type(data_for_type: dict[str, Any]) -> str | None:
+    """Determine staff event type from work history data."""
+    if data_for_type["name"] == EmployeeWorkHistory.EventType.TRANSFER:
+        return "transfer"
+    if data_for_type["name"] == EmployeeWorkHistory.EventType.CHANGE_STATUS:
+        if data_for_type.get("status") == Employee.Status.RESIGNED:
+            return "resignation"
+        if data_for_type.get("status") == Employee.Status.ACTIVE:
+            prev_data = data_for_type.get("previous_data", {})
+            if prev_data and prev_data.get("status") in Employee.Status.get_leave_statuses():
+                return "return"
+    return None
+
+
+def _handle_staff_growth_create(current: dict[str, Any] | None, staff_event_type: str) -> None:
+    """Handle CREATE event for staff growth."""
+    if not isinstance(current, dict) or not _should_process_employee(current):
+        return
+    try:
+        branch, block, department = _get_org_objects(current)
+        emp_id = current.get("employee_id")
+        if not emp_id:
+            logger.warning("Employee ID missing in snapshot")
+            return
+        employee = Employee.objects.get(id=emp_id)
+        event_id = current.get("id", 0)
+        _record_staff_growth_event(employee, staff_event_type, current["date"], event_id, branch, block, department)
+    except (Branch.DoesNotExist, Block.DoesNotExist, Department.DoesNotExist, Employee.DoesNotExist) as e:
+        logger.warning(f"Missing related objects for staff growth create: {e}")
+
+
+def _handle_staff_growth_update(
+    previous: dict[str, Any] | None, current: dict[str, Any] | None, staff_event_type: str
+) -> None:
+    """Handle UPDATE event for staff growth."""
+    if not isinstance(previous, dict) or not isinstance(current, dict):
+        return
+    if not _should_process_employee(current) and not _should_process_employee(previous):
+        return
+    try:
+        emp_id = current.get("employee_id") or previous.get("employee_id")
+        if not emp_id:
+            logger.warning("Employee ID missing in snapshot for update")
+            return
+        employee = Employee.objects.get(id=emp_id)
+        event_id = current.get("id", 0)
+        new_branch, new_block, new_department = _get_org_objects(current)
+        _update_staff_growth_event(
+            employee,
+            staff_event_type,
+            previous["date"],
+            current["date"],
+            event_id,
+            previous["branch_id"],
+            new_branch,
+            previous["block_id"],
+            new_block,
+            previous["department_id"],
+            new_department,
+        )
+    except (Branch.DoesNotExist, Block.DoesNotExist, Department.DoesNotExist, Employee.DoesNotExist) as e:
+        logger.warning(f"Missing related objects for staff growth update: {e}")
+
+
+def _handle_staff_growth_delete(previous: dict[str, Any] | None, staff_event_type: str) -> None:
+    """Handle DELETE event for staff growth."""
+    if not isinstance(previous, dict) or not _should_process_employee(previous):
+        return
+    emp_id = previous.get("employee_id")
+    if emp_id is None:
+        logger.warning("Employee ID missing in delete snapshot")
+        return
+    _remove_staff_growth_event(
+        emp_id,
+        staff_event_type,
+        previous["date"],
+        previous["branch_id"],
+        previous["block_id"],
+        previous["department_id"],
+        current_event_id=previous.get("id"),
     )
 
 
@@ -350,99 +463,22 @@ def _increment_staff_growth(event_type: str, snapshot: dict[str, Any]) -> None:
     previous = snapshot.get("previous")
     current = snapshot.get("current")
 
-    # Helper to extract IDs and objects
-    def get_org_objects(data_dict: dict[str, Any]) -> tuple[Branch, Block, Department]:
-        return (
-            Branch.objects.get(id=data_dict["branch_id"]),
-            Block.objects.get(id=data_dict["block_id"]),
-            Department.objects.get(id=data_dict["department_id"]),
-        )
-
     # Determine specific event type (resignation, transfer, etc.)
-    # We look at 'current' for create/update, 'previous' for delete
     data_for_type = current if current else previous
     if not data_for_type:
         return
 
-    staff_event_type = None
-    if data_for_type["name"] == EmployeeWorkHistory.EventType.TRANSFER:
-        staff_event_type = "transfer"
-    elif data_for_type["name"] == EmployeeWorkHistory.EventType.CHANGE_STATUS:
-        if data_for_type.get("status") == Employee.Status.RESIGNED:
-            staff_event_type = "resignation"
-        elif data_for_type.get("status") == Employee.Status.ACTIVE:
-             # Check return logic
-            prev_data = data_for_type.get("previous_data", {})
-            if prev_data and prev_data.get("status") in Employee.Status.get_leave_statuses():
-                staff_event_type = "return"
-    elif hasattr(EmployeeWorkHistory.EventType, "INTRODUCTION") and data_for_type["name"] == EmployeeWorkHistory.EventType.INTRODUCTION:
-        staff_event_type = "introduction"
-    elif hasattr(EmployeeWorkHistory.EventType, "RECRUITMENT_SOURCE") and data_for_type["name"] == EmployeeWorkHistory.EventType.RECRUITMENT_SOURCE:
-        staff_event_type = "recruitment_source"
-
+    staff_event_type = _determine_staff_event_type(data_for_type)
     if not staff_event_type:
         return
 
     # Process based on event type
     if event_type == "create":
-        if isinstance(current, dict) and _should_process_employee(current):
-            try:
-                branch, block, department = get_org_objects(current)
-
-                emp_id = current.get("employee_id")
-                if not emp_id:
-                     logger.warning("Employee ID missing in snapshot")
-                     return
-
-                employee = Employee.objects.get(id=emp_id)
-
-                # We need event_id for deduplication exception
-                event_id = current.get("id", 0)
-
-                _record_staff_growth_event(
-                    employee, staff_event_type, current["date"], event_id,
-                    branch, block, department
-                )
-
-            except (Branch.DoesNotExist, Block.DoesNotExist, Department.DoesNotExist, Employee.DoesNotExist) as e:
-                logger.warning(f"Missing related objects for staff growth create: {e}")
-
+        _handle_staff_growth_create(current, staff_event_type)
     elif event_type == "update":
-        # Handle update via _update_staff_growth_event
-        if isinstance(previous, dict) and isinstance(current, dict):
-             # Check if we should process
-            if not _should_process_employee(current) and not _should_process_employee(previous):
-                return
-
-            try:
-                emp_id = current.get("employee_id") or previous.get("employee_id")
-                if not emp_id:
-                    logger.warning("Employee ID missing in snapshot for update")
-                    return
-
-                employee = Employee.objects.get(id=emp_id)
-                event_id = current.get("id", 0)
-
-                new_branch, new_block, new_department = get_org_objects(current)
-
-                _update_staff_growth_event(
-                    employee, staff_event_type,
-                    previous["date"], current["date"],
-                    event_id,
-                    previous["branch_id"], new_branch,
-                    previous["block_id"], new_block,
-                    previous["department_id"], new_department
-                )
-            except (Branch.DoesNotExist, Block.DoesNotExist, Department.DoesNotExist, Employee.DoesNotExist) as e:
-                logger.warning(f"Missing related objects for staff growth update: {e}")
-
+        _handle_staff_growth_update(previous, current, staff_event_type)
     elif event_type == "delete":
-        if isinstance(previous, dict) and _should_process_employee(previous):
-            _remove_staff_growth_event(
-                previous.get("employee_id"), staff_event_type, previous["date"],
-                previous["branch_id"], previous["block_id"], previous["department_id"],
-                current_event_id=previous.get("id")
-            )
+        _handle_staff_growth_delete(previous, staff_event_type)
 
 
 def _increment_employee_status(event_type: str, snapshot: dict[str, Any]) -> None:

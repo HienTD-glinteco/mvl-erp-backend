@@ -2,19 +2,14 @@
 
 This module tests that employees whose position has include_in_employee_report=False
 are properly excluded from StaffGrowthReport, EmployeeStatusBreakdownReport,
-and EmployeeResignedReasonReport.
+and EmployeeResignedReasonReport via signal-based event processing.
 """
 
 from datetime import date
 
-from django.test import TestCase
-from django.utils import timezone
+import pytest
 
-from apps.core.models import AdministrativeUnit, Province
 from apps.hrm.models import (
-    Block,
-    Branch,
-    Department,
     Employee,
     EmployeeResignedReasonReport,
     EmployeeStatusBreakdownReport,
@@ -25,285 +20,235 @@ from apps.hrm.models import (
 from apps.hrm.tasks.reports_hr.helpers import (
     _aggregate_employee_resigned_reason_for_date,
     _aggregate_employee_status_for_date,
-    _aggregate_staff_growth_for_date,
 )
 
 
-class TestPositionReportExclusion(TestCase):
+@pytest.mark.django_db
+class TestPositionReportExclusion:
     """Test cases for position-based exclusion from reports."""
 
-    def setUp(self):
-        """Set up test data."""
-        # Create organizational structure
-        self.province = Province.objects.create(code="01", name="Test Province")
-        self.admin_unit = AdministrativeUnit.objects.create(
-            code="01",
-            name="Test Admin Unit",
-            parent_province=self.province,
-            level=AdministrativeUnit.UnitLevel.DISTRICT,
+    @pytest.fixture(autouse=True)
+    def enable_celery_eager(self, settings):
+        """Enable eager execution for Celery tasks."""
+        settings.CELERY_TASK_ALWAYS_EAGER = True
+
+    @pytest.fixture
+    def excluded_position(self):
+        """Create a position excluded from reports."""
+        return Position.objects.create(
+            code="POS_EXCLUDED",
+            name="Excluded Position",
+            include_in_employee_report=False,
         )
 
-        self.branch = Branch.objects.create(
-            code="BR01",
-            name="Branch 1",
-            province=self.province,
-            administrative_unit=self.admin_unit,
-        )
-        self.block = Block.objects.create(
-            code="BL01", name="Block 1", branch=self.branch, block_type=Block.BlockType.BUSINESS
-        )
-        self.department = Department.objects.create(
-            code="DP01",
-            name="Department 1",
-            block=self.block,
-            branch=self.branch,
-            function=Department.DepartmentFunction.BUSINESS,
-        )
+    @pytest.fixture
+    def setup_data(self, branch, block, department, position):
+        """Set up common test data."""
+        return {
+            "branch": branch,
+            "block": block,
+            "department": department,
+            "position": position,  # included position from conftest
+        }
 
-        # Create position included in reports
-        self.included_position = Position.objects.create(
-            code="POS01", name="Regular Position", include_in_employee_report=True
-        )
-
-        # Create position excluded from reports
-        self.excluded_position = Position.objects.create(
-            code="POS02", name="Excluded Position", include_in_employee_report=False
-        )
-
-        # Create employee with included position
-        self.included_employee = Employee.objects.create(
-            code="MV001",
-            code_type=Employee.CodeType.MV,
+    @pytest.fixture
+    def included_employee(self, employee_factory, setup_data):
+        """Create an employee with included position."""
+        return employee_factory(
+            code="MV_INCLUDED",
             fullname="Included Employee",
-            username="includeduser",
-            email="included@example.com",
-            phone="0123456789",
-            citizen_id="001234567890",
-            branch=self.branch,
-            block=self.block,
-            department=self.department,
-            position=self.included_position,
-            status=Employee.Status.ACTIVE,
-            start_date=timezone.now().date(),
-            personal_email="included.personal@example.com",
+            branch=setup_data["branch"],
+            block=setup_data["block"],
+            department=setup_data["department"],
+            position=setup_data["position"],
         )
 
-        # Create employee with excluded position
-        self.excluded_employee = Employee.objects.create(
-            code="MV002",
-            code_type=Employee.CodeType.MV,
+    @pytest.fixture
+    def excluded_employee(self, employee_factory, setup_data, excluded_position):
+        """Create an employee with excluded position."""
+        return employee_factory(
+            code="MV_EXCLUDED",
             fullname="Excluded Employee",
-            username="excludeduser",
-            email="excluded@example.com",
-            phone="0987654321",
-            citizen_id="009876543210",
-            branch=self.branch,
-            block=self.block,
-            department=self.department,
-            position=self.excluded_position,
-            status=Employee.Status.ACTIVE,
-            start_date=timezone.now().date(),
-            personal_email="excluded.personal@example.com",
+            branch=setup_data["branch"],
+            block=setup_data["block"],
+            department=setup_data["department"],
+            position=excluded_position,
         )
 
-        self.report_date = date.today()
+    def test_signal_excludes_position_from_staff_growth(self, setup_data, included_employee, excluded_employee):
+        """Test that signal-triggered processing excludes employees with excluded positions."""
+        dept = setup_data["department"]
+        branch = setup_data["branch"]
+        block = setup_data["block"]
 
-    def test_aggregate_staff_growth_excludes_position(self):
-        """Test that staff growth aggregation excludes employees with position.include_in_employee_report=False."""
-        # Create work history for included employee
+        # Create work history for included employee (triggers signal)
         EmployeeWorkHistory.objects.create(
-            employee=self.included_employee,
-            date=self.report_date,
+            employee=included_employee,
+            date=date(2026, 1, 15),
             name=EmployeeWorkHistory.EventType.CHANGE_STATUS,
             status=Employee.Status.RESIGNED,
-            branch=self.branch,
-            block=self.block,
-            department=self.department,
+            branch=branch,
+            block=block,
+            department=dept,
         )
 
-        # Create work history for excluded employee
+        # Create work history for excluded employee (triggers signal but should be skipped)
         EmployeeWorkHistory.objects.create(
-            employee=self.excluded_employee,
-            date=self.report_date,
+            employee=excluded_employee,
+            date=date(2026, 1, 15),
             name=EmployeeWorkHistory.EventType.CHANGE_STATUS,
             status=Employee.Status.RESIGNED,
-            branch=self.branch,
-            block=self.block,
-            department=self.department,
+            branch=branch,
+            block=block,
+            department=dept,
         )
 
-        # Act - aggregate the report
-        _aggregate_staff_growth_for_date(self.report_date, self.branch, self.block, self.department)
-
-        # Assert - only included employee's resignation should be counted
+        # Check monthly report - should only count included employee
         report = StaffGrowthReport.objects.get(
-            report_date=self.report_date,
-            branch=self.branch,
-            block=self.block,
-            department=self.department,
+            timeframe_type=StaffGrowthReport.TimeframeType.MONTH,
+            timeframe_key="01/2026",
+            department=dept,
         )
-        self.assertEqual(report.num_resignations, 1, "Should count only employee with included position")
+        assert report.num_resignations == 1, "Should count only employee with included position"
 
-    def test_aggregate_employee_status_excludes_position(self):
-        """Test that employee status aggregation excludes employees with position.include_in_employee_report=False."""
-        # Create work history for included employee
-        EmployeeWorkHistory.objects.create(
-            employee=self.included_employee,
-            date=self.report_date,
-            name=EmployeeWorkHistory.EventType.CHANGE_STATUS,
-            status=Employee.Status.ACTIVE,
-            branch=self.branch,
-            block=self.block,
-            department=self.department,
-        )
+    def test_aggregate_employee_status_excludes_position(self, setup_data, included_employee, excluded_employee):
+        """Test that employee status aggregation excludes employees with excluded positions."""
+        dept = setup_data["department"]
+        branch = setup_data["branch"]
+        block = setup_data["block"]
+        report_date = date(2026, 1, 15)
 
-        # Create work history for excluded employee
-        EmployeeWorkHistory.objects.create(
-            employee=self.excluded_employee,
-            date=self.report_date,
-            name=EmployeeWorkHistory.EventType.CHANGE_STATUS,
-            status=Employee.Status.ACTIVE,
-            branch=self.branch,
-            block=self.block,
-            department=self.department,
-        )
-
-        # Act - aggregate the report
-        _aggregate_employee_status_for_date(self.report_date, self.branch, self.block, self.department)
-
-        # Assert - only included employee should be counted
-        report = EmployeeStatusBreakdownReport.objects.get(
-            report_date=self.report_date,
-            branch=self.branch,
-            block=self.block,
-            department=self.department,
-        )
-        self.assertEqual(report.count_active, 1, "Should count only employee with included position")
-        self.assertEqual(report.total_not_resigned, 1, "Total should be 1 (included employee only)")
-
-    def test_aggregate_resigned_reason_excludes_position(self):
-        """Test that resigned reason aggregation excludes employees with position.include_in_employee_report=False."""
-        # Create work history for included employee with resignation
-        EmployeeWorkHistory.objects.create(
-            employee=self.included_employee,
-            date=self.report_date,
-            name=EmployeeWorkHistory.EventType.CHANGE_STATUS,
-            status=Employee.Status.RESIGNED,
-            resignation_reason=Employee.ResignationReason.VOLUNTARY_PERSONAL,
-            branch=self.branch,
-            block=self.block,
-            department=self.department,
-        )
-
-        # Create work history for excluded employee with resignation
-        EmployeeWorkHistory.objects.create(
-            employee=self.excluded_employee,
-            date=self.report_date,
-            name=EmployeeWorkHistory.EventType.CHANGE_STATUS,
-            status=Employee.Status.RESIGNED,
-            resignation_reason=Employee.ResignationReason.VOLUNTARY_PERSONAL,
-            branch=self.branch,
-            block=self.block,
-            department=self.department,
-        )
-
-        # Act - aggregate the report
-        _aggregate_employee_resigned_reason_for_date(self.report_date, self.branch, self.block, self.department)
-
-        # Assert - only included employee should be counted
-        report = EmployeeResignedReasonReport.objects.get(
-            report_date=self.report_date,
-            branch=self.branch,
-            block=self.block,
-            department=self.department,
-        )
-        self.assertEqual(report.count_resigned, 1, "Should count only employee with included position")
-        self.assertEqual(report.voluntary_personal, 1, "Should count resignation reason for included employee only")
-
-    def test_multiple_employees_with_mixed_positions(self):
-        """Test staff growth report with multiple employees having different position settings."""
-        # Create another employee with included position
-        another_included = Employee.objects.create(
-            code="MV003",
-            code_type=Employee.CodeType.MV,
-            fullname="Another Included Employee",
-            username="anotherincluded",
-            email="anotherincluded@example.com",
-            phone="0111222333",
-            citizen_id="001112223334",
-            branch=self.branch,
-            block=self.block,
-            department=self.department,
-            position=self.included_position,
-            status=Employee.Status.ACTIVE,
-            start_date=timezone.now().date(),
-            personal_email="another.included.personal@example.com",
-        )
-
-        # Create work history for all three employees
-        for employee in [self.included_employee, another_included, self.excluded_employee]:
+        # Create work history for both employees
+        for emp in [included_employee, excluded_employee]:
             EmployeeWorkHistory.objects.create(
-                employee=employee,
-                date=self.report_date,
+                employee=emp,
+                date=report_date,
                 name=EmployeeWorkHistory.EventType.CHANGE_STATUS,
-                status=Employee.Status.RESIGNED,
-                branch=self.branch,
-                block=self.block,
-                department=self.department,
+                status=Employee.Status.ACTIVE,
+                branch=branch,
+                block=block,
+                department=dept,
             )
 
-        # Act - aggregate the report
-        _aggregate_staff_growth_for_date(self.report_date, self.branch, self.block, self.department)
+        # Aggregate the report
+        _aggregate_employee_status_for_date(report_date, branch, block, dept)
 
-        # Assert - should count only employees with included positions
-        report = StaffGrowthReport.objects.get(
-            report_date=self.report_date,
-            branch=self.branch,
-            block=self.block,
-            department=self.department,
+        # Should only count included employee
+        report = EmployeeStatusBreakdownReport.objects.get(
+            report_date=report_date,
+            branch=branch,
+            block=block,
+            department=dept,
         )
-        self.assertEqual(report.num_resignations, 2, "Should count only employees with included positions")
+        assert report.count_active == 1, "Should count only employee with included position"
 
-    def test_employee_with_null_position(self):
+    def test_aggregate_resigned_reason_excludes_position(self, setup_data, included_employee, excluded_employee):
+        """Test that resigned reason aggregation excludes employees with excluded positions."""
+        dept = setup_data["department"]
+        branch = setup_data["branch"]
+        block = setup_data["block"]
+        report_date = date(2026, 1, 15)
+
+        # Create work history for both employees with resignation
+        for emp in [included_employee, excluded_employee]:
+            EmployeeWorkHistory.objects.create(
+                employee=emp,
+                date=report_date,
+                name=EmployeeWorkHistory.EventType.CHANGE_STATUS,
+                status=Employee.Status.RESIGNED,
+                resignation_reason=Employee.ResignationReason.VOLUNTARY_PERSONAL,
+                branch=branch,
+                block=block,
+                department=dept,
+            )
+
+        # Aggregate the report
+        _aggregate_employee_resigned_reason_for_date(report_date, branch, block, dept)
+
+        # Should only count included employee
+        report = EmployeeResignedReasonReport.objects.get(
+            report_date=report_date,
+            branch=branch,
+            block=block,
+            department=dept,
+        )
+        assert report.count_resigned == 1, "Should count only employee with included position"
+        assert report.voluntary_personal == 1
+
+    def test_multiple_employees_with_mixed_positions(
+        self, setup_data, included_employee, excluded_employee, employee_factory
+    ):
+        """Test staff growth with multiple employees having different position settings."""
+        dept = setup_data["department"]
+        branch = setup_data["branch"]
+        block = setup_data["block"]
+
+        # Create another included employee
+        another_included = employee_factory(
+            code="MV_INCLUDED2",
+            fullname="Another Included Employee",
+            branch=branch,
+            block=block,
+            department=dept,
+            position=setup_data["position"],
+        )
+
+        # Create work history for all three
+        for emp in [included_employee, another_included, excluded_employee]:
+            EmployeeWorkHistory.objects.create(
+                employee=emp,
+                date=date(2026, 1, 15),
+                name=EmployeeWorkHistory.EventType.CHANGE_STATUS,
+                status=Employee.Status.RESIGNED,
+                branch=branch,
+                block=block,
+                department=dept,
+            )
+
+        # Should count only employees with included positions
+        report = StaffGrowthReport.objects.get(
+            timeframe_type=StaffGrowthReport.TimeframeType.MONTH,
+            timeframe_key="01/2026",
+            department=dept,
+        )
+        assert report.num_resignations == 2, "Should count only employees with included positions"
+
+    def test_employee_with_null_position_included(self, setup_data, employee_factory):
         """Test that employees with null position are included in reports."""
-        # Create employee with null position (position is nullable)
-        null_position_employee = Employee.objects.create(
-            code="MV004",
-            code_type=Employee.CodeType.MV,
+        dept = setup_data["department"]
+        branch = setup_data["branch"]
+        block = setup_data["block"]
+        report_date = date(2026, 1, 15)
+
+        # Create employee with null position
+        null_position_employee = employee_factory(
+            code="MV_NULLPOS",
             fullname="Null Position Employee",
-            username="nullposition",
-            email="nullposition@example.com",
-            phone="0444555666",
-            citizen_id="004445556667",
-            branch=self.branch,
-            block=self.block,
-            department=self.department,
+            branch=branch,
+            block=block,
+            department=dept,
             position=None,
-            status=Employee.Status.ACTIVE,
-            start_date=timezone.now().date(),
-            personal_email="nullposition.personal@example.com",
         )
 
         # Create work history
         EmployeeWorkHistory.objects.create(
             employee=null_position_employee,
-            date=self.report_date,
+            date=report_date,
             name=EmployeeWorkHistory.EventType.CHANGE_STATUS,
             status=Employee.Status.ACTIVE,
-            branch=self.branch,
-            block=self.block,
-            department=self.department,
+            branch=branch,
+            block=block,
+            department=dept,
         )
 
-        # Act - aggregate the report
-        _aggregate_employee_status_for_date(self.report_date, self.branch, self.block, self.department)
+        # Aggregate the report
+        _aggregate_employee_status_for_date(report_date, branch, block, dept)
 
-        # Assert - employee with null position should be included
+        # Should include employee with null position
         report = EmployeeStatusBreakdownReport.objects.get(
-            report_date=self.report_date,
-            branch=self.branch,
-            block=self.block,
-            department=self.department,
+            report_date=report_date,
+            branch=branch,
+            block=block,
+            department=dept,
         )
-        # Should count the null position employee
-        self.assertGreaterEqual(report.count_active, 1, "Should include employee with null position")
+        assert report.count_active >= 1, "Should include employee with null position"

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-18 17:15+0700\n"
+"POT-Creation-Date: 2026-01-18 20:25+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -48,6 +48,7 @@ msgstr "Nhân viên đã có một sự miễn trừ đang hoạt động."
 #: apps/hrm/models/organization.py:98 apps/hrm/models/organization.py:152
 #: apps/hrm/models/recruitment_candidate.py:69
 #: apps/hrm/models/recruitment_reports.py:21
+#: apps/hrm/models/recruitment_reports.py:78
 #: apps/hrm/models/recruitment_request.py:54
 msgid "Branch"
 msgstr "Chi Nhánh"
@@ -62,6 +63,7 @@ msgstr "Chi Nhánh"
 #: apps/hrm/models/organization.py:112 apps/hrm/models/organization.py:153
 #: apps/hrm/models/recruitment_candidate.py:77
 #: apps/hrm/models/recruitment_reports.py:29
+#: apps/hrm/models/recruitment_reports.py:86
 #: apps/hrm/models/recruitment_request.py:62
 msgid "Block"
 msgstr "Khối"
@@ -400,6 +402,7 @@ msgstr "Chức Vụ"
 #: apps/hrm/models/organization.py:182
 #: apps/hrm/models/recruitment_candidate.py:85
 #: apps/hrm/models/recruitment_reports.py:37
+#: apps/hrm/models/recruitment_reports.py:94
 #: apps/hrm/models/recruitment_request.py:70
 msgid "Department"
 msgstr "Phòng Ban"
@@ -742,8 +745,8 @@ msgid "Recruitment Request"
 msgstr "Đề nghị tuyển dụng"
 
 #: apps/hrm/api/serializers/recruitment_candidate_export.py:18
-#: apps/hrm/api/views/recruitment_reports.py:163
-#: apps/hrm/api/views/recruitment_reports.py:820
+#: apps/hrm/api/views/recruitment_reports.py:166
+#: apps/hrm/api/views/recruitment_reports.py:823
 #: apps/hrm/models/recruitment_source.py:27
 msgid "Recruitment Source"
 msgstr "Nguồn tuyển dụng"
@@ -1076,15 +1079,16 @@ msgid "Retrieve employee resigned reasons summary report"
 msgstr "Xem báo cáo Báo cáo Tỉ lệ lý do nghỉ việc"
 
 #: apps/hrm/api/views/employee_reports.py:79
-#: apps/hrm/api/views/recruitment_reports.py:753 apps/hrm/constants.py:80
-#: apps/hrm/constants.py:85 apps/hrm/utils/functions.py:162
+#: apps/hrm/api/views/recruitment_reports.py:756 apps/hrm/constants.py:80
+#: apps/hrm/constants.py:85 apps/hrm/models/recruitment_reports.py:55
+#: apps/hrm/utils/functions.py:162
 msgid "Week"
 msgstr "Tuần"
 
 #: apps/hrm/api/views/employee_reports.py:99
-#: apps/hrm/api/views/recruitment_reports.py:175
-#: apps/hrm/api/views/recruitment_reports.py:937 apps/hrm/constants.py:81
-#: apps/hrm/constants.py:86
+#: apps/hrm/api/views/recruitment_reports.py:178
+#: apps/hrm/api/views/recruitment_reports.py:940 apps/hrm/constants.py:81
+#: apps/hrm/constants.py:86 apps/hrm/models/recruitment_reports.py:56
 msgid "Month"
 msgstr "Tháng"
 
@@ -2581,7 +2585,7 @@ msgid "Inexperienced"
 msgstr "Không có kinh nghiệm"
 
 #: apps/hrm/api/views/recruitment_reports.py:56
-#: apps/hrm/models/recruitment_reports.py:76
+#: apps/hrm/models/recruitment_reports.py:107
 msgid "Staff Growth Report"
 msgstr "Báo cáo tăng trưởng nhân sự"
 
@@ -2590,7 +2594,7 @@ msgid "Aggregate staff changes by period (week/month)"
 msgstr "Báo cáo tổng hợp thay đổi nhân sự theo kỳ (tuần/tháng)"
 
 #: apps/hrm/api/views/recruitment_reports.py:60
-#: apps/hrm/models/recruitment_reports.py:100
+#: apps/hrm/models/recruitment_reports.py:132
 msgid "Recruitment Source Report"
 msgstr "Báo cáo nguồn tuyển dụng"
 
@@ -2603,7 +2607,7 @@ msgstr ""
 "nhau"
 
 #: apps/hrm/api/views/recruitment_reports.py:66
-#: apps/hrm/models/recruitment_reports.py:123
+#: apps/hrm/models/recruitment_reports.py:155
 msgid "Recruitment Channel Report"
 msgstr "Báo cáo kênh tuyển dụng"
 
@@ -2615,7 +2619,7 @@ msgstr ""
 "Tổng hợp thống kê tuyển dụng theo kênh tuyển dụng dưới dạng tổ chức lồng nhau"
 
 #: apps/hrm/api/views/recruitment_reports.py:72
-#: apps/hrm/models/recruitment_reports.py:171
+#: apps/hrm/models/recruitment_reports.py:203
 msgid "Recruitment Cost Report"
 msgstr "Báo cáo chi phí tuyển dụng"
 
@@ -2624,7 +2628,7 @@ msgid "Aggregate recruitment cost data by source type and months"
 msgstr "Tổng hợp dữ liệu chi phí tuyển dụng theo loại nguồn và tháng"
 
 #: apps/hrm/api/views/recruitment_reports.py:76
-#: apps/hrm/models/recruitment_reports.py:227
+#: apps/hrm/models/recruitment_reports.py:259
 msgid "Hired Candidate Report"
 msgstr "Báo cáo Ứng viên Đã Tuyển Dụng"
 
@@ -2648,36 +2652,36 @@ msgstr ""
 "Thống kê chi phí giới thiệu với tóm tắt phòng ban và chi tiết nhân viên cho "
 "một tháng"
 
-#: apps/hrm/api/views/recruitment_reports.py:161
+#: apps/hrm/api/views/recruitment_reports.py:164
 msgid "Introductions"
 msgstr "Giới thiệu"
 
-#: apps/hrm/api/views/recruitment_reports.py:162
+#: apps/hrm/api/views/recruitment_reports.py:165
 msgid "Returns"
 msgstr "Quay lại"
 
-#: apps/hrm/api/views/recruitment_reports.py:164
+#: apps/hrm/api/views/recruitment_reports.py:167
 msgid "Transfers"
 msgstr "Điều chuyển"
 
-#: apps/hrm/api/views/recruitment_reports.py:165
+#: apps/hrm/api/views/recruitment_reports.py:168
 msgid "Resignations"
 msgstr "Nghỉ"
 
-#: apps/hrm/api/views/recruitment_reports.py:685
+#: apps/hrm/api/views/recruitment_reports.py:688
 msgid "No Department"
 msgstr "Không có phòng ban"
 
-#: apps/hrm/api/views/recruitment_reports.py:711
-#: apps/hrm/api/views/recruitment_reports.py:755
+#: apps/hrm/api/views/recruitment_reports.py:714
+#: apps/hrm/api/views/recruitment_reports.py:758
 msgid "Total"
 msgstr "Tổng"
 
-#: apps/hrm/api/views/recruitment_reports.py:815 apps/hrm/constants.py:64
+#: apps/hrm/api/views/recruitment_reports.py:818 apps/hrm/constants.py:64
 msgid "Referral Source"
 msgstr "Giới thiệu"
 
-#: apps/hrm/api/views/recruitment_reports.py:825 apps/hrm/constants.py:68
+#: apps/hrm/api/views/recruitment_reports.py:828 apps/hrm/constants.py:68
 msgid "Returning Employee"
 msgstr "Quay lại"
 
@@ -3435,7 +3439,7 @@ msgstr "Lần đồng bộ cuối"
 #: apps/hrm/models/employee_work_history.py:108
 #: apps/hrm/models/interview_schedule.py:31
 #: apps/hrm/models/job_description.py:25
-#: apps/hrm/models/monthly_timesheet.py:133 apps/hrm/models/proposal.py:848
+#: apps/hrm/models/monthly_timesheet.py:134 apps/hrm/models/proposal.py:848
 #: apps/hrm/models/proposal.py:920 apps/hrm/models/recruitment_candidate.py:119
 #: apps/hrm/models/recruitment_candidate_contact_log.py:20
 #: apps/hrm/models/recruitment_expense.py:73 apps/hrm/models/timesheet.py:171
@@ -3464,10 +3468,10 @@ msgstr "Đã tắt"
 #: apps/hrm/models/employee_dependent.py:50
 #: apps/hrm/models/employee_relationship.py:54
 #: apps/hrm/models/employee_work_history.py:67
-#: apps/hrm/models/monthly_timesheet.py:33 apps/hrm/models/proposal.py:829
+#: apps/hrm/models/monthly_timesheet.py:34 apps/hrm/models/proposal.py:829
 #: apps/hrm/models/recruitment_candidate.py:134
 #: apps/hrm/models/recruitment_candidate_contact_log.py:16
-#: apps/hrm/models/recruitment_reports.py:214 apps/hrm/models/timesheet.py:45
+#: apps/hrm/models/recruitment_reports.py:246 apps/hrm/models/timesheet.py:45
 msgid "Employee"
 msgstr "Nhân sự"
 
@@ -4515,74 +4519,73 @@ msgstr "Mô tả công việc"
 msgid "Job Descriptions"
 msgstr "Mô tả công việc"
 
-#: apps/hrm/models/monthly_timesheet.py:37
+#: apps/hrm/models/monthly_timesheet.py:38
 msgid "Report date"
 msgstr "Ngày báo cáo"
 
-#: apps/hrm/models/monthly_timesheet.py:39
-#: apps/hrm/models/recruitment_reports.py:57
-#: apps/hrm/models/recruitment_reports.py:152
-#: apps/hrm/models/recruitment_reports.py:198
+#: apps/hrm/models/monthly_timesheet.py:40
+#: apps/hrm/models/recruitment_reports.py:184
+#: apps/hrm/models/recruitment_reports.py:230
 msgid "Month key"
 msgstr "Tháng"
 
-#: apps/hrm/models/monthly_timesheet.py:43
+#: apps/hrm/models/monthly_timesheet.py:44
 msgid "Probation working days"
 msgstr "Ngày làm việc thử việc"
 
-#: apps/hrm/models/monthly_timesheet.py:46
+#: apps/hrm/models/monthly_timesheet.py:47
 msgid "Official working days"
 msgstr "Ngày làm việc chính thức"
 
-#: apps/hrm/models/monthly_timesheet.py:49
+#: apps/hrm/models/monthly_timesheet.py:50
 msgid "Total working days"
 msgstr "Tổng số ngày làm việc"
 
-#: apps/hrm/models/monthly_timesheet.py:54 apps/hrm/models/timesheet.py:86
+#: apps/hrm/models/monthly_timesheet.py:55 apps/hrm/models/timesheet.py:86
 msgid "Official hours"
 msgstr "Giờ làm việc chính thức"
 
-#: apps/hrm/models/monthly_timesheet.py:60 apps/hrm/models/timesheet.py:94
+#: apps/hrm/models/monthly_timesheet.py:61 apps/hrm/models/timesheet.py:94
 msgid "Overtime hours"
 msgstr "Làm việc ngoài giờ (OT)"
 
-#: apps/hrm/models/monthly_timesheet.py:85 apps/hrm/models/timesheet.py:89
+#: apps/hrm/models/monthly_timesheet.py:86 apps/hrm/models/timesheet.py:89
 msgid "Total worked hours"
 msgstr "Tổng số giờ làm việc"
 
-#: apps/hrm/models/monthly_timesheet.py:90
+#: apps/hrm/models/monthly_timesheet.py:91
 msgid "Late coming minutes"
 msgstr "Số phút đi muộn"
 
-#: apps/hrm/models/monthly_timesheet.py:91
+#: apps/hrm/models/monthly_timesheet.py:92
 msgid "Early leaving minutes"
 msgstr "Số phút về sớm"
 
-#: apps/hrm/models/monthly_timesheet.py:92
+#: apps/hrm/models/monthly_timesheet.py:93
 msgid "Total penalty count"
 msgstr "Tổng số lần bị phạt"
 
-#: apps/hrm/models/monthly_timesheet.py:96
+#: apps/hrm/models/monthly_timesheet.py:97
 msgid "Paid leave days"
 msgstr "Nghỉ phép có lương"
 
-#: apps/hrm/models/monthly_timesheet.py:99
+#: apps/hrm/models/monthly_timesheet.py:100
 msgid "Unpaid leave days"
 msgstr "Nghỉ không lương"
 
-#: apps/hrm/models/monthly_timesheet.py:102
+#: apps/hrm/models/monthly_timesheet.py:103
 msgid "Maternity leave days"
 msgstr "Nghỉ việc hưởng chế độ thai sản"
 
-#: apps/hrm/models/monthly_timesheet.py:105
+#: apps/hrm/models/monthly_timesheet.py:106
 msgid "Public holiday days"
 msgstr "Nghỉ lễ"
 
-#: apps/hrm/models/monthly_timesheet.py:108
+#: apps/hrm/models/monthly_timesheet.py:109
 msgid "Unexcused absence days"
 msgstr "Nghỉ không lý do"
 
-#: apps/hrm/models/monthly_timesheet.py:117
+#: apps/hrm/models/monthly_timesheet.py:118
 msgid ""
 "Carried over leave from last year. Only applied for January. After that, "
 "this field must be set to 0."
@@ -4590,27 +4593,27 @@ msgstr ""
 "Giữ lại số ngày nghỉ từ năm trước. Chỉ áp dụng cho tháng 1. Sau đó, trường "
 "này phải được đặt về 0."
 
-#: apps/hrm/models/monthly_timesheet.py:121
+#: apps/hrm/models/monthly_timesheet.py:122
 msgid "Opening balance leave days"
 msgstr "Số ngày nghỉ đầu kỳ"
 
-#: apps/hrm/models/monthly_timesheet.py:124
+#: apps/hrm/models/monthly_timesheet.py:125
 msgid "Generated leave days"
 msgstr "Số ngày nghỉ phát sinh"
 
-#: apps/hrm/models/monthly_timesheet.py:127
+#: apps/hrm/models/monthly_timesheet.py:128
 msgid "Consumed leave days"
 msgstr "Số ngày nghỉ đã sử dụng"
 
-#: apps/hrm/models/monthly_timesheet.py:130
+#: apps/hrm/models/monthly_timesheet.py:131
 msgid "Remaining leave days"
 msgstr "Số ngày nghỉ còn lại"
 
-#: apps/hrm/models/monthly_timesheet.py:137
+#: apps/hrm/models/monthly_timesheet.py:138
 msgid "Employee monthly timesheet"
 msgstr "Bảng chấm công hàng tháng của nhân viên"
 
-#: apps/hrm/models/monthly_timesheet.py:138
+#: apps/hrm/models/monthly_timesheet.py:139
 msgid "Employee monthly timesheets"
 msgstr "Bảng chấm công hàng tháng của nhân viên"
 
@@ -5213,13 +5216,13 @@ msgstr "Tên ứng viên"
 
 #: apps/hrm/models/recruitment_candidate.py:93
 #: apps/hrm/models/recruitment_expense.py:22
-#: apps/hrm/models/recruitment_reports.py:95
+#: apps/hrm/models/recruitment_reports.py:127
 msgid "Recruitment source"
 msgstr "Nguồn tuyển dụng"
 
 #: apps/hrm/models/recruitment_candidate.py:99
 #: apps/hrm/models/recruitment_expense.py:28
-#: apps/hrm/models/recruitment_reports.py:118
+#: apps/hrm/models/recruitment_reports.py:150
 msgid "Recruitment channel"
 msgstr "Kênh tuyển dụng"
 
@@ -5297,12 +5300,12 @@ msgid "Number of candidates participated"
 msgstr "Số ứng viên tham gia"
 
 #: apps/hrm/models/recruitment_expense.py:43
-#: apps/hrm/models/recruitment_reports.py:160
+#: apps/hrm/models/recruitment_reports.py:192
 msgid "Total cost"
 msgstr "Tổng chi phí"
 
 #: apps/hrm/models/recruitment_expense.py:47
-#: apps/hrm/models/recruitment_reports.py:219
+#: apps/hrm/models/recruitment_reports.py:251
 msgid "Number of candidates hired"
 msgstr "Số ứng viên được nhận việc"
 
@@ -5352,51 +5355,58 @@ msgstr ""
 msgid "Referrer and referee cannot be the same person."
 msgstr "Người giới thiệu và người được giới thiệu không thể là cùng một người."
 
-#: apps/hrm/models/recruitment_reports.py:63
-#: apps/hrm/models/recruitment_reports.py:204
-msgid "Week key"
-msgstr "Tuần"
+#: apps/hrm/models/recruitment_reports.py:62
+msgid "Timeframe type"
+msgstr "Loại thời gian"
 
-#: apps/hrm/models/recruitment_reports.py:69
+#: apps/hrm/models/recruitment_reports.py:68
+msgid "Timeframe key"
+msgstr "Khóa thời gian"
+
+#: apps/hrm/models/recruitment_reports.py:100
 msgid "Number of introductions"
 msgstr "Giới thiệu"
 
-#: apps/hrm/models/recruitment_reports.py:70
+#: apps/hrm/models/recruitment_reports.py:101
 msgid "Number of returns"
 msgstr "Quay lại"
 
-#: apps/hrm/models/recruitment_reports.py:71
+#: apps/hrm/models/recruitment_reports.py:102
 msgid "Number of new recruitment source"
 msgstr "Nguồn phòng tuyển dụng"
 
-#: apps/hrm/models/recruitment_reports.py:72
+#: apps/hrm/models/recruitment_reports.py:103
 msgid "Number of transfers"
 msgstr "Điều chuyển"
 
-#: apps/hrm/models/recruitment_reports.py:73
+#: apps/hrm/models/recruitment_reports.py:104
 msgid "Number of resignations"
 msgstr "Nghỉ"
 
-#: apps/hrm/models/recruitment_reports.py:77
+#: apps/hrm/models/recruitment_reports.py:108
 msgid "Staff Growth Reports"
 msgstr "Báo cáo tăng trưởng nhân sự"
 
-#: apps/hrm/models/recruitment_reports.py:97
-#: apps/hrm/models/recruitment_reports.py:120
-#: apps/hrm/models/recruitment_reports.py:162
+#: apps/hrm/models/recruitment_reports.py:129
+#: apps/hrm/models/recruitment_reports.py:152
+#: apps/hrm/models/recruitment_reports.py:194
 msgid "Number of hires"
 msgstr "Số người được tuyển"
 
-#: apps/hrm/models/recruitment_reports.py:148
-#: apps/hrm/models/recruitment_reports.py:194
+#: apps/hrm/models/recruitment_reports.py:180
+#: apps/hrm/models/recruitment_reports.py:226
 msgid "Source type"
 msgstr ""
 
-#: apps/hrm/models/recruitment_reports.py:167
+#: apps/hrm/models/recruitment_reports.py:199
 msgid "Average cost per hire"
 msgstr "Chi phí trung bình cho mỗi người được tuyển"
 
-#: apps/hrm/models/recruitment_reports.py:222
+#: apps/hrm/models/recruitment_reports.py:236
+msgid "Week key"
+msgstr "Tuần"
+
+#: apps/hrm/models/recruitment_reports.py:254
 msgid "Number of experienced candidates"
 msgstr "Số ứng viên có kinh nghiệm"
 
