@@ -1,0 +1,94 @@
+[
+    {
+        "name": "Ngân hàng TMCP Việt Nam Thịnh Vượng",
+        "code": "VPBank"
+    },
+    {
+        "name": "Ngân hàng TMCP Ngoại thương Việt Nam",
+        "code": "Vietcombank"
+    },
+    {
+        "name": "Ngân hàng Thương mại Cổ phần Công Thương Việt Nam",
+        "code": "Vietinbank"
+    },
+    {
+        "name": "Ngân hàng Đầu tư và Phát triển Việt Nam",
+        "code": "BIDV"
+    },
+    {
+        "name": "Ngân hàng Thương mại Cổ phần Quân Đội",
+        "code": "MB"
+    },
+    {
+        "name": "Ngân hàng Thương mại Cổ phần Á Châu",
+        "code": "ACB"
+    },
+    {
+        "name": "Ngân hàng Thương mại Cổ phần Sài Gòn – Hà Nội",
+        "code": "SHB"
+    },
+    {
+        "name": "Ngân hàng Thương mại Cổ phần Phát triển Thành phố Hồ Chí Minh",
+        "code": "HDBank"
+    },
+    {
+        "name": "Ngân hàng Thương mại Cổ phần Quốc tế Việt Nam",
+        "code": "VIB"
+    },
+    {
+        "name": "Ngân hàng Thương mại Cổ phần Đông Nam Á",
+        "code": "SeABank"
+    },
+    {
+        "name": "Ngân hàng Thương mại Cổ phần Tiên Phong",
+        "code": "TPBank"
+    },
+    {
+        "name": "Ngân hàng Thương mại Cổ phần Hàng Hải Việt Nam",
+        "code": "MSB"
+    },
+    {
+        "name": "Ngân hàng Thương mại Cổ phần Lộc Phát Việt Nam",
+        "code": "LPBank"
+    },
+    {
+        "name": "Ngân hàng Thương mại Cổ phần Phương Đông",
+        "code": "OCB"
+    },
+    {
+        "name": "Ngân hàng Thương mại Cổ phần Sài Gòn",
+        "code": "SCB"
+    },
+    {
+        "name": "Ngân hàng Thương mại Cổ phần Sài Gòn Thương Tín",
+        "code": "Sacombank"
+    },
+    {
+        "name": "Ngân hàng Thương mại Cổ phần Xuất Nhập Khẩu Việt Nam",
+        "code": "Eximbank"
+    },
+    {
+        "name": "Ngân hàng Thương mại Cổ phần Nam Á",
+        "code": "Nam A Bank"
+    },
+    {
+        "name": "Ngân hàng Thương mại Cổ phần An Bình",
+        "code": "ABBank"
+    },
+    {
+        "name": "Ngân hàng Thương mại Cổ phần Bắc Á",
+        "code": "Bac A Bank"
+    },
+    {
+        "name": "Ngân hàng Thương mại Cổ phần Việt Nam Thương Tín",
+        "code": "VietBank"
+    },
+    {
+        "name": "Ngân hàng Nông nghiệp và Phát triển Nông thôn Việt Nam",
+        "code": "Agribank"
+    },
+    {
+        "name": "Ngân hàng Thương mại TNHH MTV Đại Dương",
+        "code": "OceanBank"
+    }
+]
